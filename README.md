@@ -18,8 +18,8 @@ This document describes the process for implementing remote diagnosis & OTA with
 - **GitHub**
   - **Main Branch**: "master".
   - From "master" we start with 2 development branches for "DEV_BE" and "DEV_FE".
-  - From "DEV_BE" we have feature branches for each task with the following format feature<UDS/OTA>_<task1> and feature<UTEST>_<task1>.
-  - From "DEV_FE" we have feature branches for each task with the following format feature/<API_call>_<task1> and feature/<TEST>_<task1>.
+  - From "DEV_BE" -> feature branches with the following format: feature/<UDS/OTA>_<task_nr> and feature/<UTEST>_<task_nr>.
+  - From "DEV_FE" -> feature branches with the following format: feature/<API_call>_<task_nr> and feature/<TEST>_<task_nr>.
 
 - **Branching Schema**: [Branching.drawio](Branching.drawio)
 - **Documentation for Branching Strategy**: [Branching Strategies for Development Teams](https://connect2grp.medium.com/branching-strategies-for-the-development-teams-95cafd7806c4)
