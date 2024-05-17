@@ -22,6 +22,7 @@ public:
 
     SocketCanInterface(const std::string& interfaceName);
 
+    inline void callSystem(std::string& cmd) const;
     bool createLinuxVCanInterface();
     void connectLinuxVCanInterfaces(std::string& sourceInterface, std::string& destinationInterface);
     void deleteLinuxVCanInterface();

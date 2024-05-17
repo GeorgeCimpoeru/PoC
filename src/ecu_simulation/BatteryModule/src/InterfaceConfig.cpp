@@ -21,24 +21,36 @@ SocketCanInterface::SocketCanInterface(const std::string& interfaceName) : _inte
 
 }
 
+void SocketCanInterface::callSystem(std::string& cmd) const
+{
+    if(system(cmd.c_str()) != 0)
+    {
+        std::cout << cmd << " failed\n";
+        exit(EXIT_FAILURE);
+    }
+}
 bool SocketCanInterface::createLinuxVCanInterface()
 {
     std::string cmd = "ip link add " + _interfaceName + " type vcan";
-    system(cmd.c_str());
+    callSystem(cmd);
 
     cmd = "ip link set " + _interfaceName + " up";
-    system(cmd.c_str());
+    callSystem(cmd);
 }
 
 void SocketCanInterface::connectLinuxVCanInterfaces(std::string& sourceInterface, std::string& destinationInterface)
 {
     std::string cmd = "cangw -A -s " + sourceInterface + " -d " + destinationInterface + " -e";
-    system(cmd.c_str());
+    callSystem(cmd);
 }
 
 void SocketCanInterface::deleteLinuxVCanInterface()
 {
-    
+    std::string cmd = "link set " + _interfaceName + " down";
+    callSystem(cmd);
+
+    cmd = "ip link delete " + _interfaceName + " type can";
+    callSystem(cmd);
 }
 
 bool SocketCanInterface::open()
