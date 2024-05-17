@@ -1,7 +1,14 @@
 #include "create_frame.h"
 
-struct can_frame CreateCanFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) {
-    struct can_frame frame;
+CANFrame::CANFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) {
+    CreateFrame(frameType, can_id, data, dlc);
+}
+
+CANFrame::~CANFrame() {
+    // Destructor (no dynamic allocation to clean up)
+}
+
+void CANFrame::CreateFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) {
     frame.can_id = can_id;
 
     switch (frameType) {
@@ -26,10 +33,9 @@ struct can_frame CreateCanFrame(FrameType frameType, uint32_t can_id, const uint
         default:
             throw std::invalid_argument("Invalid frame type");
     }
-    return frame;
 }
 
-int SendCanFrame(const std::string& interface, struct can_frame& frame) {
+int CANFrame::SendFrame(const std::string& interface) {
     int s = socket(PF_CAN, SOCK_RAW, CAN_RAW);
     if (s < 0) {
         perror("Socket");

@@ -2,7 +2,6 @@
 #define CREATE_FRAME_H
 
 #include <linux/can.h>
-#include <linux/can/raw.h>
 #include <string>
 #include <cstring>
 #include <stdexcept>
@@ -20,10 +19,19 @@ enum FrameType {
     OVERLOAD_FRAME
 };
 
-// Function to create a CAN frame
-struct can_frame CreateCanFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc);
+class CANFrame {
+public:
+    CANFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc);
+    ~CANFrame();
+    
+    // Function to send a CAN frame
+    int SendFrame(const std::string& interface);
 
-// Function to send a CAN frame
-int SendCanFrame(const std::string& interface, struct can_frame& frame);
+private:
+    struct can_frame frame;
 
-#endif // CREATE_FRAME_H
+    // Function to create a CAN frame
+    void CreateFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc);
+};
+
+#endif
