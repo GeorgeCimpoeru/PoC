@@ -4,10 +4,6 @@ CANFrame::CANFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, ui
     CreateFrame(frameType, can_id, data, dlc);
 }
 
-CANFrame::~CANFrame() {
-    // Destructor (no dynamic allocation to clean up)
-}
-
 void CANFrame::CreateFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) {
     frame.can_id = can_id;
 
