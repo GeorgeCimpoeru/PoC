@@ -21,7 +21,6 @@ function createRule()
     echo "Waiting 5 sec to read more interfaces"
     sleep 5
     lst_int=$(ifconfig | grep vcan* | cut -d ':' -f 1)
-
     #Enable can-gw kernel module
     sudo modprobe can-gw 
     #Create rules between interfaces

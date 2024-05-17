@@ -4,7 +4,6 @@ GenerateFrames::GenerateFrames(int socket)
 {
     this->AddSocket(socket);
 }
-
 struct can_frame GenerateFrames::CreateFrame(int &id,  std::vector<int> &data)
 {
     struct can_frame frame;
@@ -16,7 +15,6 @@ struct can_frame GenerateFrames::CreateFrame(int &id,  std::vector<int> &data)
     }
     return frame;
 }
-
 bool GenerateFrames::SendFrame(int id,  std::vector<int> data)
 {
     struct can_frame frame = CreateFrame(id, data);
@@ -28,7 +26,6 @@ bool GenerateFrames::SendFrame(int id,  std::vector<int> data)
     }
     return 0;
 }
-
 void GenerateFrames::AddSocket(int socket)
 {
     if (socket >= 0)
@@ -39,7 +36,7 @@ void GenerateFrames::AddSocket(int socket)
     std::cout<<"Error: Pass a valid Socket\n";
     exit(EXIT_FAILURE);
 }
-void GenerateFrames::SessionControl(int id, int sub_function, bool response=false)
+void GenerateFrames::SessionControl(int id, int sub_function, bool response)
 {
     std::vector<int> data(3);
     if (!response)
@@ -52,7 +49,7 @@ void GenerateFrames::SessionControl(int id, int sub_function, bool response=fals
     this->SendFrame(id, data);
     return;
 }
-void GenerateFrames::EcuReset(int id, bool response=false)
+void GenerateFrames::EcuReset(int id, bool response)
 {
     std::vector<int> data(3);
     if (!response)
@@ -65,7 +62,7 @@ void GenerateFrames::EcuReset(int id, bool response=false)
     this->SendFrame(id, data);
     return;
 }
-void GenerateFrames::AuthenticationRequestSeed(int id, bool response=false, const std::vector<int> &seed = {})
+void GenerateFrames::AuthenticationRequestSeed(int id, bool response, const std::vector<int> &seed)
 {
     if (!response)
     {
@@ -83,7 +80,7 @@ void GenerateFrames::AuthenticationRequestSeed(int id, bool response=false, cons
     this->SendFrame(id, data);
     return;
 }
-void GenerateFrames::AuthenticationSendKey(int id, std::vector<int> &key, bool response=false)
+void GenerateFrames::AuthenticationSendKey(int id, std::vector<int> &key, bool response)
 {
     if (!response)
     {
@@ -102,11 +99,11 @@ void GenerateFrames::AuthenticationSendKey(int id, std::vector<int> &key, bool r
     return;
 }
 //Incomplete
-void GenerateFrames::RoutineControl(int id, bool response=false)
+void GenerateFrames::RoutineControl(int id, bool response)
 {
     
 }
-void GenerateFrames::TesterPresent(int id, bool response=false)
+void GenerateFrames::TesterPresent(int id, bool response)
 {
     if (!response)
     {
@@ -117,42 +114,102 @@ void GenerateFrames::TesterPresent(int id, bool response=false)
     std::vector<int> data = {0x02,0x7E,0x00};
     this->SendFrame(id, data);
     return;
-    //Incomplete: According to documentation, maybe is necessary to implement
+    //According to documentation, maybe is necessary to implement
     //more subfunctions for this Service frame
     //  |
     //  V
 }
-void GenerateFrames::ReadDataByIdentifier(int id,int identifier, std::vector<int> response = {})
+void GenerateFrames::ReadDataByIdentifier(int id,int identifier, std::vector<int> response )
 {
     if (response.size() == 0)
     {
-        std::vector<int> data = {0x02,0x22,identifier/0x100,identifier%0x100};
+        std::vector<int> data = {0x03, 0x22, identifier/0x100, identifier%0x100};
         this->SendFrame(id, data);
         return;
     }
-    for (int i = 0; i < response.size() / 5; i++)
+    int length_response = response.size();
+    if (length_response <= 4)
     {
-        std::vector<int> data = {0x02,0x62,identifier/0x100,identifier%0x100};
-        for (int j = 0; j < 5 || ((i*5) + j) >= response.size(); j++)
+        std::vector<int> data = {0x03, 0x62, identifier/0x100, identifier%0x100};
+        for (int i = 0; i < length_response; i++)
         {
-            data.push_back(response[(i*5)+j]);
+            data.push_back(response[i]);
         }
         this->SendFrame(id, data);
+        return;
     }
+    std::cout<<"ERROR: The frame is to long!, consider using method ReadDataByIdentifierLongResponse\n";
     return;
-    //Incomplete: According to documentation, the frame can
+    //According to documentation, the frame can
     //request more than one DID. Future implementation
     //  |
     //  V
 }
-void GenerateFrames::ReadMemoryByAdress(int id, int address_and_length_identifier, int memory_size, int memory_address, std::vector<int> response = {})
+void GenerateFrames::GenerateFrameLongData(int id, int sid, int identifier, std::vector<int> response, bool first_frame)
 {
-    if (response.size() == 0)
+    if (first_frame)
     {
-        std::vector<int> data = {0x23, address_and_length_identifier,memory_size/100,memory_size%100,memory_address/100,memory_address%100};
+        std::vector<int> data = {0x10, (int)response.size(), sid, identifier/0x100, identifier%0x100};
+        //Send only 3 first bytes of data
+        for (int i = 0; i < 3; i++)
+        {
+            data.push_back(response[i]);
+        }
         this->SendFrame(id, data);
         return;
     }
+    else
+    {
+        //Delete first 3 data that were sended in the first frame
+        response.erase(response.begin(), response.begin() + 3);
+        int size_of_response = response.size();
+        std::vector<int> data;
+        for (int i = 0; i <= size_of_response / 7; i++)
+        {
+            data = {0x20+i};
+            for (int j = 0; j < 7 && ((i*7) + j) < size_of_response; j++)
+            {
+                data.push_back(response[(i*7)+j]);
+            }
+            this->SendFrame(id, data);
+        }
+        return;
+    } 
+}
+void GenerateFrames::ReadDataByIdentifierLongResponse(int id,int identifier, std::vector<int> response, bool first_frame)
+{
+    GenerateFrameLongData(id,0x22,identifier,response,first_frame);
+}
+void GenerateFrames::FlowControlFrame(int id)
+{
+    this->SendFrame(id, {0x30,0x00,0x00,0x00});
+}
+//Need more information from standar do handle long responses
+void GenerateFrames::ReadMemoryByAdress(int id, int memory_size, int memory_address, std::vector<int> response )
+{
+    if (response.size() == 0)
+    {
+        //add lengths of of memory size/address to the frame
+        int length_memory_size = numDigits(memory_size) / 2;
+        int length_memory_address = numDigits(memory_address) / 2;
+        int length_memory = length_memory_address * 0x10 + length_memory_size;
+        std::vector<int> data = {0x23, length_memory};
+        //add memory address and size to the frame
+        insertBytes(data, memory_address, length_memory_address);
+        insertBytes(data, memory_size, length_memory_size);
+        this->SendFrame(id, data);
+        return;
+    }
+    //add lengths of of memory size/address to the frame
+    int length_memory_size = numDigits(memory_size) / 2;
+    int length_memory_address = numDigits(memory_address) / 2;
+    int length_memory = length_memory_size * 10 + length_memory_address;
+    std::vector<int> data = {0x63, length_memory};
+    //add memory address and size to the frame
+    insertBytes(data, memory_address, length_memory_address);
+    insertBytes(data, memory_size, length_memory_size);
+    //Need major changes
+    /*
     for (int i = 0; i < response.size() / 8; i++)
     {
         std::vector<int> data = {0x063};
@@ -162,34 +219,46 @@ void GenerateFrames::ReadMemoryByAdress(int id, int address_and_length_identifie
         }
         this->SendFrame(id, data);
     }
+    */
     return;
 }
-void GenerateFrames::WriteDataByIdentifier(int id, int identifier, std::vector<int> data_parameter = {})
+void GenerateFrames::WriteDataByIdentifier(int id, int identifier, std::vector<int> data_parameter )
 {
     if (data_parameter.size() > 0)
     {
-        for (int i = 0; i < data_parameter.size() / 6; i++)
+        if (data_parameter.size() <= 4)
         {
-            std::vector<int> data = {0x6E, identifier/100,identifier%100};
-            for (int j = 0; j < 6 || ((i*6) + j) >= data_parameter.size(); j++)
+            for (int i = 0; i <= data_parameter.size() / 6; i++)
             {
-                data.push_back(data_parameter[(i*6)+j]);
+                std::vector<int> data = {0x6E, identifier/100,identifier%100};
+                for (int j = 0; j < 6 || ((i*6) + j) >= data_parameter.size(); j++)
+                {
+                    data.push_back(data_parameter[(i*6)+j]);
+                }
+                this->SendFrame(id, data);
             }
-            this->SendFrame(id, data);
+            return;
         }
-        return;
+        else
+        {
+            std::cout<<"The data_parameter is to long. Consider using WriteDataByIdentifierLongData method\n";
+            return;
+        }
     }
     std::vector<int> data = {0x6E, identifier/100,identifier%100};
     this->SendFrame(id, data);
     return;
 }
-//Incomplete: This next three method (ReadDtcInformation, ClearDiagnosticInfirmation,
-//AccessTimingParameters) need to be improved
-void GenerateFrames::ReadDtcInformation(int id, bool response=false)
+void GenerateFrames::WriteDataByIdentifierLongData(int id, int identifier, std::vector<int> data_parameter, bool first_frame)
+{
+    GenerateFrameLongData(id,0x2E,identifier,data_parameter,first_frame);
+}
+//Incomplete: This method need to be improved for response
+void GenerateFrames::ReadDtcInformation(int id, int sub_function, int dtc_status_mask, bool response)
 {
     if (!response)
     {
-        std::vector<int> data = {0x19};
+        std::vector<int> data = {0x03, 0x19, sub_function, dtc_status_mask};
         this->SendFrame(id, data);
         return;
     }
@@ -197,19 +266,30 @@ void GenerateFrames::ReadDtcInformation(int id, bool response=false)
     this->SendFrame(id, data);
     return;
 }
-void GenerateFrames::ClearDiagnosticInfirmation(int id, bool response=false)
+void GenerateFrames::ClearDiagnosticInformation(int id, std::vector<int> group_of_dtc, bool response)
 {
+    std::vector<int> data;
     if (!response)
-    {
-        std::vector<int> data = {0x14};
-        this->SendFrame(id, data);
+    { 
+        int number_of_dtc = group_of_dtc.size();
+        for (int i = 0; i <= number_of_dtc / 7; i++)
+        {
+            int pci_length = number_of_dtc - (6 * i) > 6? 7 : (number_of_dtc % 6) + 1;
+            data = {pci_length ,0x14};
+            for (int j = 0; j < 6 && ((i*6) + j) < number_of_dtc; j++)
+            {
+                data.push_back(group_of_dtc[(i*6)+j]);
+            }
+            this->SendFrame(id, data);
+        }
         return;
     }
-    std::vector<int> data = {0x54};
+    data = {0x1, 0x54};
     this->SendFrame(id, data);
     return;
 }
-void GenerateFrames::AccessTimingParameters(int id, bool response=false)
+//Incomplete: This method need to be improved
+void GenerateFrames::AccessTimingParameters(int id, bool response)
 {
     if (!response)
     {
@@ -221,29 +301,34 @@ void GenerateFrames::AccessTimingParameters(int id, bool response=false)
     this->SendFrame(id, data);
     return;
 }
-void GenerateFrames::NegativeResponse(int id, int nrc, bool response=false)
+void GenerateFrames::NegativeResponse(int id, int nrc, bool response)
 {
 
 }
-//Incomplete:Need to be improved!!!
-void GenerateFrames::RequestDownload(int id, int data_format_identifier, int address_length_identifier,
-                                     int memory_address, int memory_size, bool response=false)
+void GenerateFrames::RequestDownload(int id, int data_format_identifier, int memory_address, int memory_size, int max_number_block)
 {
-    if (!response)
+    if (!max_number_block)
     {
-        std::vector<int> data = {/*Length*/0x7,0x34, data_format_identifier,address_length_identifier,memory_address,memory_size};
+        //add lengths of of memory size/address to the frame
+        int length_memory_size = numDigits(memory_size) / 2;
+        int length_memory_address = numDigits(memory_address) / 2;
+        int length_memory = length_memory_address * 0x10 + length_memory_size;
+        int pci_length = length_memory_size + length_memory_address + 3;
+        std::vector<int> data = {pci_length, 0x34, data_format_identifier, length_memory};
+        //add memory address and size to the frame
+        insertBytes(data, memory_address, length_memory_address);
+        insertBytes(data, memory_size, length_memory_size);
         this->SendFrame(id, data);
         return;
     }
-
-    //Incomplete: Response need to be improved
-    std::vector<int> data = {0x74};
+    int length_max_number_block = numDigits(max_number_block) / 2;
+    std::vector<int> data = {length_max_number_block + 3, 0x74, (length_max_number_block * 0x10), max_number_block};
     this->SendFrame(id, data);
     return;
 }
 
 //Incomplete: Need to be improved!!!
-void GenerateFrames::TransferData(int id, int block_sequence_counter, int transfer_request, bool response=false)
+void GenerateFrames::TransferData(int id, int block_sequence_counter, int transfer_request, bool response)
 {
     if (!response)
     {
@@ -251,13 +336,12 @@ void GenerateFrames::TransferData(int id, int block_sequence_counter, int transf
         this->SendFrame(id, data);
         return;
     }
-
     //Response need to be improved
     std::vector<int> data = {0x02,0x76,block_sequence_counter};
     this->SendFrame(id, data);
     return;
 }
-void GenerateFrames::RequestTransferExit(int id, int transfer_request, bool response=false)
+void GenerateFrames::RequestTransferExit(int id, int transfer_request, bool response)
 {
     if (!response)
     {
@@ -270,7 +354,25 @@ void GenerateFrames::RequestTransferExit(int id, int transfer_request, bool resp
     this->SendFrame(id, data);
     return;
 }
-bool GenerateFrames::RequestUpdateStatus(int id, bool response=false)
+bool GenerateFrames::RequestUpdateStatus(int id, bool response)
 {
     //No impplementation, I don't find this service in the standart
+    return false;
+}
+//Private
+int GenerateFrames::numDigits(int number)
+{
+    int digits = 0;
+    if (number < 0) 
+        digits = 1;
+    while (number) {
+        number /= 10;
+        digits++;
+    }
+    return digits;
+}
+void GenerateFrames::insertBytes(std::vector<int>& byteVector, unsigned int num, int numBytes) {
+    for (int i = numBytes - 1; i >= 0; --i) {
+        byteVector.push_back((num >> (i * 8)) & 0xFF);
+    }
 }
