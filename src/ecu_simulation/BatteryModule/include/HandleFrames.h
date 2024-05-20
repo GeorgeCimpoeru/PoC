@@ -6,7 +6,6 @@
 #include <vector>
 #include <iostream>
 #include <linux/can.h>
-#include "../include/GenerateFrames.h"
 
 class HandleFrames {
 private:

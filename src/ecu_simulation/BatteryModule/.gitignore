@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 test_local*
+/src/Generate.cpp
+/src/Receive.cpp
+>>>>>>> 4c4be00... Merge branch 'feature/ECU_BatteryModule' of github.com:GheorgheStefanIonut/PoC into feature/ECU_BatteryModule
