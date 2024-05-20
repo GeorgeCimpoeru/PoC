@@ -1,8 +1,8 @@
-#include "../include/ReceiveFrame.h"
+#include"ReceiveFrame.h"
 
-ReceiveFrameModule::ReceiveFrameModule(int socket) : s(socket) {}
+ReceiveFrame::ReceiveFrame(int socket) : s(socket) {}
 
-int ReceiveFrameModule::ReceiveFrameFromCANBus(){
+int ReceiveFrame::ReceiveFrameFromCANBus(){
     struct can_frame frame;
     while (true){
         int nbytes = read(s, &frame, sizeof(frame)); // Read frames
@@ -11,7 +11,7 @@ int ReceiveFrameModule::ReceiveFrameFromCANBus(){
             return 1;
         }else if (nbytes == 0) {
             std::cerr << "No CAN frame received" << std::endl;
-        } else{
+        }else{
             std::cout << "-------------------\n";
             std::cout << "Received CAN frame:" << std::endl;
             std::cout << "CAN ID: 0x" << std::hex << frame.can_id << std::endl;
@@ -23,16 +23,30 @@ int ReceiveFrameModule::ReceiveFrameFromCANBus(){
             std::cout << std::endl;
 
             // Compare the first data byte with hexValueId
-            if (frame.can_id == hexValueId) {
-                if (frame.data[0] == frame.can_dlc - 1) {
-                    std::cout << "Frame matches hexValueId and data length code." << std::endl;
-                    //handleFrame(frame)
+            if(frame.can_id == hexValueId){
+                if(frame.data[0] == hexValueId){
+                    if (frame.data[1] == frame.can_dlc - 1){
+                        int dataSize = frame.can_dlc - 1;
+                        std::vector<uint8_t> frameData(frame.data + 1, frame.data + frame.can_dlc);
+                        std:: cout << "handleFrame function call" << std::endl;
+                        //handleFrame(dataSize, frameData);
+                    }
+                    else{
+                        std::cout << "The frame was't read completely!";
+                    }
+                }else{
+                    if (frame.data[1] == frame.can_dlc - 1){
+                        uint8_t id = frame.data[0];
+                        uint8_t dataSize = frame.can_dlc - 1;
+                        std::vector<uint8_t> frameData(frame.data + 1, frame.data + frame.can_dlc);
+                        std:: cout << "generateFrame function call" << std::endl;
+                        //generateFrame(id, dataSize, frameData);
+                    }else {
+                        std::cout << "The frame was't read completely!";
+                    }
                 }
-            } else {
-                std::cout << "The frame was't read completely!";
             }
         }
     }
  return 0;
-
 }
