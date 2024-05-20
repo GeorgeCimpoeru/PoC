@@ -1,4 +1,4 @@
-#include "../include/receive_frame_module.h"
+#include "../include/ReceiveFrame.h"
 
 ReceiveFrameModule::ReceiveFrameModule(int socket) : s(socket) {}
 
