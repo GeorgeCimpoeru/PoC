@@ -5,7 +5,7 @@
     frames for the main services.
     How to use example:
         GenerateFrames g1 = GenerateFrames(socket);
-        int x[] = {0x11,0x34,0x56};
+        std::vector<int> x = {0x11,0x34,0x56};
         g1.SendFrame(0x23,3,x);
         g1.SessionControl(0x34A,0x1);
 
@@ -42,27 +42,28 @@ class GenerateFrames
         //  // !!!! IMPORTANT: Wait for the Flow control frame from the Client !!!!
         //  gf.ReadDataByIdentifierLongResponse(0x0,0x0,response,false); //Remainig frames
         //}
-        //PS: same for WriteDataByIdentifier()
+        //PS: same for WriteDataByIdentifier() and ReadMemoryByAddress()
         void ReadDataByIdentifier(int id,int identifier, std::vector<int> response = {});
         void ReadDataByIdentifierLongResponse(int id,int identifier, std::vector<int> response = {}, bool first_frame = true);
         void FlowControlFrame(int id);
         void AuthenticationRequestSeed(int id, bool response=false, const std::vector<int> &seed = {});
         void AuthenticationSendKey(int id, std::vector<int> &key, bool response=false);
-        void RoutineControl(int id, bool response=false);
+        void RoutineControl(int id, int sub_function, int routin_identifier, bool response=false);
         void TesterPresent(int id, bool response=false);
         void ReadMemoryByAdress(int id, int memory_size, int memory_address, std::vector<int> response = {});
+        void ReadMemoryByAdressLongResponse(int id, int memory_size, int memory_address, std::vector<int> response = {}, bool first_frame = true);
         void WriteDataByIdentifier(int id, int identifier, std::vector<int> data_parameter = {});
         void WriteDataByIdentifierLongData(int id, int identifier, std::vector<int> data_parameter = {}, bool first_frame = true);
-        void ReadDtcInformation(int id, int sub_function, int dtc_status_mask, bool response);
+        void ReadDtcInformation(int id, int sub_function, int dtc_status_mask);
+        void ReadDtcInformationResponse01(int id, int sub_function, int status_availability_mask, int dtc_format_identifier, int dtc_count);
         void ClearDiagnosticInformation(int id, std::vector<int> group_of_dtc = {0xFF,0xFF,0xFF}, bool response=false);
-        void AccessTimingParameters(int id, bool response=false);
-        void NegativeResponse(int id, int nrc, bool response=false);
+        void AccessTimingParameters(int id, int sub_function, bool response=false);
+        void NegativeResponse(int id, int nrc);
         //OTA
         void RequestDownload(int id, int data_format_identifier, int memory_address, int memory_size, int max_number_block = 0);
-        void TransferData(int id, int block_sequence_counter, int transfer_request, bool response=false);
-        void RequestTransferExit(int id, int transfer_request, bool response=false);
+        void TransferData(int id, int block_sequence_counter, std::vector<int> transfer_request = {});
+        void RequestTransferExit(int id, bool response=false);
         bool RequestUpdateStatus(int id, bool response=false);
-
     private:
         void AddSocket(int socket);
         struct can_frame CreateFrame(int &id, std::vector<int> &ata);
