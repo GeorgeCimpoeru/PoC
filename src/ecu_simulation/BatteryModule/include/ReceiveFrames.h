@@ -9,7 +9,7 @@
 
 
 
-class ReceiveFrame {
+class ReceiveFrames {
 private:
     int socket = -1;
     int moduleID = 0x101;
@@ -18,7 +18,7 @@ protected:
     
 
 public:
-    ReceiveFrame(int socket, int moduleID);
+    ReceiveFrames(int socket, int moduleID);
     bool Receive(HandleFrames &handleFrame);
     void PrintFrame(const struct can_frame &frame);
 };
