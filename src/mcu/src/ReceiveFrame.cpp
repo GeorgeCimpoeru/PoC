@@ -21,15 +21,12 @@ int ReceiveFrame::ReceiveFrameFromCANBus(){
                 std::cout << std::hex << int(frame.data[i]) << " ";
             }
             std::cout << std::endl;
-
             // Compare the first data byte with hexValueId
             if(frame.can_id == hexValueId){
                 if(frame.data[0] == hexValueId){
                     if (frame.data[1] == frame.can_dlc - 1){
-                        int dataSize = frame.can_dlc - 1;
-                        std::vector<uint8_t> frameData(frame.data + 1, frame.data + frame.can_dlc);
                         std:: cout << "handleFrame function call" << std::endl;
-                        //handleFrame(dataSize, frameData);
+                        //handleFrame(frame);
                     }
                     else{
                         std::cout << "The frame was't read completely!";
