@@ -3,38 +3,62 @@
 #include <chrono>
 #include <iostream>
 
-// Initialize GenerateFrames with the provided socket
-BatteryModule::BatteryModule(int socket) : generateFrames(socket) {
-    // Mock readings for now
-    voltage = BATTERY_MODULE_INIT_VOLTAGE;
-    current = BATTERY_MODULE_INIT_CURRENT;
-    temperature = BATTERY_MODULE_INIT_TEMP;
-    
-    simulationThread = std::thread(&BatteryModule::simulate, this);
+BatteryModule::BatteryModule() : moduleId(0x101), voltage(12.5), current(5.0),
+      temperature(20.0), running(false), canInterface("vcan0"),
+      frameReceiver(canInterface.getSocketFd(), moduleId) {
+    canInterface.init();
+}
+
+BatteryModule::~BatteryModule() {
+    stopBatteryModule();
+    // canInterface.closeInterface();   // member not accessible anymore
 }
 
 void BatteryModule::simulate() {
-    while (true) {
+    running = true;
+    simulationThread = std::thread(&BatteryModule::startBatteryModule, this);
+}
+
+void BatteryModule::startBatteryModule() {
+    while (running) {
         updateParamenters();
-        sendCANFrames();
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
 
-void BatteryModule::updateParamenters() {
-    // Simulate some readings changings
-    // starting with some mock values for now
-    voltage = BATTERY_MODULE_INIT_VOLTAGE + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 1.0));
-    current = BATTERY_MODULE_INIT_CURRENT + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 2.0));
-    temperature = BATTERY_MODULE_INIT_TEMP + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 10.0));
+void BatteryModule::stopBatteryModule() {
+    running = false;
+    if (simulationThread.joinable()) {
+        simulationThread.join();
+    }
 }
 
-void BatteryModule::sendCANFrames() {
-    // Convert all parameters to 'int' in order to be transmitted on CAN interface
-    // To do
+void BatteryModule::updateParamenters() {
+    std::cout << "Battery Module - updateParamenters()" << std::endl;
 
-    // Send the readings
-    // To do
+    // Simulate some logic to update voltage, current, and temperature
+    voltage += 0.01f;
+    current += 0.01f;
+    temperature += 0.1f;
+
+    // Ensuring the parameters don't exceed certain values for simulation
+    if (voltage > 15.0f) {
+        voltage = BATTERY_MODULE_INIT_VOLTAGE;
+    }
+    if (current > 10.0f) {
+        current = BATTERY_MODULE_INIT_CURRENT;
+    }
+
+    if (temperature > 30.0f) {
+        temperature = BATTERY_MODULE_INIT_TEMP;
+    }
+}
+
+void BatteryModule::receiveFrames() {
+    while (running) {
+        // frameReceiver.Receive();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
 }
 
 float BatteryModule::getVoltage() const {
