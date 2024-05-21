@@ -1,4 +1,4 @@
-/* 
+/*
    ECU Battery Module
    This library will be used to simulate a Battery Module
    providing some readings and informations (like voltage, current, temperature, etc)
@@ -22,9 +22,10 @@
 #include "InterfaceConfig.h"
 #include "ReceiveFrames.h"
 
-class BatteryModule {
+class BatteryModule
+{
 private:
-    int moduleId = BATTERY_MODULE_ID;   // id for 'Battery Module' is 0x101
+    int moduleId = BATTERY_MODULE_ID; // id for 'Battery Module' is 0x101
 
     float voltage;
     float current;
@@ -39,6 +40,7 @@ private:
     void updateParamenters();
     void startBatteryModule();
     void stopBatteryModule();
+
 public:
     BatteryModule();
     ~BatteryModule();
