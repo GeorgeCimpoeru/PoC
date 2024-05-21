@@ -17,6 +17,8 @@
 
 #define BATTERY_MODULE_ID 0x101
 
+#define BATTERY_MODULE_DEBUG
+
 #include <thread>
 #include "InterfaceConfig.h"
 #include "ReceiveFrames.h"
