@@ -35,7 +35,7 @@ private:
     std::thread simulationThread;
 
     SocketCanInterface canInterface;
-    ReceiveFrames frameReceiver;
+    ReceiveFrames* frameReceiver;
 
     void updateParamenters();
     void startBatteryModule();

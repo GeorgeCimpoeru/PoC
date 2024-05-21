@@ -11,9 +11,15 @@ BatteryModule::BatteryModule() : moduleId(0x101),
                                  temperature(20.0),
                                  running(false),
                                  canInterface("vcan0"),
-                                 frameReceiver(canInterface.getSocketFd(), moduleId)
+                                 frameReceiver(nullptr)
 {
+    std::cout << "BatteryModule()" << std::endl;
+
+    // Initialize the CAN interface
     canInterface.init();
+
+    // Initialize the Frame Receiver
+    frameReceiver = new ReceiveFrames(canInterface.getSocketFd(), moduleId);
 }
 
 // Destructor
@@ -21,6 +27,7 @@ BatteryModule::~BatteryModule()
 {
     stopBatteryModule();
     // canInterface.closeInterface();   // called in destructor of it's class
+    delete frameReceiver;
 }
 
 // Start the simulation
@@ -60,6 +67,10 @@ void BatteryModule::updateParamenters()
     current += 0.01f;
     temperature += 0.1f;
 
+    std::cout << "Voltage : " << voltage << std::endl;
+    std::cout << "Current : " << current << std::endl;
+    std::cout << "Temperature : " << temperature << std::endl;
+
     // Ensuring the parameters don't exceed certain values for simulation
     if (voltage > 15.0f)
     {
@@ -82,7 +93,7 @@ void BatteryModule::receiveFrames()
     while (running)
     {
         HandleFrames handleFrames;
-        frameReceiver.Receive(handleFrames);
+        frameReceiver->Receive(handleFrames);
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
