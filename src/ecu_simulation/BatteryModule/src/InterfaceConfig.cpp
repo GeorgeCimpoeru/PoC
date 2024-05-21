@@ -15,6 +15,7 @@
 #include <sys/ioctl.h>
 #include <linux/can/raw.h>
 #include <string.h>
+#include <unistd.h>
 
 SocketCanInterface::SocketCanInterface(const std::string& interfaceName) : _interfaceName{interfaceName}
 {
@@ -32,6 +33,10 @@ void SocketCanInterface::callSystem(std::string& cmd) const
         std::cout << cmd << " failed\n";
         exit(EXIT_FAILURE);
     }
+    else
+    {
+        std::cout << cmd << " succesfull\n";
+    }
 }
 
 /**
@@ -40,10 +45,10 @@ void SocketCanInterface::callSystem(std::string& cmd) const
  */
 void SocketCanInterface::createLinuxVCanInterface()
 {
-    std::string cmd = "ip link add " + _interfaceName + " type vcan";
+    std::string cmd = "sudo ip link add " + _interfaceName + " type vcan";
     callSystem(cmd);
 
-    cmd = "ip link set " + _interfaceName + " up";
+    cmd = "sudo ip link set " + _interfaceName + " up";
     callSystem(cmd);
 }
 
@@ -66,10 +71,10 @@ void SocketCanInterface::connectLinuxVCanInterfaces(std::string& sourceInterface
  */
 void SocketCanInterface::deleteLinuxVCanInterface()
 {
-    std::string cmd = "link set " + _interfaceName + " down";
+    std::string cmd = "sudo ip link set " + _interfaceName + " down";
     callSystem(cmd);
 
-    cmd = "ip link delete " + _interfaceName + " type can";
+    cmd = "sudo ip link delete " + _interfaceName + " type can";
     callSystem(cmd);
 }
 /**
@@ -78,7 +83,7 @@ void SocketCanInterface::deleteLinuxVCanInterface()
  * @return true 
  * @return false 
  */
-bool SocketCanInterface::open()
+bool SocketCanInterface::openInterface()
 {
     //Create the socket
     _socketFd = socket(PF_CAN, SOCK_RAW, CAN_RAW);
@@ -105,12 +110,37 @@ bool SocketCanInterface::open()
     return 0;
 }
 
-void SocketCanInterface::close()
+void SocketCanInterface::closeInterface()
 {
+    if(_socketFd != -1)
+    {
+        if(close(_socketFd) == -1)
+        {
+            std::cout<<"Error closing " << _socketFd << " from " << _interfaceName << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        deleteLinuxVCanInterface();
+    }
+}
 
+std::string& SocketCanInterface::getInterfaceName()
+{
+    return _interfaceName;
+}
+
+void SocketCanInterface::setInterfaceName(std::string& interfaceName)
+{
+    _interfaceName = interfaceName;
+}
+
+void SocketCanInterface::init()
+{
+    createLinuxVCanInterface();
+    openInterface();
+    std::cout << _interfaceName << " initialised\n";
 }
 
 SocketCanInterface::~SocketCanInterface()
 {
-
+    closeInterface();
 }

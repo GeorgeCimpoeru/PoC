@@ -26,9 +26,13 @@ public:
     void createLinuxVCanInterface();
     void connectLinuxVCanInterfaces(std::string& sourceInterface, std::string& destinationInterface);
     void deleteLinuxVCanInterface();
+    void init();
 
-    bool open();
-    void close();
+    bool openInterface();
+    void closeInterface();
+
+    std::string& getInterfaceName();
+    void setInterfaceName(std::string& interfaceName);
 
     ~SocketCanInterface();
 
