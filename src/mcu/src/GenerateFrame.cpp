@@ -1,10 +1,12 @@
-#include "../include/CreateFrame.h"
+#include "../include/GenerateFrame.h"
 
+// Constructor which create a CAN frame
 CANFrame::CANFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) {
-    CreateFrame(frameType, can_id, data, dlc);
+    GenerateFrame(frameType, can_id, data, dlc);
 }
 
-void CANFrame::CreateFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) {
+// Function to create a CAN frame
+void CANFrame::GenerateFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) {
     frame.can_id = can_id;
 
     switch (frameType) {
@@ -31,13 +33,16 @@ void CANFrame::CreateFrame(FrameType frameType, uint32_t can_id, const uint8_t *
     }
 }
 
+// Function to send a CAN frame
 int CANFrame::SendFrame(const std::string& interface) {
+    // Create a socket
     int s = socket(PF_CAN, SOCK_RAW, CAN_RAW);
     if (s < 0) {
         perror("Socket");
         return -1;
     }
 
+    // Get the interface index
     struct ifreq ifr;
     std::strncpy(ifr.ifr_name, interface.c_str(), IFNAMSIZ - 1);
     ifr.ifr_name[IFNAMSIZ - 1] = '\0';
@@ -47,6 +52,7 @@ int CANFrame::SendFrame(const std::string& interface) {
         return -1;
     }
 
+    // Bind the socket to the CAN interface
     struct sockaddr_can addr;
     addr.can_family = AF_CAN;
     addr.can_ifindex = ifr.ifr_ifindex;
@@ -57,12 +63,14 @@ int CANFrame::SendFrame(const std::string& interface) {
         return -1;
     }
 
+
     if (write(s, &frame, sizeof(frame)) != sizeof(frame)) {
         perror("Write");
         close(s);
         return -1;
     }
 
+    // Close the socket
     close(s);
     return 0;
 }
