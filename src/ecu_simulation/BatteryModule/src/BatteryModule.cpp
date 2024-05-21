@@ -13,8 +13,9 @@ BatteryModule::BatteryModule() : moduleId(0x101),
                                  canInterface("vcan0"),
                                  frameReceiver(nullptr)
 {
+#ifdef BATTERY_MODULE_DEBUG
     std::cout << "BatteryModule()" << std::endl;
-
+#endif
     // Initialize the CAN interface
     canInterface.init();
 
@@ -60,30 +61,32 @@ void BatteryModule::stopBatteryModule()
 
 void BatteryModule::updateParamenters()
 {
+#ifdef BATTERY_MODULE_DEBUG
     std::cout << "Battery Module - updateParamenters()" << std::endl;
-
+#endif
     // Simulate some logic to update voltage, current, and temperature
     voltage += 0.01f;
     current += 0.01f;
     temperature += 0.1f;
-
+#ifdef BATTERY_MODULE_DEBUG
     std::cout << "Voltage : " << voltage << std::endl;
     std::cout << "Current : " << current << std::endl;
     std::cout << "Temperature : " << temperature << std::endl;
-
+#endif
     // Ensuring the parameters don't exceed certain values for simulation
     if (voltage > 15.0f)
     {
-        voltage = BATTERY_MODULE_INIT_VOLTAGE;
+        voltage = 12.5;
     }
+    
     if (current > 10.0f)
     {
-        current = BATTERY_MODULE_INIT_CURRENT;
+        current = 5.0;
     }
 
     if (temperature > 30.0f)
     {
-        temperature = BATTERY_MODULE_INIT_TEMP;
+        temperature = 20.0;
     }
 }
 
