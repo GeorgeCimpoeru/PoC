@@ -1,4 +1,4 @@
-#include "GenerateFrames.h"
+#include "../include/GenerateFrames.h"
 
 GenerateFrames::GenerateFrames(int socket)
 {
@@ -138,7 +138,7 @@ void GenerateFrames::ReadDataByIdentifier(int id,int identifier, std::vector<int
     int length_response = response.size();
     if (length_response <= 4)
     {
-        std::vector<int> data = {0x03, 0x62, identifier/0x100, identifier%0x100};
+        std::vector<int> data = {length_response + 3, 0x62, identifier/0x100, identifier%0x100};
         for (int i = 0; i < length_response; i++)
         {
             data.push_back(response[i]);
@@ -174,7 +174,7 @@ void GenerateFrames::GenerateFrameLongData(int id, int sid, int identifier, std:
         std::vector<int> data;
         for (int i = 0; i <= size_of_response / 7; i++)
         {
-            data = {0x20+i};
+            data = {0x20 + (i % 0x10)};
             for (int j = 0; j < 7 && ((i*7) + j) < size_of_response; j++)
             {
                 data.push_back(response[(i*7)+j]);
@@ -255,7 +255,7 @@ void GenerateFrames::ReadMemoryByAdressLongResponse(int id, int memory_size, int
         std::vector<int> data;
         for (int i = 0; i <= size_of_response / 7; i++)
         {
-            data = {0x20+i};
+            data = {0x20 + (i % 0x10)};
             for (int j = 0; j < 7 && ((i*7) + j) < size_of_response; j++)
             {
                 data.push_back(response[(i*7)+j]);
@@ -304,9 +304,9 @@ void GenerateFrames::ReadDtcInformation(int id, int sub_function, int dtc_status
     this->SendFrame(id, data);
     return;
 }
-void GenerateFrames::ReadDtcInformationResponse01(int id, int sub_function, int status_availability_mask, int dtc_format_identifier, int dtc_count)
+void GenerateFrames::ReadDtcInformationResponse01(int id, int status_availability_mask, int dtc_format_identifier, int dtc_count)
 {
-    std::vector<int> data = {0x03, 0x19, sub_function, status_availability_mask, dtc_format_identifier, dtc_count};
+    std::vector<int> data = {0x03, 0x19, 0x01, status_availability_mask, dtc_format_identifier, dtc_count};
     this->SendFrame(id, data);
     return;
 }
@@ -391,6 +391,36 @@ void GenerateFrames::TransferData(int id, int block_sequence_counter, std::vecto
     std::vector<int> data = {0x02,0x76,block_sequence_counter};
     this->SendFrame(id, data);
     return;
+}
+void GenerateFrames::TransferDataLong(int id, int block_sequence_counter, std::vector<int> transfer_request, bool first_frame)
+{
+    if (first_frame)
+    {
+        std::vector<int> data = {0x10, ((int)transfer_request.size() + 2), 0x36, block_sequence_counter};
+        for (int i = 0; i < 4 ; i++)
+        {
+            data.push_back(transfer_request[i]);
+        }
+        this->SendFrame(id, data);
+        return;
+    }
+    else
+    {
+        //Delete first 3 data that were sended in the first frame
+        transfer_request.erase(transfer_request.begin(), transfer_request.begin() + 4);
+        int size_of_data = transfer_request.size();
+        std::vector<int> data;
+        for (int i = 0; i <= size_of_data / 7; i++)
+        {
+            data = {0x20 + (i % 0x10)};
+            for (int j = 0; j < 7 && ((i*7) + j) < size_of_data; j++)
+            {
+                data.push_back(transfer_request[(i*7)+j]);
+            }
+            this->SendFrame(id, data);
+        }
+        return;
+    } 
 }
 void GenerateFrames::RequestTransferExit(int id, bool response)
 {
