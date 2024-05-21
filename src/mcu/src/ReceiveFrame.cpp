@@ -1,6 +1,7 @@
-#include"ReceiveFrame.h"
+#include "../include/ReceiveFrame.h"
 
 ReceiveFrame::ReceiveFrame(int socket) : s(socket) {}
+ReceiveFrame::ReceiveFrame(HandleFrames& handler) : handler(handler) {}
 
 int ReceiveFrame::ReceiveFrameFromCANBus(){
     struct can_frame frame;
@@ -29,7 +30,7 @@ int ReceiveFrame::ReceiveFrameFromCANBus(){
                         int dataSize = frame.can_dlc - 1;
                         std::vector<uint8_t> frameData(frame.data + 1, frame.data + frame.can_dlc);
                         std:: cout << "handleFrame function call" << std::endl;
-                        //handleFrame(dataSize, frameData);
+                        //handler.HandleFrame(dataSize, frameData);
                     }
                     else{
                         std::cout << "The frame was't read completely!";

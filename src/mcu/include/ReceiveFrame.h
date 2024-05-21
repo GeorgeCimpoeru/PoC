@@ -27,14 +27,17 @@
 #include<vector>
 
 #include<linux/can.h>
+#include "HandleFrames.h"
 
 class ReceiveFrame{
  public:
+  ReceiveFrame(HandleFrames& handler);
   ReceiveFrame(int socket);
   int ReceiveFrameFromCANBus();
  private:
   int s;
   const uint32_t hexValueId = 0x10;
+  HandleFrames& handler;
 };
 
 #endif
