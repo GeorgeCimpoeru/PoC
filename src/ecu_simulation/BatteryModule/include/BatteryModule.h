@@ -18,7 +18,6 @@
 #define BATTERY_MODULE_ID 0x101
 
 #include <thread>
-#include <atomic>
 #include "InterfaceConfig.h"
 #include "ReceiveFrames.h"
 
@@ -31,7 +30,7 @@ private:
     float current;
     float temperature;
 
-    std::atomic<bool> running;
+    bool running;   // flag to know the state of module
     std::thread simulationThread;
 
     SocketCanInterface canInterface;
