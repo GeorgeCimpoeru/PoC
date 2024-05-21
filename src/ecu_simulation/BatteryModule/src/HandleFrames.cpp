@@ -5,7 +5,6 @@
 
 /*Services to be included here*/
 
-
 void HandleFrames::ProcessReceivedFrame(const struct can_frame &frame) {
     int id = frame.can_id;
     std::vector<int> data(frame.data, frame.data + frame.can_dlc);
