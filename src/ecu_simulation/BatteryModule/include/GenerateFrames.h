@@ -55,13 +55,14 @@ class GenerateFrames
         void WriteDataByIdentifier(int id, int identifier, std::vector<int> data_parameter = {});
         void WriteDataByIdentifierLongData(int id, int identifier, std::vector<int> data_parameter = {}, bool first_frame = true);
         void ReadDtcInformation(int id, int sub_function, int dtc_status_mask);
-        void ReadDtcInformationResponse01(int id, int sub_function, int status_availability_mask, int dtc_format_identifier, int dtc_count);
+        void ReadDtcInformationResponse01(int id, int status_availability_mask, int dtc_format_identifier, int dtc_count);
         void ClearDiagnosticInformation(int id, std::vector<int> group_of_dtc = {0xFF,0xFF,0xFF}, bool response=false);
         void AccessTimingParameters(int id, int sub_function, bool response=false);
         void NegativeResponse(int id, int nrc);
         //OTA
         void RequestDownload(int id, int data_format_identifier, int memory_address, int memory_size, int max_number_block = 0);
         void TransferData(int id, int block_sequence_counter, std::vector<int> transfer_request = {});
+        void TransferDataLong(int id, int block_sequence_counter, std::vector<int> transfer_request = {}, bool first_frame = true);
         void RequestTransferExit(int id, bool response=false);
         bool RequestUpdateStatus(int id, bool response=false);
     private:
