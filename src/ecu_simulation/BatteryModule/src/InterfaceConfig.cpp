@@ -133,6 +133,11 @@ void SocketCanInterface::setInterfaceName(std::string& interfaceName)
     _interfaceName = interfaceName;
 }
 
+int SocketCanInterface::getSocketFd() const
+{
+    return _socketFd;
+}
+
 void SocketCanInterface::init()
 {
     createLinuxVCanInterface();

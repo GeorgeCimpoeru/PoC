@@ -2,11 +2,26 @@
 #include <boost/test/unit_test.hpp> 
 #include <boost/test/included/unit_test.hpp>
 #include "../include/InterfaceConfig.h"
+#include <boost/test/tools/output_test_stream.hpp>
+#include <iostream>
 
 BOOST_AUTO_TEST_SUITE(InterfaceConfig_Test)
 
     const std::string globalInterfaceName = "vcan1";
     auto globalInterface = SocketCanInterface(globalInterfaceName);
+    
+    struct cout_redirect {
+        cout_redirect( std::streambuf * new_buffer ) 
+            : old( std::cout.rdbuf( new_buffer ) )
+        { }
+
+        ~cout_redirect( ) {
+            std::cout.rdbuf( old );
+        }
+
+    private:
+        std::streambuf * old;
+    };
 
 BOOST_AUTO_TEST_CASE(Constructor_ValidInterfaceName)
 {
@@ -33,6 +48,28 @@ BOOST_AUTO_TEST_CASE(SetInterfaceName)
     BOOST_CHECK_MESSAGE(globalInterface.getInterfaceName() == expectedInterfaceName,
         "PREVIOUS INTERFACE NAME " << previousInterfaceName << " NEW INTERFACE SHOULD BE: " << expectedInterfaceName 
         << " BUT GOT "<< globalInterface.getInterfaceName());
+}
+
+BOOST_AUTO_TEST_CASE(system_call)
+{
+    std::string cmd = "wrong command";
+    std::string expectedOutput = cmd + " failed\n";
+
+     boost::test_tools::output_test_stream output;
+    {
+        cout_redirect guard( output.rdbuf( ) );
+
+        globalInterface.callSystem(cmd);
+    }
+    BOOST_CHECK_MESSAGE(output.is_equal(expectedOutput), "EXPECTED " << expectedOutput << "BUT GOT " << output.str());
+
+    cmd = "pwd";
+    expectedOutput = cmd + " succesfull\n";
+    {
+        cout_redirect guard( output.rdbuf( ) );
+        globalInterface.callSystem(cmd);
+    }
+    BOOST_CHECK_MESSAGE(output.is_equal(expectedOutput), "EXPECTED " << expectedOutput << "BUT GOT " << output.str());
 }
 
 BOOST_AUTO_TEST_CASE(create_vcan)

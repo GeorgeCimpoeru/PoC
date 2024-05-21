@@ -1,8 +1,6 @@
 #ifndef INTERFACECONFIG_H
 #define INTERFACECONFIG_H
 
-#define CAN_PROTOCOL CAN_RAW
-
 #include <string>
 #include <linux/can.h>
 #include <net/if.h>
@@ -15,6 +13,13 @@ private:
     struct can_frame _canFrame;
     struct sockaddr_can _addr;
     struct ifreq _ifr;
+
+    void createLinuxVCanInterface();
+    void deleteLinuxVCanInterface();
+
+    bool openInterface();
+    void closeInterface();
+
 public:
     /* Init vcan communication */
 
@@ -23,19 +28,15 @@ public:
     SocketCanInterface(const std::string& interfaceName);
 
     inline void callSystem(std::string& cmd) const;
-    void createLinuxVCanInterface();
     void connectLinuxVCanInterfaces(std::string& sourceInterface, std::string& destinationInterface);
-    void deleteLinuxVCanInterface();
     void init();
-
-    bool openInterface();
-    void closeInterface();
 
     std::string& getInterfaceName();
     void setInterfaceName(std::string& interfaceName);
 
-    ~SocketCanInterface();
+    int getSocketFd() const;
 
+    ~SocketCanInterface();
 };
 
 #endif /* INTERFACECONFIG_H */
