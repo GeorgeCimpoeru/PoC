@@ -12,18 +12,14 @@
 #include<linux/can.h>
 
 class MCU_module
-{
-    public:
-        int id;
-
+{    
     protected:
-        std::string interface_name;
-        struct can_frame frame;
+        std::string interface_name;        
         struct sockaddr_can addr;
         struct ifreq ifr;
 
     public:
-        MCU_module(std::string interface_name, int id);
+        MCU_module(std::string interface_name);
         int create_interface();
         int delete_interface();
 };

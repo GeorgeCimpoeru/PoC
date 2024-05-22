@@ -1,9 +1,8 @@
 #include"McuModule.h"
 
-MCU_module::MCU_module(std::string interface_name, int id)
+MCU_module::MCU_module(std::string interface_name)
 {
-    this->interface_name = interface_name;
-    this->id = id;
+    this->interface_name = interface_name;  
     create_interface();
 }
 
