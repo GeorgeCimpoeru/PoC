@@ -15,10 +15,30 @@ BatteryModule::BatteryModule() : moduleId(0x101),
 {
 #ifdef BATTERY_MODULE_DEBUG
     std::cout << "BatteryModule()" << std::endl;
+    std::cout << "(BatteryModule)moduleId = " << this->moduleId << std::endl;
 #endif
     // Initialize the CAN interface
     canInterface.init();
 
+    // Initialize the Frame Receiver
+    frameReceiver = new ReceiveFrames(canInterface.getSocketFd(), moduleId);
+}
+
+// Parameterized Constructor - initializes the BatteryModule with provided interface number and module ID
+BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_moduleId),
+                                                                  voltage(12.5),
+                                                                  current(5.0),
+                                                                  temperature(20.0),
+                                                                  running(false),
+                                                                  canInterface("vcan" + std::to_string(_interfaceNumber)),
+                                                                  frameReceiver(nullptr)
+{
+#ifdef BATTERY_MODULE_DEBUG
+    std::cout << "BatteryModule(int interfaceNumber, int moduleId)" << std::endl;
+    std::cout << "(BatteryModule)moduleId = " << this->moduleId << std::endl;
+#endif
+    // Initialize the CAN interface
+    canInterface.init();
     // Initialize the Frame Receiver
     frameReceiver = new ReceiveFrames(canInterface.getSocketFd(), moduleId);
 }

@@ -26,7 +26,7 @@
 class BatteryModule
 {
 private:
-    int moduleId = BATTERY_MODULE_ID; // id for 'Battery Module' is 0x101
+    int moduleId;
 
     float voltage;
     float current;
@@ -44,6 +44,7 @@ private:
 
 public:
     BatteryModule();
+    BatteryModule(int _interfaceNumber, int _moduleId);
     ~BatteryModule();
 
     void simulate();
