@@ -1,12 +1,12 @@
-#include "../include/ReceiveFrame.h"
+#include "../include/ReceiveFrames.h"
 
-ReceiveFrame::ReceiveFrame(HandleFrames& handler, int socket) : s(socket), handler(handler) {}
+ReceiveFrames::ReceiveFrames(HandleFrames& handler, int socket) : s(socket), handler(handler) {}
 
 /**
  * Function to read frames from the CAN bus and add them to a queue.
  * This function runs in a loop and continually reads frames from the CAN bus.
  */
-int ReceiveFrame::ReceiveFrameFromCANBus() {
+int ReceiveFrames::ReceiveFramesFromCANBus() {
     struct can_frame frame;
     while (true) {
         // Read frames from the CAN socket
@@ -37,7 +37,7 @@ int ReceiveFrame::ReceiveFrameFromCANBus() {
  * Function to process frames from the queue.
  * This function runs in a loop and processes each frame from the queue.
  */
-void ReceiveFrame::ProcessQueue() {
+void ReceiveFrames::ProcessQueue() {
     while (true) {
         // Wait until the queue is not empty, then lock the queue
         std::unique_lock<std::mutex> lock(queueMutex);
@@ -50,7 +50,7 @@ void ReceiveFrame::ProcessQueue() {
         lock.unlock();
 
         // Print the received CAN frame details
-        PrintFrame(frame);
+        PrintFrames(frame);
 
         // Compare the CAN ID with the expected hexValueId
         if (frame.can_id == hexValueId) {
@@ -90,7 +90,7 @@ void ReceiveFrame::ProcessQueue() {
 /**
  * Function to print the frame.
  */
-void ReceiveFrame::PrintFrame(const struct can_frame &frame) {
+void ReceiveFrames::PrintFrames(const struct can_frame &frame) {
         std::cout << "-------------------\n";
         std::cout << "Processing CAN frame from queue:" << std::endl;
         std::cout << "CAN ID: 0x" << std::hex << frame.can_id << std::endl;
