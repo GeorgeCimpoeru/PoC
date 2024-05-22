@@ -131,14 +131,14 @@ void GenerateFrames::ReadDataByIdentifier(int id,int identifier, std::vector<int
 {
     if (response.size() == 0)
     {
-        std::vector<int> data = {0x03, 0x22, identifier/0x100, identifier%0x100};
+        std::vector<int> data = {0x03, 0x62, identifier/0x100, identifier%0x100};
         this->SendFrame(id, data);
         return;
     }
     int length_response = response.size();
     if (length_response <= 4)
     {
-        std::vector<int> data = {length_response + 3, 0x62, identifier/0x100, identifier%0x100};
+        std::vector<int> data = {length_response + 3, 0x22, identifier/0x100, identifier%0x100};
         for (int i = 0; i < length_response; i++)
         {
             data.push_back(response[i]);
