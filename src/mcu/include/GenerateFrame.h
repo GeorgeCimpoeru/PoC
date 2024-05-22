@@ -36,7 +36,7 @@ public:
     // ~CANFrame();
     
     // Function to send a CAN frame
-    int SendFrame(const std::string& interface);
+    int SendFrame(const std::string& interface, int s);
 
 private:
     struct can_frame frame;
