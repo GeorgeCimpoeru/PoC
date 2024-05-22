@@ -25,18 +25,25 @@
 #include<cstring>
 #include<sstream>
 #include<vector>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
 
 #include<linux/can.h>
 #include "HandleFrames.h"
 
 class ReceiveFrame{
  public:
-  ReceiveFrame(HandleFrames& handler);
-  ReceiveFrame(int socket);
+  ReceiveFrame(HandleFrames& handler, int socket);
   int ReceiveFrameFromCANBus();
+  void PrintFrame(const struct can_frame &frame);
+  void ProcessQueue();
  private:
   int s;
   const uint32_t hexValueId = 0x10;
+  std::queue<struct can_frame> frameQueue;
+  std::mutex queueMutex;
+  std::condition_variable queueCondVar;
   HandleFrames& handler;
 };
 
