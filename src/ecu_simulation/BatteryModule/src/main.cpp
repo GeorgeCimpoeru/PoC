@@ -4,18 +4,7 @@
 
 int main() {
     BatteryModule batteryModule;
-    std::thread simulationThread([&]() {
-        batteryModule.simulate();
-    });
-
-    std::thread receiveThread([&]() {
-        batteryModule.receiveFrames();
-    });
-
-    std::this_thread::sleep_for(std::chrono::seconds(10));
-
-    simulationThread.join();
-    receiveThread.join();
-
+    batteryModule.simulate();
+    batteryModule.receiveFrames();
     return 0;
 }
