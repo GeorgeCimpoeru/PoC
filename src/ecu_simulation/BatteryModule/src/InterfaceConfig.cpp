@@ -21,6 +21,15 @@ SocketCanInterface::SocketCanInterface(const std::string& interfaceName) : _inte
 {
 
 }
+
+int SocketCanInterface::getSocketFd() const
+{
+    if (_socketFd == -1) {
+        throw std::runtime_error("Socket FD is -1 (uninitialized)");
+    }
+    return _socketFd;
+}
+
 /**
  * @brief Method used for making system calls with validation
  * 
@@ -31,7 +40,7 @@ void SocketCanInterface::callSystem(std::string& cmd) const
     if(system(cmd.c_str()) != 0)
     {
         std::cout << cmd << " failed\n";
-        exit(EXIT_FAILURE);
+        // exit(EXIT_FAILURE);
     }
     else
     {
@@ -116,10 +125,14 @@ void SocketCanInterface::closeInterface()
     {
         if(close(_socketFd) == -1)
         {
-            std::cout<<"Error closing " << _socketFd << " from " << _interfaceName << std::endl;
+            std::cout<<"Error closing socket from " << _interfaceName << std::endl;
             exit(EXIT_FAILURE);
         }
         deleteLinuxVCanInterface();
+    }
+    else
+    {
+        std::cout<<"Can't close socket with fd = -1";
     }
 }
 
@@ -133,10 +146,7 @@ void SocketCanInterface::setInterfaceName(std::string& interfaceName)
     _interfaceName = interfaceName;
 }
 
-int SocketCanInterface::getSocketFd() const
-{
-    return _socketFd;
-}
+
 
 void SocketCanInterface::init()
 {
