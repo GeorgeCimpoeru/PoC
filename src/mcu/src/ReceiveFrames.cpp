@@ -1,6 +1,6 @@
 #include "../include/ReceiveFrames.h"
 
-ReceiveFrames::ReceiveFrames(HandleFrames& handler, int socket) : s(socket), handler(handler) {}
+ReceiveFrames::ReceiveFrames(int socket) : s(socket){}
 
 /**
  * Function to read frames from the CAN bus and add them to a queue.
