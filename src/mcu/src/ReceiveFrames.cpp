@@ -1,6 +1,6 @@
 #include "../include/ReceiveFrames.h"
 
-ReceiveFrames::ReceiveFrames(int socket) : s(socket) {}
+ReceiveFrames::ReceiveFrames(int socket) : s(socket){}
 
 /**
  * Function to read frames from the CAN bus and add them to a queue.
@@ -37,7 +37,8 @@ int ReceiveFrames::ReceiveFramesFromCANBus() {
  * Function to process frames from the queue.
  * This function runs in a loop and processes each frame from the queue.
  */
-can_frame ReceiveFrames::ProcessQueue() {
+void ReceiveFrames::ProcessQueue() {
+    can_frame frameParam;
     while (true) {
         // Wait until the queue is not empty, then lock the queue
         std::unique_lock<std::mutex> lock(queueMutex);
@@ -56,40 +57,16 @@ can_frame ReceiveFrames::ProcessQueue() {
         if (frame.can_id == hexValueId) {
             // Compare the first data byte with hexValueId
             if (frame.data[0] == hexValueId) {
-                if(frame.data[1] < 0x10){  
-                    std::cout << "Frame with PCI" << std::endl;
-                    std::cout << "HandleFrames function call" << std::endl;
-                    frame_return.can_id = frame.can_id;
-                    frame_return.can_dlc = frame.can_dlc;
-                    std::copy(frame.data, frame.data + frame.can_dlc, frame_return.data);
-                } else {
-                    std::cout << "Frame without PCI" << std::endl;
-                    std::cout << "HandleFrames function call" << std::endl;
-                    frame_return.can_id = frame.can_id;
-                    frame_return.can_dlc = frame.can_dlc;
-                    std::copy(frame.data, frame.data + frame.can_dlc, frame_return.data);
-                } 
+                    std::cout << "Frame for MCU Service" << std::endl;
+                    handler.HandleFrame(frame);
 
             } else {
-                if(frame.data[1] < 0x10){  
-                    std::cout << "Frame with PCI" << std::endl;
-                    uint8_t id = frame.data[0];
-                    uint8_t dataSize = frame.can_dlc - 1;
-                    std::vector<uint8_t> frameData(frame.data + 1, frame.data + frame.can_dlc);
-                    std::copy(frameData.begin(), frameData.end(), frame_return.data);
-                    frame_return.can_id = id;
-                    frame_return.can_dlc = dataSize;
-                    std::cout << "generateFrame function call" << std::endl;
-                } else {
-                    std::cout << "Frame without PCI" << std::endl;
-                    uint8_t id = frame.data[0];
-                    uint8_t dataSize = frame.can_dlc - 1;
-                    std::vector<uint8_t> frameData(frame.data + 1, frame.data + frame.can_dlc);
-                    std::copy(frameData.begin(), frameData.end(), frame_return.data);
-                    frame_return.can_id = id;
-                    frame_return.can_dlc = dataSize;
-                    std::cout << "generateFrame function call" << std::endl;
-                } 
+                    frameParam.can_id = frame.data[0];
+                    frameParam.can_dlc = frame.can_dlc - 1;
+                    std::copy(frameParam.data, frame.data + 1, frame.data + frame.can_dlc);
+                    std::cout << "Frame for ECU Service" << std::endl;
+                    handler.HandleFrame(frameParam);
+                
             }   
         }
         else {
@@ -102,7 +79,7 @@ can_frame ReceiveFrames::ProcessQueue() {
 }
 
 /**
- * Function to print the frame.
+ * Function to print the frames.
  */
 void ReceiveFrames::PrintFrames(const struct can_frame &frame) {
         std::cout << "-------------------\n";
