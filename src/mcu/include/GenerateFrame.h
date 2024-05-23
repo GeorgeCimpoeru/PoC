@@ -33,10 +33,11 @@ enum FrameType {
 class CANFrame {
 public:
     CANFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc);
-    // ~CANFrame();
+    CANFrame();
     
     // Function to send a CAN frame
     int SendFrame(const std::string& interface, int s);
+    can_frame getFrame() {}
 
 private:
     struct can_frame frame;

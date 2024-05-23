@@ -1,9 +1,11 @@
 #include "../include/GenerateFrame.h"
 
 // Constructor which create a CAN frame
-CANFrame::CANFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) {
+CANFrame::CANFrame(FrameType frameType=DATA_FRAME, uint32_t can_id, const uint8_t *data, uint8_t dlc) {
     GenerateFrame(frameType, can_id, data, dlc);
 }
+
+CANFrame::CANFrame() {}
 
 // Function to create a CAN frame
 void CANFrame::GenerateFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) {
@@ -44,4 +46,8 @@ int CANFrame::SendFrame(const std::string& interface, int s) {
     // Close the socket
     close(s);
     return 0;
+}
+
+can_frame CANFrame::getFrame() {
+    return frame;
 }
