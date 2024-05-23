@@ -11,19 +11,24 @@ MCUModule::MCUModule(int interfaceNumber) :
     receiveFrames = new ReceiveFrames(interfaceModule.get_socket());
 }
 
+// Default constructor
 MCUModule::MCUModule() : interfaceModule("vcan0"), 
                                             isRunning(false),
                                             receiveFrames(nullptr) {}
 
+// Destructor
 MCUModule::~MCUModule() {
     interfaceModule.stop_interface();
     delete receiveFrames;
 }
 
+// Start the module
 void MCUModule::StartModule() { isRunning = true; }
 
+// Stop the module
 void MCUModule::StopModule() { isRunning = false; }
 
+// Receive frames
 void MCUModule::recvFrames() {
     while (isRunning) {
         // Start a thread to process the queue

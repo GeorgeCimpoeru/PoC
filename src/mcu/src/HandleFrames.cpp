@@ -121,4 +121,5 @@ void HandleFrames::HandleFrame(const struct can_frame &frame) {
             std::cerr << "Unknown service" << std::endl;
             break;
     }
+    std::cout<<"Frame processed\n";
 }
