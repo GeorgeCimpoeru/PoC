@@ -10,6 +10,8 @@
 class HandleFrames {
 private:
     // Reference to Service instance
+    std::vector<int> stored_data;
+    size_t expected_data_size;
 public:
     // Constructor to initialize GenerateFrame reference
     void ProcessReceivedFrame(const struct can_frame &frame);
