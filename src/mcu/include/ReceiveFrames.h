@@ -32,11 +32,11 @@
 #include<linux/can.h>
 #include "HandleFrames.h"
 
-class ReceiveFrame{
+class ReceiveFrames{
  public:
-  ReceiveFrame(HandleFrames& handler, int socket);
-  int ReceiveFrameFromCANBus();
-  void PrintFrame(const struct can_frame &frame);
+  ReceiveFrames(HandleFrames& handler, int socket);
+  int ReceiveFramesFromCANBus();
+  void PrintFrames(const struct can_frame &frame);
   void ProcessQueue();
  private:
   int s;
