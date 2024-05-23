@@ -119,6 +119,11 @@ bool SocketCanInterface::openInterface()
     return 0;
 }
 
+/**
+ * @brief Method used for closing a socket interface. Automatically called in destructor.
+ *      If socket is succesfully closed, the linux vcan interface is also deleted.
+ * 
+ */
 void SocketCanInterface::closeInterface()
 {
     if(_socketFd != -1)
@@ -136,6 +141,7 @@ void SocketCanInterface::closeInterface()
     }
 }
 
+
 std::string& SocketCanInterface::getInterfaceName()
 {
     return _interfaceName;
@@ -146,8 +152,10 @@ void SocketCanInterface::setInterfaceName(std::string& interfaceName)
     _interfaceName = interfaceName;
 }
 
-
-
+/**
+ * @brief Create linux vcan interface then create can socket for communicating with the vcan.
+ * 
+ */
 void SocketCanInterface::init()
 {
     createLinuxVCanInterface();
