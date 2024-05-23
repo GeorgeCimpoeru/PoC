@@ -20,6 +20,52 @@ def checksum_validation(params):
     }
     return result
 
+def data_validation(params):
+    return {"service": "data_validation", "params": params}
+
+def routine_control(data):
+    return {"service": "routine_control", "data": data}
+
+def write_data_by_identifier(data):
+    return {"service": "write_data_by_identifier", "data": data}
+
+def read_data_by_identifier(params):
+    return {"service": "read_data_by_identifier", "params": params}
+
+def request_update_status(params):
+    return {"service": "request_update_status", "params": params}
+
+def authentication(data):
+    return {"service": "authentication", "data": data}
+
+def request_download(data):
+    return {"service": "request_download", "data": data}
+
+def read_dtc_information(params):
+    return {"service": "read_dtc_information", "params": params}
+
+def tester_present(data):
+    return {"service": "tester_present", "data": data}
+
+def transfer_data(data):
+    return {"service": "transfer_data", "data": data}
+
+def clear_diagnostic_information(data):
+    return {"service": "clear_diagnostic_information", "data": data}
+
+def access_timing_parameters(data):
+    return {"service": "access_timing_parameters", "data": data}
+
+def read_memory_by_address(params):
+    return {"service": "read_memory_by_address", "params": params}
+
+def session_diagnostic_control(data):
+    return {"service": "session_diagnostic_control", "data": data}
+
+def request_transfer_exit(data):
+    return {"service": "request_transfer_exit", "data": data}
+
+
 @app.route('/api', methods=['GET', 'POST', 'PUT'])
 def handle_request():
     service = request.args.get('service')
