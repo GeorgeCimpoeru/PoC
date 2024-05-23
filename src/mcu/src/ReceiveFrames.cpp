@@ -1,6 +1,6 @@
 #include "../include/ReceiveFrames.h"
 
-ReceiveFrames::ReceiveFrames(HandleFrames& handler, int socket) : s(socket), handler(handler) {}
+ReceiveFrames::ReceiveFrames(int socket) : s(socket) {}
 
 /**
  * Function to read frames from the CAN bus and add them to a queue.
@@ -37,7 +37,7 @@ int ReceiveFrames::ReceiveFramesFromCANBus() {
  * Function to process frames from the queue.
  * This function runs in a loop and processes each frame from the queue.
  */
-void ReceiveFrames::ProcessQueue() {
+can_frame ReceiveFrames::ProcessQueue() {
     while (true) {
         // Wait until the queue is not empty, then lock the queue
         std::unique_lock<std::mutex> lock(queueMutex);
@@ -58,12 +58,16 @@ void ReceiveFrames::ProcessQueue() {
             if (frame.data[0] == hexValueId) {
                 if(frame.data[1] < 0x10){  
                     std::cout << "Frame with PCI" << std::endl;
-                    // handler.HandleFrame(dataSize, frameData);
                     std::cout << "HandleFrames function call" << std::endl;
+                    frame_return.can_id = frame.can_id;
+                    frame_return.can_dlc = frame.can_dlc;
+                    std::copy(frame.data, frame.data + frame.can_dlc, frame_return.data);
                 } else {
                     std::cout << "Frame without PCI" << std::endl;
-                    // handler.HandleFrame(dataSize, frameData);
                     std::cout << "HandleFrames function call" << std::endl;
+                    frame_return.can_id = frame.can_id;
+                    frame_return.can_dlc = frame.can_dlc;
+                    std::copy(frame.data, frame.data + frame.can_dlc, frame_return.data);
                 } 
 
             } else {
@@ -72,18 +76,28 @@ void ReceiveFrames::ProcessQueue() {
                     uint8_t id = frame.data[0];
                     uint8_t dataSize = frame.can_dlc - 1;
                     std::vector<uint8_t> frameData(frame.data + 1, frame.data + frame.can_dlc);
+                    std::copy(frameData.begin(), frameData.end(), frame_return.data);
+                    frame_return.can_id = id;
+                    frame_return.can_dlc = dataSize;
                     std::cout << "generateFrame function call" << std::endl;
-                    // generateFrame(id, dataSize, frameData);
                 } else {
                     std::cout << "Frame without PCI" << std::endl;
                     uint8_t id = frame.data[0];
                     uint8_t dataSize = frame.can_dlc - 1;
                     std::vector<uint8_t> frameData(frame.data + 1, frame.data + frame.can_dlc);
+                    std::copy(frameData.begin(), frameData.end(), frame_return.data);
+                    frame_return.can_id = id;
+                    frame_return.can_dlc = dataSize;
                     std::cout << "generateFrame function call" << std::endl;
-                    // generateFrame(id, dataSize, frameData);
                 } 
             }   
         }
+        else {
+            frame_return.can_id = 0x00;
+            frame_return.can_dlc = 0;
+            std::fill(frame_return.data, frame_return.data + frame.can_dlc, 0);
+        }
+    return frame_return;
     }
 }
 

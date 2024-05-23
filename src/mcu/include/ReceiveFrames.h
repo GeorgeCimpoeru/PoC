@@ -31,20 +31,21 @@
 
 #include<linux/can.h>
 #include "HandleFrames.h"
+#include "GenerateFrame.h"
 
 class ReceiveFrames{
  public:
-  ReceiveFrames(HandleFrames& handler, int socket);
+  ReceiveFrames(int socket);
   int ReceiveFramesFromCANBus();
   void PrintFrames(const struct can_frame &frame);
-  void ProcessQueue();
+  can_frame ProcessQueue();
  private:
   int s;
   const uint32_t hexValueId = 0x10;
   std::queue<struct can_frame> frameQueue;
   std::mutex queueMutex;
   std::condition_variable queueCondVar;
-  HandleFrames& handler;
+  struct can_frame frame_return;
 };
 
 #endif
