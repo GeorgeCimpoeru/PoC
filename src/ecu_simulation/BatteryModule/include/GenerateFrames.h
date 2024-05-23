@@ -27,6 +27,7 @@ class GenerateFrames
         int socket = -1;
     public:
         GenerateFrames(int socket);
+        int GetSocket();
         //For custom frames
         bool SendFrame(int id, std::vector<int> data);
         //Predefine frames for services
@@ -34,9 +35,9 @@ class GenerateFrames
         void SessionControl(int id, int sub_function, bool response=false);
         void EcuReset(int id, bool response=false);
         //Consider using method ReadDataByIdentifierLongResponse(), if the response
-        //is greater than 4 bytes, to split the response into multiple frames.
+        //is greater than 5 bytes, to split the response into multiple frames.
         //Example:
-        //if (response.size() > 4)
+        //if (response.size() > 5)
         //{
         //  gf.ReadDataByIdentifierLongResponse(0x0,0x0,response,true); //First frame
         //  // !!!! IMPORTANT: Wait for the Flow control frame from the Client !!!!
@@ -46,8 +47,8 @@ class GenerateFrames
         void ReadDataByIdentifier(int id,int identifier, std::vector<int> response = {});
         void ReadDataByIdentifierLongResponse(int id,int identifier, std::vector<int> response = {}, bool first_frame = true);
         void FlowControlFrame(int id);
-        void AuthenticationRequestSeed(int id, bool response=false, const std::vector<int> &seed = {});
-        void AuthenticationSendKey(int id, std::vector<int> &key, bool response=false);
+        void AuthenticationRequestSeed(int id, const std::vector<int> &seed = {});
+        void AuthenticationSendKey(int id, const std::vector<int> &key = {});
         void RoutineControl(int id, int sub_function, int routin_identifier, bool response=false);
         void TesterPresent(int id, bool response=false);
         void ReadMemoryByAdress(int id, int memory_size, int memory_address, std::vector<int> response = {});
@@ -60,7 +61,8 @@ class GenerateFrames
         void AccessTimingParameters(int id, int sub_function, bool response=false);
         void NegativeResponse(int id, int nrc);
         //OTA
-        void RequestDownload(int id, int data_format_identifier, int memory_address, int memory_size, int max_number_block = 0);
+        void RequestDownload(int id, int data_format_identifier, int memory_address, int memory_size);
+        void RequestDownloadResponse(int id, int max_number_block);
         void TransferData(int id, int block_sequence_counter, std::vector<int> transfer_request = {});
         void TransferDataLong(int id, int block_sequence_counter, std::vector<int> transfer_request = {}, bool first_frame = true);
         void RequestTransferExit(int id, bool response=false);

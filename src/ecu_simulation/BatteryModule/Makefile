@@ -1,5 +1,7 @@
 #Compiler flags
 CFLAGS = -g -Wall -pthread -I./include -I./src
+CFLAGSTST = -std=c++17 -I/include
+CFLAGSTST2 = -lgtest -lgtest_main -pthread
 #Sources files
 SRCS = src/main.cpp src/BatteryModule.cpp src/GenerateFrames.cpp src/HandleFrames.cpp src/InterfaceConfig.cpp src/ReceiveFrames.cpp
 #Object files
@@ -8,7 +10,7 @@ OBJS = $(patsubst src/%.cpp, obj/%.o, $(SRCS))
 OBJ_DIR = obj
 #TARGET
 FINAL = main
-
+FINAL_TEST = test_binary
 .PHONY: all clean
 
 all: $(OBJ_DIR) $(FINAL) 
@@ -30,5 +32,9 @@ $(OBJ_DIR)/InterfaceConfig.o: src/InterfaceConfig.cpp
 	$(CXX) $(CFLAGS) -c src/InterfaceConfig.cpp -o $(OBJ_DIR)/InterfaceConfig.o
 
 clean:
-	rm -f $(FINAL) $(OBJS)
+	rm -f $(FINAL) $(OBJS) ${FINAL_TEST}
 	rm -rf $(OBJ_DIR)
+testing: $(FINAL_TEST)
+
+$(FINAL_TEST): test/GenerateFramesTest.cpp src/GenerateFrames.cpp
+	$(CXX) ${CFLAGSTST} -o ${FINAL_TEST} test/GenerateFramesTest.cpp src/GenerateFrames.cpp ${CFLAGSTST2}
