@@ -31,20 +31,20 @@ int INTERFACE_module::start_interface()
     }
 
     // Create socket
-    int sock = socket(PF_CAN, SOCK_RAW, CAN_RAW);
-    if (sock < 0) {
+    _socket = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+    if (_socket < 0) {
         std::cout<<"Error when trying to create the socket\n";
         return 1;
     }
 
     // Binding socket
     strcpy(ifr.ifr_name, this->interface_name.c_str() );
-    ioctl(sock, SIOCGIFINDEX, &ifr);
+    ioctl(_socket, SIOCGIFINDEX, &ifr);
 
     addr.can_family = AF_CAN;
     addr.can_ifindex = ifr.ifr_ifindex;
 
-    int bnd = bind(sock, (struct sockaddr*)&addr, sizeof(addr));
+    int bnd = bind(_socket, (struct sockaddr*)&addr, sizeof(addr));
     if(bnd < 0)
     {
         std::cout<<"Error when trying to bind\n";
@@ -78,4 +78,14 @@ int INTERFACE_module::delete_interface()
     }
 
     return 0;
+}
+
+int INTERFACE_module::get_socket()
+{
+    return _socket;
+}
+
+std::string INTERFACE_module::get_interface_name()
+{
+    return interface_name;
 }
