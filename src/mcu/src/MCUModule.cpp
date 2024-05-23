@@ -23,3 +23,12 @@ MCUModule::~MCUModule() {
 void MCUModule::StartModule() { isRunning = true; }
 
 void MCUModule::StopModule() { isRunning = false; }
+
+void MCUModule::recvFrames() {
+    while (isRunning) {
+        // Start a thread to process the queue
+        std::thread queueThread(&ReceiveFrames::ProcessQueue, receiveFrames);
+        receiveFrames->ReceiveFramesFromCANBus();
+        queueThread.join();
+    }
+}

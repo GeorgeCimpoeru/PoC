@@ -69,12 +69,6 @@ void ReceiveFrames::ProcessQueue() {
                 
             }   
         }
-        else {
-            frame_return.can_id = 0x00;
-            frame_return.can_dlc = 0;
-            std::fill(frame_return.data, frame_return.data + frame.can_dlc, 0);
-        }
-    return frame_return;
     }
 }
 
