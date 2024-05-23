@@ -34,7 +34,7 @@
 
 class ReceiveFrames{
  public:
-  ReceiveFrames(HandleFrames& handler, int socket);
+  ReceiveFrames(int socket);
   int ReceiveFramesFromCANBus();
   void PrintFrames(const struct can_frame &frame);
   void ProcessQueue();
