@@ -49,6 +49,7 @@ public:
 
     void simulate();
     void receiveFrames();
+    void stopFrames();
 
     float getVoltage() const;
     float getCurrent() const;

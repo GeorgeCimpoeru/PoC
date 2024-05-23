@@ -110,15 +110,18 @@ void BatteryModule::updateParamenters()
     }
 }
 
-// Receive CAN frames in a loop
+// Receive CAN frames
 void BatteryModule::receiveFrames()
 {
-    while (running)
-    {
-        HandleFrames handleFrames;
-        frameReceiver->Receive(handleFrames);
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
+    HandleFrames handleFrames;
+    frameReceiver->Receive(handleFrames);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+}
+
+// Stop receiving frames
+void BatteryModule::stopFrames()
+{
+    frameReceiver->Stop();
 }
 
 float BatteryModule::getVoltage() const
