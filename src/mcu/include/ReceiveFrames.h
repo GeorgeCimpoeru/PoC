@@ -44,7 +44,7 @@ class ReceiveFrames{
   std::queue<struct can_frame> frameQueue;
   std::mutex queueMutex;
   std::condition_variable queueCondVar;
-  HandleFrames& handler;
+  HandleFrames handler;
 };
 
 #endif
