@@ -17,7 +17,7 @@
 
 #define BATTERY_MODULE_ID 0x101
 
-#define BATTERY_MODULE_DEBUG
+#define BATTERY_MODULE_DEBUG    // comment-out to disable all the prints
 
 #include <thread>
 #include "InterfaceConfig.h"
