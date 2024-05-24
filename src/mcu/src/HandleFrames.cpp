@@ -17,6 +17,7 @@ void HandleFrames::HandleFrame(const struct can_frame &frame) {
         //UDS requests
         case 0x10:
             //DiagnosticSessionControl();
+            std::cout << "DiagnosticSessionControl called." << std::endl;
             break;
         case 0x11:
             //EcuReset();
@@ -54,6 +55,7 @@ void HandleFrames::HandleFrame(const struct can_frame &frame) {
         //UDS responses
         case 0x50: // SID + 0x40 DiagnosticSessionControl response
             //SendToApi();
+            std::cout << "DiagnosticSessionControl processed." << std::endl;
             break;
         case 0x51: // SID + 0x40 EcuReset response
             //SendToApi();
@@ -94,6 +96,7 @@ void HandleFrames::HandleFrame(const struct can_frame &frame) {
         //OTA requests
         case 0x34:
             //RequestDownload();
+            std::cout << "Request download called." << std::endl;
             break;
         case 0x36:
             //TransferData();
@@ -107,6 +110,7 @@ void HandleFrames::HandleFrame(const struct can_frame &frame) {
         //OTA responses
         case 0x74: // SID + 0x40 RequestDownload response
             //SendToApi();
+            std::cout << "Request download processed." << std::endl;
             break;
         case 0x76: // SID + 0x40 TransferData response
             //SendToApi();
@@ -118,7 +122,7 @@ void HandleFrames::HandleFrame(const struct can_frame &frame) {
             //SendToApi();
             break;
         default:
-            std::cerr << "Unknown service" << std::endl;
+            std::cerr << "Unknown service." << std::endl;
             break;
     }
 }
