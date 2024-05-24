@@ -1,7 +1,7 @@
 #include "../include/GenerateFrame.h"
 
 // Constructor which create a CAN frame
-CANFrame::CANFrame(FrameType frameType=DATA_FRAME, uint32_t can_id, const uint8_t *data, uint8_t dlc) {
+CANFrame::CANFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) {
     GenerateFrame(frameType, can_id, data, dlc);
 }
 

@@ -37,10 +37,10 @@ public:
     
     // Function to send a CAN frame
     int SendFrame(const std::string& interface, int s);
-    can_frame getFrame() {}
+    can_frame getFrame();
+    struct can_frame frame;
 
 private:
-    struct can_frame frame;
 
     // Function to create a CAN frame
     void GenerateFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc);
