@@ -21,7 +21,10 @@ TEST(BatteryModuleTest, CustomConstructor)
     EXPECT_EQ(battery.getTemperature(), 20.0);
 }
 
-/*// Test the updateParameters method
+// The following tests are targeting some private methods of the class
+// this has to be re-vised in future...
+/*
+// Test the updateParameters method
 TEST(BatteryModuleTest, UpdateParameters)
 {
     BatteryModule battery;

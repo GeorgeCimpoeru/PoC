@@ -124,6 +124,7 @@ void BatteryModule::stopFrames()
     frameReceiver->Stop();
 }
 
+// Member Accessors
 float BatteryModule::getVoltage() const
 {
     return voltage;
