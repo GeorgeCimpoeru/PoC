@@ -36,20 +36,21 @@ void HandleFrames::ProcessReceivedFrame(const struct can_frame &frame) {
         std::cerr << "No valid SID found in frame\n";
         return;
     }
-
-    std::cout << "\nSID: 0x" << std::hex << sid << " found at position: " << sid_position << std::dec << "\n";
-
+    }
+    std::cout << "\nSID: 0x" << std::hex << sid << " found at position: " << sid_position << std::dec << "\n"<<std::flush;
+    
     switch (sid) {
         //UDS
         case 0x10: // SessionControl method --to be implemented
-            std::cout << "Service 0x10 SessionControl\n";
+            std::cout << "Service 0x10 SessionControl\n"<<std::flush;
             if (sid_position + 1 < data.size()) {  //sub_function data always found next to sid, has to be in valid data range
                 int sub_function = data[sid_position + 1];
-                std::cout << "Valid data length\n";
+                std::cout << "Valid data length\n"<<std::flush;
                 //SessionControl(id, sub_function);
             } else {
                 std::cerr << "Invalid data length for SessionControl\n";
-            }          
+            }  
+            exit(0);        
             break;
         case 0x11: // EcuReset
             std::cout << "Service 0x11 EcuReset\n";
@@ -250,5 +251,4 @@ void HandleFrames::ProcessReceivedFrame(const struct can_frame &frame) {
             std::cerr << "Unknown service" << std::endl;
             break;
     }
-}
 }
