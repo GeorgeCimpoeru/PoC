@@ -8,5 +8,6 @@ int main() {
                                                 // and the interface-name will be 'vcan1', with moduleId '0x102' (258)
     batteryModule.simulate();
     batteryModule.receiveFrames();
+    batteryModule.stopFrames();
     return 0;
 }
