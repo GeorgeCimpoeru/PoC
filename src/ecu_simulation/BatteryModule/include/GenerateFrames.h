@@ -27,13 +27,13 @@ class GenerateFrames
         int socket = -1;
     public:
         GenerateFrames(int socket);
-        int GetSocket();
+        int getSocket();
         //For custom frames
-        bool SendFrame(int id, std::vector<int> data);
+        bool sendFrame(int id, std::vector<int> data);
         //Predefine frames for services
         //UDS
-        void SessionControl(int id, int sub_function, bool response=false);
-        void EcuReset(int id, bool response=false);
+        void sessionControl(int id, int sub_function, bool response=false);
+        void ecuReset(int id, bool response=false);
         //Consider using method ReadDataByIdentifierLongResponse(), if the response
         //is greater than 5 bytes, to split the response into multiple frames.
         //Example:
@@ -44,35 +44,35 @@ class GenerateFrames
         //  gf.ReadDataByIdentifierLongResponse(0x0,0x0,response,false); //Remainig frames
         //}
         //PS: same for WriteDataByIdentifier() and ReadMemoryByAddress()
-        void ReadDataByIdentifier(int id,int identifier, std::vector<int> response = {});
-        void ReadDataByIdentifierLongResponse(int id,int identifier, std::vector<int> response = {}, bool first_frame = true);
-        void FlowControlFrame(int id);
-        void AuthenticationRequestSeed(int id, const std::vector<int> &seed = {});
-        void AuthenticationSendKey(int id, const std::vector<int> &key = {});
-        void RoutineControl(int id, int sub_function, int routin_identifier, bool response=false);
-        void TesterPresent(int id, bool response=false);
-        void ReadMemoryByAdress(int id, int memory_size, int memory_address, std::vector<int> response = {});
-        void ReadMemoryByAdressLongResponse(int id, int memory_size, int memory_address, std::vector<int> response = {}, bool first_frame = true);
-        void WriteDataByIdentifier(int id, int identifier, std::vector<int> data_parameter = {});
-        void WriteDataByIdentifierLongData(int id, int identifier, std::vector<int> data_parameter = {}, bool first_frame = true);
-        void ReadDtcInformation(int id, int sub_function, int dtc_status_mask);
-        void ReadDtcInformationResponse01(int id, int status_availability_mask, int dtc_format_identifier, int dtc_count);
-        void ClearDiagnosticInformation(int id, std::vector<int> group_of_dtc = {0xFF,0xFF,0xFF}, bool response=false);
-        void AccessTimingParameters(int id, int sub_function, bool response=false);
-        void NegativeResponse(int id, int nrc);
+        void readDataByIdentifier(int id,int identifier, std::vector<int> response = {});
+        void readDataByIdentifierLongResponse(int id,int identifier, std::vector<int> response = {}, bool first_frame = true);
+        void flowControlFrame(int id);
+        void authenticationRequestSeed(int id, const std::vector<int> &seed = {});
+        void authenticationSendKey(int id, const std::vector<int> &key = {});
+        void routineControl(int id, int sub_function, int routin_identifier, bool response=false);
+        void testerPresent(int id, bool response=false);
+        void readMemoryByAdress(int id, int memory_size, int memory_address, std::vector<int> response = {});
+        void readMemoryByAdressLongResponse(int id, int memory_size, int memory_address, std::vector<int> response = {}, bool first_frame = true);
+        void writeDataByIdentifier(int id, int identifier, std::vector<int> data_parameter = {});
+        void writeDataByIdentifierLongData(int id, int identifier, std::vector<int> data_parameter = {}, bool first_frame = true);
+        void readDtcInformation(int id, int sub_function, int dtc_status_mask);
+        void readDtcInformationResponse01(int id, int status_availability_mask, int dtc_format_identifier, int dtc_count);
+        void clearDiagnosticInformation(int id, std::vector<int> group_of_dtc = {0xFF,0xFF,0xFF}, bool response=false);
+        void accessTimingParameters(int id, int sub_function, bool response=false);
+        void negativeResponse(int id, int nrc);
         //OTA
-        void RequestDownload(int id, int data_format_identifier, int memory_address, int memory_size);
-        void RequestDownloadResponse(int id, int max_number_block);
-        void TransferData(int id, int block_sequence_counter, std::vector<int> transfer_request = {});
-        void TransferDataLong(int id, int block_sequence_counter, std::vector<int> transfer_request = {}, bool first_frame = true);
-        void RequestTransferExit(int id, bool response=false);
-        bool RequestUpdateStatus(int id, bool response=false);
+        void requestDownload(int id, int data_format_identifier, int memory_address, int memory_size);
+        void requestDownloadResponse(int id, int max_number_block);
+        void transferData(int id, int block_sequence_counter, std::vector<int> transfer_request = {});
+        void transferDataLong(int id, int block_sequence_counter, std::vector<int> transfer_request = {}, bool first_frame = true);
+        void requestTransferExit(int id, bool response=false);
+        bool requestUpdateStatus(int id, bool response=false);
     private:
-        void AddSocket(int socket);
-        struct can_frame CreateFrame(int &id, std::vector<int> &ata);
+        void addSocket(int socket);
+        struct can_frame createFrame(int &id, std::vector<int> &ata);
         int numDigits(int number);
         void insertBytes(std::vector<int>& byteVector, unsigned int num, int numBytes);
-        void GenerateFrameLongData(int id, int sid, int identifier, std::vector<int> response, bool first_frame);
+        void generateFrameLongData(int id, int sid, int identifier, std::vector<int> response, bool first_frame);
 };
 
 #endif
