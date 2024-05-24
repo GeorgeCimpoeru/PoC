@@ -118,16 +118,47 @@ def clear_diagnostic_information(data):
     return {"service": "clear_diagnostic_information", "data": data}
 
 def access_timing_parameters(data):
-    return {"service": "access_timing_parameters", "data": data}
+    session = data.get('session')
+    timing_type = data.get('timingType')
+    timing_value = data.get('timingValue')
+    retry_count = data.get('retryCount')
+    return {
+        "service": "access_timing_parameters",
+        "data": {
+            "session": session,
+            "timingType": timing_type,
+            "timingValue": timing_value,
+            "retryCount": retry_count
+        }
+    }
 
 def read_memory_by_address(params):
-    return {"service": "read_memory_by_address", "params": params}
+    address = params.get('adress', '0x1234')
+    length = params.get('lenght', '16')
+    data = "dummy_data"
+    return {"service": "read_memory_by_address", "address": address, "length": length, "data": data}
 
 def session_diagnostic_control(data):
-    return {"service": "session_diagnostic_control", "data": data}
+    session_type = data.get('session_type')
+    timeout = data.get('timeout')
+    return {
+        "service": "session_diagnostic_control",
+        "data": {
+            "session_type": session_type,
+            "timeout": timeout,
+        }
+    }
 
 def request_transfer_exit(data):
-    return {"service": "request_transfer_exit", "data": data}
+    blockSequenceCounter = data.get('blockSequenceCounter', '10')
+    checksum = data.get('checksum', 'ABCDEF1234567890')
+    transfer_result = data.get('transferResult', 'succes')
+    return {"service": "session_diagnostic_control",
+        "data": {
+            "blockSequenceCounter": blockSequenceCounter,
+            "checksum": checksum,
+            "transfer_result": transfer_result,
+        }}
 
 
 @app.route('/api', methods=['GET', 'POST', 'PUT'])
