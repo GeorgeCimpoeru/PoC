@@ -31,8 +31,10 @@ ReceiveFrames::~ReceiveFrames() {
 void ReceiveFrames::Receive(HandleFrames &handleFrame) {
     std::cout << "Starting Receive Method for Module ID: 0x" << std::hex << std::setw(8) << std::setfill('0') << this->moduleID << std::endl;
     try {
-        producerThread = std::thread(&ReceiveFrames::Producer, this);
-        this->Consumer(handleFrame);
+        producerThread = std::thread(&ReceiveFrames::producer, this);
+        std::cout << "ProducerThread\n";
+        this->consumer(handleFrame);
+        std::cout << "ConsumerThread\n";
     } catch (const std::exception &e) {
         std::cerr << "Exception in starting threads: " << e.what() << std::endl;
         Stop();
@@ -47,7 +49,7 @@ void ReceiveFrames::Stop() {
     }
 }
 
-void ReceiveFrames::Producer() {
+void ReceiveFrames::producer() {
     try{
         while (running) {
             struct can_frame frame;
@@ -82,7 +84,7 @@ void ReceiveFrames::Producer() {
             }
             
             // Print the frame for debugging
-            PrintFrame(frame);
+            printFrame(frame);
 
             std::unique_lock<std::mutex> lock(mtx);
             frameBuffer.push(frame);
@@ -94,7 +96,7 @@ void ReceiveFrames::Producer() {
     }
 }
 
-void ReceiveFrames::Consumer(HandleFrames &handleFrame) {
+void ReceiveFrames::consumer(HandleFrames &handleFrame) {
     while (running) {
         std::unique_lock<std::mutex> lock(mtx);
         cv.wait(lock, [this]{ return !frameBuffer.empty() || !running; });
@@ -107,12 +109,12 @@ void ReceiveFrames::Consumer(HandleFrames &handleFrame) {
         lock.unlock();
 
         // Process the received frame
-        handleFrame.ProcessReceivedFrame(frame);
+        handleFrame.processReceivedFrame(frame);
     }
 }
 
 
-void ReceiveFrames::PrintFrame(const struct can_frame &frame) {
+void ReceiveFrames::printFrame(const struct can_frame &frame) {
     std::cout << "Received CAN frame:" << std::endl;
     std::cout << "CAN ID: 0x" << std::hex << int(frame.can_id) << std::endl;
     std::cout << "Data Length: " << int(frame.can_dlc) << std::endl;

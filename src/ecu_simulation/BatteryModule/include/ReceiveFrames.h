@@ -23,8 +23,8 @@ private:
     std::thread producerThread;
     std::thread consumerThread;
 
-    void Producer();
-    void Consumer(HandleFrames &handleFrame);
+    void producer();
+    void consumer(HandleFrames &handleFrame);
 protected:
     HandleFrames handleFrame;
     
@@ -32,9 +32,9 @@ protected:
 public:
     ReceiveFrames(int socket, int moduleID);
     ~ReceiveFrames();
-    void PrintFrame(const struct can_frame &frame);
+    void printFrame(const struct can_frame &frame);
     void Receive(HandleFrames &handleFrame);
-    void Stop();
+    void stop();
 };
 
 #endif
