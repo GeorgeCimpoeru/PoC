@@ -38,7 +38,7 @@ class ReceiveFrames{
   int ReceiveFramesFromCANBus();
   void PrintFrames(const struct can_frame &frame);
   void ProcessQueue();
- private:
+ protected:
   int s;
   const uint32_t hexValueId = 0x10;
   std::queue<struct can_frame> frameQueue;

@@ -7,7 +7,7 @@
  */
 #include "../include/HandleFrames.h"
 
-void HandleFrames::HandleFrame(const struct can_frame &frame) {
+void HandleFrames::handleFrame(const struct can_frame &frame) {
     int frame_id = frame.can_id;
     std::vector<int> data(frame.data, frame.data + frame.can_dlc);
     // get Service ID

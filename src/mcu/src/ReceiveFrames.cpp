@@ -58,14 +58,14 @@ void ReceiveFrames::ProcessQueue() {
             // Compare the first data byte with hexValueId
             if (frame.data[0] == hexValueId) {
                     std::cout << "Frame for MCU Service" << std::endl;
-                    handler.HandleFrame(frame);
+                    handler.handleFrame(frame);
 
             } else {
                     frameParam.can_id = frame.data[0];
                     frameParam.can_dlc = frame.can_dlc - 1;
                     std::copy(frameParam.data, frame.data + 1, frame.data + frame.can_dlc);
                     std::cout << "Frame for ECU Service" << std::endl;
-                    handler.HandleFrame(frameParam);
+                    handler.handleFrame(frameParam);
                 
             }   
         }
