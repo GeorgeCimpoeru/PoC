@@ -33,7 +33,11 @@ void MCUModule::recvFrames() {
     while (isRunning) {
         // Start a thread to process the queue
         std::thread queueThread(&ReceiveFrames::ProcessQueue, receiveFrames);
+
+        // Receive frames from the CAN bus
         receiveFrames->ReceiveFramesFromCANBus();
+
+        // Wait for the queue thread to finish
         queueThread.join();
     }
 }

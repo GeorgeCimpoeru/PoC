@@ -1,10 +1,12 @@
 /*
-    * GenerateFrame.h
-    * For creating a CAN frame
+    GenerateFrame.h
+    For creating a CAN frame
     This class is used to create a CAN frame and send it to the CAN bus.
-    The class has a constructor that takes the frame type, CAN ID, data, and data length as arguments.
-    The private function GenerateFrame creates the CAN frame with the given arguments.
-    The function SendFrame sends the created frame to the CAN bus.
+    The class has a constructor that takes the frame type, CAN ID, data, and
+    data length as arguments.
+    The private method GenerateFrame creates the CAN frame with the given
+    arguments.
+    The SendFrame method sends the created frame to the CAN bus.
     It uses the CAN socket interface to send the frame to the CAN bus.
 */
 
@@ -31,19 +33,33 @@ enum FrameType {
 
 // Class to create a CAN frame
 class CANFrame {
-public:
-    CANFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc);
-    CANFrame();
-    
-    // Function to send a CAN frame
-    int SendFrame(const std::string& interface, int s);
-    can_frame getFrame();
-    struct can_frame frame;
+    public:
+        CANFrame(
+            FrameType frameType,
+            uint32_t can_id,
+            const uint8_t *data,
+            uint8_t dlc
+        );
+        
+        CANFrame();
+        
+        // Function to send a CAN frame
+        int SendFrame(const std::string& interface, int s);
 
-private:
+        // Function to get the CAN frame
+        can_frame getFrame();
 
-    // Function to create a CAN frame
-    void GenerateFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc);
+        struct can_frame frame;
+
+    private:
+
+        // Function to create a CAN frame
+        void GenerateFrame(
+            FrameType frameType,
+            uint32_t can_id,
+            const uint8_t *data,
+            uint8_t dlc
+        );
 };
 
 #endif

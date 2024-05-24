@@ -5,6 +5,7 @@ CANFrame::CANFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, ui
     GenerateFrame(frameType, can_id, data, dlc);
 }
 
+// Default constructor
 CANFrame::CANFrame() {}
 
 // Function to create a CAN frame
@@ -48,6 +49,7 @@ int CANFrame::SendFrame(const std::string& interface, int s) {
     return 0;
 }
 
+// Function to get the CAN frame
 can_frame CANFrame::getFrame() {
     return frame;
 }
