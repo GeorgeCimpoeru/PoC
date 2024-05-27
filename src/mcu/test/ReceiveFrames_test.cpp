@@ -9,14 +9,6 @@
 class MockReceiveFrames : public ReceiveFrames {
 public:
     MockReceiveFrames(int socket) : ReceiveFrames(socket) {}
-
-    // Expose private members for testing
-    using ReceiveFrames::ReceiveFramesFromCANBus;
-    using ReceiveFrames::ProcessQueue;
-    using ReceiveFrames::frameQueue;
-    using ReceiveFrames::queueMutex;
-    using ReceiveFrames::queueCondVar;
-    using ReceiveFrames::hexValueId;
 };
 
 class ReceiveFramesTest : public ::testing::Test {
@@ -26,7 +18,7 @@ protected:
     MockReceiveFrames* receiveFrames;
 
     virtual void SetUp() {
-        // Create a mock socket pair for testing
+        /* Create a mock socket pair for testing */
         socketpair(AF_UNIX, SOCK_STREAM, 0, mockSocketPair);
         mockSocket = mockSocketPair[0];
         receiveFrames = new MockReceiveFrames(mockSocket);
@@ -40,8 +32,9 @@ protected:
 };
 
 TEST_F(ReceiveFramesTest, TestReceiveFramesFromCANBus_ReadError) {
-    close(mockSocket); // Close socket to simulate read error
-    int result = receiveFrames->ReceiveFramesFromCANBus();
+    /* Close socket to simulate read error */
+    close(mockSocket);
+    int result = receiveFrames->receiveFramesFromCANBus();
     EXPECT_EQ(result, 1);
 }
 
@@ -54,7 +47,7 @@ TEST_F(ReceiveFramesTest, TestReceiveFramesFromCANBus_IncompleteFrameRead) {
         write(mockSocketPair[1], &frame, sizeof(frame) - 1);
     });
 
-    int result = receiveFrames->ReceiveFramesFromCANBus();
+    int result = receiveFrames->receiveFramesFromCANBus();
     EXPECT_EQ(result, 1);
     readerThread.join();
 }
