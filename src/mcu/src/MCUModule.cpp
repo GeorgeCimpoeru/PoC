@@ -32,10 +32,10 @@ void MCUModule::StopModule() { isRunning = false; }
 void MCUModule::recvFrames() {
     while (isRunning) {
         // Start a thread to process the queue
-        std::thread queueThread(&ReceiveFrames::ProcessQueue, receiveFrames);
+        std::thread queueThread(&ReceiveFrames::processQueue, receiveFrames);
 
         // Receive frames from the CAN bus
-        receiveFrames->ReceiveFramesFromCANBus();
+        receiveFrames->receiveFramesFromCANBus();
 
         // Wait for the queue thread to finish
         queueThread.join();
