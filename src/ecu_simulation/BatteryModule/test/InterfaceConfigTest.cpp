@@ -2,7 +2,7 @@
 #include "../include/InterfaceConfig.h"
 #include <iostream>
 
-class InterfaceConfigTest : public ::testing::Test 
+class InterfaceConfigTest : public ::testing::Test
 {
 protected:
     const std::string globalInterfaceName = "vcan1";
@@ -25,16 +25,12 @@ TEST_F(InterfaceConfigTest, Constructor_ValidInterfaceName)
 {
     const std::string interfaceName = "vcan2";
     SocketCanInterface batteryInterface(interfaceName);
-    EXPECT_EQ(batteryInterface.getInterfaceName(), interfaceName)
-        << "EXPECTED INTERFACE NAME: " << interfaceName
-        << " BUT GOT: " << batteryInterface.getInterfaceName();
+    EXPECT_EQ(batteryInterface.getInterfaceName(), interfaceName);
 }
 
 TEST_F(InterfaceConfigTest, GetInterfaceName) 
 {
-    EXPECT_EQ(globalInterface.getInterfaceName(), globalInterfaceName)
-        << "EXPECTED INTERFACE NAME: " << globalInterfaceName
-        << " BUT GOT: " << globalInterface.getInterfaceName();
+    EXPECT_EQ(globalInterface.getInterfaceName(), globalInterfaceName);
 }
 
 TEST_F(InterfaceConfigTest, SetInterfaceName) 
@@ -44,10 +40,7 @@ TEST_F(InterfaceConfigTest, SetInterfaceName)
 
     globalInterface.setInterfaceName(expectedInterfaceName);
 
-    EXPECT_EQ(globalInterface.getInterfaceName(), expectedInterfaceName)
-        << "PREVIOUS INTERFACE NAME " << previousInterfaceName
-        << " NEW INTERFACE SHOULD BE: " << expectedInterfaceName
-        << " BUT GOT: " << globalInterface.getInterfaceName();
+    EXPECT_EQ(globalInterface.getInterfaceName(), expectedInterfaceName);
 }
 
 TEST_F(InterfaceConfigTest, SystemCall) 
@@ -60,9 +53,7 @@ TEST_F(InterfaceConfigTest, SystemCall)
         CoutRedirect guard(output.rdbuf());
         globalInterface.callSystem(cmd);
     }
-    EXPECT_EQ(output.str(), expectedOutput)
-        << "EXPECTED: " << expectedOutput
-        << " BUT GOT: " << output.str();
+    EXPECT_EQ(output.str(), expectedOutput);
 
     cmd = "pwd";
     expectedOutput = cmd + " succesfull\n";
@@ -72,27 +63,25 @@ TEST_F(InterfaceConfigTest, SystemCall)
         CoutRedirect guard(output.rdbuf());
         globalInterface.callSystem(cmd);
     }
-    EXPECT_EQ(output.str(), expectedOutput)
-        << "EXPECTED: " << expectedOutput
-        << " BUT GOT: " << output.str();
+    EXPECT_EQ(output.str(), expectedOutput);
 }
 
-// Placeholder for future test
 TEST_F(InterfaceConfigTest, InitInterface) 
 {
+    auto interface = SocketCanInterface("vcan1");
 
 }
 
-// Placeholder for future test
 TEST_F(InterfaceConfigTest, GetSocketFd) 
 {
-    // auto interface = SocketCanInterface("vcan1");
-    // int defaultFd = -1;
+    auto interface = SocketCanInterface("vcan1");
+    int defaultFd = -1;
 
-    // BOOST_CHECK_MESSAGE(interface.getSocketFd() == defaultFd, "EXPECTED BEFORE INIT FD " << defaultFd << " BUT GOT " << interface.getSocketFd());
+    EXPECT_THROW(interface.getSocketFd(), std::runtime_error);
     
-    // interface.init();
-    // BOOST_CHECK_MESSAGE(interface.getSocketFd() != defaultFd, "EXPECTED AFTER INIT FD > 0 BUT GOT " << interface.getSocketFd());
+    interface.init();
+    EXPECT_NO_THROW(interface.getSocketFd());
+    EXPECT_NE(interface.getSocketFd(), defaultFd);
 }
 
 TEST_F(InterfaceConfigTest, DestructorTest) 
@@ -104,7 +93,5 @@ TEST_F(InterfaceConfigTest, DestructorTest)
         auto interface = SocketCanInterface(interfaceName);
     }
     std::string expectedOutput = "Can't close socket with fd = -1";
-    EXPECT_EQ(output.str(), expectedOutput)
-        << "EXPECTED: " << expectedOutput
-        << " BUT GOT: " << output.str();
+    EXPECT_EQ(output.str(), expectedOutput);
 }

@@ -8,13 +8,14 @@
 #include <thread>
 #include <fcntl.h>
 
-//Global variables
-int s1;//socket
-int s2;//socket
-//Const
+/*Global variables*/
+/*Sockets for Recive/Send*/
+int s1;
+int s2;
+/*Const*/
 const int id = 0x101;
 
-//Class to capture the frame sin the can-bus
+/*Class to capture the frame sin the can-bus*/
 class CaptureFrame
 {
     public:
@@ -26,7 +27,7 @@ class CaptureFrame
 };
 int createSocket()
 {
-    //Create socket
+    /*Create socket*/
     std::string nameInterface = "vcan0";
     struct can_frame frame;
     struct sockaddr_can addr;
@@ -39,13 +40,13 @@ int createSocket()
         std::cout<<"Error trying to create the socket\n";
         return 1;
     }
-    //Giving name and index to the interface created
+    /*Giving name and index to the interface created*/
     strcpy(ifr.ifr_name, nameInterface.c_str() );
     ioctl(s, SIOCGIFINDEX, &ifr);
-    //Set addr structure with info. of the CAN interface
+    /*Set addr structure with info. of the CAN interface*/
     addr.can_family = AF_CAN;
     addr.can_ifindex = ifr.ifr_ifindex;
-    //Bind the socket to the CAN interface
+    /*Bind the socket to the CAN interface*/
     int b = bind( s, (struct sockaddr*)&addr, sizeof(addr));
     if( b < 0 )
     {
@@ -72,7 +73,7 @@ void testFrames(struct can_frame expected_frame, CaptureFrame &c1 )
         EXPECT_EQ(expected_frame.data[i], c1.frame.data[i]);
     }
 }
-//Create object for all tests
+/*Create object for all tests*/
 struct GenerateFramesTest : testing::Test
 {
     GenerateFrames* g1;
@@ -96,111 +97,111 @@ TEST_F(GenerateFramesTest, AddSocket)
 }
 TEST_F(GenerateFramesTest, SessionControlTest) 
 {
-    //Create expected frame
+    /*Create expected frame*/
     struct can_frame result_frame = createFrame({0x02,0x10,0x01});
-    //Start listening for frame in the CAN-BUS  
+    /*Start listening for frame in the CAN-BUS */
     std::thread receive_thread([this]() {
         c1->capture();
     });
-    //Send frame
+    /*Send frame*/
     g1->sessionControl(0x101,0x01);
     receive_thread.join();
-    //TEST
+    /*TEST*/
     testFrames(result_frame, *c1);
 }
 TEST_F(GenerateFramesTest, EcuResetTest) 
 {
-    //Create expected frame
+    /*Create expected frame*/
     struct can_frame result_frame = createFrame({0x02,0x11,0x03});
-    //Start listening for frame in the CAN-BUS  
+    /*Start listening for frame in the CAN-BUS */
     std::thread receive_thread([this]() {
         c1->capture();
     });
-    //Send frame
+    /*Send frame*/
     g1->ecuReset(id);
     receive_thread.join();
-    //TEST
+    /*TEST*/
     testFrames(result_frame, *c1);
 }
 TEST_F(GenerateFramesTest, AuthSeedTest) 
 {
-    //Create expected frame
+    /*Create expected frame*/
     struct can_frame result_frame = createFrame({0x05,0x69,0x1,0x23,0x34,0x35});
-    //Start listening for frame in the CAN-BUS  
+    /*Start listening for frame in the CAN-BUS*/
     std::thread receive_thread([this]() {
         c1->capture();
     });
-    //Send frame
+    /*Send frame*/
     g1->authenticationRequestSeed(id,{0x23,0x34,0x35});
     receive_thread.join();
-    //TEST
+    /*TEST*/
     testFrames(result_frame, *c1);
 }
 TEST_F(GenerateFramesTest, AuthKeyTest) 
 {
-    //Create expected frame
+    /*Create expected frame*/
     struct can_frame result_frame = createFrame({0x05,0x29,0x2,0x23,0x34,0x35});
-    //Start listening for frame in the CAN-BUS  
+    /*Start listening for frame in the CAN-BUS*/
     std::thread receive_thread([this]() {
         c1->capture();
     });
-    //Send frame
+    /*Send frame*/
     g1->authenticationSendKey(id,{0x23,0x34,0x35});
     receive_thread.join();
-    //TEST
+    /*TEST*/
     testFrames(result_frame, *c1);
 }
 TEST_F(GenerateFramesTest, AuthKeyResponseTest) 
 {
-    //Create expected frame
+    /*Create expected frame*/
     struct can_frame expected_frame = createFrame({0x2,0x69,0x02});
-    //Start listening for frame in the CAN-BUS  
+    /*Start listening for frame in the CAN-BUS*/
     std::thread receive_thread([this]() {
         c1->capture();
     });
-    //Send frame
+    /*Send frame*/
     g1->authenticationSendKey(id);
     receive_thread.join();
-    //TEST
+    /*TEST*/
     testFrames(expected_frame, *c1);
 }
 TEST_F(GenerateFramesTest, RoutinControlFrame) 
 {
-    //Create expected frame
+    /*Create expected frame*/
     struct can_frame result_frame = createFrame({0x04,0x31,0x02,0x34,0x1A});
-    //Start listening for frame in the CAN-BUS  
+    /*Start listening for frame in the CAN-BUS*/
     std::thread receive_thread([this]() {
         c1->capture();
     });
-    //Send frame
+    /*Send frame*/
     g1->routineControl(id,0x02,0x341A);
     receive_thread.join();
-    //TEST
+    /*TEST*/
     testFrames(result_frame, *c1);
 }
 TEST_F(GenerateFramesTest, ReadByIdentRespTest) 
 {
-    //Create expected frame
+    /*Create expected frame*/
     struct can_frame result_frame = createFrame({0x05,0x22,0x33,0x22,0x32,0x11});
-    //Start listening for frame in the CAN-BUS  
+    /*Start listening for frame in the CAN-BUS */
     std::thread receive_thread([this]() {
         c1->capture();
     });
-    //Send frame
+    /*Send frame*/
     g1->readDataByIdentifier(id,0x3322,{0x32,0x11});
     receive_thread.join();
-    //TEST
+    /*TEST*/
     testFrames(result_frame, *c1);
 }
 TEST_F(GenerateFramesTest, ReadByIdentLongRespTest) 
 {
-    //Create expected frame
+    /*Create expected frame*/
     struct can_frame result_frame = createFrame({0x10,12,0x22,0x12,0x34,1,2,3});
-    //Start listening for frame in the CAN-BUS  
+    /*Start listening for frame in the CAN-BUS */ 
     std::thread receive_thread([this]() {
         c1->capture();
     });
-    //Send frame simulation
+    /*Send frame simulation*/
     std::vector<int> response = {1,2,3,4,5,6,7,8,9};
     if (response.size() > 4)
     {
@@ -210,116 +211,116 @@ TEST_F(GenerateFramesTest, ReadByIdentLongRespTest)
         g1->readDataByIdentifier(id,0x1234,response);
     }
     receive_thread.join();
-    //TEST
+    /*TEST*/
     testFrames(result_frame, *c1);
 }
 TEST_F(GenerateFramesTest, ReadByAddressRespTest) 
 {
-    //Create expected frame
+    /*Create expected frame*/
     struct can_frame result_frame = createFrame({0x07,0x63,0x21,0x01,0x23,0x45,1,2});
-    //Start listening for frame in the CAN-BUS  
+    /*Start listening for frame in the CAN-BUS */
     std::thread receive_thread([this]() {
         c1->capture();
     });
-    //Send frame
-    g1->readMemoryByAdress(id,0x2345,0x01,{1,2});
+    /*Send frame*/
+    g1->readMemoryByAddress(id,0x2345,0x01,{1,2});
     receive_thread.join();
-    //TEST
+    /*TEST*/
     testFrames(result_frame, *c1);
 }
 TEST_F(GenerateFramesTest, ClearDTCTest) 
 {
-    //Create expected frame
+    /*Create expected frame*/
     struct can_frame result_frame = createFrame({0x04,0x14,0xFF,0xFF,0xFF});
-    //Start listening for frame in the CAN-BUS  
+    /*Start listening for frame in the CAN-BUS */ 
     std::thread receive_thread([this]() {
         c1->capture();
     });
-    //Send frame
+    /*Send frame*/
     g1->clearDiagnosticInformation(id);
     receive_thread.join();
-    //TEST
+    /*TEST*/
     testFrames(result_frame, *c1);
 }
 TEST_F(GenerateFramesTest, AccesTimeParamTest) 
 {
-    //Create expected frame
+    /*Create expected frame*/
     struct can_frame result_frame = createFrame({0x02,0x83,0x1});
-    //Start listening for frame in the CAN-BUS  
+    /*Start listening for frame in the CAN-BUS*/
     std::thread receive_thread([this]() {
         c1->capture();
     });
-    //Send frame
+    /*Send frame*/
     g1->accessTimingParameters(id,0x01);
     receive_thread.join();
-    //TEST
+    /*TEST*/
     testFrames(result_frame, *c1);
 }
 TEST_F(GenerateFramesTest, RequestDownloadTest) 
 {
-    //Create expected frame
+    /*Create expected frame*/
     struct can_frame result_frame = createFrame({0x06,0x34, 0x00, 0x12, 0x34,0x45, 0x10});
-    //Start listening for frame in the CAN-BUS  
+    /*Start listening for frame in the CAN-BUS */ 
     std::thread receive_thread([this]() {
         c1->capture();
     });
-    //Send frame
+    /*Send frame*/
     g1->requestDownload(id,0x00,0x3445,0x10);
     receive_thread.join();
-    //TEST
+    /*TEST*/
     testFrames(result_frame, *c1);
 }
 TEST_F(GenerateFramesTest, RequestDownloadTest2) 
 {
-    //Create expected frame
+    /*Create expected frame*/
     struct can_frame result_frame = createFrame({0x04,0x74, 0x20,0x22, 0x34});
-    //Start listening for frame in the CAN-BUS  
+    /*Start listening for frame in the CAN-BUS */ 
     std::thread receive_thread([this]() {
         c1->capture();
     });
-    //Send frame
+    /*Send frame*/
     g1->requestDownloadResponse(id,0x2234);
     receive_thread.join();
-    //TEST
+    /*TEST*/
     testFrames(result_frame, *c1);
 }
 TEST_F(GenerateFramesTest, TransferDataTest) 
 {
-    //Create expected frame
+    /*Create expected frame*/
     struct can_frame result_frame = createFrame({0x07,0x36, 0x20, 1,2,3,4,5});
-    //Start listening for frame in the CAN-BUS  
+    /*Start listening for frame in the CAN-BUS */ 
     std::thread receive_thread([this]() {
         c1->capture();
     });
-    //Send frame
+    /*Send frame*/
     g1->transferData(id, 0x20,{1,2,3,4,5});
     receive_thread.join();
-    //TEST
+    /*TEST*/
     testFrames(result_frame, *c1);
 }
 TEST_F(GenerateFramesTest, TransferDataTest2) 
 {
-    //Create expected frame
+    /*Create expected frame*/
     struct can_frame result_frame = createFrame({0x02,0x76, 0x20});
-    //Start listening for frame in the CAN-BUS  
+    /*Start listening for frame in the CAN-BUS */ 
     std::thread receive_thread([this]() {
         c1->capture();
     });
-    //Send frame
+    /*Send frame*/
     g1->transferData(id, 0x20);
     receive_thread.join();
-    //TEST
+    /*TEST*/
     testFrames(result_frame, *c1);
 }
 TEST_F(GenerateFramesTest, TransferDataLongTest) 
 {
-    //Create expected frame
+    /*Create expected frame*/
     struct can_frame result_frame = createFrame({0x10,0x09,0x36,0x20,1,2,3,4});
-    //Start listening for frame in the CAN-BUS  
+    /*Start listening for frame in the CAN-BUS */ 
     std::thread receive_thread([this]() {
         c1->capture();
     });
-    //Send frame simulation
+    /*Send frame simulation*/
     std::vector<int> data = {1,2,3,4,5,6,7};
     if (data.size() > 4)
     {
@@ -329,18 +330,18 @@ TEST_F(GenerateFramesTest, TransferDataLongTest)
         g1->transferData(id,0x20,data);
     }
     receive_thread.join();
-    //TEST
+    /*TEST*/
     testFrames(result_frame, *c1);
 }
 TEST_F(GenerateFramesTest, TransferDataLongTest2) 
 {
-    //Create expected frame
+    /*Create expected frame*/
     struct can_frame result_frame = createFrame({0x05,0x36,0x20,1,2,3});
-    //Start listening for frame in the CAN-BUS  
+    /*Start listening for frame in the CAN-BUS */ 
     std::thread receive_thread([this]() {
         c1->capture();
     });
-    //Send frame simulation
+    /*Send frame simulation*/
     std::vector<int> data = {1,2,3};
     if (data.size() > 4)
     {
@@ -350,21 +351,21 @@ TEST_F(GenerateFramesTest, TransferDataLongTest2)
         g1->transferData(id,0x20,data);
     }
     receive_thread.join();
-    //TEST
+    /*TEST*/
     testFrames(result_frame, *c1);
 }
 TEST_F(GenerateFramesTest, ReqTransferExit) 
 {
-    //Create expected frame
+    /*Create expected frame*/
     struct can_frame result_frame = createFrame({0x01,0x37});
-    //Start listening for frame in the CAN-BUS  
+    /*Start listening for frame in the CAN-BUS */ 
     std::thread receive_thread([this]() {
         c1->capture();
     });
-    //Send frame
+    /*Send frame*/
     g1->requestTransferExit(id);
     receive_thread.join();
-    //TEST
+    /*TEST*/
     testFrames(result_frame, *c1);
 }
 int main(int argc, char* argv[])
