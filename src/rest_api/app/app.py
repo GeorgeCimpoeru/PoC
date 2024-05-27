@@ -26,20 +26,42 @@ def data_validation(params):
 def routine_control(data):
     return {"service": "routine_control", "data": data}
 
-def write_data_by_identifier(data):
-    return {"service": "write_data_by_identifier", "data": data}
-
 def read_data_by_identifier(params):
-    return {"service": "read_data_by_identifier", "params": params}
+    data_format = params.get('data_format', 'dummy')
+    timeout = params.get('timeout', 5)  
+    identifier = params.get('identifier')
+    encryption = params.get('encryption', False)  
+
+    return {"service": "read_data_by_identifier", "data_Format": data_format, "timeout": timeout, "identifier": identifier, "encryption": encryption}
+
 
 def request_update_status(params):
-    return {"service": "request_update_status", "params": params}
+    timestamp = params.get('timestamp')
+    priority = params.get('priority')
+    user_context = params.get('userContext')
+    user_id = user_context.get('userId') if user_context else None
+    roles = user_context.get('roles') if user_context else None
+   
+    return {"service": "request_update", "timestamp": timestamp, "priority": priority, "user_context": user_context , "user_id": user_id, "roles": roles}
 
 def authentication(data):
-    return {"service": "authentication", "data": data}
+    auth_type = data.get('auth_type')
+    description = data.get('description')
+    payload = data.get('payload')
+    user = data.get('user')
+    password = data.get('password')
+    
+    return {"service": "authentication", 'auth_type': auth_type, 'description': description, 'payload': payload, 'user': user, 'password': password}
 
 def request_download(data):
-    return {"service": "request_download", "data": data}
+    type = params.post('type')
+    description = params.post('description')
+    payload = params.post('payload')
+    deviceId = params.post('deviceId')
+    url = params.post('url')
+    version = params.post('version')
+    
+    return {"service": "request_download", 'type': type, 'description': description, 'payload': payload, 'deviceId': deviceId, 'url': url, 'version': version}
 
 def read_dtc_information(params):
     return {"service": "read_dtc_information", "params": params}
