@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
+# Validation and routine control
 def checksum_validation(params):
     checksum_type = params.get('checksumType')
     file_id = params.get('fileId')
@@ -21,10 +22,57 @@ def checksum_validation(params):
     return result
 
 def data_validation(params):
-    return {"service": "data_validation", "params": params}
+    schema_version = params.get('schemaVersion')
+    data_id = params.get('dataId')
+    validation_rules = params.get('validationRules')
+    
+    def validate_data(schema_version, data_id, validation_rules):
+        validation_passed = True
+        for rule in validation_rules:
+            if rule == "rule1":
+                validation_passed = validation_passed and True
+            elif rule == "rule2":
+                validation_passed = validation_passed and True
+        return validation_passed
+
+    is_valid = validate_data(schema_version, data_id, validation_rules)
+
+    result = {
+        "service": "data_validation",
+        "params": params,
+        "is_valid": is_valid
+    }
+    return result
 
 def routine_control(data):
-    return {"service": "routine_control", "data": data}
+    routine_identifier = data.get('routineIdentifier')
+    control_type = data.get('controlType')
+    routine_parameters = data.get('routineParameters')
+    timeout = data.get('timeout')
+
+    def execute_routine_control(routine_identifier, control_type, routine_parameters, timeout):
+        if control_type == "start":
+            result = f"Routine {routine_identifier} started with parameters {routine_parameters} and timeout {timeout}"
+        elif control_type == "stop":
+            result = f"Routine {routine_identifier} stopped"
+        elif control_type == "result":
+            result = f"Result for routine {routine_identifier}: Success"
+        else:
+            result = "Invalid control type"
+        return result
+
+    result = execute_routine_control(routine_identifier, control_type, routine_parameters, timeout)
+
+    response = {
+        "service": "routine_control",
+        "data": data,
+        "result": result
+    }
+    return response
+
+
+def write_data_by_identifier(data):
+    return {"service": "write_data_by_identifier", "data": data}
 
 def read_data_by_identifier(params):
     data_format = params.get('data_format', 'dummy')
@@ -76,16 +124,47 @@ def clear_diagnostic_information(data):
     return {"service": "clear_diagnostic_information", "data": data}
 
 def access_timing_parameters(data):
-    return {"service": "access_timing_parameters", "data": data}
+    session = data.get('session')
+    timing_type = data.get('timingType')
+    timing_value = data.get('timingValue')
+    retry_count = data.get('retryCount')
+    return {
+        "service": "access_timing_parameters",
+        "data": {
+            "session": session,
+            "timingType": timing_type,
+            "timingValue": timing_value,
+            "retryCount": retry_count
+        }
+    }
 
 def read_memory_by_address(params):
-    return {"service": "read_memory_by_address", "params": params}
+    address = params.get('adress', '0x1234')
+    length = params.get('lenght', '16')
+    data = "dummy_data"
+    return {"service": "read_memory_by_address", "address": address, "length": length, "data": data}
 
 def session_diagnostic_control(data):
-    return {"service": "session_diagnostic_control", "data": data}
+    session_type = data.get('session_type')
+    timeout = data.get('timeout')
+    return {
+        "service": "session_diagnostic_control",
+        "data": {
+            "session_type": session_type,
+            "timeout": timeout,
+        }
+    }
 
 def request_transfer_exit(data):
-    return {"service": "request_transfer_exit", "data": data}
+    blockSequenceCounter = data.get('blockSequenceCounter', '10')
+    checksum = data.get('checksum', 'ABCDEF1234567890')
+    transfer_result = data.get('transferResult', 'succes')
+    return {"service": "session_diagnostic_control",
+        "data": {
+            "blockSequenceCounter": blockSequenceCounter,
+            "checksum": checksum,
+            "transfer_result": transfer_result,
+        }}
 
 
 @app.route('/api', methods=['GET', 'POST', 'PUT'])
@@ -93,6 +172,7 @@ def handle_request():
     service = request.args.get('service')
     params = request.json if request.method in ['POST', 'PUT'] else request.args
 
+    # Validation and routine control
     if service == 'checksum_validation':
         return jsonify(checksum_validation(params))
     elif service == 'data_validation':
@@ -101,6 +181,7 @@ def handle_request():
         return jsonify(routine_control(params))
     elif service == 'write_data_by_identifier':
         return jsonify(write_data_by_identifier(params))
+    
     elif service == 'read_data_by_identifier':
         return jsonify(read_data_by_identifier(params))
     elif service == 'request_update_status':
