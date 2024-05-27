@@ -1,18 +1,21 @@
 #include "../include/GenerateFrame.h"
 
-// Constructor which create a CAN frame
-CANFrame::CANFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) {
+/* Constructor which create a CAN frame */
+CANFrame::CANFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) 
+{
     GenerateFrame(frameType, can_id, data, dlc);
 }
 
-// Default constructor
+/* Default constructor */
 CANFrame::CANFrame() {}
 
-// Function to create a CAN frame
-void CANFrame::GenerateFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) {
+/* Function to create a CAN frame */
+void CANFrame::GenerateFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) 
+{
     frame.can_id = can_id;
 
-    switch (frameType) {
+    switch (frameType) 
+    {
         case DATA_FRAME:
             frame.can_id &= CAN_EFF_MASK;
             frame.can_dlc = dlc;
@@ -36,20 +39,23 @@ void CANFrame::GenerateFrame(FrameType frameType, uint32_t can_id, const uint8_t
     }
 }
 
-// Function to send a CAN frame
-int CANFrame::SendFrame(const std::string& interface, int s) {
-    if (write(s, &frame, sizeof(frame)) != sizeof(frame)) {
+/* Function to send a CAN frame */
+int CANFrame::SendFrame(const std::string& interface, int s) 
+{
+    if (write(s, &frame, sizeof(frame)) != sizeof(frame)) 
+    {
         perror("Write");
         close(s);
         return -1;
     }
 
-    // Close the socket
+    /* Close the socket */
     close(s);
     return 0;
 }
 
-// Function to get the CAN frame
-can_frame CANFrame::getFrame() {
+/* Function to get the CAN frame */
+can_frame CANFrame::getFrame() 
+{
     return frame;
 }

@@ -1,43 +1,47 @@
 #include "../include/MCUModule.h"
 #include <thread>
 
-// Constructor
+/* Constructor */
 MCUModule::MCUModule(int interfaceNumber) : 
                 interfaceModule("vcan" + std::to_string(interfaceNumber)), 
                 isRunning(false),
-                receiveFrames(nullptr) {
+                receiveFrames(nullptr) 
+                {
     interfaceModule.create_interface();
     interfaceModule.start_interface();
     receiveFrames = new ReceiveFrames(interfaceModule.get_socket());
 }
 
-// Default constructor
+/* Default constructor */
 MCUModule::MCUModule() : interfaceModule("vcan0"), 
                                             isRunning(false),
                                             receiveFrames(nullptr) {}
 
-// Destructor
-MCUModule::~MCUModule() {
+/* Destructor */
+MCUModule::~MCUModule() 
+{
     interfaceModule.stop_interface();
     delete receiveFrames;
 }
 
-// Start the module
+/* Start the module */
 void MCUModule::StartModule() { isRunning = true; }
 
-// Stop the module
+/* Stop the module */
 void MCUModule::StopModule() { isRunning = false; }
 
-// Receive frames
-void MCUModule::recvFrames() {
-    while (isRunning) {
-        // Start a thread to process the queue
+/* Receive frames */
+void MCUModule::recvFrames() 
+{
+    while (isRunning) 
+    {
+        /* Start a thread to process the queue */
         std::thread queueThread(&ReceiveFrames::processQueue, receiveFrames);
 
-        // Receive frames from the CAN bus
+        /* Receive frames from the CAN bus */
         receiveFrames->receiveFramesFromCANBus();
 
-        // Wait for the queue thread to finish
+        /* Wait for the queue thread to finish */
         queueThread.join();
     }
 }
