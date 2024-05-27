@@ -1,5 +1,7 @@
 /**
- * The library facilitates the transmission of Controller Area Network (CAN) 
+ * @file GenerateFrames.h
+ * @author Mujdei Ruben
+ * @brief The library facilitates the transmission of Controller Area Network (CAN) 
  * frames through an interface utilizing sockets.
  * The library also gives some methods for the creation of specific 
  * frames for the main services.
@@ -8,10 +10,9 @@
  *     std::vector<int> x = {0x11, 0x34, 0x56};
  *     g1.SendFrame(0x23, x);
  *     g1.SessionControl(0x34A, 0x1);
- * 
- * @author: Mujdei Ruben
- * @date: 2024
- * @version 1.0
+ * @version 0.1
+ * @date 2024-05-27
+ * @copyright Copyright (c) 2024
  */
 #ifndef POC_INCLUDE_GENERATEFRAMES_H_
 #define POC_INCLUDE_GENERATEFRAMES_H_
