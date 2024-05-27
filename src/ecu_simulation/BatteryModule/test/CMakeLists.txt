@@ -22,7 +22,7 @@ include_directories(${GTEST_INCLUDE_DIRS})
 
 # Create the test executable
 add_executable(testFile InterfaceConfigTest.cpp ${SOURCES})
-add_executable(test_battery_module BatteryModule_Test.cpp ${SOURCES})
+add_executable(test_battery_module BatteryModuleTest.cpp ${SOURCES})
 
 # Link the test executable with Google Test and pthread
 target_link_libraries(testFile gtest gtest_main pthread)
