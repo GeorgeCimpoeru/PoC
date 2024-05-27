@@ -1,8 +1,3 @@
-/*Author:Stoisor Miruna, 2024*/
-
-#include <sstream>
-#include <iomanip>
-#include <cstring>
 #include "../include/ReceiveFrames.h"
 #include "../include/HandleFrames.h"
 
@@ -23,7 +18,7 @@ ReceiveFrames::ReceiveFrames(int socket, int moduleID) : socket(socket), moduleI
         exit(EXIT_FAILURE);
     }
 
-    /*Print the moduleID for debugging*/ 
+    /* Print the moduleID for debugging */ 
     std::cout << "Module ID: 0x" << std::hex << std::setw(8) << std::setfill('0') << this->moduleID << std::endl;
 }
 
@@ -32,7 +27,6 @@ ReceiveFrames::~ReceiveFrames()
     Stop();
 }
 
-/*Starts the receive process by creating producer and consumer threads*/ 
 void ReceiveFrames::Receive(HandleFrames &handleFrame) 
 {
     std::cout << "Starting Receive Method for Module ID: 0x" << std::hex << std::setw(8) << std::setfill('0') << this->moduleID << std::endl;
@@ -42,14 +36,14 @@ void ReceiveFrames::Receive(HandleFrames &handleFrame)
         std::cout << "ProducerThread\n";
         this->consumer(handleFrame);
         std::cout << "ConsumerThread\n";
-    } catch (const std::exception &e) 
+    } 
+    catch (const std::exception &e) 
     {
         std::cerr << "Exception in starting threads: " << e.what() << std::endl;
         Stop();
     }
 }
 
-/*Stops the receive process gracefully*/
 void ReceiveFrames::Stop() 
 {
     running = false;
@@ -59,7 +53,6 @@ void ReceiveFrames::Stop()
     }
 }
 
-/*Producer thread function that reads frames from the socket and adds them to the buffer*/
 void ReceiveFrames::producer() 
 {
     try{
@@ -69,54 +62,61 @@ void ReceiveFrames::producer()
             int nbytes = read(this->socket, &frame, sizeof(struct can_frame));
             if (nbytes < 0) 
             {
-                /*No data available or error occurred*/ 
+                /* No data available or error occurred */ 
                 if (errno == EWOULDBLOCK || errno == EAGAIN) 
                 {
-                    /*No data available, wait for a short duration*/ 
-                    /*std::this_thread::sleep_for(std::chrono::milliseconds(10000));*/
+                    /* No data available, wait for a short duration */ 
+                    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
                     continue;
-                } else 
+                } 
+                else 
                 {
-                    /*Other error occurred, handle it*/ 
+                    /* Other error occurred, handle it */ 
                     std::cerr << "Read error: " << strerror(errno) << std::endl;
                     continue;
                 }
-            } else if (nbytes == 0) 
+            } 
+            else if (nbytes < sizeof(struct can_frame)) 
             {
-                /*Connection closed by peer*/ 
+                std::cerr << "Incomplete frame read\n";
+                continue;
+            } 
+            else if (nbytes == 0) 
+            {
+                /* Connection closed by peer */ 
                 std::cerr << "Connection closed by peer" << std::endl;
                 continue;
             }
             
-            /*Check if the received frame is for your module*/ 
+            /* Check if the received frame is for your module */ 
             if (frame.can_id != static_cast<canid_t>(this->moduleID)) 
             {
                 std::cerr << "Received frame is not for this module\n";
                 continue;
             }
 
-            /*Check if the received frame is empty*/ 
+            /* Check if the received frame is empty */ 
             if (frame.can_dlc == 0) 
             {
                 std::cerr << "Received empty frame\n";
                 continue;
             }
             
-            /*Print the frame for debugging*/ 
+            /* Print the frame for debugging */ 
             printFrame(frame);
 
             std::unique_lock<std::mutex> lock(mtx);
             frameBuffer.push(frame);
             cv.notify_one();
         }
-    }catch(const std::exception &e) 
+    }
+    catch(const std::exception &e) 
     {
         std::cerr << "Exception in Producer: " << e.what() << std::endl;
         Stop();
     }
 }
 
-/*Consumer thread function that processes frames from the buffer*/
 void ReceiveFrames::consumer(HandleFrames &handleFrame) 
 {
     while (running) 
@@ -132,12 +132,11 @@ void ReceiveFrames::consumer(HandleFrames &handleFrame)
         frameBuffer.pop();
         lock.unlock();
 
-        /*Process the received frame*/ 
+        /* Process the received frame */ 
         handleFrame.processReceivedFrame(frame);
     }
 }
 
-/*Debug function to print the details of a CAN frame*/
 void ReceiveFrames::printFrame(const struct can_frame &frame) 
 {
     std::cout << "\nReceived CAN frame:" << std::endl;

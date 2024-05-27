@@ -1,12 +1,19 @@
-/*The HandleFrames module processes received CAN frames, extracting relevant data and 
-invoking appropriate service methods for further handling. Upon reception, it analyzes the 
-frame to determine its type (e.g., first frame, consecutive frame, or single frame) 
-and extracts the Service Identifier (SID) for service identification. Based on the SID, 
-it directs the frame to corresponding methods for further processing. The module ensures completeness 
-of multi-frame messages and handles single-frame messages accordingly. */
-
-/*Author:Stoisor Miruna, 2024*/
-
+/**
+ * @file HandleFrames.h
+ * @author Stoisor Miruna
+ * @brief The library facilitates the transmission of Controller Area Network (CAN) 
+ * frames through an interface utilizing sockets.
+ * The library also gives some methods for the creation of specific 
+ * frames for the main services.
+ * How to use example:
+ *     GenerateFrames g1 = GenerateFrames(socket);
+ *     std::vector<int> x = {0x11, 0x34, 0x56};
+ *     g1.SendFrame(0x23, x);
+ *     g1.SessionControl(0x34A, 0x1);
+ * @version 0.1
+ * @date 2024-05-27
+ * @copyright Copyright (c) 2024
+ */
 #ifndef HANDLE_FRAME_H_
 #define HANDLE_FRAME_H_
 
@@ -19,20 +26,39 @@ of multi-frame messages and handles single-frame messages accordingly. */
 class HandleFrames 
 {
 private:
-    
-    std::vector<int> stored_data;                /*Vector to store received data*/ 
-    size_t expected_data_size;                   /*Expected total size of data*/ 
-    size_t sid_position;                         /*Position of the Service Identifier (SID) in the received data*/ 
-    int flag;                                    /*Flag to track the number of consecutive frames expected*/ 
-    int pci;                                     /*Protocol Control Information (PCI) byte*/ 
-    int sid;                                     /*Service Identifier (SID)*/ 
-    bool isFirstFrame;                           /*Flag indicating if the frame is the first frame of a multi-frame message*/ 
-    bool isConsecutiveFrame;                     /*Flag indicating if the frame is a consecutive frame of a multi-frame message*/ 
-    bool isSingleFrame;                          /*Flag indicating if the frame is a single frame message*/ 
+    /* Vector to store received data */ 
+    std::vector<int> stored_data;        
+    /* Expected total size of data */         
+    size_t expected_data_size;    
+    /* Position of the Service Identifier (SID) in the received data */                
+    size_t sid_position;      
+    /* Flag to track the number of consecutive frames expected */ 
+    int flag;                                    
+    /* Protocol Control Information (PCI) byte */ 
+    int pci;                                   
+    /* Service Identifier (SID) */   
+    int sid;                    
+    /* Flag indicating if the frame is a single frame message */                  
+    bool isSingleFrame;                          
 public:
+    /**
+     * @brief Construct a new Handle Frames object
+     * 
+     */
     HandleFrames() : expected_data_size(0), flag(0) {}
-    
+    /**
+     * @brief Method for processing received CAN frame
+     * 
+     * @param frame 
+     */
     void processReceivedFrame(const struct can_frame &frame);
+    /**
+     * @brief Method for handling complete data after reception
+     * 
+     * @param id 
+     * @param data 
+     * @param isSingleFrame 
+     */
     void handleCompleteData(int id, const std::vector<int>& data, bool isSingleFrame);
 };
 
