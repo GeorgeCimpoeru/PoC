@@ -1,29 +1,35 @@
 'use client';
-import React from 'react'
-import styles from './SignUp.module.css'
+import React, { useState } from 'react'
+import EmailInput from './EmailInput';
+import PasswordInput from './PasswordInput';
+import ConfirmPasswordInput from './ConfirmPasswordInput';
+import SignUpButton from './SignUpButton';
+import Link from "next/link";
 
 const SignUpPage = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confPassword, setConfPassword] = useState("");
+
   return (
     <div className='bg-gray-200 w-full min-h-screen flex justify-center items-center'>
-      <div /*className={styles.div}*/ className='w-100 p-2 bg-white rounded-x1 fit-content'>
-        <form /*onSubmit={handleSubmit}*/>
-          <p className='items-center'>Sign Up</p>
-          <label>Email</label><br></br>
-          <input
-            type="text"
-            // value={inputValue}
-            // onChange={handleInputChange}
-            placeholder="Type email address"
-          /><br></br>
-          <label>Password</label><br></br>
-          <input
-            type="text"
-            // value={inputValue}
-            // onChange={handleInputChange}
-            placeholder="Type email address"
-          /><br></br>
-          <button className='btn btn-primary' onClick={() => console.log('Click')}>Sign Up</button>
-        </form>
+      <div className='card card-compact w-96 bg-base-100 shadow-xl'>
+        <div className='w-100 p-2 bg-white rounded-x1 fit-content'>
+          <form id='signUpForm'>
+            <div className='card-actions justify-center'>
+              <h2 className='p-1 my-1 card-title'>Sign Up</h2>
+            </div>
+            <EmailInput onEmailType={setEmail}/>
+            <PasswordInput onPasswordType={setPassword}/>
+            <ConfirmPasswordInput onConfPasswordType={setConfPassword}/>
+            <SignUpButton email={email} password={password} confPassword={confPassword}/>
+          </form>
+          <div className='card-actions justify-center'>
+            <h2 className='p-1 my-1'>
+              <Link href="/signin">Back to Sign In {email}</Link>
+            </h2>
+          </div>
+        </div>
       </div>
     </div>
   )
