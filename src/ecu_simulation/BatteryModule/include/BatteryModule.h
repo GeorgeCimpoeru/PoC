@@ -61,11 +61,17 @@ private:
     ReceiveFrames* frameReceiver;
 
     /* Battery Class private methods */
-    void updateParamenters();
     void startBatteryModule();
     void stopBatteryModule();
 
 public:
+    /**
+     * @brief Function to update the parameters values,
+     * simulating some logic for reading changings.
+     * 
+     * Currently in 'public' access level for test purposes
+     */
+    void updateParamenters();
     /**
      * @brief Construct a new Battery Module object
      * 
