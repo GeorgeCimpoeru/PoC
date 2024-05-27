@@ -5,6 +5,9 @@ CANFrame::CANFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, ui
     GenerateFrame(frameType, can_id, data, dlc);
 }
 
+// Default constructor
+CANFrame::CANFrame() {}
+
 // Function to create a CAN frame
 void CANFrame::GenerateFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) {
     frame.can_id = can_id;
@@ -44,4 +47,9 @@ int CANFrame::SendFrame(const std::string& interface, int s) {
     // Close the socket
     close(s);
     return 0;
+}
+
+// Function to get the CAN frame
+can_frame CANFrame::getFrame() {
+    return frame;
 }

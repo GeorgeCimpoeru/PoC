@@ -39,17 +39,17 @@ class ReceiveFrames{
 
   /*Function that take the frame from CANBus and put it in process queue. 
   The function return 1 for error and 0 for successfully*/
-  int ReceiveFramesFromCANBus();
+  int receiveFramesFromCANBus();
 
   /*Function that take each frame from process queue and partially parse the frame to know
     for who is the frame. After, call handle class.*/
-  void ProcessQueue();
+  void processQueue();
 
   /*Function that print a frame with all information. This function take as parameter the frame
   that you want to print*/
-  void PrintFrames(const struct can_frame &frame);
+  void printFrames(const struct can_frame &frame);
   
- private:
+ protected:
   /*Socket for reading frame.*/
   int s;
   const uint32_t hexValueId = 0x10;
@@ -59,4 +59,4 @@ class ReceiveFrames{
   HandleFrames handler;
 };
 
-#endif
+#endif /*POC_SRC_MCU_RECEIVE_FRAME_MODULE_H*/

@@ -16,7 +16,8 @@
 
 class HandleFrames {
 public:
-    void HandleFrame(const struct can_frame &frame);
+    HandleFrames() = default;
+    void handleFrame(const struct can_frame &frame);
 };
 
 #endif // HANDLE_FRAMES_H

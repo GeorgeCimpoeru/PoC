@@ -6,7 +6,7 @@ ReceiveFrames::ReceiveFrames(int socket) : s(socket){}
  Function to read frames from the CAN bus and add them to a queue.
  This function runs in a loop and continually reads frames from the CAN bus.
  */
-int ReceiveFrames::ReceiveFramesFromCANBus() {
+int ReceiveFrames::receiveFramesFromCANBus() {
     struct can_frame frame;
     while (true) {
         /*Read frames from the CAN socket*/
@@ -37,7 +37,7 @@ int ReceiveFrames::ReceiveFramesFromCANBus() {
  Function to process frames from the queue.
  This function runs in a loop and processes each frame from the queue.
  */
-void ReceiveFrames::ProcessQueue() {
+void ReceiveFrames::processQueue() {
     can_frame frameParam;
     while (true) {
         /*Wait until the queue is not empty, then lock the queue*/
@@ -51,20 +51,20 @@ void ReceiveFrames::ProcessQueue() {
         lock.unlock();
 
         /*Print the received CAN frame details*/
-        PrintFrames(frame);
+        printFrames(frame);
 
         /*Compare the CAN ID with the expected hexValueId*/
         if (frame.can_id == hexValueId) {
             /*Compare the first data byte with hexValueId*/
             if (frame.data[0] == hexValueId) {
                     std::cout << "Frame for MCU Service" << std::endl;
-                    handler.HandleFrame(frame);
+                    handler.handleFrame(frame);
             } else {
                     frameParam.can_id = frame.data[0];
                     frameParam.can_dlc = frame.can_dlc - 1;
                     std::copy(frameParam.data, frame.data + 1, frame.data + frame.can_dlc);
                     std::cout << "Frame for ECU Service" << std::endl;
-                    handler.HandleFrame(frameParam);
+                    handler.handleFrame(frameParam);
             }   
         }
     }
@@ -73,7 +73,7 @@ void ReceiveFrames::ProcessQueue() {
 /**
  Function to print the frames.
  */
-void ReceiveFrames::PrintFrames(const struct can_frame &frame) {
+void ReceiveFrames::printFrames(const struct can_frame &frame) {
         std::cout << "-------------------\n";
         std::cout << "Processing CAN frame from queue:" << std::endl;
         std::cout << "CAN ID: 0x" << std::hex << frame.can_id << std::endl;
