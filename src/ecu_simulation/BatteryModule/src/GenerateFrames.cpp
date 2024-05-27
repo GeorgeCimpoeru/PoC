@@ -192,8 +192,8 @@ void GenerateFrames::flowControlFrame(int id)
 void GenerateFrames::readMemoryByAddress(int id, int memory_size, int memory_address, std::vector<int> response )
 {
     /*add lengths of of memory size/address to the frame*/
-    int length_memory_size = (numDigits(memory_size) +1) / 2;
-    int length_memory_address = (numDigits(memory_address) + 1) / 2;
+    int length_memory_size = (countDigits(memory_size) +1) / 2;
+    int length_memory_address = (countDigits(memory_address) + 1) / 2;
     int length_memory = length_memory_size * 0x10 + length_memory_address;
     if (response.size() == 0)
     {
@@ -227,8 +227,8 @@ void GenerateFrames::readMemoryByAddress(int id, int memory_size, int memory_add
 void GenerateFrames::readMemoryByAddressLongResponse(int id, int memory_size, int memory_address, std::vector<int> response, bool first_frame)
 {
     /*add lengths of of memory size/address to the frame*/
-    int length_memory_size = (numDigits(memory_size) +1) / 2;
-    int length_memory_address = (numDigits(memory_address) + 1) / 2;
+    int length_memory_size = (countDigits(memory_size) +1) / 2;
+    int length_memory_address = (countDigits(memory_address) + 1) / 2;
     int length_memory = length_memory_size * 0x10 + length_memory_address;
     if (first_frame)
     {
@@ -359,8 +359,8 @@ void GenerateFrames::requestDownload(int id, int data_format_identifier, int mem
 {
     /* Request Frame
     add lengths of of memory size/address to the frame*/
-    int length_memory_size = numDigits(memory_size + 1) / 2;
-    int length_memory_address = numDigits(memory_address + 1) / 2;
+    int length_memory_size = countDigits(memory_size + 1) / 2;
+    int length_memory_address = countDigits(memory_address + 1) / 2;
     int length_memory = length_memory_size * 0x10 + length_memory_address;
     int pci_length = length_memory_size + length_memory_address + 3; //pci_l
     std::vector<int> data = {pci_length, 0x34, data_format_identifier, length_memory}; //pci_l
@@ -373,7 +373,7 @@ void GenerateFrames::requestDownload(int id, int data_format_identifier, int mem
 void GenerateFrames::requestDownloadResponse(int id, int max_number_block)
 {
     /*Response frame*/
-    int length_max_number_block = (numDigits(max_number_block) + 1) / 2;
+    int length_max_number_block = (countDigits(max_number_block) + 1) / 2;
     std::vector<int> data = {length_max_number_block + 2, 0x74, (length_max_number_block * 0x10)}; //pci_l
     insertBytes(data, max_number_block, length_max_number_block);
     this->sendFrame(id, data);
@@ -445,7 +445,7 @@ bool GenerateFrames::requestUpdateStatus(int id, bool response)
     return false;
 }
 /*Private*/
-int GenerateFrames::numDigits(int number)
+int GenerateFrames::countDigits(int number)
 {
     int digits = 0;
     if (number < 0) 
