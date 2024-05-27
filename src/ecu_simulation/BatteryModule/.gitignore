@@ -1,4 +1,1 @@
-test_local*
-/src/Generate.cpp
-/src/Receive.cpp
 /test/build*

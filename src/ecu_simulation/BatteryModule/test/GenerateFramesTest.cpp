@@ -90,11 +90,12 @@ struct GenerateFramesTest : testing::Test
         delete c1;
     }
 };
-
+/* Test for AddSocket */
 TEST_F(GenerateFramesTest, AddSocket)
 { 
     EXPECT_EQ(s1, g1->getSocket());
 }
+/* Test for Service SessionConroll */
 TEST_F(GenerateFramesTest, SessionControlTest) 
 {
     /*Create expected frame*/
@@ -109,6 +110,7 @@ TEST_F(GenerateFramesTest, SessionControlTest)
     /*TEST*/
     testFrames(result_frame, *c1);
 }
+/* Test for Service EcuReset */
 TEST_F(GenerateFramesTest, EcuResetTest) 
 {
     /*Create expected frame*/
@@ -123,6 +125,7 @@ TEST_F(GenerateFramesTest, EcuResetTest)
     /*TEST*/
     testFrames(result_frame, *c1);
 }
+/* Test for method AuthenticationSeedRequest */
 TEST_F(GenerateFramesTest, AuthSeedTest) 
 {
     /*Create expected frame*/
@@ -137,6 +140,7 @@ TEST_F(GenerateFramesTest, AuthSeedTest)
     /*TEST*/
     testFrames(result_frame, *c1);
 }
+/* Test for method AuthenticationSendKey */
 TEST_F(GenerateFramesTest, AuthKeyTest) 
 {
     /*Create expected frame*/
@@ -151,6 +155,7 @@ TEST_F(GenerateFramesTest, AuthKeyTest)
     /*TEST*/
     testFrames(result_frame, *c1);
 }
+/* Test for method AuthenticationSendKey as a response */
 TEST_F(GenerateFramesTest, AuthKeyResponseTest) 
 {
     /*Create expected frame*/
@@ -165,6 +170,7 @@ TEST_F(GenerateFramesTest, AuthKeyResponseTest)
     /*TEST*/
     testFrames(expected_frame, *c1);
 }
+/* Test for Service RoutinControll */
 TEST_F(GenerateFramesTest, RoutinControlFrame) 
 {
     /*Create expected frame*/
@@ -179,6 +185,7 @@ TEST_F(GenerateFramesTest, RoutinControlFrame)
     /*TEST*/
     testFrames(result_frame, *c1);
 }
+/* Test for Service ReadByIdentifier */
 TEST_F(GenerateFramesTest, ReadByIdentRespTest) 
 {
     /*Create expected frame*/
@@ -193,6 +200,7 @@ TEST_F(GenerateFramesTest, ReadByIdentRespTest)
     /*TEST*/
     testFrames(result_frame, *c1);
 }
+/* Test for Service ReadByIdentifier for multiple frames */
 TEST_F(GenerateFramesTest, ReadByIdentLongRespTest) 
 {
     /*Create expected frame*/
@@ -214,6 +222,7 @@ TEST_F(GenerateFramesTest, ReadByIdentLongRespTest)
     /*TEST*/
     testFrames(result_frame, *c1);
 }
+/* Test for Service ReadMemoryByAddress */
 TEST_F(GenerateFramesTest, ReadByAddressRespTest) 
 {
     /*Create expected frame*/
@@ -228,6 +237,7 @@ TEST_F(GenerateFramesTest, ReadByAddressRespTest)
     /*TEST*/
     testFrames(result_frame, *c1);
 }
+/* Test for Service clearDiagnosticInformation */
 TEST_F(GenerateFramesTest, ClearDTCTest) 
 {
     /*Create expected frame*/
@@ -242,6 +252,7 @@ TEST_F(GenerateFramesTest, ClearDTCTest)
     /*TEST*/
     testFrames(result_frame, *c1);
 }
+/* Test for Service accessTimingParameters */
 TEST_F(GenerateFramesTest, AccesTimeParamTest) 
 {
     /*Create expected frame*/
@@ -256,6 +267,7 @@ TEST_F(GenerateFramesTest, AccesTimeParamTest)
     /*TEST*/
     testFrames(result_frame, *c1);
 }
+/* Test for Service requestDownload */
 TEST_F(GenerateFramesTest, RequestDownloadTest) 
 {
     /*Create expected frame*/
@@ -270,6 +282,7 @@ TEST_F(GenerateFramesTest, RequestDownloadTest)
     /*TEST*/
     testFrames(result_frame, *c1);
 }
+/* Test for Service requestDownload a response */
 TEST_F(GenerateFramesTest, RequestDownloadTest2) 
 {
     /*Create expected frame*/
@@ -284,6 +297,7 @@ TEST_F(GenerateFramesTest, RequestDownloadTest2)
     /*TEST*/
     testFrames(result_frame, *c1);
 }
+/* Test for Service transferData*/
 TEST_F(GenerateFramesTest, TransferDataTest) 
 {
     /*Create expected frame*/
@@ -298,6 +312,7 @@ TEST_F(GenerateFramesTest, TransferDataTest)
     /*TEST*/
     testFrames(result_frame, *c1);
 }
+/* Second Test for Service transferData*/
 TEST_F(GenerateFramesTest, TransferDataTest2) 
 {
     /*Create expected frame*/
@@ -312,6 +327,7 @@ TEST_F(GenerateFramesTest, TransferDataTest2)
     /*TEST*/
     testFrames(result_frame, *c1);
 }
+/* Test for Service transferData for multiple frames */
 TEST_F(GenerateFramesTest, TransferDataLongTest) 
 {
     /*Create expected frame*/
@@ -333,6 +349,7 @@ TEST_F(GenerateFramesTest, TransferDataLongTest)
     /*TEST*/
     testFrames(result_frame, *c1);
 }
+/* Second Test for Service transferData for multiple frames */
 TEST_F(GenerateFramesTest, TransferDataLongTest2) 
 {
     /*Create expected frame*/
@@ -354,6 +371,7 @@ TEST_F(GenerateFramesTest, TransferDataLongTest2)
     /*TEST*/
     testFrames(result_frame, *c1);
 }
+/* Test for Service requestTransferExit */
 TEST_F(GenerateFramesTest, ReqTransferExit) 
 {
     /*Create expected frame*/

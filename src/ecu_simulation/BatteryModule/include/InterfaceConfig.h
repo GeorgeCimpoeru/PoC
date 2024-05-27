@@ -1,3 +1,14 @@
+/**
+ * @file InterfaceConfig.h
+ * @author Iancu Daniel
+ * @brief Library used for creation, configuration and deletion of SocketCan interfaces.
+ * @version 0.1
+ * @date 2024-05-15
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
 #ifndef INTERFACECONFIG_H
 #define INTERFACECONFIG_H
 
@@ -10,6 +21,7 @@
 #include <linux/can/raw.h>
 #include <string.h>
 #include <unistd.h>
+
 class SocketCanInterface
 {
 private:
@@ -24,23 +36,22 @@ private:
 /**
  * @brief Open a new socket and connect it to the vcan interface.
  * 
- * @return true 
- * @return false 
+ * @return true for succesfully creation and opening of socket.
+ * @return false for errors
  */
     bool openInterface();
 /**
- * @brief Close a socket and delete the vcan interface. Automatically called in destructor.
+ * @brief Close the owned socket and delete the vcan interface. Automatically called in destructor.
  * 
  */
     void closeInterface();
 
 public:
-
     SocketCanInterface(const std::string& interfaceName);
 /**
  * @brief Method used for making system calls with validation
  * 
- * @param cmd 
+ * @param[i] cmd 
  */
     inline void callSystem(std::string& cmd) const;
 /**
@@ -48,8 +59,8 @@ public:
  * When the source receives a message, the destination receives it too.
  * Simulates a can bus.
  * 
- * @param sourceInterface 
- * @param destinationInterface 
+ * @param[i] sourceInterface 
+ * @param[i] destinationInterface 
  */
     void connectLinuxVCanInterfaces(std::string& sourceInterface, std::string& destinationInterface);
 
