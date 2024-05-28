@@ -1,6 +1,46 @@
 #include "../include/HandleFrames.h"
 /* Services to be included here */
 
+bool HandleFrames::checkReceivedFrame(int nbytes, const struct can_frame &frame)
+{
+    if (nbytes < 0) 
+    {   
+        /* No data available or error occurred */ 
+        if (errno == EWOULDBLOCK || errno == EAGAIN) 
+        {
+            /* No data available, wait for a short duration */ 
+            std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+            return false;
+        } 
+        else 
+        {
+            /* Other error occurred, handle it */
+            std::cerr << "Read error: " << strerror(errno) << std::endl;
+            return false;
+        }
+    } 
+    else if (nbytes < sizeof(struct can_frame)) 
+    {
+        std::cerr << "Incomplete frame read\n";
+        return false;
+    } 
+    else if (nbytes == 0) 
+    {
+        std::cerr << "Connection closed by peer" << std::endl;
+        return false;
+    }
+
+    /* Check if the received frame is empty */
+    if (frame.can_dlc == 0) 
+    {
+        std::cerr << "Received empty frame\n";
+        return false;
+    }
+
+    processReceivedFrame(frame);
+    return true;
+}
+
 void HandleFrames::processReceivedFrame(const struct can_frame &frame) 
 {
     int id = frame.can_id;

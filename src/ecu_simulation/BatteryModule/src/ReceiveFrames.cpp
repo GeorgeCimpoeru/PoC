@@ -60,33 +60,6 @@ void ReceiveFrames::producer()
         {
             struct can_frame frame;
             int nbytes = read(this->socket, &frame, sizeof(struct can_frame));
-            if (nbytes < 0) 
-            {
-                /* No data available or error occurred */ 
-                if (errno == EWOULDBLOCK || errno == EAGAIN) 
-                {
-                    /* No data available, wait for a short duration */ 
-                    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
-                    continue;
-                } 
-                else 
-                {
-                    /* Other error occurred, handle it */ 
-                    std::cerr << "Read error: " << strerror(errno) << std::endl;
-                    continue;
-                }
-            } 
-            else if (nbytes < sizeof(struct can_frame)) 
-            {
-                std::cerr << "Incomplete frame read\n";
-                continue;
-            } 
-            else if (nbytes == 0) 
-            {
-                /* Connection closed by peer */ 
-                std::cerr << "Connection closed by peer" << std::endl;
-                continue;
-            }
             
             /* Check if the received frame is for your module */ 
             if (frame.can_id != static_cast<canid_t>(this->moduleID)) 
@@ -94,19 +67,12 @@ void ReceiveFrames::producer()
                 std::cerr << "Received frame is not for this module\n";
                 continue;
             }
-
-            /* Check if the received frame is empty */ 
-            if (frame.can_dlc == 0) 
-            {
-                std::cerr << "Received empty frame\n";
-                continue;
-            }
             
             /* Print the frame for debugging */ 
             printFrame(frame);
 
             std::unique_lock<std::mutex> lock(mtx);
-            frameBuffer.push(frame);
+            frameBuffer.push_back(std::make_tuple(frame, nbytes));
             cv.notify_one();
         }
     }
@@ -128,12 +94,18 @@ void ReceiveFrames::consumer(HandleFrames &handleFrame)
             break;
         }
 
-        struct can_frame frame = frameBuffer.front();
-        frameBuffer.pop();
+        // Extract frame and nbytes from the tuple in frameBuffer
+        auto frameTuple = frameBuffer.front();
+        frameBuffer.pop_front();
         lock.unlock();
 
+        struct can_frame frame = std::get<0>(frameTuple);
+        int nbytes = std::get<1>(frameTuple);
+
         /* Process the received frame */ 
-        handleFrame.processReceivedFrame(frame);
+        if (!handleFrame.checkReceivedFrame(nbytes, frame)) {
+            std::cerr << "Failed to process frame\n";
+        }
     }
 }
 

@@ -24,7 +24,7 @@
 #include <sstream>
 #include <iomanip>
 #include <cstring>
-#include <queue>
+#include <deque>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -37,8 +37,8 @@ private:
     int socket = -1;            
     /* Module ID for filtering incoming frames */                  
     int moduleID = 0x101;                 
-    /* Buffer to store incoming can frames */        
-    std::queue<struct can_frame> frameBuffer;  
+    /* Define frameBuffer as a deque of tuples */ 
+    std::deque<std::tuple<can_frame, int>> frameBuffer; 
     /* Mutex for ensuring thread safety when accessing the frame buffer */   
     std::mutex mtx;              
     /* Condition variable for thread synchronization */                 
@@ -61,6 +61,7 @@ private:
      * @param handleFrame 
      */
     void consumer(HandleFrames &handleFrame);
+    
 protected:
     HandleFrames handleFrame;
     

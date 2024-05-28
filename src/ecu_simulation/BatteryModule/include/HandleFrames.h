@@ -22,6 +22,9 @@
 #include <linux/can.h>
 #include <algorithm>
 #include <iterator>
+#include <cstring>
+#include <cerrno>
+#include <thread>
 
 class HandleFrames 
 {
@@ -46,6 +49,15 @@ public:
      * 
      */
     HandleFrames() : expected_data_size(0), flag(0) {}
+    /**
+     * @brief Method for checking the validity of the received CAN frame
+     * 
+     * @param nbytes 
+     * @param frame 
+     * @return true 
+     * @return false 
+     */
+    bool checkReceivedFrame(int nbytes, const struct can_frame &frame);
     /**
      * @brief Method for processing received CAN frame
      * 
