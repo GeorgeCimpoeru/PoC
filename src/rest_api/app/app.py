@@ -42,16 +42,44 @@ def request_download(data):
     return {"service": "request_download", "data": data}
 
 def read_dtc_information(params):
-    return {"service": "read_dtc_information", "params": params}
+    dtc_name = params.get('DTCname')
+    DTC_number = params.get('number_of_DTC')
+    related_info = params.get('related_information')
+    return {"service": "read_dtc_information", "dtc_name": dtc_name , "DTC_number" : DTC_number, "related_info" : related_info}
 
 def tester_present(data):
-    return {"service": "tester_present", "data": data}
+    presence_flag = data.get('presence_flag')
+    requestType = data.get('requestType')
+    period = data.get('period')
+    session = data.get('session')
+    result = {"presence_flag" : presence_flag,
+                "requestType" : requestType,
+                "period" : period,
+                "session" : session,
+                }
+    return {"service": "tester_present", "data": result}
 
 def transfer_data(data):
-    return {"service": "transfer_data", "data": data}
+    action = data.get('action')
+    block_Sequence = data.get('block_Sequence')
+    memorylocation = data.get('memorylocation')
+    result = {
+            "action": action,
+            "block_Sequence" : block_Sequence,
+            "memorylocation" : memorylocation
+            }
+    return {"service": "transfer_data", "data": result}
 
 def clear_diagnostic_information(data):
-    return {"service": "clear_diagnostic_information", "data": data}
+    system = data.get('system')
+    action = data.get('action')
+    DTC = data.get('DTC')
+    return {"service": "clear_diagnostic_information",
+        "data": {
+            "system": system,
+            "action": action,
+            "DTC": DTC,
+        }}
 
 def access_timing_parameters(data):
     return {"service": "access_timing_parameters", "data": data}
