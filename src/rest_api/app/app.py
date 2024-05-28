@@ -115,7 +115,18 @@ def read_dtc_information(params):
     dtc_name = params.get('DTCname')
     DTC_number = params.get('number_of_DTC')
     related_info = params.get('related_information')
-    return {"service": "read_dtc_information", "dtc_name": dtc_name , "DTC_number" : DTC_number, "related_info" : related_info}
+
+    query_params = {
+        "dtc_name": dtc_name ,
+        "DTC_number" : DTC_number,
+        "related_info" : related_info
+    }
+    result = {
+        "service": "read_dtc_information",
+        "methode": "GET",
+        "query_params" : query_params
+    }
+    return result
 
 def tester_present(data):
     presence_flag = data.get('presence_flag')
@@ -209,7 +220,6 @@ def handle_request():
         return jsonify(routine_control(params))
     elif service == 'write_data_by_identifier':
         return jsonify(write_data_by_identifier(params))
-    
     elif service == 'read_data_by_identifier':
         return jsonify(read_data_by_identifier(params))
     elif service == 'request_update_status':
