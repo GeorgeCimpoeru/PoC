@@ -74,14 +74,32 @@ def routine_control(data):
 def write_data_by_identifier(data):
     return {"service": "write_data_by_identifier", "data": data}
 
+# def read_data_by_identifier(params):
+    # data_format = params.get('data_format', 'dummy')
+    # timeout = params.get('timeout', 5)  
+    # identifier = params.get('identifier')
+    # encryption = params.get('encryption', False)  
+
+    # return {"service": "read_data_by_identifier", "data_Format": data_format, "timeout": timeout, "identifier": identifier, "encryption": encryption}
+
 def read_data_by_identifier(params):
     data_format = params.get('data_format', 'dummy')
     timeout = params.get('timeout', 5)  
     identifier = params.get('identifier')
     encryption = params.get('encryption', False)  
 
-    return {"service": "read_data_by_identifier", "data_Format": data_format, "timeout": timeout, "identifier": identifier, "encryption": encryption}
+    query_params = {
+        "data_Format": data_format,
+        "timeout": timeout,
+        "identifier": identifier,
+        "encryption": encryption
+    }
 
+    result = {
+        "service": "read_data_by_identifier", 
+        "method": "GET",
+        "query_params": query_params
+    }
 
 def request_update_status(params):
     timestamp = params.get('timestamp')
