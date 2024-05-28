@@ -72,15 +72,26 @@ def routine_control(data):
 
 
 def write_data_by_identifier(data):
-    return {"service": "write_data_by_identifier", "data": data}
+    identifier = data.get('identifier')
+    write_type = data.get('writeType')
+    data_payload = data.get('dataPayload')
 
-# def read_data_by_identifier(params):
-    # data_format = params.get('data_format', 'dummy')
-    # timeout = params.get('timeout', 5)  
-    # identifier = params.get('identifier')
-    # encryption = params.get('encryption', False)  
+    address = data_payload.get('address')
+    data_to_write = data_payload.get('data')
+    length = data_payload.get('length')
 
-    # return {"service": "read_data_by_identifier", "data_Format": data_format, "timeout": timeout, "identifier": identifier, "encryption": encryption}
+    def perform_write_operation(identifier, write_type, address, data, length):
+        result = f"Data {data} written to address {address} with length {length} as {write_type} operation using identifier {identifier}"
+        return result
+
+    result = perform_write_operation(identifier, write_type, address, data_to_write, length)
+
+    response = {
+        "service": "write_data_by_identifier",
+        "data": data,
+        "result": result
+    }
+    return response
 
 def read_data_by_identifier(params):
     data_format = params.get('data_format', 'dummy')
@@ -88,18 +99,8 @@ def read_data_by_identifier(params):
     identifier = params.get('identifier')
     encryption = params.get('encryption', False)  
 
-    query_params = {
-        "data_Format": data_format,
-        "timeout": timeout,
-        "identifier": identifier,
-        "encryption": encryption
-    }
+    return {"service": "read_data_by_identifier", "data_Format": data_format, "timeout": timeout, "identifier": identifier, "encryption": encryption}
 
-    result = {
-        "service": "read_data_by_identifier", 
-        "method": "GET",
-        "query_params": query_params
-    }
 
 def request_update_status(params):
     timestamp = params.get('timestamp')
