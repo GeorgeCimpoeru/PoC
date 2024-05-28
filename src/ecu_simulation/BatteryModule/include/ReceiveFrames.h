@@ -1,9 +1,19 @@
-/*The ReceiveFrames library is responsible for receiving CAN frames, invoking a background 
-method from the handle module for processing. It validates each received frame for completeness, 
-emptiness, and correct addressing to the respective module. Additionally, it provides debugging 
-support by printing the received CAN frames.*/
-
-/*Author:Stoisor Miruna, 2024*/
+/**
+ * @file HandleFrames.h
+ * @author Stoisor Miruna
+ * @brief The library facilitates the transmission of Controller Area Network (CAN) 
+ * frames through an interface utilizing sockets.
+ * The library also gives some methods for the creation of specific 
+ * frames for the main services.
+ * How to use example:
+ *     GenerateFrames g1 = GenerateFrames(socket);
+ *     std::vector<int> x = {0x11, 0x34, 0x56};
+ *     g1.SendFrame(0x23, x);
+ *     g1.SessionControl(0x34A, 0x1);
+ * @version 0.1
+ * @date 2024-05-27
+ * @copyright Copyright (c) 2024
+ */
 #ifndef POC_INCLUDE_RECEIVEFRAME_H_
 #define POC_INCLUDE_RECEIVEFRAME_H_
 
@@ -11,6 +21,9 @@ support by printing the received CAN frames.*/
 #include <vector>
 #include <unistd.h>
 #include <linux/can.h>
+#include <sstream>
+#include <iomanip>
+#include <cstring>
 #include <queue>
 #include <thread>
 #include <mutex>
@@ -20,26 +33,66 @@ support by printing the received CAN frames.*/
 class ReceiveFrames 
 {
 private:
-    int socket = -1;                              /*Descriptor for the socket connection*/
-    int moduleID = 0x101;                         /*Module ID for filtering incoming frames*/
-    std::queue<struct can_frame> frameBuffer;     /*Buffer to store incoming can frames*/
-    std::mutex mtx;                               /*Mutex for ensuring thread safety when accessing the frame buffe*/
-    std::condition_variable cv;                   /*Condition variable for thread synchronization*/
-    bool running;                                 /*Flag indicating whether the receive threads should continue running*/ 
-    std::thread producerThread;                   /*Thread for producing (receiving) frames*/
-    std::thread consumerThread;                   /*Thread for consuming (handling) frames*/
+    /* Descriptor for the socket connection */
+    int socket = -1;            
+    /* Module ID for filtering incoming frames */                  
+    int moduleID = 0x101;                 
+    /* Buffer to store incoming can frames */        
+    std::queue<struct can_frame> frameBuffer;  
+    /* Mutex for ensuring thread safety when accessing the frame buffer */   
+    std::mutex mtx;              
+    /* Condition variable for thread synchronization */                 
+    std::condition_variable cv;               
+    /* Flag indicating whether the receive threads should continue running */     
+    bool running;                
+    /* Thread for producing (receiving) frames */                
+    std::thread producerThread;        
+    /* Thread for consuming (handling) frames */         
+    std::thread consumerThread;                   
 
+    /**
+     * @brief Producer thread function that reads frames from the socket and adds them to the buffer
+     * 
+     */
     void producer();
+    /**
+     * @brief Consumer thread function that processes frames from the buffer
+     * 
+     * @param handleFrame 
+     */
     void consumer(HandleFrames &handleFrame);
 protected:
     HandleFrames handleFrame;
     
-
 public:
+    /**
+     * @brief Construct a new Receive Frames object
+     * 
+     * @param socket 
+     * @param moduleID 
+     */
     ReceiveFrames(int socket, int moduleID);
+    /**
+     * @brief Destroy the Receive Frames object
+     * 
+     */
     ~ReceiveFrames();
+    /**
+     * @brief Debug function to print the details of a CAN frame
+     * 
+     * @param frame 
+     */
     void printFrame(const struct can_frame &frame);
+    /**
+     * @brief Starts the receive process by creating producer and consumer threads
+     * 
+     * @param handleFrame 
+     */
     void Receive(HandleFrames &handleFrame);
+    /**
+     * @brief Stops the receive process gracefully
+     * 
+     */
     void Stop();
 };
 
