@@ -1,7 +1,7 @@
 #include "../include/ReceiveFrames.h"
 #include "../include/HandleFrames.h"
 
-ReceiveFrames::ReceiveFrames(int socket, int moduleID) : socket(socket), moduleID(moduleID), running(true) 
+ReceiveFrames::ReceiveFrames(int socket, int module_id) : socket(socket), module_id(module_id), running(true) 
 {
     if (socket < 0) 
     {
@@ -12,14 +12,14 @@ ReceiveFrames::ReceiveFrames(int socket, int moduleID) : socket(socket), moduleI
     const int MIN_VALID_ID = 0x00000000;
     const int MAX_VALID_ID = 0x7FFFFFFF;
 
-    if (moduleID < MIN_VALID_ID || moduleID > MAX_VALID_ID) 
+    if (module_id < MIN_VALID_ID || module_id > MAX_VALID_ID) 
     {
         std::cerr << "Error: Pass a valid Module ID\n";
         exit(EXIT_FAILURE);
     }
 
-    /* Print the moduleID for debugging */ 
-    std::cout << "Module ID: 0x" << std::hex << std::setw(8) << std::setfill('0') << this->moduleID << std::endl;
+    /* Print the module_id for debugging */ 
+    std::cout << "Module ID: 0x" << std::hex << std::setw(8) << std::setfill('0') << this->module_id << std::endl;
 }
 
 ReceiveFrames::~ReceiveFrames() 
@@ -27,14 +27,14 @@ ReceiveFrames::~ReceiveFrames()
     Stop();
 }
 
-void ReceiveFrames::Receive(HandleFrames &handleFrame) 
+void ReceiveFrames::Receive(HandleFrames &handle_frame) 
 {
-    std::cout << "Starting Receive Method for Module ID: 0x" << std::hex << std::setw(8) << std::setfill('0') << this->moduleID << std::endl;
+    std::cout << "Starting Receive Method for Module ID: 0x" << std::hex << std::setw(8) << std::setfill('0') << this->module_id << std::endl;
     try 
     {
         producerThread = std::thread(&ReceiveFrames::producer, this);
         std::cout << "ProducerThread\n";
-        this->consumer(handleFrame);
+        this->consumer(handle_frame);
         std::cout << "ConsumerThread\n";
     } 
     catch (const std::exception &e) 
@@ -62,7 +62,7 @@ void ReceiveFrames::producer()
             int nbytes = read(this->socket, &frame, sizeof(struct can_frame));
             
             /* Check if the received frame is for your module */ 
-            if (frame.can_id != static_cast<canid_t>(this->moduleID)) 
+            if (frame.can_id != static_cast<canid_t>(this->module_id)) 
             {
                 std::cerr << "Received frame is not for this module\n";
                 continue;
@@ -72,7 +72,7 @@ void ReceiveFrames::producer()
             printFrame(frame);
 
             std::unique_lock<std::mutex> lock(mtx);
-            frameBuffer.push_back(std::make_tuple(frame, nbytes));
+            frame_buffer.push_back(std::make_tuple(frame, nbytes));
             cv.notify_one();
         }
     }
@@ -83,27 +83,27 @@ void ReceiveFrames::producer()
     }
 }
 
-void ReceiveFrames::consumer(HandleFrames &handleFrame) 
+void ReceiveFrames::consumer(HandleFrames &handle_frame) 
 {
     while (running) 
     {
         std::unique_lock<std::mutex> lock(mtx);
-        cv.wait(lock, [this]{ return !frameBuffer.empty() || !running; });
-        if (!running && frameBuffer.empty()) 
+        cv.wait(lock, [this]{ return !frame_buffer.empty() || !running; });
+        if (!running && frame_buffer.empty()) 
         {
             break;
         }
 
-        // Extract frame and nbytes from the tuple in frameBuffer
-        auto frameTuple = frameBuffer.front();
-        frameBuffer.pop_front();
+        // Extract frame and nbytes from the tuple in frame_buffer
+        auto frameTuple = frame_buffer.front();
+        frame_buffer.pop_front();
         lock.unlock();
 
         struct can_frame frame = std::get<0>(frameTuple);
         int nbytes = std::get<1>(frameTuple);
 
         /* Process the received frame */ 
-        if (!handleFrame.checkReceivedFrame(nbytes, frame)) {
+        if (!handle_frame.checkReceivedFrame(nbytes, frame)) {
             std::cerr << "Failed to process frame\n";
         }
     }
@@ -120,5 +120,3 @@ void ReceiveFrames::printFrame(const struct can_frame &frame)
         std::cout << " 0x" << std::hex << int(frame.data[i]);
     }
 }
-
-

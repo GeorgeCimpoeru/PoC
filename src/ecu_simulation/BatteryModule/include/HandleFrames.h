@@ -42,7 +42,10 @@ private:
     /* Service Identifier (SID) */   
     int sid;                    
     /* Flag indicating if the frame is a single frame message */                  
-    bool isSingleFrame;                          
+    bool is_single_frame;    
+    /* Flag indicating if the first frame is received */
+    bool first_frame = false;      
+                    
 public:
     /**
      * @brief Construct a new Handle Frames object
@@ -69,9 +72,9 @@ public:
      * 
      * @param id 
      * @param data 
-     * @param isSingleFrame 
+     * @param is_single_frame 
      */
-    void handleCompleteData(int id, const std::vector<int>& data, bool isSingleFrame);
+    void handleCompleteData(int id, const std::vector<int>& data, bool is_single_frame);
 };
 
 #endif // HANDLE_FRAME_H_

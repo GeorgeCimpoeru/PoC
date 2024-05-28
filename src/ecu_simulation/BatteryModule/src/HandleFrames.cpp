@@ -61,14 +61,33 @@ void HandleFrames::processReceivedFrame(const struct can_frame &frame)
         if (pci_type == 0x10)  
         {
             std::cout << "\nFirst frame received\n";
-            /* Store initial data including PCI byte */ 
-            stored_data = std::vector<int>(frame.data, frame.data + frame.can_dlc); 
+            
             /* Expected total size of data */ 
             expected_data_size = data[1]; 
             std::cout << "data size " << expected_data_size << std::endl;
+            std::cout << "Data size before inserting: ";
+            for (int value : data) 
+            {
+                std::cout << std::hex << value << " ";
+            }
+            std::cout << std::endl;
             /* Calculate the number of consecutive frames expected */ 
-            flag = expected_data_size / 8; 
+            flag = expected_data_size / 7; 
+            if (expected_data_size % 7 > 0)
+            {
+                flag++;
+            }
             std::cout << "no of frames " << flag << std::endl;
+            /* Concatenate data excluding PCI byte */ 
+            stored_data.clear();
+            stored_data.insert(stored_data.end(), data.begin() + 5, data.end()); 
+            std::cout << "Data size after inserting: ";
+            for (int value : stored_data) 
+            {
+                std::cout << std::hex << value << " ";
+            }
+            std::cout << std::endl;
+            first_frame = true;
         } 
         /* Handle Single Frames */ 
         else 
@@ -95,12 +114,16 @@ void HandleFrames::processReceivedFrame(const struct can_frame &frame)
     else 
     {
         /* Consecutive frame */ 
-        if ((pci_type & 0xF0) == 0x20)  
+        if ((pci_type & 0xF0) >= 0x20 && (pci_type & 0xF0) < 0x30 )  
         {
+            if (!first_frame)
+            {
+                return;
+            }
             std::cout << "\nConsecutive frame received\n";
             /* Print stored data before inserting the second frame */
             std::cout << "Data size before inserting: ";
-            for (int value : stored_data) 
+            for (int value : data) 
             {
                 std::cout << std::hex << value << " ";
             }
@@ -108,7 +131,7 @@ void HandleFrames::processReceivedFrame(const struct can_frame &frame)
             /* Concatenate data excluding PCI byte */ 
             stored_data.insert(stored_data.end(), data.begin() + 1, data.end()); 
             /* Print stored data before inserting the second frame */ 
-            std::cout << "Data size before inserting: ";
+            std::cout << "Data size after inserting: ";
             for (int value : stored_data) 
             {
                 std::cout << std::hex << value << " ";
@@ -116,9 +139,6 @@ void HandleFrames::processReceivedFrame(const struct can_frame &frame)
             std::cout << std::endl;
             flag--;
             std::cout << "no of frames- " << flag << std::endl;
-
-            /* Reset sid_position for consecutive frames */ 
-            /* sid_position = -1; */
         }
         else
         {
@@ -126,7 +146,6 @@ void HandleFrames::processReceivedFrame(const struct can_frame &frame)
             return;
         }
     }
-
 
     /* If all frames have been received */ 
     if (flag == 0) 
@@ -158,18 +177,11 @@ void HandleFrames::processReceivedFrame(const struct can_frame &frame)
         stored_data.clear();
         expected_data_size = 0;
     }
-
-    /** if (sid == -1) 
-    * {
-    *    std::cerr << "No valid SID found in frame\n";
-    *    return;
-    * }
-    */ 
     std::cout << "SID: 0x" << std::hex << sid << " found at position: " << sid_position << std::dec << "\n"<<std::flush;
 }
 
 /* Method for handling complete data after reception */
-void HandleFrames::handleCompleteData(int id,const std::vector<int>& data,bool isSingleFrame) 
+void HandleFrames::handleCompleteData(int id,const std::vector<int>& stored_data,bool is_single_frame) 
 {
     /* Extract the Service Identifier (SID) */ 
     std::cout << "Handling complete data for SID: 0x" << std::hex << sid << std::dec << "\n";
@@ -181,10 +193,10 @@ void HandleFrames::handleCompleteData(int id,const std::vector<int>& data,bool i
             /* SessionControl method --to be implemented */ 
             std::cout << "Service 0x10 SessionControl\n"<<std::flush;
             std::cout << "SID pos: " << sid_position << std::endl;
-            std::cout << "Data size: " << data.size() << std::endl;
-            if (sid_position + 1 < data.size()) 
+            std::cout << "Data size: " << stored_data.size() << std::endl;
+            if (sid_position + 1 < stored_data.size()) 
             {  /* sub_function data always found next to sid, has to be in valid data range */
-                int sub_function = data[sid_position + 1];
+                int sub_function = stored_data[sid_position + 1];
                 std::cout << "Valid data length\n"<<std::flush;
                 /* sessionControl(id, sub_function); */
             } 
@@ -193,12 +205,18 @@ void HandleFrames::handleCompleteData(int id,const std::vector<int>& data,bool i
                 std::cerr << "Invalid data length for SessionControl\n";
             }         
             break;
+        case 0x50: 
+            /* SessionControlResponse method --to be implemented */ 
+            std::cout << "Service 0x50 SessionControlResponse\n"<<std::flush;
+            std::cout << "SID pos: " << sid_position << std::endl;
+            std::cout << "Data size: " << stored_data.size() << std::endl;     
+            break;
         case 0x11: 
             /* EcuReset */ 
             std::cout << "Service 0x11 EcuReset\n";
-            if (sid_position + 1 < data.size()) 
+            if (sid_position + 1 < stored_data.size()) 
             {  /* sub_function data always found next to sid, has to be in valid data range */
-                int sub_function = data[sid_position + 1];
+                int sub_function = stored_data[sid_position + 1];
                 std::cout << "Valid data length\n";
                 /* ecuReset(id, sub_function); */
             } 
@@ -207,11 +225,15 @@ void HandleFrames::handleCompleteData(int id,const std::vector<int>& data,bool i
                 std::cerr << "Invalid data length for SessionControl\n";
             }  
             break;
+        case 0x51: 
+            /* EcuResetResponse */ 
+            std::cout << "Service 0x51 EcuReset\n"; 
+            break;
         case 0x22: 
             /* ReadDataByIdentifier method --to be implemented */ 
             std::cout << "Service 0x22 ReadDataByIdentifier\n";
             std::cout << "SID pos: " << sid_position << std::endl;
-            std::cout << "Data size: " << data.size() << std::endl;
+            std::cout << "Data size: " << stored_data.size() << std::endl;
             
             if (stored_data.size() >= 3) 
             {
@@ -219,7 +241,7 @@ void HandleFrames::handleCompleteData(int id,const std::vector<int>& data,bool i
                 std::cout << "Stored data: " << identifier << std::endl;
                 std::cout << "Valid data length\n";
                 std::vector<int> rdata(stored_data.begin() + 3, stored_data.end());
-                if (isSingleFrame) 
+                if (is_single_frame) 
                 {
                     std::cout << "Service 0x22 ReadDataByIdentifierSingleFrame\n";
                     /* readDataByIdentifier(id, identifier, rdata); */
@@ -235,9 +257,33 @@ void HandleFrames::handleCompleteData(int id,const std::vector<int>& data,bool i
                 std::cerr << "Invalid data length for ReadDataByIdentifier\n";
             }
             break;
+        case 0x62: 
+            /* ReadDataByIdentifier method --to be implemented */ 
+            std::cout << "Service 0x62 ReadDataByIdentifier&ReadDataByIdentifierLongResponse\n";
+            std::cout << "SID pos: " << sid_position << std::endl;
+            std::cout << "Data size: " << stored_data.size() << std::endl;
+            
+            if (stored_data.size() >= 3) 
+            {
+                int identifier = stored_data[1];
+                std::cout << "Stored data: " << identifier << std::endl;
+                std::cout << "Valid data length\n";
+                std::vector<int> rdata(stored_data.begin() + 3, stored_data.end());
+                if (is_single_frame) 
+                {
+                    std::cout << "Service 0x22 ReadDataByIdentifierSingleFrame\n";
+                    /* readDataByIdentifier(id, identifier, rdata); */
+                } 
+                else 
+                {
+                    std::cout << "Service 0x22 ReadDataByIdentifierMoreFrames\n";
+                    /* readDataByIdentifierLongResponse(id, identifier, rdata, false); */
+                }
+            } 
+            break;
         case 0x27: 
             /* AuthenticationRequestSeed method --to be implemented */ 
-            if (data.size() > 2) 
+            if (stored_data.size() > 2) 
             {
                 std::cout << "Service 0x27-n AuthenticationRequestSeed\n";
                 /* authenticationRequestSeed(id, true, std::vector<int>(data.begin() + 2, data.end())); */
@@ -253,12 +299,12 @@ void HandleFrames::handleCompleteData(int id,const std::vector<int>& data,bool i
             std::cout << "Service 0x29 AuthenticationSendKey\n";
             /* authenticationSendKey(frame.can_id, std::vector<int>(data.begin() + 2, data.end())); */
             std::cout << "Service 0x29 AuthenticationSendKey\n";
-            if (sid_position + 1 < data.size()) 
+            if (sid_position + 1 < stored_data.size()) 
             {  
-                int sub_function = data[sid_position + 1];
+                int sub_function = stored_data[sid_position + 1];
                 std::cout << "Valid data length\n";
                 /* Extract key from data */ 
-                std::vector<int> key(data.begin() + sid_position + 2, data.end()); 
+                std::vector<int> key(stored_data.begin() + sid_position + 2, stored_data.end()); 
                 /* authenticationSendKey(id, key, false); Call the method to send authentication key */
             } 
             else 
@@ -269,9 +315,9 @@ void HandleFrames::handleCompleteData(int id,const std::vector<int>& data,bool i
         case 0x31: 
             /* RoutineControl method --to be implemented */ 
             std::cout << "Service 0x31 RoutineControl\n";
-            if (sid_position + 1 < data.size()) 
+            if (sid_position + 1 < stored_data.size()) 
             {  /* sub_function data always found next to sid, has to be in valid data range */
-                int sub_function = data[sid_position + 1];
+                int sub_function = stored_data[sid_position + 1];
                 std::cout << "Valid data length\n";
                 /* routineControl(id, sub_function, routin_identifier, response); */ 
             } 
@@ -283,9 +329,9 @@ void HandleFrames::handleCompleteData(int id,const std::vector<int>& data,bool i
         case 0x3E: 
             /* TesterPresent method --to be implemented */ 
             std::cout << "Service 0x3E TesterPresent\n";
-            if (sid_position + 1 < data.size()) 
+            if (sid_position + 1 < stored_data.size()) 
             {  /* sub_function data always found next to sid, has to be in valid data range */
-                int sub_function = data[sid_position + 1];
+                int sub_function = stored_data[sid_position + 1];
                 std::cout << "Valid data length\n";
                 /* Call the appropriate function based on the sub-function */ 
                 /* testerPresent(id, sub_function); */ 
@@ -311,10 +357,10 @@ void HandleFrames::handleCompleteData(int id,const std::vector<int>& data,bool i
         case 0x19: 
             /* ReadDtcInformation method --to be implemented */ 
             std::cout << "Service 0x19 ReadDtcInformation\n";
-            if (sid_position + 2 < data.size()) 
+            if (sid_position + 2 < stored_data.size()) 
             {  /* sub_function and dtc_status_mask data always found next to sid, has to be in valid data range */ 
-                int sub_function = data[sid_position + 1];
-                int dtc_status_mask = data[sid_position + 2];
+                int sub_function = stored_data[sid_position + 1];
+                int dtc_status_mask = stored_data[sid_position + 2];
                 std::cout << "Valid data length\n";
                 /* readDtcInformation(id, sub_function, dtc_status_mask); */ 
             } 
@@ -333,10 +379,10 @@ void HandleFrames::handleCompleteData(int id,const std::vector<int>& data,bool i
             if (flag == 0) 
             {
                 /* Verify that there are enough elements in the data vector */ 
-                if (data.size() >= 2) 
+                if (stored_data.size() >= 2) 
                 { /* Ensure there are at least 2 elements in the data vector */ 
                     /* Extract group_of_dtc from the data vector */ 
-                    std::vector<int> group_of_dtc(data.begin() + 2, data.end());
+                    std::vector<int> group_of_dtc(stored_data.begin() + 2, stored_data.end());
 
                     std::cout << "Valid data length\n";
                     /* clearDiagnosticInformation(id, group_of_dtc, response); */
@@ -377,12 +423,12 @@ void HandleFrames::handleCompleteData(int id,const std::vector<int>& data,bool i
             /* TransferData method --to be implemented */ 
             std::cout << "Service 0x29 TransferDataLong\n";
             std::cout << "Service 0x36 TransferData\n";
-            if (sid_position + 2 < data.size()) 
+            if (sid_position + 2 < stored_data.size()) 
             {  
-                int block_sequence_counter = data[sid_position + 1];
+                int block_sequence_counter = stored_data[sid_position + 1];
                 std::cout << "Valid data length\n";
                 /* Extract transfer request from frame */ 
-                std::vector<int> transfer_request(data.begin() + sid_position + 2, data.end()); 
+                std::vector<int> transfer_request(stored_data.begin() + sid_position + 2, stored_data.end()); 
                 /* transferData(can_id, block_sequence_counter, transfer_request); // Call the method to transfer data */
             } 
             else 
@@ -393,10 +439,10 @@ void HandleFrames::handleCompleteData(int id,const std::vector<int>& data,bool i
         case 0x37: 
             /* RequestTransferExit method --to be implemented */ 
             std::cout << "Service 0x37 RequestTransferExit\n";
-            if (sid_position + 1 < data.size()) 
+            if (sid_position + 1 < stored_data.size()) 
             {  
                 std::cout << "Valid data length\n";
-                bool response = data[sid_position + 1];
+                bool response = stored_data[sid_position + 1];
                 /* requestTransferExit(id, response); */
             } 
             else 
