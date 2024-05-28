@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-# Validation and routine control
 def checksum_validation(params):
     checksum_type = params.get('checksumType')
     file_id = params.get('fileId')
