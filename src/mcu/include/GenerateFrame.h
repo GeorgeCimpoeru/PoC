@@ -54,7 +54,7 @@ class GenerateFrame {
     private:
 
         /* Function to create a CAN frame */
-        void GenerateFrame(
+        can_frame CreateFrame(
             FrameType frameType,
             uint32_t can_id,
             const uint8_t *data,

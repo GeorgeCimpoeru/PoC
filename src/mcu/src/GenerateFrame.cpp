@@ -3,14 +3,14 @@
 /* Constructor which create a CAN frame */
 GenerateFrame::GenerateFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) 
 {
-    GenerateFrame(frameType, can_id, data, dlc);
+    CreateFrame(frameType, can_id, data, dlc);
 }
 
 /* Default constructor */
 GenerateFrame::GenerateFrame() {}
 
 /* Function to create a CAN frame */
-GenerateFrame::GenerateFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) 
+can_frame GenerateFrame::CreateFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) 
 {
     frame.can_id = can_id;
 
@@ -37,6 +37,7 @@ GenerateFrame::GenerateFrame(FrameType frameType, uint32_t can_id, const uint8_t
         default:
             throw std::invalid_argument("Invalid frame type");
     }
+    return frame;
 }
 
 /* Function to send a CAN frame */
