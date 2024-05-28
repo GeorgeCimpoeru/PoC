@@ -1,5 +1,6 @@
 #include"../include/InterfaceModule.h"
 
+/* Constructor which initializes the interface name */
 INTERFACE_module::INTERFACE_module(std::string interface_name)
 {
     this->interface_name = interface_name;  
@@ -7,9 +8,10 @@ INTERFACE_module::INTERFACE_module(std::string interface_name)
     start_interface();
 }
 
+/* Method to create a vcan interface */
 int INTERFACE_module::create_interface()
 {
-    // Create interface
+    /* Create interface command */
     std::string cmd = "sudo ip link add type vcan name " + this->interface_name;
 
     if (system(cmd.c_str())) {
@@ -20,9 +22,10 @@ int INTERFACE_module::create_interface()
     return 0;
 }
 
+/* Method to start a vcan interface */
 int INTERFACE_module::start_interface()
 {
-    // Start interface
+    /* start interface command */
     std::string cmd = "sudo ip link set " + this->interface_name + " up";
 
     if (system(cmd.c_str())) {
@@ -30,14 +33,14 @@ int INTERFACE_module::start_interface()
         return 1;
     }
 
-    // Create socket
+    /* Create socket */
     _socket = socket(PF_CAN, SOCK_RAW, CAN_RAW);
     if (_socket < 0) {
         std::cout<<"Error when trying to create the socket\n";
         return 1;
     }
 
-    // Binding socket
+    /* Binding socket */
     strcpy(ifr.ifr_name, this->interface_name.c_str() );
     ioctl(_socket, SIOCGIFINDEX, &ifr);
 
@@ -54,9 +57,10 @@ int INTERFACE_module::start_interface()
     return 0;
 }
 
+/* Method to stop a vcan interface */
 int INTERFACE_module::stop_interface() 
 {
-    // Turn down interface
+    /* stop interface command */
     std::string cmd = "sudo ip link set " + this->interface_name + " down";
 
     if (system(cmd.c_str())) {
@@ -67,9 +71,10 @@ int INTERFACE_module::stop_interface()
     return 0;
 }
 
+/* Method to delete a vcan interface */
 int INTERFACE_module::delete_interface() 
 {
-    // Delete interface
+    /* delete interface command */
     std::string cmd = "sudo ip link delete " + this->interface_name + " type can";
 
     if (system(cmd.c_str())) {
@@ -80,11 +85,13 @@ int INTERFACE_module::delete_interface()
     return 0;
 }
 
+/* Method to get the socket descriptor */
 int INTERFACE_module::get_socket()
 {
     return _socket;
 }
 
+/* Method to get the vcan name interface */
 std::string INTERFACE_module::get_interface_name()
 {
     return interface_name;

@@ -3,16 +3,20 @@
 #include <fcntl.h>
 #include <stdexcept>
 
+/* Test class for CANFrame, which provides setup and teardown for CAN socket */
 class CANFrameTest : public testing::Test {
 protected:
+	/* Set up a virtual CAN socket before each test */
     void SetUp() override {
         s = createSocket();
     }
 
+	/* Close the CAN socket after each test */
     void TearDown() override {
         close(s);
     }
 
+	/* Create and bind a CAN socket to the virtual CAN interface */
     int createSocket() {
         int s = socket(PF_CAN, SOCK_RAW, CAN_RAW);
         if (s < 0) {
@@ -41,6 +45,7 @@ protected:
     int s;
 };
 
+/* Test the construction of a data frame */
 TEST_F(CANFrameTest, ConstructDataFrame) {
     const uint32_t can_id = 0x123;
     const uint8_t data[] = {0x01, 0x02, 0x03};
@@ -55,6 +60,7 @@ TEST_F(CANFrameTest, ConstructDataFrame) {
     }
 }
 
+/* Test the construction of a remote frame */
 TEST_F(CANFrameTest, ConstructRemoteFrame) {
     const uint32_t can_id = 0x123;
     const uint8_t dlc = 3; 
@@ -65,6 +71,7 @@ TEST_F(CANFrameTest, ConstructRemoteFrame) {
     EXPECT_EQ(frame.frame.can_dlc, dlc);
 }
 
+/* Test the construction of an error frame */
 TEST_F(CANFrameTest, ConstructErrorFrame) {
     const uint32_t can_id = 0x123;
 
@@ -74,6 +81,7 @@ TEST_F(CANFrameTest, ConstructErrorFrame) {
     EXPECT_EQ(frame.frame.can_dlc, 0);
 }
 
+/* Test the construction of an overload frame */
 TEST_F(CANFrameTest, ConstructOverloadFrame) {
     const uint32_t can_id = 0x123;
 
@@ -83,6 +91,7 @@ TEST_F(CANFrameTest, ConstructOverloadFrame) {
     EXPECT_EQ(frame.frame.can_dlc, 0);
 }
 
+/* Test that an invalid frame type throws an exception */
 TEST_F(CANFrameTest, InvalidFrameType) {
     const uint32_t can_id = 0x123;
     const uint8_t data[] = {0x01, 0x02, 0x03};
@@ -91,6 +100,7 @@ TEST_F(CANFrameTest, InvalidFrameType) {
     EXPECT_THROW(CANFrame frame(static_cast<FrameType>(-1), can_id, data, dlc), std::invalid_argument);
 }
 
+/* Test the retrieval of a CAN frame */
 TEST_F(CANFrameTest, GetFrame) {
     const uint32_t can_id = 0x123;
     const uint8_t data[] = {0x01, 0x02, 0x03};
@@ -106,6 +116,7 @@ TEST_F(CANFrameTest, GetFrame) {
     }
 }
 
+/* Test successful sending of a data frame */
 TEST_F(CANFrameTest, SendDataFrame) {
     const uint32_t can_id = 0x123;
     const uint8_t data[] = {0x01, 0x02, 0x03};
@@ -116,33 +127,40 @@ TEST_F(CANFrameTest, SendDataFrame) {
     EXPECT_EQ(frame.SendFrame("vcan0", s), 0);
 }
 
+/* Test successful sending of a remote frame */
 TEST_F(CANFrameTest, SendRemoteFrame) {
     const uint32_t can_id = 0x123;
-    const uint8_t dlc = 0; // Remote frame has no data
+	/* Remote frame has no data*/
+    const uint8_t dlc = 0; 
 
     CANFrame frame(FrameType::REMOTE_FRAME, can_id, nullptr, dlc);
 
     EXPECT_EQ(frame.SendFrame("vcan0", s), 0);
 }
 
+/* Test successful sending of an error frame */
 TEST_F(CANFrameTest, SendErrorFrame) {
     const uint32_t can_id = 0x123;
-    const uint8_t dlc = 0; // Error frame has no data
+	/* Error frame has no data*/
+    const uint8_t dlc = 0; 
 
     CANFrame frame(FrameType::ERROR_FRAME, can_id, nullptr, dlc);
 
     EXPECT_EQ(frame.SendFrame("vcan0", s), 0);
 }
 
+/* Test successful sending of an overload frame */
 TEST_F(CANFrameTest, SendOverloadFrame) {
     const uint32_t can_id = 0x123;
-    const uint8_t dlc = 0; // Overload frame has no data
+	/* Overload frame has no data */
+    const uint8_t dlc = 0; 
 
     CANFrame frame(FrameType::OVERLOAD_FRAME, can_id, nullptr, dlc);
 
     EXPECT_EQ(frame.SendFrame("vcan0", s), 0);
 }
 
+/* Test failure to send a frame due to an invalid socket descriptor */
 TEST_F(CANFrameTest, SendFrameFailure) {
     const uint32_t can_id = 0x123;
     const uint8_t data[] = {0x01, 0x02, 0x03};
@@ -150,7 +168,7 @@ TEST_F(CANFrameTest, SendFrameFailure) {
 
     CANFrame frame(FrameType::DATA_FRAME, can_id, data, dlc);
 
-    // Invalid socket descriptor
+    /* Invalid socket descriptor */
     int invalid_socket = -1;
     EXPECT_EQ(frame.SendFrame("vcan0", invalid_socket), -1);
 }
