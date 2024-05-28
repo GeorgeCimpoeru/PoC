@@ -3,8 +3,8 @@
 #include <fcntl.h>
 #include <stdexcept>
 
-/* Test class for CANFrame, which provides setup and teardown for CAN socket */
-class CANFrameTest : public testing::Test {
+/* Test class for GenerateFrame, which provides setup and teardown for CAN socket */
+class GenerateFrameTest : public testing::Test {
 protected:
 	/* Set up a virtual CAN socket before each test */
     void SetUp() override {
@@ -46,12 +46,12 @@ protected:
 };
 
 /* Test the construction of a data frame */
-TEST_F(CANFrameTest, ConstructDataFrame) {
+TEST_F(GenerateFrameTest, ConstructDataFrame) {
     const uint32_t can_id = 0x123;
     const uint8_t data[] = {0x01, 0x02, 0x03};
     const uint8_t dlc = sizeof(data) / sizeof(data[0]);
 
-    CANFrame frame(FrameType::DATA_FRAME, can_id, data, dlc);
+    GenerateFrame frame(FrameType::DATA_FRAME, can_id, data, dlc);
 
     EXPECT_EQ(frame.frame.can_id, can_id);
     EXPECT_EQ(frame.frame.can_dlc, dlc);
@@ -61,52 +61,52 @@ TEST_F(CANFrameTest, ConstructDataFrame) {
 }
 
 /* Test the construction of a remote frame */
-TEST_F(CANFrameTest, ConstructRemoteFrame) {
+TEST_F(GenerateFrameTest, ConstructRemoteFrame) {
     const uint32_t can_id = 0x123;
     const uint8_t dlc = 3; 
 
-    CANFrame frame(FrameType::REMOTE_FRAME, can_id, nullptr, dlc);
+    GenerateFrame frame(FrameType::REMOTE_FRAME, can_id, nullptr, dlc);
 
     EXPECT_EQ(frame.frame.can_id, can_id | CAN_RTR_FLAG);
     EXPECT_EQ(frame.frame.can_dlc, dlc);
 }
 
 /* Test the construction of an error frame */
-TEST_F(CANFrameTest, ConstructErrorFrame) {
+TEST_F(GenerateFrameTest, ConstructErrorFrame) {
     const uint32_t can_id = 0x123;
 
-    CANFrame frame(FrameType::ERROR_FRAME, can_id, nullptr, 0);
+    GenerateFrame frame(FrameType::ERROR_FRAME, can_id, nullptr, 0);
 
     EXPECT_EQ(frame.frame.can_id, CAN_ERR_FLAG);
     EXPECT_EQ(frame.frame.can_dlc, 0);
 }
 
 /* Test the construction of an overload frame */
-TEST_F(CANFrameTest, ConstructOverloadFrame) {
+TEST_F(GenerateFrameTest, ConstructOverloadFrame) {
     const uint32_t can_id = 0x123;
 
-    CANFrame frame(FrameType::OVERLOAD_FRAME, can_id, nullptr, 0);
+    GenerateFrame frame(FrameType::OVERLOAD_FRAME, can_id, nullptr, 0);
 
     EXPECT_EQ(frame.frame.can_id, CAN_ERR_FLAG);
     EXPECT_EQ(frame.frame.can_dlc, 0);
 }
 
 /* Test that an invalid frame type throws an exception */
-TEST_F(CANFrameTest, InvalidFrameType) {
+TEST_F(GenerateFrameTest, InvalidFrameType) {
     const uint32_t can_id = 0x123;
     const uint8_t data[] = {0x01, 0x02, 0x03};
     const uint8_t dlc = sizeof(data) / sizeof(data[0]);
 
-    EXPECT_THROW(CANFrame frame(static_cast<FrameType>(-1), can_id, data, dlc), std::invalid_argument);
+    EXPECT_THROW(GenerateFrame frame(static_cast<FrameType>(-1), can_id, data, dlc), std::invalid_argument);
 }
 
 /* Test the retrieval of a CAN frame */
-TEST_F(CANFrameTest, GetFrame) {
+TEST_F(GenerateFrameTest, GetFrame) {
     const uint32_t can_id = 0x123;
     const uint8_t data[] = {0x01, 0x02, 0x03};
     const uint8_t dlc = sizeof(data) / sizeof(data[0]);
 
-    CANFrame frame(FrameType::DATA_FRAME, can_id, data, dlc);
+    GenerateFrame frame(FrameType::DATA_FRAME, can_id, data, dlc);
     struct can_frame retrieved_frame = frame.getFrame();
 
     EXPECT_EQ(retrieved_frame.can_id, can_id);
@@ -117,56 +117,56 @@ TEST_F(CANFrameTest, GetFrame) {
 }
 
 /* Test successful sending of a data frame */
-TEST_F(CANFrameTest, SendDataFrame) {
+TEST_F(GenerateFrameTest, SendDataFrame) {
     const uint32_t can_id = 0x123;
     const uint8_t data[] = {0x01, 0x02, 0x03};
     const uint8_t dlc = sizeof(data) / sizeof(data[0]);
 
-    CANFrame frame(FrameType::DATA_FRAME, can_id, data, dlc);
+    GenerateFrame frame(FrameType::DATA_FRAME, can_id, data, dlc);
 
     EXPECT_EQ(frame.SendFrame("vcan0", s), 0);
 }
 
 /* Test successful sending of a remote frame */
-TEST_F(CANFrameTest, SendRemoteFrame) {
+TEST_F(GenerateFrameTest, SendRemoteFrame) {
     const uint32_t can_id = 0x123;
 	/* Remote frame has no data*/
     const uint8_t dlc = 0; 
 
-    CANFrame frame(FrameType::REMOTE_FRAME, can_id, nullptr, dlc);
+    GenerateFrame frame(FrameType::REMOTE_FRAME, can_id, nullptr, dlc);
 
     EXPECT_EQ(frame.SendFrame("vcan0", s), 0);
 }
 
 /* Test successful sending of an error frame */
-TEST_F(CANFrameTest, SendErrorFrame) {
+TEST_F(GenerateFrameTest, SendErrorFrame) {
     const uint32_t can_id = 0x123;
 	/* Error frame has no data*/
     const uint8_t dlc = 0; 
 
-    CANFrame frame(FrameType::ERROR_FRAME, can_id, nullptr, dlc);
+    GenerateFrame frame(FrameType::ERROR_FRAME, can_id, nullptr, dlc);
 
     EXPECT_EQ(frame.SendFrame("vcan0", s), 0);
 }
 
 /* Test successful sending of an overload frame */
-TEST_F(CANFrameTest, SendOverloadFrame) {
+TEST_F(GenerateFrameTest, SendOverloadFrame) {
     const uint32_t can_id = 0x123;
 	/* Overload frame has no data */
     const uint8_t dlc = 0; 
 
-    CANFrame frame(FrameType::OVERLOAD_FRAME, can_id, nullptr, dlc);
+    GenerateFrame frame(FrameType::OVERLOAD_FRAME, can_id, nullptr, dlc);
 
     EXPECT_EQ(frame.SendFrame("vcan0", s), 0);
 }
 
 /* Test failure to send a frame due to an invalid socket descriptor */
-TEST_F(CANFrameTest, SendFrameFailure) {
+TEST_F(GenerateFrameTest, SendFrameFailure) {
     const uint32_t can_id = 0x123;
     const uint8_t data[] = {0x01, 0x02, 0x03};
     const uint8_t dlc = sizeof(data) / sizeof(data[0]);
 
-    CANFrame frame(FrameType::DATA_FRAME, can_id, data, dlc);
+    GenerateFrame frame(FrameType::DATA_FRAME, can_id, data, dlc);
 
     /* Invalid socket descriptor */
     int invalid_socket = -1;

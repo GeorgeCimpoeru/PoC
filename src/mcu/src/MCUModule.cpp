@@ -1,5 +1,4 @@
 #include "../include/MCUModule.h"
-#include <thread>
 
 /* Constructor */
 MCUModule::MCUModule(int interfaceNumber) : 

@@ -11,9 +11,11 @@
 #include "InterfaceModule.h"
 #include "ReceiveFrames.h"
 
+#include <thread>
+
 class MCUModule {
 public:
-    /* 
+    /** 
      * Constructor that takes the interface number as an argument.
      * When the constructor is called, it creates a new interface with the
      * given number and starts the interface.
@@ -26,19 +28,19 @@ public:
     /* Destructor */
     ~MCUModule();
 
-    /*
+    /**
      * Method to start the module.
      * This method sets the isRunning flag to true.
     */
     void StartModule();
 
-    /*
+    /**
      * Method to stop the module.
      * This method sets the isRunning flag to false.
     */
     void StopModule();
 
-    /*
+    /**
      * Method to receive frames.
      * This method starts a thread to process the queue and receives frames
      * from the CAN bus.

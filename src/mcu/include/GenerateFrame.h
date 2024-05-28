@@ -32,16 +32,16 @@ enum FrameType {
 };
 
 /* Class to create a CAN frame */
-class CANFrame {
+class GenerateFrame {
     public:
-        CANFrame(
+        GenerateFrame(
             FrameType frameType,
             uint32_t can_id,
             const uint8_t *data,
             uint8_t dlc
         );
         
-        CANFrame();
+        GenerateFrame();
         
         /* Function to send a CAN frame */
         int SendFrame(const std::string& interface, int s);

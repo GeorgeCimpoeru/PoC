@@ -1,16 +1,16 @@
 #include "../include/GenerateFrame.h"
 
 /* Constructor which create a CAN frame */
-CANFrame::CANFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) 
+GenerateFrame::GenerateFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) 
 {
     GenerateFrame(frameType, can_id, data, dlc);
 }
 
 /* Default constructor */
-CANFrame::CANFrame() {}
+GenerateFrame::GenerateFrame() {}
 
 /* Function to create a CAN frame */
-void CANFrame::GenerateFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) 
+GenerateFrame::GenerateFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) 
 {
     frame.can_id = can_id;
 
@@ -40,7 +40,7 @@ void CANFrame::GenerateFrame(FrameType frameType, uint32_t can_id, const uint8_t
 }
 
 /* Function to send a CAN frame */
-int CANFrame::SendFrame(const std::string& interface, int s) 
+int GenerateFrame::SendFrame(const std::string& interface, int s) 
 {
     if (write(s, &frame, sizeof(frame)) != sizeof(frame)) 
     {
@@ -55,7 +55,7 @@ int CANFrame::SendFrame(const std::string& interface, int s)
 }
 
 /* Function to get the CAN frame */
-can_frame CANFrame::getFrame() 
+can_frame GenerateFrame::getFrame() 
 {
     return frame;
 }

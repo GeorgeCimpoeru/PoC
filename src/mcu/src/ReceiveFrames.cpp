@@ -2,7 +2,7 @@
 
 ReceiveFrames::ReceiveFrames(int socket) : s(socket){}
 
-/*
+/**
  * Function to read frames from the CAN bus and add them to a queue.
  * This function runs in a loop and continually reads frames from the CAN bus.
  */
@@ -39,7 +39,7 @@ int ReceiveFrames::receiveFramesFromCANBus()
     return 0;
 }
 
-/*
+/**
  * Function to process frames from the queue.
  * This function runs in a loop and processes each frame from the queue.
  */
