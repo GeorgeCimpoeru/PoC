@@ -3,9 +3,9 @@
 /** Constructor - initializes the BatteryModule with default values,
  * sets up the CAN interface, and prepares the frame receiver. */
 BatteryModule::BatteryModule() : moduleId(0x101),
-                                 voltage(12.5),
-                                 current(5.0),
-                                 temperature(20.0),
+                                 energy(0.0),
+                                 voltage(0.0),
+                                 percentage(0.0),
                                  running(false),
                                  canInterface("vcan0"),
                                  frameReceiver(nullptr)
@@ -23,9 +23,9 @@ BatteryModule::BatteryModule() : moduleId(0x101),
 
 /* Parameterized Constructor - initializes the BatteryModule with provided interface number and module ID */
 BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_moduleId),
-                                                                    voltage(12.5),
-                                                                    current(5.0),
-                                                                    temperature(20.0),
+                                                                    energy(0.0),
+                                                                    voltage(0.0),
+                                                                    percentage(0.0),
                                                                     running(false),
                                                                     canInterface("vcan" + std::to_string(_interfaceNumber)),
                                                                     frameReceiver(nullptr)
@@ -63,7 +63,7 @@ void BatteryModule::startBatteryModule()
 {
     while (running)
     {
-        updateParamenters();
+        fetchBatteryData();
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
@@ -82,35 +82,79 @@ void BatteryModule::stopBatteryModule()
     }
 }
 
-void BatteryModule::updateParamenters()
+/* Helper function to execute shell commands and fetch output */
+std::string BatteryModule::exec(const char *cmd)
 {
-#ifdef BATTERY_MODULE_DEBUG
-    std::cout << "Battery Module - updateParamenters()" << std::endl;
-#endif
-    /** Simulate some logic to update voltage, current, and temperature.
-     *   This will change in further versions, so the readings will come from Laptop's battery */
-    voltage += BATTERY_MODULE_PARAM_INCREMENT;
-    current += BATTERY_MODULE_PARAM_INCREMENT;
-    temperature += BATTERY_MODULE_PARAM_INCREMENT;
-#ifdef BATTERY_MODULE_DEBUG
-    std::cout << "Voltage : " << voltage << std::endl;
-    std::cout << "Current : " << current << std::endl;
-    std::cout << "Temperature : " << temperature << std::endl;
-#endif
-    /* Ensuring the parameters don't exceed certain values for simulation */
-    if (voltage > BATTERY_MODULE_MAX_VOLTAGE)
+    std::array<char, 128> buffer;
+    std::string result;
+    std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
+
+    if (!pipe)
     {
-        voltage = BATTERY_MODULE_INIT_VOLTAGE;
+        throw std::runtime_error("popen() failed!");
     }
 
-    if (current > BATTERY_MODULE_MAX_CURRENT)
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
     {
-        current = BATTERY_MODULE_INIT_CURRENT;
+        result += buffer.data();
     }
 
-    if (temperature > BATTERY_MODULE_MAX_TEMP)
+    return result;
+}
+
+/* Helper function to parse battery info */
+void BatteryModule::parseBatteryInfo(const std::string &data, float &energy, float &voltage, float &percentage, std::string &state)
+{
+    std::istringstream stream(data);
+    std::string line;
+
+    while (std::getline(stream, line))
     {
-        temperature = BATTERY_MODULE_INIT_TEMP;
+        if (line.find("energy:") != std::string::npos)
+        {
+            energy = std::stof(line.substr(line.find(":") + 1));
+        }
+        else if (line.find("voltage:") != std::string::npos)
+        {
+            voltage = std::stof(line.substr(line.find(":") + 1));
+        }
+        else if (line.find("percentage:") != std::string::npos)
+        {
+            percentage = std::stof(line.substr(line.find(":") + 1));
+        }
+        else if (line.find("state:") != std::string::npos)
+        {
+            size_t pos = line.find(":");
+            /* Extract substring starting from the first non-whitespace character after ':' */
+            state = line.substr(pos + 1);
+            /* Remove leading whitespace */
+            state = state.substr(state.find_first_not_of(" \t"));
+        }
+    }
+}
+
+/* Function to fetch data from system about battery */
+void BatteryModule::fetchBatteryData()
+{
+    try
+    {
+        /* Execute the shell command to read System Info about Battery */
+        std::string data = exec("upower -i /org/freedesktop/UPower/devices/battery_BAT0");
+
+        /* Call the function in order to parse the datas */
+        parseBatteryInfo(data, energy, voltage, percentage, state);
+
+        /* Update class member variables with fetched data */
+        this->energy = energy;
+        this->voltage = voltage;
+        this->percentage = percentage;
+#ifdef BATTERY_MODULE_DEBUG
+    std::cout << "Fetched Data - Energy: " << energy << " Wh, Voltage: " << voltage << " V, Percentage: " << percentage << "%, State: " << state << std::endl;
+#endif
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "Error fetching battery data: " << e.what() << std::endl;
     }
 }
 
@@ -133,20 +177,20 @@ void BatteryModule::stopFrames()
     frameReceiver->Stop();
 }
 
+/* Getter function for current */
+float BatteryModule::getEnergy() const
+{
+    return energy;
+}
+
 /* Getter function for voltage */
 float BatteryModule::getVoltage() const
 {
     return voltage;
 }
 
-/* Getter function for current */
-float BatteryModule::getCurrent() const
-{
-    return current;
-}
-
 /* Getter function for temperature */
-float BatteryModule::getTemperature() const
+float BatteryModule::getPercentage() const
 {
-    return temperature;
+    return percentage;
 }

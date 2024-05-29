@@ -42,9 +42,10 @@ class BatteryModule
 private:
     int moduleId;
 
+    float energy;
     float voltage;
-    float current;
-    float temperature;
+    float percentage;
+    std::string state;
 
     /**
      * @brief flag to know the state of module
@@ -63,6 +64,28 @@ private:
     /* Battery Class private methods */
     void startBatteryModule();
     void stopBatteryModule();
+
+    /**
+     * @brief Helper function to execute shell commands and fetch output
+     * in order to read System Information about built-in Battery
+     * 
+     * @param cmd 
+     * @return std::string 
+     */
+    static std::string exec(const char *cmd);
+
+    /**
+     * @brief This function will parse the data from the system about battery,
+     * and will store all values in separate variables
+     * 
+     * @param data 
+     * @param _energy 
+     * @param _voltage 
+     * @param _percentage 
+     * @param _temperature 
+     */
+    static void parseBatteryInfo(const std::string &data, float &energy, float &voltage, float &percentage, std::string &state);
+    void fetchBatteryData();
 
 public:
     /**
@@ -100,9 +123,9 @@ public:
     void stopFrames();
 
     /* Member Accessors */
+    float getEnergy() const;
     float getVoltage() const;
-    float getCurrent() const;
-    float getTemperature() const;
+    float getPercentage() const;
 };
 
 #endif
