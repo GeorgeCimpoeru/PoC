@@ -194,3 +194,9 @@ float BatteryModule::getPercentage() const
 {
     return percentage;
 }
+
+/* Getter function for module state */
+bool BatteryModule::isRunning() const
+{
+    return running;
+}

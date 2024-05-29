@@ -1,52 +1,72 @@
 #include <gtest/gtest.h>
 #include "../include/BatteryModule.h"
 
-/* Test fixture for BatteryModule */
-class BatteryModuleTest : public ::testing::Test {
-protected:
-    /* This function runs before each test */
-    void SetUp() override {
-        batteryDefault = new BatteryModule();
-        batteryParam = new BatteryModule(10, 0x202);
-    }
+// Test default constructor
+TEST(BatteryModuleTest, DefaultConstructor) {
+    BatteryModule batteryModule;
+    EXPECT_EQ(batteryModule.getEnergy(), 0.0);
+    EXPECT_EQ(batteryModule.getVoltage(), 0.0);
+    EXPECT_EQ(batteryModule.getPercentage(), 0.0);
+    EXPECT_FALSE(batteryModule.isRunning());
+}
 
-    /* This function runs after each test */
-    void TearDown() override {
-        delete batteryDefault;
-        delete batteryParam;
-    }
+// Test parameterized constructor
+TEST(BatteryModuleTest, ParameterizedConstructor) {
+    int interfaceNumber = 1;
+    int moduleId = 0x102;
+    BatteryModule batteryModule(interfaceNumber, moduleId);
+    EXPECT_EQ(batteryModule.getEnergy(), 0.0);
+    EXPECT_EQ(batteryModule.getVoltage(), 0.0);
+    EXPECT_EQ(batteryModule.getPercentage(), 0.0);
+    EXPECT_FALSE(batteryModule.isRunning());
+}
 
-    BatteryModule* batteryDefault;
-    BatteryModule* batteryParam;
+// Test start and stop simulation
+TEST(BatteryModuleTest, SimulationStartStop) {
+    BatteryModule batteryModule;
+    batteryModule.simulate();
+    std::this_thread::sleep_for(std::chrono::seconds(1)); // Allow some time for the thread to start
+    EXPECT_TRUE(batteryModule.isRunning());
+    batteryModule.stopBatteryModule();
+    EXPECT_FALSE(batteryModule.isRunning());
+}
+
+// Mock the exec function to test fetchBatteryData
+class BatteryModuleMock : public BatteryModule {
+public:
+    std::string exec(const char *cmd) override {
+        return "energy: 50.0\nvoltage: 12.5\npercentage: 80.0\nstate: Discharging\n";
+    }
 };
 
-/* Test for default constructor */
-TEST_F(BatteryModuleTest, DefaultConstructor) {
-    EXPECT_EQ(batteryDefault->getVoltage(), 12.5);
-    EXPECT_EQ(batteryDefault->getCurrent(), 5.0);
-    EXPECT_EQ(batteryDefault->getTemperature(), 20.0);
+// Test fetchBatteryData
+TEST(BatteryModuleTest, FetchBatteryData) {
+    BatteryModuleMock batteryModule;
+    batteryModule.fetchBatteryData();
+    EXPECT_EQ(batteryModule.getEnergy(), 50.0);
+    EXPECT_EQ(batteryModule.getVoltage(), 12.5);
+    EXPECT_EQ(batteryModule.getPercentage(), 80.0);
 }
 
-/* Test for parameterized constructor */
-TEST_F(BatteryModuleTest, ParameterizedConstructor) {
-    /* Check if the values are correctly set */
-    EXPECT_EQ(batteryParam->getVoltage(), 12.5);
-    EXPECT_EQ(batteryParam->getCurrent(), 5.0);
-    EXPECT_EQ(batteryParam->getTemperature(), 20.0);
+/* To Do : make this work.. */
+/* Test receiveFrames (without Google Mock, we assume a simple implementation) */
+TEST(BatteryModuleTest, ReceiveFrames) {
+    /* BatteryModule batteryModule; */
+    /** Need a way to simulate receiving frames here; 
+      * since we don't have gmock, we can't easily mock `ReceiveFrames`.
+      * This test case is a placeholder to show where such a test would go. */
+    /* batteryModule.receiveFrames(); */
 }
 
-/* Test updateParamenters function */
-TEST_F(BatteryModuleTest, UpdateParameters) {
-    /* Initial values */
-    float initialVoltage = batteryDefault->getVoltage();
-    float initialCurrent = batteryDefault->getCurrent();
-    float initialTemperature = batteryDefault->getTemperature();
+// Test getter functions
+TEST(BatteryModuleTest, GetterFunctions) {
+    BatteryModule batteryModule;
+    EXPECT_EQ(batteryModule.getEnergy(), 0.0);
+    EXPECT_EQ(batteryModule.getVoltage(), 0.0);
+    EXPECT_EQ(batteryModule.getPercentage(), 0.0);
+}
 
-    /* Update parameters */
-    batteryDefault->updateParamenters();
-
-    /* Check if the values are updated correctly */
-    EXPECT_FLOAT_EQ(batteryDefault->getVoltage(), initialVoltage + BATTERY_MODULE_PARAM_INCREMENT);
-    EXPECT_FLOAT_EQ(batteryDefault->getCurrent(), initialCurrent + BATTERY_MODULE_PARAM_INCREMENT);
-    EXPECT_FLOAT_EQ(batteryDefault->getTemperature(), initialTemperature + BATTERY_MODULE_PARAM_INCREMENT);
+int main(int argc, char **argv) {
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

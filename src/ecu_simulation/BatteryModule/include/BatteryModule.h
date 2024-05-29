@@ -59,11 +59,7 @@ private:
     std::thread simulationThread;
 
     SocketCanInterface canInterface;
-    ReceiveFrames* frameReceiver;
-
-    /* Battery Class private methods */
-    void startBatteryModule();
-    void stopBatteryModule();
+    ReceiveFrames* frameReceiver;    
 
     /**
      * @brief Helper function to execute shell commands and fetch output
@@ -72,7 +68,7 @@ private:
      * @param cmd 
      * @return std::string 
      */
-    static std::string exec(const char *cmd);
+    virtual std::string exec(const char *cmd);
 
     /**
      * @brief This function will parse the data from the system about battery,
@@ -84,8 +80,7 @@ private:
      * @param _percentage 
      * @param _temperature 
      */
-    static void parseBatteryInfo(const std::string &data, float &energy, float &voltage, float &percentage, std::string &state);
-    void fetchBatteryData();
+    void parseBatteryInfo(const std::string &data, float &energy, float &voltage, float &percentage, std::string &state);
 
 public:
     /**
@@ -114,6 +109,12 @@ public:
     ~BatteryModule();
 
     /**
+     * @brief Function to fetch data from system about battery
+     * 
+     */
+    void fetchBatteryData();
+
+    /**
      * @brief simulate the readings of battery,
      * start the frame receiver, and stop the
      * frame receiver.
@@ -121,11 +122,14 @@ public:
     void simulate();
     void receiveFrames();
     void stopFrames();
+    void startBatteryModule();
+    void stopBatteryModule();
 
     /* Member Accessors */
     float getEnergy() const;
     float getVoltage() const;
     float getPercentage() const;
+    bool isRunning() const;
 };
 
 #endif
