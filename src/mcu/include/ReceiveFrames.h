@@ -1,4 +1,4 @@
-/**
+/*
  * The ReceiveFrameModule library facilitates the reception of Controller Area Network (CAN) 
  * frames through an interface utilizing sockets. This library allows you to read CAN frames 
  * from the CAN bus and process them based on specific criteria.
@@ -59,6 +59,12 @@ class ReceiveFrames{
    * @param frame the frame that you want to print
    */
   void printFrames(const struct can_frame &frame);
+
+  /**
+   * @brief Function to send test frame on CANBus.
+   * 
+   */
+  void sendTestFrame();
   
  protected:
   /* The socket from where we read the frames */
@@ -67,8 +73,8 @@ class ReceiveFrames{
   std::queue<struct can_frame> frameQueue;
   std::mutex queueMutex;
   std::condition_variable queueCondVar;
-  HandleFrames& handler;
-  GenerateFrame& generateFrames;
+  HandleFrames handler;
+  CANFrame generateFrames;
 
 
 };
