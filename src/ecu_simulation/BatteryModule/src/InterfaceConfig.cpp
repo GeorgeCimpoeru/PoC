@@ -10,7 +10,6 @@
  */
 
 #include "../include/InterfaceConfig.h"
-#include "InterfaceConfig.h"
 
 SocketCanInterface::SocketCanInterface(const std::string& interfaceName) : _interfaceName{interfaceName}
 {
@@ -100,11 +99,6 @@ int SocketCanInterface::getSocketFd() const
 std::string& SocketCanInterface::getInterfaceName()
 {
     return _interfaceName;
-}
-
-void SocketCanInterface::setInterfaceName(std::string& interfaceName)
-{
-    _interfaceName = interfaceName;
 }
 
 void SocketCanInterface::init()

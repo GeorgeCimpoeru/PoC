@@ -12,7 +12,6 @@
 #ifndef INTERFACECONFIG_H
 #define INTERFACECONFIG_H
 
-#include <string>
 #include <linux/can.h>
 #include <net/if.h>
 #include <iostream> 
@@ -21,7 +20,6 @@
 #include <linux/can/raw.h>
 #include <string.h>
 #include <unistd.h>
-#include <syscall.h>
 
 class SocketCanInterface
 {
@@ -59,7 +57,6 @@ public:
     inline void callSystem(std::string& cmd) const;
 
     std::string& getInterfaceName();
-    void setInterfaceName(std::string& interfaceName);
     int getSocketFd() const;
 
     ~SocketCanInterface();

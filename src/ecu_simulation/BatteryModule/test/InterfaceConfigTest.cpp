@@ -43,16 +43,6 @@ TEST_F(InterfaceConfigTest, GetInterfaceName)
     EXPECT_EQ(globalInterface.getInterfaceName(), globalInterfaceName);
 }
 
-TEST_F(InterfaceConfigTest, SetInterfaceName) 
-{
-    std::string expectedInterfaceName = "vcan2";
-    std::string previousInterfaceName = globalInterface.getInterfaceName();
-
-    globalInterface.setInterfaceName(expectedInterfaceName);
-
-    EXPECT_EQ(globalInterface.getInterfaceName(), expectedInterfaceName);
-}
-
 TEST_F(InterfaceConfigTest, SystemCall) 
 {
     std::string cmd = "wrong command";
