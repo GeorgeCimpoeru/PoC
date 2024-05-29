@@ -153,7 +153,20 @@ def read_data_by_identifier(params):
     identifier = params.get('identifier')
     encryption = params.get('encryption', False)  
 
-    return {"service": "read_data_by_identifier", "data_format": data_format, "timeout": timeout, "identifier": identifier, "encryption": encryption}
+    query_params = {
+        "data_Format": data_format,
+        "timeout": timeout,
+        "identifier": identifier,
+        "encryption": encryption
+    }
+
+    result = {
+        "service": "read_data_by_identifier", 
+        "method": "GET",
+        "query_params": query
+
+    }
+    return result
 
 def request_update_status(params):
     """
@@ -174,7 +187,15 @@ def request_update_status(params):
     user_id = user_context.get('userId') if user_context else None
     roles = user_context.get('roles') if user_context else None
    
-    return {"service": "request_update_status", "timestamp": timestamp, "priority": priority, "user_context": user_context, "user_id": user_id, "roles": roles}
+    result = {
+        "timestamp": timestamp,
+        "priority": priority,
+        "user_context": user_context,
+        "user_id": user_id,
+        "roles": roles
+    }
+
+    return result
 
 def authentication(data):
     """
@@ -195,7 +216,8 @@ def authentication(data):
     user = payload.get('user')
     password = payload.get('password')
     
-    return {"service": "authentication", 'auth_type': auth_type, 'description': description, 'payload': payload, 'user': user, 'password': password}
+    data = {"service": "authentication", "auth_type": auth_type, "description": description, 'payload': payload, 'user': user, 'password': password}
+    return data
 
 def request_download(data):
     """
@@ -217,7 +239,8 @@ def request_download(data):
     url = payload.get('url')
     version = payload.get('version')
     
-    return {"service": "request_download", 'type': type_, 'description': description, 'payload': payload, 'device_id': device_id, 'url': url, 'version': version}
+    data = { "service": "request_download",'type': type_, 'description': description, 'payload': payload, 'device_id': device_id, 'url': url, 'version': version}
+    return data
 
 def read_dtc_information(params):
     """
