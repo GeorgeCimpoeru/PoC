@@ -14,8 +14,6 @@ BatteryModule::BatteryModule() : moduleId(0x101),
     std::cout << "BatteryModule()" << std::endl;
     std::cout << "(BatteryModule)moduleId = " << this->moduleId << std::endl;
 #endif
-    /* Initialize the CAN interface */
-    canInterface.init();
 
     /* Initialize the Frame Receiver */
     frameReceiver = new ReceiveFrames(canInterface.getSocketFd(), moduleId);
@@ -34,8 +32,6 @@ BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_mo
     std::cout << "BatteryModule(int interfaceNumber, int moduleId)" << std::endl;
     std::cout << "(BatteryModule)moduleId = " << this->moduleId << std::endl;
 #endif
-    /* Initialize the CAN interface */
-    canInterface.init();
 
     /* Initialize the Frame Receiver */
     frameReceiver = new ReceiveFrames(canInterface.getSocketFd(), moduleId);
