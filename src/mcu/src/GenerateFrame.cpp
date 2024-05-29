@@ -1,16 +1,19 @@
 #include "../include/GenerateFrame.h"
 
 /* Constructor which create a CAN frame */
-GenerateFrame::GenerateFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) 
+GenerateFrame::GenerateFrame(int socket) 
 {
-    CreateFrame(frameType, can_id, data, dlc);
+    if (socket < 0) 
+    {
+        throw std::invalid_argument("Invalid socket");
+    }
 }
 
 /* Default constructor */
 GenerateFrame::GenerateFrame() {}
 
 /* Function to create a CAN frame */
-can_frame GenerateFrame::CreateFrame(FrameType frameType, uint32_t can_id, const uint8_t *data, uint8_t dlc) 
+can_frame GenerateFrame::CreateFrame(uint32_t can_id, std::vector <uint8_t> data, FrameType frameType) 
 {
     frame.can_id = can_id;
 
@@ -18,13 +21,14 @@ can_frame GenerateFrame::CreateFrame(FrameType frameType, uint32_t can_id, const
     {
         case DATA_FRAME:
             frame.can_id &= CAN_EFF_MASK;
-            frame.can_dlc = dlc;
-            std::memcpy(frame.data, data, dlc);
+            frame.can_dlc = data.size();
+            std::memcpy(frame.data, data.data(), data.size());
             break;
         case REMOTE_FRAME:
             frame.can_id &= CAN_EFF_MASK;
             frame.can_id |= CAN_RTR_FLAG;
-            frame.can_dlc = dlc;
+            frame.can_dlc = data.size();
+            std::memcpy(frame.data, data.data(), data.size());
             break;
         case ERROR_FRAME:
             frame.can_id = CAN_ERR_FLAG;
@@ -41,8 +45,16 @@ can_frame GenerateFrame::CreateFrame(FrameType frameType, uint32_t can_id, const
 }
 
 /* Function to send a CAN frame */
-int GenerateFrame::SendFrame(const std::string& interface, int s) 
+int GenerateFrame::SendFrame(uint32_t can_id, std::vector <uint8_t> data, FrameType frameType) 
 {
+    int s;
+    struct sockaddr_can addr;
+    struct ifreq ifr;
+
+    /* Create the CAN frame */
+    frame = CreateFrame(can_id, data, frameType);
+
+    /* Send the CAN frame */
     if (write(s, &frame, sizeof(frame)) != sizeof(frame)) 
     {
         perror("Write");

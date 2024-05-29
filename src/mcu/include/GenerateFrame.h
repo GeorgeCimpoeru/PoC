@@ -22,6 +22,7 @@
 #include <net/if.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <vector>
 
 /* Enumeration for frame types */
 enum FrameType {
@@ -34,17 +35,13 @@ enum FrameType {
 /* Class to create a CAN frame */
 class GenerateFrame {
     public:
-        GenerateFrame(
-            FrameType frameType,
-            uint32_t can_id,
-            const uint8_t *data,
-            uint8_t dlc
-        );
-        
+        /* Constructors */
+        GenerateFrame(int socket);
         GenerateFrame();
         
         /* Function to send a CAN frame */
-        int SendFrame(const std::string& interface, int s);
+        int SendFrame(uint32_t can_id, std::vector <uint8_t> data, FrameType frameType);
+
 
         /* Function to get the CAN frame */
         can_frame getFrame();
@@ -55,10 +52,9 @@ class GenerateFrame {
 
         /* Function to create a CAN frame */
         can_frame CreateFrame(
-            FrameType frameType,
             uint32_t can_id,
-            const uint8_t *data,
-            uint8_t dlc
+            std::vector <uint8_t> data,
+            FrameType frameType
         );
 };
 
