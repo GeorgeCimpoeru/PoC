@@ -1,6 +1,6 @@
 #Compiler flags
 CFLAGS = -g -Wall -pthread -I./include -I./src
-CFLAGSTST = -std=c++17 -I/include
+CFLAGSTST = -std=c++17 -I/include -fprofile-arcs -ftest-coverage
 CFLAGSTST2 = -lgtest -lgtest_main -pthread
 #Sources files
 SRCS = src/main.cpp src/BatteryModule.cpp src/GenerateFrames.cpp src/HandleFrames.cpp src/InterfaceConfig.cpp src/ReceiveFrames.cpp
@@ -34,7 +34,19 @@ $(OBJ_DIR)/InterfaceConfig.o: src/InterfaceConfig.cpp
 clean:
 	rm -f $(FINAL) $(OBJS) ${FINAL_TEST}
 	rm -rf $(OBJ_DIR)
+#Delete inecessary file from gcov compiler
+	find . -name '*.gcno' -delete
+	find . -name '*.gcda' -delete
+	find . -name '*.gcov' -delete
+
 testing: $(FINAL_TEST)
 
 $(FINAL_TEST): test/GenerateFramesTest.cpp src/GenerateFrames.cpp
 	$(CXX) ${CFLAGSTST} -o ${FINAL_TEST} test/GenerateFramesTest.cpp src/GenerateFrames.cpp ${CFLAGSTST2}
+	./test_binary
+	gcov -o . src/GenerateFrames.cpp
+	mv GenerateFrames.cpp.gcov test/
+#Delete inecessary file from gcov compiler(Work just for GenerateFrame!!!!)
+	find . -name "*.gcov" ! -name "GenerateFrames.cpp.gcov" -delete
+	find . -name "*.gcda" ! -name "GenerateFrames.cpp.gcov" -delete
+	find . -name "*.gcno" ! -name "GenerateFrames.cpp.gcov" -delete
