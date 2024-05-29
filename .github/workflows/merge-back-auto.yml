@@ -34,5 +34,5 @@ jobs:
         git config user.name "Automerge Bot"
         git config user.email "bot@example.com"
         git config pull.rebase true
-        git pull ${{env.MASTER_REPO}} ${{env.MASTER_BRANCH}}
+        git pull --rebase ${{env.MASTER_REPO}} ${{env.MASTER_BRANCH}}
         git push
