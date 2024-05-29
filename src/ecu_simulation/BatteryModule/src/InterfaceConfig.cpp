@@ -10,18 +10,11 @@
  */
 
 #include "../include/InterfaceConfig.h"
+#include "InterfaceConfig.h"
 
 SocketCanInterface::SocketCanInterface(const std::string& interfaceName) : _interfaceName{interfaceName}
 {
-
-}
-
-int SocketCanInterface::getSocketFd() const
-{
-    if (_socketFd == -1) {
-        throw std::runtime_error("Socket FD is -1 (uninitialized)");
-    }
-    return _socketFd;
+    init();
 }
 
 void SocketCanInterface::callSystem(std::string& cmd) const
@@ -31,38 +24,13 @@ void SocketCanInterface::callSystem(std::string& cmd) const
         std::cout << cmd << " failed\n";
         /* exit(EXIT_FAILURE); */
     }
-    else
-    {
-        std::cout << cmd << " succesfull\n";
-    }
-}
-
-void SocketCanInterface::createLinuxVCanInterface()
-{
-    std::string cmd = "sudo ip link add " + _interfaceName + " type vcan";
-    callSystem(cmd);
-
-    cmd = "sudo ip link set " + _interfaceName + " up";
-    callSystem(cmd);
-}
-
-void SocketCanInterface::connectLinuxVCanInterfaces(std::string& sourceInterface, std::string& destinationInterface)
-{
-    std::string cmd = "cangw -A -s " + sourceInterface + " -d " + destinationInterface + " -e";
-    callSystem(cmd);
-}
-
-void SocketCanInterface::deleteLinuxVCanInterface()
-{
-    std::string cmd = "sudo ip link set " + _interfaceName + " down";
-    callSystem(cmd);
-
-    cmd = "sudo ip link delete " + _interfaceName + " type can";
-    callSystem(cmd);
 }
 
 bool SocketCanInterface::openInterface()
 {
+    std::string cmd = "sudo ip link set " + _interfaceName + " up";
+    callSystem(cmd);
+    
     /* Create the socket */
     _socketFd = socket(PF_CAN, SOCK_RAW, CAN_RAW);
     if(_socketFd < 0)
@@ -98,6 +66,7 @@ void SocketCanInterface::closeInterface()
             exit(EXIT_FAILURE);
         }
         deleteLinuxVCanInterface();
+        stopLinuxVCanInterface();
     }
     else
     {
@@ -105,6 +74,28 @@ void SocketCanInterface::closeInterface()
     }
 }
 
+void SocketCanInterface::createLinuxVCanInterface()
+{
+    std::string cmd = "sudo ip link add " + _interfaceName + " type vcan";
+    callSystem(cmd);
+}
+
+void SocketCanInterface::deleteLinuxVCanInterface()
+{
+    std::string cmd = "sudo ip link set " + _interfaceName + " down";
+    callSystem(cmd);
+}
+
+void SocketCanInterface::stopLinuxVCanInterface()
+{
+    std::string cmd = "sudo ip link delete " + _interfaceName + " type can";
+    callSystem(cmd);
+}
+
+int SocketCanInterface::getSocketFd() const
+{
+    return _socketFd;
+}
 
 std::string& SocketCanInterface::getInterfaceName()
 {
