@@ -175,10 +175,10 @@
     #####:  171:    std::cout<<"ERROR: The frame is to long!, consider using method ReadDataByIdentifierLongResponse\n";
     #####:  172:    return;
         -:  173:    /*
-        -:  174:    According to documentation, the frame can
-        -:  175:    request more than one DID. Future implementation
-        -:  176:      |
-        -:  177:      V
+        -:  174:    *According to documentation, the frame can
+        -:  175:    *request more than one DID. Future implementation
+        -:  176:    *  |
+        -:  177:    *  V
         -:  178:    */
         -:  179:}
         -:  180:
@@ -187,7 +187,7 @@
         4:  183:    if (first_frame)
         -:  184:    {
         2:  185:        std::vector<int> data = {0x10, (int)response.size() + 3, sid, identifier/0x100, identifier%0x100};
-        -:  186:        /*Send only 3 first bytes of data*/
+        -:  186:        /* Send only 3 first bytes of data */
         8:  187:        for (int i = 0; i < 3; i++)
         -:  188:        {
         6:  189:            data.push_back(response[i]);
@@ -197,7 +197,7 @@
         -:  193:    }
         -:  194:    else
         -:  195:    {
-        -:  196:        /*Delete first 3 data that were sended in the first frame */
+        -:  196:        /* Delete first 3 data that were sended in the first frame */
         2:  197:        response.erase(response.begin(), response.begin() + 3);
         2:  198:        int size_of_response = response.size();
         2:  199:        std::vector<int> data;
@@ -226,7 +226,7 @@
         -:  222:
         2:  223:void GenerateFrames::readMemoryByAddress(int id, int memory_size, int memory_address, std::vector<int> response )
         -:  224:{
-        -:  225:    /*add lengths of of memory size/address to the frame*/
+        -:  225:    /* add lengths of of memory size/address to the frame */
         2:  226:    int length_memory_size = (countDigits(memory_size) +1) / 2;
         2:  227:    int length_memory_address = (countDigits(memory_address) + 1) / 2;
         2:  228:    int length_memory = length_memory_size * 0x10 + length_memory_address;
@@ -234,7 +234,7 @@
         -:  230:    {
         1:  231:        int pci_l = length_memory_size + length_memory_address + 2;
         1:  232:        std::vector<int> data = {pci_l, 0x23, length_memory};
-        -:  233:        /*add memory address and size to the frame*/
+        -:  233:        /* add memory address and size to the frame */
         1:  234:        insertBytes(data, memory_address, length_memory_address);
         1:  235:        insertBytes(data, memory_size, length_memory_size);
         1:  236:        this->sendFrame(id, data);
@@ -242,7 +242,7 @@
         -:  238:    }
         1:  239:    int pci_l = length_memory_size + length_memory_address + 2 + response.size();
         2:  240:    std::vector<int> data = {pci_l, 0x63, length_memory};
-        -:  241:    /*add memory address and size to the frame*/
+        -:  241:    /* add memory address and size to the frame */
         1:  242:    insertBytes(data, memory_address, length_memory_address);
         1:  243:    insertBytes(data, memory_size, length_memory_size);
         1:  244:    if (data.size() + response.size() < 9)
@@ -262,7 +262,7 @@
         -:  258:
         2:  259:void GenerateFrames::readMemoryByAddressLongResponse(int id, int memory_size, int memory_address, std::vector<int> response, bool first_frame)
         -:  260:{
-        -:  261:    /*add lengths of of memory size/address to the frame*/
+        -:  261:    /* add lengths of of memory size/address to the frame */
         2:  262:    int length_memory_size = (countDigits(memory_size) +1) / 2;
         2:  263:    int length_memory_address = (countDigits(memory_address) + 1) / 2;
         2:  264:    int length_memory = length_memory_size * 0x10 + length_memory_address;
@@ -270,10 +270,10 @@
         -:  266:    {
         1:  267:        int pci_l = (int)response.size() + 2 + length_memory_size + length_memory_address;
         1:  268:        std::vector<int> data = {0x10, pci_l, 0x63, length_memory};
-        -:  269:        /*add memory address and size to the frame*/
+        -:  269:        /* add memory address and size to the frame */
         1:  270:        insertBytes(data, memory_address, length_memory_address);
         1:  271:        insertBytes(data, memory_size, length_memory_size);
-        -:  272:        /*Send only 3 first bytes of data*/
+        -:  272:        /* Send only 3 first bytes of data */
         2:  273:        for (std::size_t i = 0; i < (data.size() - 8); i++)
         -:  274:        {
         1:  275:            data.push_back(response[i]);
@@ -284,7 +284,7 @@
         -:  280:    else
         -:  281:    {
         1:  282:        int memory_allready_send = 8 - (length_memory_address + length_memory_size + 4);
-        -:  283:        /*Delete data allready sended*/
+        -:  283:        /* Delete data allready sended */
         1:  284:        response.erase(response.begin(), response.begin() + memory_allready_send);
         1:  285:        int size_of_response = response.size();
         1:  286:        std::vector<int> data;
@@ -349,7 +349,7 @@
         2:  345:void GenerateFrames::clearDiagnosticInformation(int id, std::vector<int> group_of_dtc, bool response)
         -:  346:{
         4:  347:    std::vector<int> data;
-        -:  348:    /*Request*/
+        -:  348:    /* Request */
         2:  349:    if (!response)
         -:  350:    { 
         1:  351:        if (group_of_dtc.size() < 8)
@@ -369,7 +369,7 @@
         -:  365:        }
         -:  366:        
         -:  367:    }
-        -:  368:    /*Response*/
+        -:  368:    /* Response */
         1:  369:    data = {0x01, 0x54};
         1:  370:    this->sendFrame(id, data);
         1:  371:    return;
@@ -397,114 +397,113 @@
         -:  393:
         1:  394:void GenerateFrames::requestDownload(int id, int data_format_identifier, int memory_address, int memory_size)
         -:  395:{
-        -:  396:    /* Request Frame
-        -:  397:    add lengths of of memory size/address to the frame*/
-        1:  398:    int length_memory_size = countDigits(memory_size + 1) / 2;
-        1:  399:    int length_memory_address = countDigits(memory_address + 1) / 2;
-        1:  400:    int length_memory = length_memory_size * 0x10 + length_memory_address;
-        1:  401:    int pci_length = length_memory_size + length_memory_address + 3; //pci_l
-        2:  402:    std::vector<int> data = {pci_length, 0x34, data_format_identifier, length_memory}; //pci_l
-        -:  403:    /*add memory address and size to the frame*/
-        1:  404:    insertBytes(data, memory_address, length_memory_address);
-        1:  405:    insertBytes(data, memory_size, length_memory_size);
-        1:  406:    this->sendFrame(id, data);
-        2:  407:    return;
-        -:  408:}
-        -:  409:
-        1:  410:void GenerateFrames::requestDownloadResponse(int id, int max_number_block)
-        -:  411:{
-        -:  412:    /*Response frame*/
-        1:  413:    int length_max_number_block = (countDigits(max_number_block) + 1) / 2;
-        2:  414:    std::vector<int> data = {length_max_number_block + 2, 0x74, (length_max_number_block * 0x10)}; //pci_l
-        1:  415:    insertBytes(data, max_number_block, length_max_number_block);
-        1:  416:    this->sendFrame(id, data);
-        2:  417:    return;
-        -:  418:}
-        -:  419:
-        3:  420:void GenerateFrames::transferData(int id, int block_sequence_counter, std::vector<int> transfer_request)
-        -:  421:{
-        -:  422:    /*If is not a response*/
-        3:  423:    if (transfer_request.size() != 0)
-        -:  424:    {
-        2:  425:        std::vector<int> data = {(int)transfer_request.size() + 2, 0x36, block_sequence_counter}; //pci_l
-       10:  426:        for (std::size_t i = 0; i < transfer_request.size(); i++)
-        -:  427:        {
-        8:  428:            data.push_back(transfer_request[i]);
-        -:  429:        }
-        2:  430:        this->sendFrame(id, data);
-        2:  431:        return;
-        -:  432:    }
-        -:  433:    /*Response frame*/
-        2:  434:    std::vector<int> data = {0x02,0x76,block_sequence_counter}; //pci_l
-        1:  435:    this->sendFrame(id, data);
-        1:  436:    return;
-        -:  437:}
-        -:  438:
-        2:  439:void GenerateFrames::transferDataLong(int id, int block_sequence_counter, std::vector<int> transfer_request, bool first_frame)
-        -:  440:{
-        2:  441:    if (first_frame)
-        -:  442:    {
-        1:  443:        std::vector<int> data = {0x10, ((int)transfer_request.size() + 2), 0x36, block_sequence_counter};
-        5:  444:        for (int i = 0; i < 4 ; i++)
-        -:  445:        {
-        4:  446:            data.push_back(transfer_request[i]);
-        -:  447:        }
-        1:  448:        this->sendFrame(id, data);
-        1:  449:        return;
-        -:  450:    }
-        -:  451:    else
-        -:  452:    {
-        -:  453:        /*Delete first 3 data that were sended in the first frame*/
-        1:  454:        transfer_request.erase(transfer_request.begin(), transfer_request.begin() + 4);
-        1:  455:        int size_of_data = transfer_request.size();
-        1:  456:        std::vector<int> data;
-        2:  457:        for (int i = 0; i <= size_of_data / 7; i++)
-        -:  458:        {
-        1:  459:            data = {0x21 + (i % 0xF)};
-        4:  460:            for (int j = 0; j < 7 && ((i*7) + j) < size_of_data; j++)
-        -:  461:            {
-        3:  462:                data.push_back(transfer_request[(i*7)+j]);
-        -:  463:            }
-        1:  464:            this->sendFrame(id, data);
-        -:  465:        }
-        1:  466:        return;
-        -:  467:    } 
-        -:  468:}
-        -:  469:
-        2:  470:void GenerateFrames::requestTransferExit(int id, bool response)
-        -:  471:{
-        2:  472:    if (!response)
-        -:  473:    {
-        1:  474:        std::vector<int> data = {0x01, 0x37};
-        1:  475:        this->sendFrame(id, data);
-        1:  476:        return;
-        -:  477:    }
-        2:  478:    std::vector<int> data = {0x01,0x77};
-        1:  479:    this->sendFrame(id, data);
-        1:  480:    return;
-        -:  481:}
-        -:  482:
-    #####:  483:bool GenerateFrames::requestUpdateStatus(int id, bool response)
-        -:  484:{
-        -:  485:    /*No impplementation, I don't find this service in the standart*/
-    #####:  486:    return false;
-        -:  487:}
-        -:  488:
-        -:  489:/*Private*/
-       11:  490:int GenerateFrames::countDigits(int number)
-        -:  491:{
-       11:  492:    int digits = 0;
-       11:  493:    if (number < 0) 
-    #####:  494:        digits = 1;
-       42:  495:    while (number) {
-       31:  496:        number /= 10;
-       31:  497:        digits++;
-        -:  498:    }
-       11:  499:    return digits;
-        -:  500:}
-        -:  501:
-        9:  502:void GenerateFrames::insertBytes(std::vector<int>& byteVector, unsigned int num, int numBytes) {
-       23:  503:    for (int i = numBytes - 1; i >= 0; --i) {
-       14:  504:        byteVector.push_back((num >> (i * 8)) & 0xFF);
-        -:  505:    }
-        9:  506:}
+        -:  396:    /* Request Frame add lengths of of memory size/address to the frame */
+        1:  397:    int length_memory_size = countDigits(memory_size + 1) / 2;
+        1:  398:    int length_memory_address = countDigits(memory_address + 1) / 2;
+        1:  399:    int length_memory = length_memory_size * 0x10 + length_memory_address;
+        1:  400:    int pci_length = length_memory_size + length_memory_address + 3;
+        2:  401:    std::vector<int> data = {pci_length, 0x34, data_format_identifier, length_memory};
+        -:  402:    /* add memory address and size to the frame */
+        1:  403:    insertBytes(data, memory_address, length_memory_address);
+        1:  404:    insertBytes(data, memory_size, length_memory_size);
+        1:  405:    this->sendFrame(id, data);
+        2:  406:    return;
+        -:  407:}
+        -:  408:
+        1:  409:void GenerateFrames::requestDownloadResponse(int id, int max_number_block)
+        -:  410:{
+        -:  411:    /* Response frame */
+        1:  412:    int length_max_number_block = (countDigits(max_number_block) + 1) / 2;
+        2:  413:    std::vector<int> data = {length_max_number_block + 2, 0x74, (length_max_number_block * 0x10)};
+        1:  414:    insertBytes(data, max_number_block, length_max_number_block);
+        1:  415:    this->sendFrame(id, data);
+        2:  416:    return;
+        -:  417:}
+        -:  418:
+        3:  419:void GenerateFrames::transferData(int id, int block_sequence_counter, std::vector<int> transfer_request)
+        -:  420:{
+        -:  421:    /* If is not a response */
+        3:  422:    if (transfer_request.size() != 0)
+        -:  423:    {
+        2:  424:        std::vector<int> data = {(int)transfer_request.size() + 2, 0x36, block_sequence_counter};
+       10:  425:        for (std::size_t i = 0; i < transfer_request.size(); i++)
+        -:  426:        {
+        8:  427:            data.push_back(transfer_request[i]);
+        -:  428:        }
+        2:  429:        this->sendFrame(id, data);
+        2:  430:        return;
+        -:  431:    }
+        -:  432:    /* Response frame */
+        2:  433:    std::vector<int> data = {0x02,0x76,block_sequence_counter};
+        1:  434:    this->sendFrame(id, data);
+        1:  435:    return;
+        -:  436:}
+        -:  437:
+        2:  438:void GenerateFrames::transferDataLong(int id, int block_sequence_counter, std::vector<int> transfer_request, bool first_frame)
+        -:  439:{
+        2:  440:    if (first_frame)
+        -:  441:    {
+        1:  442:        std::vector<int> data = {0x10, ((int)transfer_request.size() + 2), 0x36, block_sequence_counter};
+        5:  443:        for (int i = 0; i < 4 ; i++)
+        -:  444:        {
+        4:  445:            data.push_back(transfer_request[i]);
+        -:  446:        }
+        1:  447:        this->sendFrame(id, data);
+        1:  448:        return;
+        -:  449:    }
+        -:  450:    else
+        -:  451:    {
+        -:  452:        /* Delete first 3 data that were sended in the first frame */
+        1:  453:        transfer_request.erase(transfer_request.begin(), transfer_request.begin() + 4);
+        1:  454:        int size_of_data = transfer_request.size();
+        1:  455:        std::vector<int> data;
+        2:  456:        for (int i = 0; i <= size_of_data / 7; i++)
+        -:  457:        {
+        1:  458:            data = {0x21 + (i % 0xF)};
+        4:  459:            for (int j = 0; j < 7 && ((i*7) + j) < size_of_data; j++)
+        -:  460:            {
+        3:  461:                data.push_back(transfer_request[(i*7)+j]);
+        -:  462:            }
+        1:  463:            this->sendFrame(id, data);
+        -:  464:        }
+        1:  465:        return;
+        -:  466:    } 
+        -:  467:}
+        -:  468:
+        2:  469:void GenerateFrames::requestTransferExit(int id, bool response)
+        -:  470:{
+        2:  471:    if (!response)
+        -:  472:    {
+        1:  473:        std::vector<int> data = {0x01, 0x37};
+        1:  474:        this->sendFrame(id, data);
+        1:  475:        return;
+        -:  476:    }
+        2:  477:    std::vector<int> data = {0x01,0x77};
+        1:  478:    this->sendFrame(id, data);
+        1:  479:    return;
+        -:  480:}
+        -:  481:
+    #####:  482:bool GenerateFrames::requestUpdateStatus(int id, bool response)
+        -:  483:{
+        -:  484:    /* No impplementation, I don't find this service in the standart */
+    #####:  485:    return false;
+        -:  486:}
+        -:  487:
+        -:  488:/* Private */
+       11:  489:int GenerateFrames::countDigits(int number)
+        -:  490:{
+       11:  491:    int digits = 0;
+       11:  492:    if (number < 0) 
+    #####:  493:        digits = 1;
+       42:  494:    while (number) {
+       31:  495:        number /= 10;
+       31:  496:        digits++;
+        -:  497:    }
+       11:  498:    return digits;
+        -:  499:}
+        -:  500:
+        9:  501:void GenerateFrames::insertBytes(std::vector<int>& byteVector, unsigned int num, int numBytes) {
+       23:  502:    for (int i = numBytes - 1; i >= 0; --i) {
+       14:  503:        byteVector.push_back((num >> (i * 8)) & 0xFF);
+        -:  504:    }
+        9:  505:}
