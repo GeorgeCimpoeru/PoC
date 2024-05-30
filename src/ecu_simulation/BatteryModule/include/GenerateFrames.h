@@ -205,9 +205,10 @@ class GenerateFrames
         void accessTimingParameters(int id, int sub_function, bool response=false);
         /**
          * @param id 
+         * @param sid 
          * @param nrc 
          */
-        void negativeResponse(int id, int nrc);
+        void negativeResponse(int id, int sid, int nrc);
         /*
          * OTA Services
          * The next methods create and send frames for the specific services

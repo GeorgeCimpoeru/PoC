@@ -32,14 +32,6 @@ struct can_frame GenerateFrames::createFrame(int &id,  std::vector<int> &data, F
                 frame.data[i] = data[i];
             }
             break;
-        case ERROR_FRAME:
-            frame.can_id = CAN_ERR_FLAG;
-            frame.can_dlc = 0;
-            break;
-        case OVERLOAD_FRAME:
-            frame.can_id = CAN_ERR_FLAG;
-            frame.can_dlc = 0;
-            break;
         default:
             throw std::invalid_argument("Invalid frame type");
     }
@@ -392,14 +384,13 @@ void GenerateFrames::accessTimingParameters(int id, int sub_function, bool respo
     return;
 }
 
-void GenerateFrames::negativeResponse(int id, int nrc)
+void GenerateFrames::negativeResponse(int id, int sid, int nrc)
 {
-    std::vector<int> data = {0x03, 0x7F, nrc};
+    std::vector<int> data = {0x03, 0x7F, sid, nrc};
     this->sendFrame(id, data);
     return;
 }
 
-/*https://piembsystech.com/request-download-0x34-service-uds-protocol/*/
 void GenerateFrames::requestDownload(int id, int data_format_identifier, int memory_address, int memory_size)
 {
     /* Request Frame
