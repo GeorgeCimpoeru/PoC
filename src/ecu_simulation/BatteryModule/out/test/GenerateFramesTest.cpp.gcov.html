@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2024-05-29 16:03:57</td>
+            <td class="headerValue">2024-05-30 10:29:36</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">123</td>
@@ -127,8 +127,8 @@
 <a name="65"><span class="lineNum">      65 </span>            :     struct can_frame resultFrame;</a>
 <a name="66"><span class="lineNum">      66 </span><span class="lineCov">         37 :     resultFrame.can_id = id;</span></a>
 <a name="67"><span class="lineNum">      67 </span><span class="lineCov">         37 :     int i=0;</span></a>
-<a name="68"><span class="lineNum">      68 </span><span class="lineCov">        212 :     for (auto d : test_data)</span></a>
-<a name="69"><span class="lineNum">      69 </span><span class="lineCov">        175 :         resultFrame.data[i++] = d;</span></a>
+<a name="68"><span class="lineNum">      68 </span><span class="lineCov">        213 :     for (auto d : test_data)</span></a>
+<a name="69"><span class="lineNum">      69 </span><span class="lineCov">        176 :         resultFrame.data[i++] = d;</span></a>
 <a name="70"><span class="lineNum">      70 </span><span class="lineCov">         37 :     resultFrame.can_dlc = test_data.size();</span></a>
 <a name="71"><span class="lineNum">      71 </span><span class="lineCov">         37 :     return resultFrame;</span></a>
 <a name="72"><span class="lineNum">      72 </span>            : }</a>
@@ -136,8 +136,8 @@
 <a name="74"><span class="lineNum">      74 </span>            : {</a>
 <a name="75"><span class="lineNum">      75 </span><span class="lineCov">         37 :     EXPECT_EQ(expected_frame.can_id, c1.frame.can_id);</span></a>
 <a name="76"><span class="lineNum">      76 </span><span class="lineCov">         37 :     EXPECT_EQ(expected_frame.can_dlc, c1.frame.can_dlc);</span></a>
-<a name="77"><span class="lineNum">      77 </span><span class="lineCov">        212 :     for (int i = 0; i &lt; expected_frame.can_dlc; ++i) {</span></a>
-<a name="78"><span class="lineNum">      78 </span><span class="lineCov">        175 :         EXPECT_EQ(expected_frame.data[i], c1.frame.data[i]);</span></a>
+<a name="77"><span class="lineNum">      77 </span><span class="lineCov">        213 :     for (int i = 0; i &lt; expected_frame.can_dlc; ++i) {</span></a>
+<a name="78"><span class="lineNum">      78 </span><span class="lineCov">        176 :         EXPECT_EQ(expected_frame.data[i], c1.frame.data[i]);</span></a>
 <a name="79"><span class="lineNum">      79 </span>            :     }</a>
 <a name="80"><span class="lineNum">      80 </span><span class="lineCov">         37 : }</span></a>
 <a name="81"><span class="lineNum">      81 </span>            : /*Create object for all tests*/</a>
@@ -612,13 +612,13 @@
 <a name="550"><span class="lineNum">     550 </span><span class="lineCov">          2 : TEST_F(GenerateFramesTest, NegativeResponse) </span></a>
 <a name="551"><span class="lineNum">     551 </span>            : {</a>
 <a name="552"><span class="lineNum">     552 </span>            :     /*Create expected frame*/</a>
-<a name="553"><span class="lineNum">     553 </span><span class="lineCov">          1 :     struct can_frame result_frame = createFrame({0x03,0x7F,0x12});</span></a>
+<a name="553"><span class="lineNum">     553 </span><span class="lineCov">          1 :     struct can_frame result_frame = createFrame({0x03,0x7F,0x10,0x12});</span></a>
 <a name="554"><span class="lineNum">     554 </span>            :     /*Start listening for frame in the CAN-BUS*/</a>
 <a name="555"><span class="lineNum">     555 </span><span class="lineCov">          1 :     std::thread receive_thread([this]() {</span></a>
 <a name="556"><span class="lineNum">     556 </span><span class="lineCov">          1 :         c1-&gt;capture();</span></a>
 <a name="557"><span class="lineNum">     557 </span><span class="lineCov">          3 :     });</span></a>
 <a name="558"><span class="lineNum">     558 </span>            :     /*Send frame*/</a>
-<a name="559"><span class="lineNum">     559 </span><span class="lineCov">          1 :     g1-&gt;negativeResponse(id,0x012);</span></a>
+<a name="559"><span class="lineNum">     559 </span><span class="lineCov">          1 :     g1-&gt;negativeResponse(id,0x10,0x012);</span></a>
 <a name="560"><span class="lineNum">     560 </span><span class="lineCov">          1 :     receive_thread.join();</span></a>
 <a name="561"><span class="lineNum">     561 </span>            :     /*TEST*/</a>
 <a name="562"><span class="lineNum">     562 </span><span class="lineCov">          1 :     testFrames(result_frame, *c1);</span></a>

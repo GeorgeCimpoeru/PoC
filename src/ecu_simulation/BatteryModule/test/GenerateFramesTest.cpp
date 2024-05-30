@@ -822,13 +822,13 @@ TEST_F(GenerateFramesTest, AccesTimeParamTest2)
 TEST_F(GenerateFramesTest, NegativeResponse) 
 {
     /*Create expected frame*/
-    struct can_frame result_frame = createFrame({0x03,0x7F,0x12});
+    struct can_frame result_frame = createFrame({0x03,0x7F,0x10,0x12});
     /*Start listening for frame in the CAN-BUS*/
     std::thread receive_thread([this]() {
         c1->capture();
     });
     /*Send frame*/
-    g1->negativeResponse(id,0x012);
+    g1->negativeResponse(id,0x10,0x012);
     receive_thread.join();
     /*TEST*/
     testFrames(result_frame, *c1);
