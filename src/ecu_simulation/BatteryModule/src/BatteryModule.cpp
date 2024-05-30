@@ -195,6 +195,11 @@ float BatteryModule::getPercentage() const
     return percentage;
 }
 
+std::string BatteryModule::getLinuxBatteryState()
+{
+    return state;
+}
+
 /* Getter function for module state */
 bool BatteryModule::isRunning() const
 {

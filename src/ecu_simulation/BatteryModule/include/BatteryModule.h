@@ -17,14 +17,6 @@
 #ifndef POC_INCLUDE_BATTERY_MODULE_H
 #define POC_INCLUDE_BATTERY_MODULE_H
 
-#define BATTERY_MODULE_INIT_VOLTAGE 12.5
-#define BATTERY_MODULE_INIT_CURRENT 5.0
-#define BATTERY_MODULE_INIT_TEMP 20.0
-#define BATTERY_MODULE_MAX_VOLTAGE 15.0f
-#define BATTERY_MODULE_MAX_CURRENT 10.0f
-#define BATTERY_MODULE_MAX_TEMP 30.0f
-#define BATTERY_MODULE_PARAM_INCREMENT 0.01f
-
 #define BATTERY_MODULE_ID 0x101
 
 /* comment-out to disable all the prints in module */
@@ -84,13 +76,6 @@ private:
 
 public:
     /**
-     * @brief Function to update the parameters values,
-     * simulating some logic for reading changings.
-     * 
-     * Currently in 'public' access level for test purposes
-     */
-    void updateParamenters();
-    /**
      * @brief Construct a new Battery Module object
      * 
      */
@@ -130,6 +115,13 @@ public:
     float getVoltage() const;
     float getPercentage() const;
     bool isRunning() const;
+
+    /**
+     * @brief Get the Linux Battery State - charging, discarging, fully-charged, etc.
+     * 
+     * @return std::string 
+     */
+    std::string getLinuxBatteryState();
 };
 
 #endif
