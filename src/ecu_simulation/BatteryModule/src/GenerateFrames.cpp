@@ -158,7 +158,7 @@ void GenerateFrames::readDataByIdentifier(int id,int identifier, std::vector<int
         return;
     }
     int length_response = response.size();
-    if (length_response <= 5)
+    if (length_response <= 4)
     {
         std::vector<int> data = {length_response + 3, 0x62, identifier/0x100, identifier%0x100};
         for (int i = 0; i < length_response; i++)
@@ -348,7 +348,7 @@ void GenerateFrames::clearDiagnosticInformation(int id, std::vector<int> group_o
     /* Request */
     if (!response)
     { 
-        if (group_of_dtc.size() < 8)
+        if (group_of_dtc.size() < 7)
         {
             int number_of_dtc = group_of_dtc.size();
             data = {number_of_dtc + 1, 0x14};
@@ -360,7 +360,7 @@ void GenerateFrames::clearDiagnosticInformation(int id, std::vector<int> group_o
             return;
         } else
         {
-            std::cout<<"ERROR: Can't send more than 7 DTC/frame, please consider send 2 or more frames\n";
+            std::cout<<"ERROR: Can't send more than 6 DTC/frame, please consider send 2 or more frames\n";
             return;
         }
         
@@ -421,13 +421,20 @@ void GenerateFrames::transferData(int id, int block_sequence_counter, std::vecto
     /* If is not a response */
     if (transfer_request.size() != 0)
     {
-        std::vector<int> data = {(int)transfer_request.size() + 2, 0x36, block_sequence_counter};
-        for (std::size_t i = 0; i < transfer_request.size(); i++)
+        if (transfer_request.size() <= 5)
         {
-            data.push_back(transfer_request[i]);
+             std::vector<int> data = {(int)transfer_request.size() + 2, 0x36, block_sequence_counter};
+            for (std::size_t i = 0; i < transfer_request.size(); i++)
+            {
+                data.push_back(transfer_request[i]);
+            }
+            this->sendFrame(id, data);
+            return;
+        } else
+        {
+            std::cout<<"The transfer_request is to long. Consider using transferDataLong method\n";
+            return;
         }
-        this->sendFrame(id, data);
-        return;
     }
     /* Response frame */
     std::vector<int> data = {0x02,0x76,block_sequence_counter};
