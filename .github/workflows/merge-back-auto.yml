@@ -1,10 +1,9 @@
-
 name: Automerge
 
 on:
   push:
     branches:
-      - TEST_DEV_BE
+      - TEST_TEST_DEV_BE
 
 env:
   # replace "github_username" with your GitHub username
@@ -15,6 +14,7 @@ env:
 
   # replace "long-lived_branch_name" with your branch name
   REST_API: test_feature/rest_api
+  REST_API1: test_test_feature/rest_api
 
   # replace it with the path to master repo
   MASTER_REPO: https://github.com/GeorgeCimpoeru/PoC.git
@@ -23,7 +23,7 @@ env:
   MASTER_BRANCH: TEST_DEV_BE
 
 jobs:
-  merge:
+  merge_REST_API:
     runs-on: ubuntu-latest
 
     steps:
@@ -34,5 +34,19 @@ jobs:
         git config user.name "Automerge Bot"
         git config user.email "bot@example.com"
         git config pull.rebase true
-        git pull --rebase ${{env.MASTER_REPO}} ${{env.MASTER_BRANCH}}
+        git pull ${{env.MASTER_REPO}} ${{env.MASTER_BRANCH}}
+        git push
+ 
+  merge:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Merge with test_DEV_BE1
+      run: |
+        git clone ${{env.MY_REPO}} -b ${{env.REST_API1}} tmp
+        cd tmp
+        git config user.name "Automerge Bot"
+        git config user.email "bot@example.com"
+        git config pull.rebase true
+        git pull ${{env.MASTER_REPO}} ${{env.MASTER_BRANCH}}
         git push
