@@ -37,7 +37,7 @@ jobs:
         cd tmp
         git config user.name "Automerge Bot"
         git config user.email "bot@example.com"
-        git config pull.rebase true
+        git config pull.rebase false
         git pull ${{env.MASTER_REPO}} ${{env.MASTER_BRANCH}}
         git push -f
 
@@ -51,7 +51,7 @@ jobs:
         cd tmp
         git config user.name "Automerge Bot"
         git config user.email "bot@example.com"
-        git config pull.rebase true
+        git config pull.rebase false
         git pull ${{env.MASTER_REPO}} ${{env.MASTER_BRANCH}}
         git push -f
 
@@ -65,6 +65,6 @@ jobs:
         cd tmp
         git config user.name "Automerge Bot"
         git config user.email "bot@example.com"
-        git config pull.rebase true
+        git config pull.rebase false
         git pull ${{env.MASTER_REPO}} ${{env.MASTER_BRANCH}}
         git push -f
