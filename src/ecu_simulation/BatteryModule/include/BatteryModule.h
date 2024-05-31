@@ -57,6 +57,8 @@ private:
      * @brief Helper function to execute shell commands and fetch output
      * in order to read System Information about built-in Battery
      * 
+     * this method is currently 'virtual' in order to be overridden in Test
+     * 
      * @param cmd 
      * @return std::string 
      */
