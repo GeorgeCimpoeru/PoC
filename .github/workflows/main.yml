@@ -1,0 +1,70 @@
+name: Automerge (DEV_BE -> backend branches)
+
+on:
+  push:
+    branches:
+      - development
+
+env:
+  # replace "github_username" with your GitHub username
+  # replace "github.com/username/repo.git" with your GitHub repo path
+  # do NOT replace ${{secrets.GITHUB_TOKEN}}, GitHub will take care of it
+  MY_REPO: https://GeorgeCimpoeru:${{secrets.GITHUB_TOKEN}}@github.com/GeorgeCimpoeru/PoC.git
+
+  # replace "long-lived_branch_name" with your branch name
+  REST_API: feature/rest_api
+
+  # replace "long-lived_branch_name" with your branch name
+  MCU_module: feature/MCU_module
+
+  # replace "long-lived_branch_name" with your branch name
+  ECU_BatteryModule: feature/ECU_BatteryModule
+
+  # replace it with the path to master repo
+  MASTER_REPO: https://github.com/GeorgeCimpoeru/PoC.git
+
+  # replace "master" with your master branch name
+  MASTER_BRANCH: DEV_BE
+
+jobs:
+  merge_REST_API:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Merge feature/rest_api with DEV_BE
+      run: |
+        git clone ${{env.MY_REPO}} -b ${{env.REST_API}} tmp
+        cd tmp
+        git config user.name "Automerge Bot"
+        git config user.email "bot@example.com"
+        git config pull.rebase false
+        git pull ${{env.MASTER_REPO}} ${{env.MASTER_BRANCH}}
+        git push -f
+
+  merge_MCU:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Merge feature/MCU_module with DEV_BE
+      run: |
+        git clone ${{env.MY_REPO}} -b ${{env.MCU_module}} tmp
+        cd tmp
+        git config user.name "Automerge Bot"
+        git config user.email "bot@example.com"
+        git config pull.rebase false
+        git pull ${{env.MASTER_REPO}} ${{env.MASTER_BRANCH}}
+        git push -f
+
+  merge_ECU:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Merge feature/ECU_BatteryModule with DEV_BE
+      run: |
+        git clone ${{env.MY_REPO}} -b ${{env.ECU_BatteryModule}} tmp
+        cd tmp
+        git config user.name "Automerge Bot"
+        git config user.email "bot@example.com"
+        git config pull.rebase false
+        git pull ${{env.MASTER_REPO}} ${{env.MASTER_BRANCH}}
+        git push -f
