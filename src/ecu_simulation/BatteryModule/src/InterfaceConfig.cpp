@@ -28,19 +28,16 @@ void SocketCanInterface::callSystem(std::string& cmd) const
 int SocketCanInterface::setSocketBlocking()
 {
     int flags = fcntl(_socketFd, F_GETFL, 0);
-    if (flags == -1) 
-    {
-        std::cerr << "Eroare la obtinerea flagurilor socket-ului: " << strerror(errno) << std::endl;
-        return -1;
+    if (flags == -1) {
+        std::cerr << "Error for obtaining flags on socket: " << strerror(errno) << std::endl;
+        return 1;
     }
     // Set the O_NONBLOCK flag to make the socket non-blocking
     flags |= O_NONBLOCK;
-    if (fcntl(_socketFd, F_SETFL, flags) == -1) 
-    {
+    if (fcntl(_socketFd, F_SETFL, flags) == -1) {
         std::cerr << "Error setting flags: " << strerror(errno) << std::endl;
         return -1;
     }
-    return 1;
 }
 
 bool SocketCanInterface::openInterface()

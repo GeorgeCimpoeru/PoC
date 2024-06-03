@@ -24,53 +24,60 @@ ReceiveFrames::ReceiveFrames(int socket, int module_id) : socket(socket), module
 
 ReceiveFrames::~ReceiveFrames() 
 {
-    Stop();
+    stop();
 }
 
-void ReceiveFrames::Receive(HandleFrames &handle_frame) 
+void ReceiveFrames::receive(HandleFrames &handle_frame) 
 {
-    std::cout << "Starting Receive Method for Module ID: 0x" << std::hex << std::setw(8) << std::setfill('0') << this->module_id << std::endl;
+    std::cout << "Starting receive Method for Module ID: 0x" << std::hex << std::setw(8) << std::setfill('0') << this->module_id << std::endl;
     try 
     {
-        producerThread = std::thread(&ReceiveFrames::producer, this);
-        std::cout << "ProducerThread\n";
-        this->consumer(handle_frame);
-        std::cout << "ConsumerThread\n";
+        bufferFrameInThread = std::thread(&ReceiveFrames::bufferFrameIn, this);
+        std::cout << "bufferFrameInThread\n";
+        this->bufferFrameOut(handle_frame);
+        std::cout << "bufferFrameOutThread\n";
     } 
     catch (const std::exception &e) 
     {
         std::cerr << "Exception in starting threads: " << e.what() << std::endl;
-        Stop();
+        stop();
     }
 }
 
-void ReceiveFrames::Stop() 
-{
-    running = false;
+/* !!!!!!Set the socket to non-blocking mode. */
+void ReceiveFrames::stop() 
+{   
+    {
+        std::unique_lock<std::mutex> lock(mtx);
+        running = false;
+    }
     cv.notify_all();
-    if (producerThread.joinable()) {
-        producerThread.join();
+    if (bufferFrameInThread.joinable())
+    {
+    bufferFrameInThread.join();
     }
 }
 
-void ReceiveFrames::producer() 
+void ReceiveFrames::bufferFrameIn() 
 {
     try{
         while (running) 
         {
-            struct can_frame frame;
-            int nbytes = read(this->socket, &frame, sizeof(struct can_frame));
-            
-            /* Check if the received frame is for your module */ 
-            if (frame.can_id != static_cast<canid_t>(this->module_id)) 
+            struct can_frame frame = {};
+            int nbytes = 0;
+            while(running)
             {
-                std::cerr << "Received frame is not for this module\n";
-                continue;
+                nbytes = read(this->socket, &frame, sizeof(struct can_frame));
+                if(nbytes > 0)
+                {
+                    break;
+                }
+                sleep(1);
+            }
+            if (!running) {
+                break;
             }
             
-            /* Print the frame for debugging */ 
-            printFrame(frame);
-
             std::unique_lock<std::mutex> lock(mtx);
             frame_buffer.push_back(std::make_tuple(frame, nbytes));
             cv.notify_one();
@@ -78,12 +85,12 @@ void ReceiveFrames::producer()
     }
     catch(const std::exception &e) 
     {
-        std::cerr << "Exception in Producer: " << e.what() << std::endl;
-        Stop();
+        std::cerr << "Exception in bufferFrameIn: " << e.what() << std::endl;
+        stop();
     }
 }
 
-void ReceiveFrames::consumer(HandleFrames &handle_frame) 
+void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame) 
 {
     while (running) 
     {
@@ -94,13 +101,23 @@ void ReceiveFrames::consumer(HandleFrames &handle_frame)
             break;
         }
 
-        // Extract frame and nbytes from the tuple in frame_buffer
+        /* Extract frame and nbytes from the tuple in frame_buffer */ 
         auto frameTuple = frame_buffer.front();
         frame_buffer.pop_front();
         lock.unlock();
 
         struct can_frame frame = std::get<0>(frameTuple);
         int nbytes = std::get<1>(frameTuple);
+
+        /* Print the frame for debugging */ 
+            printFrame(frame);
+
+         /* Check if the received frame is for your module */ 
+        if (static_cast<int>(frame.can_id) != module_id)
+        {
+            std::cerr << "Received frame is not for this module\n";
+            continue;
+        }
 
         /* Process the received frame */ 
         if (!handle_frame.checkReceivedFrame(nbytes, frame)) {
@@ -115,8 +132,8 @@ void ReceiveFrames::printFrame(const struct can_frame &frame)
     std::cout << "CAN ID: 0x" << std::hex << int(frame.can_id) << std::endl;
     std::cout << "Data Length: " << int(frame.can_dlc) << std::endl;
     std::cout << "Data:";
-    for (int i = 0; i < frame.can_dlc; ++i) 
+    for (int frame_byte = 0; frame_byte < frame.can_dlc; ++frame_byte) 
     {
-        std::cout << " 0x" << std::hex << int(frame.data[i]);
+        std::cout << " 0x" << std::hex << int(frame.data[frame_byte]);
     }
 }

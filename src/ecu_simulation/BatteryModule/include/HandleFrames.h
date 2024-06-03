@@ -7,7 +7,7 @@
  * frames for the main services.
  * How to use example:
  *     GenerateFrames g1 = GenerateFrames(socket);
- *     std::vector<int> x = {0x11, 0x34, 0x56};
+ *     std::vector<uint8_t> x = {0x11, 0x34, 0x56};
  *     g1.SendFrame(0x23, x);
  *     g1.SessionControl(0x34A, 0x1);
  * @version 0.1
@@ -30,21 +30,25 @@ class HandleFrames
 {
 private:
     /* Vector to store received data */ 
-    std::vector<int> stored_data;        
+    std::vector<uint8_t> stored_data;    
+    /* Vector to store sid */ 
+    int stored_sid;       
     /* Expected total size of data */         
-    size_t expected_data_size;    
+    uint8_t expected_data_size;    
     /* Position of the Service Identifier (SID) in the received data */                
     size_t sid_position;      
     /* Flag to track the number of consecutive frames expected */ 
-    int flag;                                    
+    uint8_t flag;                                    
     /* Protocol Control Information (PCI) byte */ 
-    int pci;                                   
+    uint8_t pci;                                   
     /* Service Identifier (SID) */   
     int sid;                    
     /* Flag indicating if the frame is a single frame message */                  
     bool is_single_frame;    
     /* Flag indicating if the first frame is received */
-    bool first_frame = false;      
+    bool first_frame = false;  
+    /* Vector to store data subfunction */ 
+    uint8_t sub_function;    
                     
 public:
     /**
@@ -57,7 +61,6 @@ public:
      * 
      * @param nbytes 
      * @param frame 
-     * @return true 
      * @return false 
      */
     bool checkReceivedFrame(int nbytes, const struct can_frame &frame);
@@ -74,7 +77,17 @@ public:
      * @param data 
      * @param is_single_frame 
      */
-    void handleCompleteData(int id, const std::vector<int>& data, bool is_single_frame);
+    void handleCompleteData(int id, const std::vector<uint8_t>& data, bool is_single_frame);
+    /**
+     * @brief  Method used to send a frame based on the nrc(negative response code) received.
+     * It takes as parameters frame_id, sid to identify the service, and nrc to send the correct
+     * negative response code back to who made the request.
+     * 
+     * @param frame_id 
+     * @param sid 
+     * @param nrc 
+     */
+    void processNrc(int id, uint8_t sid, uint8_t nrc);
 };
 
-#endif // HANDLE_FRAME_H_
+#endif /* HANDLE_FRAME_H_ */ 
