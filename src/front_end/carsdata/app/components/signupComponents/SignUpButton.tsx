@@ -1,19 +1,24 @@
 'use client';
 import React from 'react';
 import { push, ref, set } from 'firebase/database';
-import { database } from '../firebaseConfig';
+import { database } from '../../firebaseConfig';
 
 
 const SignUpButton = (props: any) => {
 
+  const x = 'ion';
   const makeSignUp = () => {
     try {
       const usersRef = ref(database, 'users');
       const newDataRef = push(usersRef);
       set(newDataRef, {
         user: props.email,
-        password: props.password,
+        password: props.password
       });
+
+      set(ref(database, 'users/'), {
+        x: x,
+      })
       alert('User registered');
     } catch(error) {
       alert('Database connection failed, try again later');
