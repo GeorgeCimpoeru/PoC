@@ -25,9 +25,9 @@
 #include<cstring>
 #include<sstream>
 #include<vector>
-#include <queue>
-#include <mutex>
-#include <condition_variable>
+#include<queue>
+#include<mutex>
+#include<condition_variable>
 
 #include<linux/can.h>
 #include "HandleFrames.h"
@@ -38,6 +38,9 @@ class ReceiveFrames{
 
   /* Constructor */
   ReceiveFrames(int socket);
+
+  /* Destructor */
+  ~ReceiveFrames();
 
   /**
    * @brief Function that take the frame from CANBus and put it in process queue.
@@ -65,6 +68,32 @@ class ReceiveFrames{
    * 
    */
   void sendTestFrame();
+
+  /**
+   * @brief Set running member to false
+   * 
+   */
+  void stopRunning();
+
+  /**
+   * @brief Set running member to true
+   * 
+   */
+  void startRunning();
+
+  /**
+   * @brief Getter for hexValueId
+   * 
+   * @return uint32_t 
+   */
+  uint32_t gethexValueId();
+
+    /**
+   * @brief Getter for running
+   * 
+   * @return bool 
+   */
+  bool getRunning();
   
  protected:
   /* The socket from where we read the frames */
@@ -73,10 +102,15 @@ class ReceiveFrames{
   std::queue<struct can_frame> frameQueue;
   std::mutex queueMutex;
   std::condition_variable queueCondVar;
+  bool running;
   HandleFrames handler;
+<<<<<<< HEAD
   CANFrame generateFrames;
 
 
+=======
+  GenerateFrame generateFrame;
+>>>>>>> Tests for ReceiveFrames class added
 };
 
 #endif /* POC_SRC_MCU_RECEIVE_FRAME_MODULE_H */

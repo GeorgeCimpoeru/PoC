@@ -2,14 +2,27 @@
 
 ReceiveFrames::ReceiveFrames(int socket) : s(socket), generateFrames(socket){}
 
+<<<<<<< HEAD
 /*
+=======
+ReceiveFrames::~ReceiveFrames()
+{
+    stopRunning();
+}
+
+uint32_t ReceiveFrames::gethexValueId() {
+    return hexValueId;
+ }
+
+/**
+>>>>>>> Tests for ReceiveFrames class added
  * Function to read frames from the CAN bus and add them to a queue.
  * This function runs in a loop and continually reads frames from the CAN bus.
  */
 int ReceiveFrames::receiveFramesFromCANBus()
 {
     struct can_frame frame;
-    while (true)
+    while (running)
     {
         /* Read frames from the CAN socket */
         int nbytes = read(s, &frame, sizeof(frame));
@@ -19,19 +32,16 @@ int ReceiveFrames::receiveFramesFromCANBus()
             /* Return error if read fails */
             return 1;
         }
-        else if (nbytes == 0)
+        else
+        {
             {
-                std::cerr << "No CAN frame received" << std::endl;
-            } else
-            {
-                {
-                    /* Lock the queue before adding the frame to ensure thread safety */
-                    std::lock_guard<std::mutex> lock(queueMutex);
-                    frameQueue.push(frame);
-                }
-                /* Notify one waiting thread that a new frame has been added to the queue */
-                queueCondVar.notify_one();
+                /* Lock the queue before adding the frame to ensure thread safety */
+                std::lock_guard<std::mutex> lock(queueMutex);
+                frameQueue.push(frame);
             }
+            /* Notify one waiting thread that a new frame has been added to the queue */
+            queueCondVar.notify_one();
+        }
     }
     return 0;
 }
@@ -42,6 +52,7 @@ int ReceiveFrames::receiveFramesFromCANBus()
  */
 void ReceiveFrames::processQueue()
 {
+    std::cout << "Frame processing:..." << std::endl;
     can_frame frameParam;
     while (true) {
         /* Wait until the queue is not empty, then lock the queue */
@@ -60,11 +71,11 @@ void ReceiveFrames::processQueue()
         /* Extracting the components from can_id */
 
         /* First byte: id_destinatar */
-        uint8_t dest_id = (frame.can_id >> 8) & 0xFF;
+        uint8_t sender_id = (frame.can_id >> 12) & 0xFF;
         /* 1 bit: request for destinatar */
-        bool is_for_dest = (frame.can_id >> 7) & 0x01;
+        bool is_for_dest = (frame.can_id >> 8) & 0x01;
         /* Last byte: id_sender or id_api */
-        uint8_t sender_id = frame.can_id & 0xFF;
+        uint8_t dest_id = frame.can_id & 0xFF;
 
         /* Compare the CAN ID with the expected hexValueId */
         if (dest_id == hexValueId) {
@@ -79,19 +90,30 @@ void ReceiveFrames::processQueue()
                     /* call function to send the frame to API */
                 } else {
                     /* For ECUs services */
-                    frameParam.can_id = (sender_id << 8) | hexValueId;
-                    std::copy(frame.data, frame.data + frame.can_dlc, frameParam.data);
+                    int new_can_id = (sender_id << 8) | hexValueId;
+                    std::vector<int> data(frame.data, frame.data + frame.can_dlc);
                     std::cout << "Frame for ECU Service" << std::endl;
+<<<<<<< HEAD
                     generateFrames.GenerateFrame(frameParam);
                     generateFrames.SendFrame();
+=======
+                    generateFrame.SendFrame(new_can_id, data);
+>>>>>>> Tests for ReceiveFrames class added
                 }
             }
         }
         else if(dest_id == 0xFF){
             /* Test frame betweend MCU and ECU */
             std::cout << "Received the test frame " << std::endl;
+<<<<<<< HEAD
             generateFrames.GenerateFrame(frame);
             generateFrames.SendFrame();
+=======
+        }
+        if(!running)
+        {
+            break;
+>>>>>>> Tests for ReceiveFrames class added
         }
     }
 }
@@ -118,6 +140,7 @@ void ReceiveFrames::printFrames(const struct can_frame &frame)
 */
 void ReceiveFrames::sendTestFrame()
 {
+<<<<<<< HEAD
     can_frame testFrame;
     /* Set the CAN ID to 0xFF */
     testFrame.can_id = 0xFF;
@@ -128,3 +151,33 @@ void ReceiveFrames::sendTestFrame()
     generateFrames.GenerateFrame(testFrame);
     generateFrames.SendFrame();
 }
+=======
+    if(running)
+    {
+        /* Set the CAN ID to 0xFF */
+        int can_id = 0xFF;
+        /* Set the data to an empty vector*/
+        std::vector<int> data;
+
+        /* Call GenerateFrame and SendFrame with the test frame */
+        generateFrame.SendFrame(can_id, data);
+    }
+}
+
+void ReceiveFrames::stopRunning()
+{
+    running = false;
+    queueCondVar.notify_all();
+}
+
+void ReceiveFrames::startRunning()
+{
+    running = true;
+    queueCondVar.notify_all();
+}
+
+bool ReceiveFrames::getRunning()
+{
+    return running;
+}
+>>>>>>> Tests for ReceiveFrames class added
