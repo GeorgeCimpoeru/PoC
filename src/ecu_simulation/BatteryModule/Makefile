@@ -45,7 +45,10 @@ $(FINAL_TEST): test/GenerateFramesTest.cpp src/GenerateFrames.cpp
 	$(CXX) ${CFLAGSTST} -o ${FINAL_TEST} test/GenerateFramesTest.cpp src/GenerateFrames.cpp ${CFLAGSTST2}
 	./test_binary
 	gcov -o . src/GenerateFrames.cpp
-	mv GenerateFrames.cpp.gcov test/
+	mv GenerateFrames.cpp.gcov coverage/out_GenerateFrame
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/*' --output-file coverage_filtered.info
+	genhtml coverage_filtered.info --output-directory coverage/out_GenerateFrame
 #Delete inecessary file from gcov compiler(Work just for GenerateFrame!!!!)
 	find . -name "*.gcov" ! -name "GenerateFrames.cpp.gcov" -delete
 	find . -name "*.gcda" ! -name "GenerateFrames.cpp.gcov" -delete
