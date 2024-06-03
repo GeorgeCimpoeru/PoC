@@ -104,13 +104,7 @@ class ReceiveFrames{
   std::condition_variable queueCondVar;
   bool running;
   HandleFrames handler;
-<<<<<<< HEAD
-  CANFrame generateFrames;
-
-
-=======
   GenerateFrame generateFrame;
->>>>>>> Tests for ReceiveFrames class added
 };
 
 #endif /* POC_SRC_MCU_RECEIVE_FRAME_MODULE_H */

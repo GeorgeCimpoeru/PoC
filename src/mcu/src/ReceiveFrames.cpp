@@ -2,9 +2,6 @@
 
 ReceiveFrames::ReceiveFrames(int socket) : s(socket), generateFrames(socket){}
 
-<<<<<<< HEAD
-/*
-=======
 ReceiveFrames::~ReceiveFrames()
 {
     stopRunning();
@@ -15,7 +12,6 @@ uint32_t ReceiveFrames::gethexValueId() {
  }
 
 /**
->>>>>>> Tests for ReceiveFrames class added
  * Function to read frames from the CAN bus and add them to a queue.
  * This function runs in a loop and continually reads frames from the CAN bus.
  */
@@ -93,27 +89,17 @@ void ReceiveFrames::processQueue()
                     int new_can_id = (sender_id << 8) | hexValueId;
                     std::vector<int> data(frame.data, frame.data + frame.can_dlc);
                     std::cout << "Frame for ECU Service" << std::endl;
-<<<<<<< HEAD
-                    generateFrames.GenerateFrame(frameParam);
-                    generateFrames.SendFrame();
-=======
                     generateFrame.SendFrame(new_can_id, data);
->>>>>>> Tests for ReceiveFrames class added
                 }
             }
         }
         else if(dest_id == 0xFF){
             /* Test frame betweend MCU and ECU */
             std::cout << "Received the test frame " << std::endl;
-<<<<<<< HEAD
-            generateFrames.GenerateFrame(frame);
-            generateFrames.SendFrame();
-=======
         }
         if(!running)
         {
             break;
->>>>>>> Tests for ReceiveFrames class added
         }
     }
 }
@@ -140,18 +126,6 @@ void ReceiveFrames::printFrames(const struct can_frame &frame)
 */
 void ReceiveFrames::sendTestFrame()
 {
-<<<<<<< HEAD
-    can_frame testFrame;
-    /* Set the CAN ID to 0xFF */
-    testFrame.can_id = 0xFF;
-    /* Set the data length code to 0, indicating no data */
-    testFrame.can_dlc = 0;
-
-    /* Call GenerateFrame and SendFrame with the test frame */
-    generateFrames.GenerateFrame(testFrame);
-    generateFrames.SendFrame();
-}
-=======
     if(running)
     {
         /* Set the CAN ID to 0xFF */
@@ -180,4 +154,3 @@ bool ReceiveFrames::getRunning()
 {
     return running;
 }
->>>>>>> Tests for ReceiveFrames class added
