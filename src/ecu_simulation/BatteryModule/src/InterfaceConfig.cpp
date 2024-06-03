@@ -25,6 +25,22 @@ void SocketCanInterface::callSystem(std::string& cmd) const
     }
 }
 
+int SocketCanInterface::setSocketBlocking()
+{
+    int flags = fcntl(_socketFd, F_GETFL, 0);
+    if (flags == -1) {
+        std::cerr << "Eroare la obtinerea flagurilor socket-ului: " << strerror(errno) << std::endl;
+        return 1;
+    }
+    // Set the O_NONBLOCK flag to make the socket non-blocking
+    flags |= O_NONBLOCK;
+    if (fcntl(_socketFd, F_SETFL, flags) == -1) 
+    {
+        std::cerr << "Error setting flags: " << strerror(errno) << std::endl;
+        return -1;
+    }
+}
+
 bool SocketCanInterface::openInterface()
 {
     std::string cmd = "sudo ip link set " + _interfaceName + " up";
@@ -52,6 +68,8 @@ bool SocketCanInterface::openInterface()
         std::cout<<"Error binding\n";
         return 1;
     }
+    setSocketBlocking();
+    
     return 0;
 }
 

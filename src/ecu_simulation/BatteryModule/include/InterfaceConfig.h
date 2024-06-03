@@ -20,6 +20,7 @@
 #include <linux/can/raw.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 class SocketCanInterface
 {
@@ -32,6 +33,12 @@ private:
     void createLinuxVCanInterface();
     void deleteLinuxVCanInterface();
     void stopLinuxVCanInterface();
+/**
+ * @brief Set the socket to not block in the reading operation.
+ * 
+ * @return int 
+ */
+    int setSocketBlocking();
 /**
  * @brief Open a new socket and connect it to the vcan interface.
  * 
