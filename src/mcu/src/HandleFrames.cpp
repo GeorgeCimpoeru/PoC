@@ -12,8 +12,8 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
 {
     /* Indicates whether the first frame has been received */
     static bool first_frame_received = false;
-    /* Number of expected frames for multi-frame sequence */
-    static uint8_t expected_frames = 0;
+    /* Number of expected bytes of payload for multi-frame sequence */
+    static uint8_t expected_payload = 0;
     /* frame data - for both single and multi frame sequence */
     static std::vector<uint8_t> frame_data;
     /* remember SID in case of multi-frame sequence*/
@@ -50,9 +50,11 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
     /* id == 0x10 == first frame */
     } 
     else if (frame.data[0] == 0x10) 
-    {
+    {   
+        /* Number of expected bytes of payload */
+        expected_payload = frame_data[1];
         /* Number of expected frames */
-        expected_frames = frame.data[1] / 7;
+        uint8_t expected_frames = frame.data[1] / 7;
         if(frame.data[1] % 7 > 0)
         {
             expected_frames++;
@@ -98,8 +100,8 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
         /* Increment sequenceNumber after each concatenation*/
         expected_sequence_number++;
          /* Check if all multi-frames have been received */
-        if ((int)frame_data.size() >= expected_frames * 7) 
-        {
+        if ((int)frame_data.size() >= expected_payload) 
+        { 
             std::cout << "data is: ";
             for (int data_pos = 0; data_pos < (int)frame_data.size(); ++data_pos) 
             {
@@ -113,7 +115,7 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
             expected_sequence_number = 0x21;
             /* Reset variables */
             first_frame_received = false;
-            expected_frames = 0;
+            expected_payload = 0;
             frame_data.clear();
         }
     } 
