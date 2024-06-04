@@ -1,5 +1,5 @@
 
-#include "../include/Logger.hpp"
+#include "../include/Logger.h"
 
 std::shared_ptr<spdlog::logger> Logger::_consoleLogger = nullptr;
 
