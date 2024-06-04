@@ -10,15 +10,15 @@ BatteryModule::BatteryModule() : moduleId(0x101),
                                  canInterface("vcan0"),
                                  frameReceiver(nullptr)
 {
-#ifdef BATTERY_MODULE_DEBUG
-    std::cout << "BatteryModule()" << std::endl;
-    std::cout << "(BatteryModule)moduleId = " << this->moduleId << std::endl;
-#endif
     /* Initialize the CAN interface */
     canInterface.init();
 
     /* Initialize the Frame Receiver */
     frameReceiver = new ReceiveFrames(canInterface.getSocketFd(), moduleId);
+#ifdef BATTERY_MODULE_DEBUG
+    std::cout << "BatteryModule()" << std::endl;
+    std::cout << "(BatteryModule)moduleId = " << this->moduleId << std::endl;
+#endif
 }
 
 /* Parameterized Constructor - initializes the BatteryModule with provided interface number and module ID */
@@ -30,15 +30,15 @@ BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_mo
                                                                     canInterface("vcan" + std::to_string(_interfaceNumber)),
                                                                     frameReceiver(nullptr)
 {
-#ifdef BATTERY_MODULE_DEBUG
-    std::cout << "BatteryModule(int interfaceNumber, int moduleId)" << std::endl;
-    std::cout << "(BatteryModule)moduleId = " << this->moduleId << std::endl;
-#endif
     /* Initialize the CAN interface */
     canInterface.init();
 
     /* Initialize the Frame Receiver */
     frameReceiver = new ReceiveFrames(canInterface.getSocketFd(), moduleId);
+#ifdef BATTERY_MODULE_DEBUG
+    std::cout << "BatteryModule(int interfaceNumber, int moduleId)" << std::endl;
+    std::cout << "(BatteryModule)moduleId = " << this->moduleId << std::endl;
+#endif
 }
 
 /* Destructor */
@@ -149,7 +149,7 @@ void BatteryModule::fetchBatteryData()
         this->voltage = voltage;
         this->percentage = percentage;
 #ifdef BATTERY_MODULE_DEBUG
-    std::cout << "Fetched Data - Energy: " << energy << " Wh, Voltage: " << voltage << " V, Percentage: " << percentage << "%, State: " << state << std::endl;
+        std::cout << "Fetched Data - Energy: " << energy << " Wh, Voltage: " << voltage << " V, Percentage: " << percentage << "%, State: " << state << std::endl;
 #endif
     }
     catch (const std::exception &e)
