@@ -39,7 +39,7 @@ public:
      * @param[in] frame_data
      * @param[in] is_multi_frame
     */
-    void processFrameData(canid_t frame_id, int sid, std::vector<uint8_t> frame_data, bool is_multi_frame);
+    void processFrameData(canid_t frame_id, uint8_t sid, std::vector<uint8_t> frame_data, bool is_multi_frame);
     /**
      * @brief Method used to send a frame based on the nrc(negative response code) received.
      * It takes as parameters frame_id, sid to identify the service, and nrc to send the correct
@@ -48,7 +48,7 @@ public:
      * @param[in] sid 
      * @param[in] nrc 
      */
-    void processNrc(canid_t frame_id, int sid, int nrc);
+    void processNrc(canid_t frame_id, uint8_t sid, uint8_t nrc);
 };
 
 #endif // HANDLE_FRAMES_H

@@ -13,11 +13,11 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
     /* Indicates whether the first frame has been received */
     static bool first_frame_received = false;
     /* Number of expected frames for multi-frame sequence */
-    static int expected_frames = 0;
+    static uint8_t expected_frames = 0;
     /* frame data - for both single and multi frame sequence */
     static std::vector<uint8_t> frame_data;
     /* remember SID in case of multi-frame sequence*/
-    static int sid = 0;
+    static uint8_t sid = 0;
     /* check if the data is split across multiple frames */
     static bool is_multi_frame = false;
     /* Expected sequence number for consecutive frames */
@@ -37,9 +37,9 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
             sid = frame.data[1];  
         }
         std::cout << "Single Frame received:" << std::endl;
-        for (int i = 0; i < frame.can_dlc; ++i) 
+        for (int data_pos = 0; data_pos < frame.can_dlc; ++data_pos) 
         {
-            frame_data.push_back(frame.data[i]);
+            frame_data.push_back(frame.data[data_pos]);
         }
         std::cout << std::endl;
         is_multi_frame = false;
@@ -65,9 +65,9 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
         frame_data.clear();
 
         /* Concatenate the data from the first frame into multi_frame_data */
-        for (int j = 5; j < frame.can_dlc; ++j) 
+        for (int data_pos = 5; data_pos < frame.can_dlc; ++data_pos) 
         {
-            frame_data.push_back(frame.data[j]);
+            frame_data.push_back(frame.data[data_pos]);
         }
         /* Make sure sequenceNumber is set after receiving the first frame */
         expected_sequence_number = 0x21;
@@ -91,9 +91,9 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
             return;
         }
         /* Concatenate the data from consecutive frames into multi_frame_data */
-        for (int j = 1; j < frame.can_dlc; ++j) 
+        for (int data_pos = 1; data_pos < frame.can_dlc; ++data_pos) 
         {
-            frame_data.push_back(frame.data[j]);
+            frame_data.push_back(frame.data[data_pos]);
         }
         /* Increment sequenceNumber after each concatenation*/
         expected_sequence_number++;
@@ -101,9 +101,9 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
         if ((int)frame_data.size() >= expected_frames * 7) 
         {
             std::cout << "data is: ";
-            for (int j = 0; j < (int)frame_data.size(); ++j) 
+            for (int data_pos = 0; data_pos < (int)frame_data.size(); ++data_pos) 
             {
-                std::cout << std::hex << int(frame_data[j]) << " ";
+                std::cout << std::hex << int(frame_data[data_pos]) << " ";
             }
             std::cout << std::endl;
             is_multi_frame = true;
@@ -124,7 +124,7 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
 }
 
 /* Method to call the service or handle the response*/
-void HandleFrames::processFrameData(canid_t frame_id, int sid, std::vector<uint8_t> frame_data, bool is_multi_frame) 
+void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<uint8_t> frame_data, bool is_multi_frame) 
 {
 
     switch (sid) {
@@ -401,7 +401,7 @@ void HandleFrames::processFrameData(canid_t frame_id, int sid, std::vector<uint8
             break;
     }
 }
-void HandleFrames::processNrc(canid_t frame_id, int sid, int nrc)
+void HandleFrames::processNrc(canid_t frame_id, uint8_t sid, uint8_t nrc)
 {
     switch(nrc)
     {
