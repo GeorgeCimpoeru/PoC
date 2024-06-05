@@ -37,7 +37,7 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
             sid = frame.data[1];  
         }
         std::cout << "Single Frame received:" << std::endl;
-        for (int data_pos = 0; data_pos < frame.can_dlc; ++data_pos) 
+        for (uint8_t data_pos = 0; data_pos < frame.can_dlc; ++data_pos) 
         {
             frame_data.push_back(frame.data[data_pos]);
         }
@@ -67,7 +67,7 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
         frame_data.clear();
 
         /* Concatenate the data from the first frame into multi_frame_data */
-        for (int data_pos = 5; data_pos < frame.can_dlc; ++data_pos) 
+        for (uint8_t data_pos = 5; data_pos < frame.can_dlc; ++data_pos) 
         {
             frame_data.push_back(frame.data[data_pos]);
         }
@@ -92,7 +92,7 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
             return;
         }
         /* Concatenate the data from consecutive frames into multi_frame_data */
-        for (int data_pos = 1; data_pos < frame.can_dlc; ++data_pos) 
+        for (uint8_t data_pos = 1; data_pos < frame.can_dlc; ++data_pos) 
         {
             frame_data.push_back(frame.data[data_pos]);
         }
@@ -102,7 +102,7 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
         if (frame_data.size() >= expected_payload) 
         { 
             std::cout << "data is: ";
-            for (int data_pos = 0; data_pos < (int)frame_data.size(); ++data_pos) 
+            for (uint8_t data_pos = 0; data_pos < (int)frame_data.size(); ++data_pos) 
             {
                 std::cout << std::hex << int(frame_data[data_pos]) << " ";
             }
@@ -133,7 +133,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* DiagnosticSessionControl(sid, frame_data[2]); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (int)frame_data[3]);
+                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
             }
             else 
             {
@@ -144,7 +144,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* EcuReset(sid, frame_data[2]); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (int)frame_data[3]);
+                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
             }
             else 
             {
@@ -155,7 +155,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* SecurityAccess(sid, frame_data[2], key?); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (int)frame_data[3]);
+                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
             }
             else 
             {
@@ -166,7 +166,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* Authentication(); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (int)frame_data[3]);
+                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
             }
             else 
             {
@@ -177,7 +177,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* TesterPresent(sid, frame_data[2]); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (int)frame_data[3]);
+                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
             }
             else 
             {
@@ -188,7 +188,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* AccessTimingParameters(sid, frame_data[2]); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (int)frame_data[3]);
+                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
             }
             else 
             {
@@ -199,7 +199,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* ReadDataByIdentifier(sid, frame_data[2] << 8) | frame_data[3]); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (int)frame_data[3]);
+                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
             }
             else 
             {
@@ -210,7 +210,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* ReadMemoryByAddress(frame_data[2], frame_data[3] << 8) | frame_data[4], frame_data[5] << 8) | frame_data[6]); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (int)frame_data[3]);
+                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
             }
             else 
             {
@@ -221,7 +221,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* WriteDataByIdentifier(sid, frame_data[2] << 8) | frame_data[3], data_parameter?); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (int)frame_data[3]);
+                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
             }
             else if (is_multi_frame)
             {
@@ -236,7 +236,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* ClearDiagnosticInformation(); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (int)frame_data[3]);
+                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
             }
             else 
             {
@@ -247,7 +247,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* ReadDtcInformation(); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (int)frame_data[3]);
+                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
             }
             else 
             {
@@ -258,7 +258,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* RoutineControl(sid, frame_data[2], frame_data[3] << 8) | frame_data[4]); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (int)frame_data[3]);
+                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
             }
             else 
             {
@@ -335,7 +335,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* RequestDownload(sid, frame_data[2], frame_data[3], frame_data[4], frame_data[5]); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (int)frame_data[3]);
+                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
             }
             else 
             {
@@ -346,7 +346,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* TransferData(sid, frame_data[2], frame_data[3], frame_data[4]); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (int)frame_data[3]);
+                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
             }
             else if(is_multi_frame)
             {
@@ -361,7 +361,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* RequestTransferExit(sid, frame_data[2]); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (int)frame_data[3]);
+                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
             }
             else 
             {
@@ -372,7 +372,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* RequestUpdateStatus(); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (int)frame_data[3]);
+                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
             }
             else 
             {
