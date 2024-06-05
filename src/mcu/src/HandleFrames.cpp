@@ -414,42 +414,42 @@ void HandleFrames::processNrc(canid_t frame_id, uint8_t sid, uint8_t nrc)
         case 0x13:
             /* Incorrect message length or invalid format */
             //GenerateFrames::negativeResponse(can_id, sid, nrc);
-            std::cout << "Error: Incorrect message length or invalid format for service: " << (int)sid << std::endl;
+            std::cout << "Error: Incorrect message length or invalid format for service: " << std::hex << (int)sid << std::endl;
         break;
         case 0x14:
             /*  Response too long */
             //GenerateFrames::negativeResponse(can_id, sid, nrc);
-            std::cout << "Error: Response too long for service: " << (int)sid << std::endl;
+            std::cout << "Error: Response too long for service: " << std::hex << (int)sid << std::endl;
         break;
         case 0x25:
             /* No response from subnet component */
             //GenerateFrames::negativeResponse(can_id, sid, nrc);
-            std::cout << "Error: No response from subnet component for service: " << (int)sid << std::endl;
+            std::cout << "Error: No response from subnet component for service: " << std::hex << (int)sid << std::endl;
         break;
         case 0x34:
             /* Authentication failed */
             //GenerateFrames::negativeResponse(can_id, sid, nrc);
-            std::cout << "Error: Authentication failed for service: " << (int)sid << std::endl;
+            std::cout << "Error: Authentication failed for service: " << std::hex << (int)sid << std::endl;
         break;
         case 0x94:
             /* Resource temporarily unavailable */
             //GenerateFrames::negativeResponse(can_id, sid, nrc);
-            std::cout << "Error: Resource temporarily unavailable for service: " << (int)sid << std::endl;
+            std::cout << "Error: Resource temporarily unavailable for service: " << std::hex << (int)sid << std::endl;
         break;
         case 0x70:
             /* Upload download not accepted */
             //GenerateFrames::negativeResponse(can_id, sid, nrc);
-            std::cout << "Error: Upload download not accepted for service: " << (int)sid << std::endl;
+            std::cout << "Error: Upload download not accepted for service: " << std::hex << (int)sid << std::endl;
         break;
         case 0x71:
             /* Transfer data suspended */
             //GenerateFrames::negativeResponse(can_id, sid, nrc);
-            std::cout << "Error: Transfer data suspended for service: " << (int)sid << std::endl;
+            std::cout << "Error: Transfer data suspended for service: " << std::hex << (int)sid << std::endl;
         break;
         default:
             /* Unknown negative response code */
             //GenerateFrames::negativeResponse(can_id, sid, nrc);
-            std::cout << "Error: Unknown negative response code for service: " << (int)sid << std::endl;
+            std::cout << "Error: Unknown negative response code for service: " << std::hex << (int)sid << std::endl;
         break;
 
     }
