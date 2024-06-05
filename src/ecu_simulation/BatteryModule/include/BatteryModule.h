@@ -1,8 +1,8 @@
 /**
  *  @file BatteryModule.h
  *  This library will be used to simulate a Battery Module
- *  providing some readings and informations (like voltage, current, temperature, etc)
- *  in order to be passed through a virtual CAN interface.
+ *  providing some readings and informations (like energy, voltage, percentage, etc)
+ *  extracted from Linux, in order to be passed through a virtual CAN interface.
  * 
  *  How to use : Simply instantiate the class in Main solution, and access it's methods there.
  *  BatteryModule batteryObj;  *  Default Constructor for battery object with
