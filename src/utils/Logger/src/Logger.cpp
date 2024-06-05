@@ -14,9 +14,13 @@ Logger::Logger(std::string loggerName, std::string filePath)
     spdlog::flush_on(spdlog::level::trace);
 
     _fileLogger = spdlog::basic_logger_mt(loggerName, filePath);
-    // spdlog::init_thread_pool(8192, 1); // queue with 8k items and 1 backing thread.
 
-    // _fileLogger = spdlog::create_async<spdlog::sinks::basic_file_sink_mt>(loggerName, filePath);
+    /**
+     *  For future use, not needed now
+     * 
+     * spdlog::init_thread_pool(8192, 1); // queue with 8k items and 1 backing thread.
+     * _fileLogger = spdlog::create_async<spdlog::sinks::basic_file_sink_mt>(loggerName, filePath);
+     */
     _loggers.emplace_back(loggerName);
 }
 
