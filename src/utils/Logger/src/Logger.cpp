@@ -1,3 +1,13 @@
+/**
+ * @file Logger.cpp
+ * @author Iancu Daniel
+ * @brief 
+ * @version 0.1
+ * @date 2024-06-05
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 
 #include "../include/Logger.h"
 
@@ -58,13 +68,14 @@ void Logger::setFileLogger(std::string& loggerName, std::string& filePath)
 void Logger::removeLogger(std::string loggerName)
 {
     spdlog::drop(loggerName);
+    _loggers.erase(std::remove(_loggers.begin(), _loggers.end(), loggerName), _loggers.end());
 }
 
 void Logger::removeAllLoggers()
 {
     for(auto& logger : _loggers)
     {
-        spdlog::drop(logger);
+        removeLogger(logger);
     }
 }
 
