@@ -1,4 +1,5 @@
-#pragma once
+#ifndef LOGGER_H
+#define LOGGER_H
 
 #define SPDLOG_COMPILED_LIB
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
@@ -6,7 +7,6 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
-#include <spdlog/async.h>
 
 class Logger
 {
@@ -72,3 +72,5 @@ public:
 #define LOG_WARN(logger, ...) SPDLOG_LOGGER_WARN(logger, __VA_ARGS__)
 #define LOG_ERROR(logger, ...) SPDLOG_LOGGER_ERROR(logger, __VA_ARGS__)
 #define LOG_CRITICAL(logger, ...) SPDLOG_LOGGER_CRITICAL(logger, __VA_ARGS__)
+
+#endif /* LOGGER_H */
