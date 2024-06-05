@@ -52,7 +52,7 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
     else if (frame.data[0] == 0x10) 
     {   
         /* Number of expected bytes of payload */
-        expected_payload = frame_data[1];
+        expected_payload = frame.data[1];
         /* Number of expected frames */
         uint8_t expected_frames = frame.data[1] / 7;
         if(frame.data[1] % 7 > 0)
@@ -83,7 +83,6 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
             /* Ignore consecutive frames until the first frame is received */
             return;
         }
-
         /* Check if the frame's sequence number matches the expected sequence number */
         if (frame.data[0] != expected_sequence_number) 
         {
@@ -100,7 +99,7 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
         /* Increment sequenceNumber after each concatenation*/
         expected_sequence_number++;
          /* Check if all multi-frames have been received */
-        if ((int)frame_data.size() >= expected_payload) 
+        if (frame_data.size() >= expected_payload) 
         { 
             std::cout << "data is: ";
             for (int data_pos = 0; data_pos < (int)frame_data.size(); ++data_pos) 
@@ -410,7 +409,7 @@ void HandleFrames::processNrc(canid_t frame_id, uint8_t sid, uint8_t nrc)
         case 0x11:
             /* Service not supported */
             //GenerateFrames::negativeResponse(can_id, sid, nrc);
-            std::cout << "Error: Service not supported for service: " << (int)sid << std::endl;
+            std::cout << "Error: Service not supported for service: " << std::hex << (int)sid << std::endl;
         break;
         case 0x13:
             /* Incorrect message length or invalid format */
