@@ -197,16 +197,16 @@ void GenerateFrame::AuthenticationSendKey(uint32_t can_id, const std::vector<uin
 {
     if (key.empty()) 
     {
+        this->SendFrame(can_id, {0x02, 0x69, 0x02});
+    }
+    else 
+    {
         std::vector<uint8_t> data = {static_cast<uint8_t>(key.size() + 2), 0x29, 0x2};
         for (uint8_t bit = 0; bit < key.size(); bit++) 
         {
             data.push_back(key[bit]);
         }
         this->SendFrame(can_id, data);
-    }
-    else 
-    {
-        this->SendFrame(can_id, {0x02, 0x69, 0x02});
     }
 }
 
