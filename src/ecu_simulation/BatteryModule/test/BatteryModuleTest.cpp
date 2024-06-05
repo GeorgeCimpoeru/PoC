@@ -121,11 +121,11 @@ TEST(BatteryModuleTest, ReceiveFrames)
     std::thread receive_thread([&batteryModule]()
                                { batteryModule.receiveFrames(); });
 
-    /* Allow some time for the thread to start */
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-
     /* Send the frame */
     write(s, &frame, sizeof(frame));
+
+    /* Allow some time for the thread to start */
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 
     batteryModule.stopFrames();
 
