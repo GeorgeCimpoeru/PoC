@@ -39,13 +39,19 @@ can_frame GenerateFrame::CreateFrame(uint32_t can_id, std::vector<uint8_t> data,
         case DATA_FRAME:
             frame.can_id &= CAN_EFF_MASK;
             frame.can_dlc = data.size();
-            std::memcpy(frame.data, data.data(), data.size());
+            for (uint8_t bit = 0; bit < data.size(); bit++) 
+            {
+                frame.data[bit] = data[bit];
+            }
             break;
         case REMOTE_FRAME:
             frame.can_id &= CAN_EFF_MASK;
             frame.can_id |= CAN_RTR_FLAG;
             frame.can_dlc = data.size();
-            std::memcpy(frame.data, data.data(), data.size());
+            for (uint8_t bit = 0; bit < data.size(); bit++) 
+            {
+                frame.data[bit] = data[bit];
+            }
             break;
         case ERROR_FRAME:
             frame.can_id = CAN_ERR_FLAG;
@@ -138,7 +144,7 @@ void GenerateFrame::CreateFrameLong(uint32_t can_id, uint8_t sid, uint8_t dataId
     if (firstFrame)
     {
         std::vector<uint8_t> data = {0x10, static_cast<uint8_t>(response.size() + 3), sid, static_cast<uint8_t>(dataIdentifier/0x100), static_cast<uint8_t>(dataIdentifier%0x100)};
-        for (int bit = 0; bit < 3; bit++) 
+        for (uint8_t bit = 0; bit < 3; bit++) 
         {
             data.push_back(response[bit]);
         }
@@ -151,7 +157,7 @@ void GenerateFrame::CreateFrameLong(uint32_t can_id, uint8_t sid, uint8_t dataId
         for (uint8_t r_bit = 0; r_bit < response.size() / 7; r_bit++)
         {
             data = {static_cast<uint8_t>(0x21 + (r_bit % 0xF))};
-            for (int d_bit = 0; d_bit < 7 && ((r_bit * 7) + d_bit) < response.size(); d_bit++)
+            for (uint8_t d_bit = 0; d_bit < 7 && ((r_bit * 7) + d_bit) < response.size(); d_bit++)
             {
                 data.push_back(response[r_bit * 7 + d_bit]);
             }
@@ -179,7 +185,7 @@ void GenerateFrame::AuthenticationRequestSeed(uint32_t can_id, const std::vector
     else
     {
         std::vector<uint8_t> data = {static_cast<uint8_t>(seed.size() + 2), 0x69, 0x1};
-        for (int bit = 0; bit < seed.size(); bit++) 
+        for (uint8_t bit = 0; bit < seed.size(); bit++) 
         {
             data.push_back(seed[bit]);
         }
@@ -192,7 +198,7 @@ void GenerateFrame::AuthenticationSendKey(uint32_t can_id, const std::vector<uin
     if (key.empty()) 
     {
         std::vector<uint8_t> data = {static_cast<uint8_t>(key.size() + 2), 0x29, 0x2};
-        for (int bit = 0; bit < key.size(); bit++) 
+        for (uint8_t bit = 0; bit < key.size(); bit++) 
         {
             data.push_back(key[bit]);
         }
@@ -249,7 +255,7 @@ void GenerateFrame::ReadMemoryByAddress(uint32_t can_id, uint8_t memory_size, ui
         InsertBytes(data, memory_size, len_mem_size);
         if (data.size() + response.size() < 9)
         {
-            for (int bit = 0; bit < response.size(); bit++) 
+            for (uint8_t bit = 0; bit < response.size(); bit++) 
             {
                 data.push_back(response[bit]);
             }
@@ -273,7 +279,7 @@ void GenerateFrame::ReadMemoryByAddressLong(uint32_t can_id, uint8_t memory_size
         std::vector<uint8_t> data = {0x10, pci_len, 0x63, len_mem};
         InsertBytes(data, memory_address, len_mem_addr);
         InsertBytes(data, memory_size, len_mem_size);
-        for (int bit = 0; bit < 3; bit++) 
+        for (uint8_t bit = 0; bit < 3; bit++) 
         {
             data.push_back(response[bit]);
         }
@@ -284,10 +290,10 @@ void GenerateFrame::ReadMemoryByAddressLong(uint32_t can_id, uint8_t memory_size
         uint8_t mem_sent = 8 - len_mem_size - len_mem_addr - 4;
         response.erase(response.begin(), response.begin() + mem_sent);
         std::vector<uint8_t> data;
-        for (int bit = 0; bit < response.size() / 7; bit++)
+        for (uint8_t bit = 0; bit < response.size() / 7; bit++)
         {
             data = {static_cast<uint8_t>(0x21 + (bit % 0xF))};
-            for (int d_bit = 0; d_bit < 7 && ((bit * 7) + d_bit) < response.size(); d_bit++) 
+            for (uint8_t d_bit = 0; d_bit < 7 && ((bit * 7) + d_bit) < response.size(); d_bit++) 
             {
                 data.push_back(response[bit * 7 + d_bit]);
             }
@@ -344,7 +350,7 @@ void GenerateFrame::ClearDiagnosticInformation(uint32_t can_id, std::vector<uint
         if (group_of_dtc.size() < 8)
         {
             data = {static_cast<uint8_t>(group_of_dtc.size() + 1), 0x14};
-            for (int bit = 0; bit < group_of_dtc.size(); bit++) 
+            for (uint8_t bit = 0; bit < group_of_dtc.size(); bit++) 
             {
                 data.push_back(group_of_dtc[bit]);
             }
@@ -400,7 +406,7 @@ void GenerateFrame::TransferData(uint32_t can_id, uint8_t block_sequence_counter
     else
     {
         std::vector<uint8_t> data = {static_cast<uint8_t>(transfer_request.size() + 2), 0x36, block_sequence_counter};
-        for (int bit = 0; bit < transfer_request.size(); bit++) 
+        for (uint8_t bit = 0; bit < transfer_request.size(); bit++) 
         {
             data.push_back(transfer_request[bit]);
         }
@@ -413,7 +419,7 @@ void GenerateFrame::TransferDataLong(uint32_t can_id, uint8_t block_sequence_cou
     if (first_frame)
     {
         std::vector<uint8_t> data = {0x10, static_cast<uint8_t>(transfer_request.size() + 2), 0x36, block_sequence_counter};
-        for (int bit = 0; bit < 4; bit++) 
+        for (uint8_t bit = 0; bit < 4; bit++) 
         {
             data.push_back(transfer_request[bit]);
         }
@@ -423,10 +429,10 @@ void GenerateFrame::TransferDataLong(uint32_t can_id, uint8_t block_sequence_cou
     {
         transfer_request.erase(transfer_request.begin(), transfer_request.begin() + 4);
         std::vector<uint8_t> data;
-        for (int bit = 0; bit < transfer_request.size() / 7; bit++)
+        for (uint8_t bit = 0; bit < transfer_request.size() / 7; bit++)
         {
             data = {static_cast<uint8_t>(0x21 + (bit % 0xF))};
-            for (int d_bit = 0; d_bit < 7 && ((bit * 7) + d_bit) < transfer_request.size(); d_bit++) 
+            for (uint8_t d_bit = 0; d_bit < 7 && ((bit * 7) + d_bit) < transfer_request.size(); d_bit++) 
             {
                 data.push_back(transfer_request[bit * 7 + d_bit]);
             }
@@ -449,7 +455,7 @@ void GenerateFrame::RequestTransferExit(uint32_t can_id, bool response)
 
 void GenerateFrame::InsertBytes(std::vector<uint8_t>& data, uint8_t index, uint8_t num_bytes) 
 {
-    for (int bit = 0; bit < num_bytes; bit++) 
+    for (uint8_t bit = 0; bit < num_bytes; bit++) 
     {
         data.insert(data.begin() + index, 0x00);
     }
