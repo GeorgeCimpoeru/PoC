@@ -6,7 +6,6 @@ BatteryModule::BatteryModule() : moduleId(0x101),
                                  energy(0.0),
                                  voltage(0.0),
                                  percentage(0.0),
-                                 running(false),
                                  canInterface("vcan0"),
                                  frameReceiver(nullptr)
 {
@@ -23,7 +22,6 @@ BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_mo
                                                                     energy(0.0),
                                                                     voltage(0.0),
                                                                     percentage(0.0),
-                                                                    running(false),
                                                                     canInterface("vcan" + std::to_string(_interfaceNumber)),
                                                                     frameReceiver(nullptr)
 {
@@ -38,42 +36,7 @@ BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_mo
 /* Destructor */
 BatteryModule::~BatteryModule()
 {
-    stopBatteryModule();
     delete frameReceiver;
-}
-
-/* Start the simulation of battery */
-void BatteryModule::simulate()
-{
-    /* Set the 'running' flag */
-    running = true;
-    /** Launch a new thread to run the startBatteryModule() method,
-     *   which handles the simulation loop, in the context of the current BatteryModule instance */
-    simulationThread = std::thread(&BatteryModule::startBatteryModule, this);
-}
-
-/* Run the battery module simulation loop */
-void BatteryModule::startBatteryModule()
-{
-    while (running)
-    {
-        fetchBatteryData();
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
-}
-
-/* Stop the simulation and join the thread */
-void BatteryModule::stopBatteryModule()
-{
-    /* Un-set the 'running' flag */
-    running = false;
-
-    /** Check if the simulation thread is joinable (i.e., it's running and not yet joined)
-     *   If it is, wait for the thread to finish execution and join it with the main thread */
-    if (simulationThread.joinable())
-    {
-        simulationThread.join();
-    }
 }
 
 /* Helper function to execute shell commands and fetch output */
@@ -192,10 +155,4 @@ float BatteryModule::getPercentage() const
 std::string BatteryModule::getLinuxBatteryState()
 {
     return state;
-}
-
-/* Getter function for module state */
-bool BatteryModule::isRunning() const
-{
-    return running;
 }

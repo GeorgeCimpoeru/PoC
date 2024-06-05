@@ -40,11 +40,6 @@ private:
     std::string state;
 
     /**
-     * @brief flag to know the state of module
-     * 
-     */
-    bool running;
-    /**
      * @brief Thread for simulation of battery
      * 
      */
@@ -106,17 +101,13 @@ public:
      * start the frame receiver, and stop the
      * frame receiver.
      */
-    void simulate();
     void receiveFrames();
     void stopFrames();
-    void startBatteryModule();
-    void stopBatteryModule();
 
     /* Member Accessors */
     float getEnergy() const;
     float getVoltage() const;
     float getPercentage() const;
-    bool isRunning() const;
 
     /**
      * @brief Get the Linux Battery State - charging, discarging, fully-charged, etc.
