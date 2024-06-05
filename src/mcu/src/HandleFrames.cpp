@@ -133,7 +133,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* DiagnosticSessionControl(sid, frame_data[2]); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
+                processNrc(frame_id, sid, frame_data[3]);
             }
             else 
             {
@@ -144,7 +144,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* EcuReset(sid, frame_data[2]); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
+                processNrc(frame_id, sid, frame_data[3]);
             }
             else 
             {
@@ -155,7 +155,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* SecurityAccess(sid, frame_data[2], key?); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
+                processNrc(frame_id, sid, frame_data[3]);
             }
             else 
             {
@@ -166,7 +166,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* Authentication(); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
+                processNrc(frame_id, sid, frame_data[3]);
             }
             else 
             {
@@ -177,7 +177,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* TesterPresent(sid, frame_data[2]); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
+                processNrc(frame_id, sid, frame_data[3]);
             }
             else 
             {
@@ -188,7 +188,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* AccessTimingParameters(sid, frame_data[2]); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
+                processNrc(frame_id, sid, frame_data[3]);
             }
             else 
             {
@@ -199,7 +199,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* ReadDataByIdentifier(sid, frame_data[2] << 8) | frame_data[3]); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
+                processNrc(frame_id, sid, frame_data[3]);
             }
             else 
             {
@@ -210,7 +210,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* ReadMemoryByAddress(frame_data[2], frame_data[3] << 8) | frame_data[4], frame_data[5] << 8) | frame_data[6]); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
+                processNrc(frame_id, sid, frame_data[3]);
             }
             else 
             {
@@ -221,7 +221,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* WriteDataByIdentifier(sid, frame_data[2] << 8) | frame_data[3], data_parameter?); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
+                processNrc(frame_id, sid, frame_data[3]);
             }
             else if (is_multi_frame)
             {
@@ -236,7 +236,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* ClearDiagnosticInformation(); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
+                processNrc(frame_id, sid, frame_data[3]);
             }
             else 
             {
@@ -247,7 +247,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* ReadDtcInformation(); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
+                processNrc(frame_id, sid, frame_data[3]);
             }
             else 
             {
@@ -258,7 +258,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* RoutineControl(sid, frame_data[2], frame_data[3] << 8) | frame_data[4]); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
+                processNrc(frame_id, sid, frame_data[3]);
             }
             else 
             {
@@ -335,7 +335,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* RequestDownload(sid, frame_data[2], frame_data[3], frame_data[4], frame_data[5]); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
+                processNrc(frame_id, sid, frame_data[3]);
             }
             else 
             {
@@ -346,7 +346,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* TransferData(sid, frame_data[2], frame_data[3], frame_data[4]); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
+                processNrc(frame_id, sid, frame_data[3]);
             }
             else if(is_multi_frame)
             {
@@ -361,7 +361,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* RequestTransferExit(sid, frame_data[2]); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
+                processNrc(frame_id, sid, frame_data[3]);
             }
             else 
             {
@@ -372,7 +372,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             /* RequestUpdateStatus(); */
             if(frame_data[1] == 0x7F)
             {
-                processNrc(frame_id, sid, (uint8_t)frame_data[3]);
+                processNrc(frame_id, sid, frame_data[3]);
             }
             else 
             {
