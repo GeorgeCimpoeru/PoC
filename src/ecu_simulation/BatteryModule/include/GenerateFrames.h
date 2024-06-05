@@ -24,6 +24,14 @@
 #include <unistd.h>
 #include <linux/can.h>
 
+/* Enumeration for frame types */
+enum FrameType {
+    DATA_FRAME,
+    REMOTE_FRAME,
+    ERROR_FRAME,
+    OVERLOAD_FRAME
+};
+
 class GenerateFrames
 {
     private:
@@ -40,8 +48,9 @@ class GenerateFrames
          * Method creation of custom frames
          * @param id 
          * @param data 
+         * @param frameType default value: DATA_FRAME
          */
-        bool sendFrame(int id, std::vector<int> data);
+        bool sendFrame(int id, std::vector<int> data, FrameType frameType = DATA_FRAME);
         /**
          * !!! IMPORTANT: FOR ALL METHODS: !!!
          * Most of the methods can be used to send a request or a response frame 
@@ -196,9 +205,10 @@ class GenerateFrames
         void accessTimingParameters(int id, int sub_function, bool response=false);
         /**
          * @param id 
+         * @param sid 
          * @param nrc 
          */
-        void negativeResponse(int id, int nrc);
+        void negativeResponse(int id, int sid, int nrc);
         /*
          * OTA Services
          * The next methods create and send frames for the specific services
@@ -255,7 +265,7 @@ class GenerateFrames
          * @param data 
          * @return struct can_frame 
          */
-        struct can_frame createFrame(int& id, std::vector<int>& data);
+        struct can_frame createFrame(int& id, std::vector<int>& data, FrameType frameType = DATA_FRAME);
         /**
          * @brief Count the number of digits in a number
          * @param number

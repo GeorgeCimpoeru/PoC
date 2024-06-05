@@ -12,7 +12,6 @@
 #ifndef INTERFACECONFIG_H
 #define INTERFACECONFIG_H
 
-#include <string>
 #include <linux/can.h>
 #include <net/if.h>
 #include <iostream> 
@@ -21,18 +20,25 @@
 #include <linux/can/raw.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 class SocketCanInterface
 {
 private:
     int _socketFd = -1;
     std::string _interfaceName;
-    struct can_frame _canFrame;
     struct sockaddr_can _addr;
     struct ifreq _ifr;
 
     void createLinuxVCanInterface();
     void deleteLinuxVCanInterface();
+    void stopLinuxVCanInterface();
+/**
+ * @brief Set the socket to not block in the reading operation.
+ * 
+ * @return int 
+ */
+    int setSocketBlocking();
 /**
  * @brief Open a new socket and connect it to the vcan interface.
  * 
@@ -40,6 +46,8 @@ private:
  * @return false for errors
  */
     bool openInterface();
+    void init();
+
 /**
  * @brief Close the owned socket and delete the vcan interface. Automatically called in destructor.
  * 
@@ -54,20 +62,8 @@ public:
  * @param[i] cmd 
  */
     inline void callSystem(std::string& cmd) const;
-/**
- * @brief Method used for connecting 2 vcan interfaces. 
- * When the source receives a message, the destination receives it too.
- * Simulates a can bus.
- * 
- * @param[i] sourceInterface 
- * @param[i] destinationInterface 
- */
-    void connectLinuxVCanInterfaces(std::string& sourceInterface, std::string& destinationInterface);
-
-    void init();
 
     std::string& getInterfaceName();
-    void setInterfaceName(std::string& interfaceName);
     int getSocketFd() const;
 
     ~SocketCanInterface();

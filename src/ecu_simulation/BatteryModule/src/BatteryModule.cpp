@@ -10,9 +10,6 @@ BatteryModule::BatteryModule() : moduleId(0x101),
                                  canInterface("vcan0"),
                                  frameReceiver(nullptr)
 {
-    /* Initialize the CAN interface */
-    canInterface.init();
-
     /* Initialize the Frame Receiver */
     frameReceiver = new ReceiveFrames(canInterface.getSocketFd(), moduleId);
 #ifdef BATTERY_MODULE_DEBUG
@@ -30,9 +27,6 @@ BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_mo
                                                                     canInterface("vcan" + std::to_string(_interfaceNumber)),
                                                                     frameReceiver(nullptr)
 {
-    /* Initialize the CAN interface */
-    canInterface.init();
-
     /* Initialize the Frame Receiver */
     frameReceiver = new ReceiveFrames(canInterface.getSocketFd(), moduleId);
 #ifdef BATTERY_MODULE_DEBUG
