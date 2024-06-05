@@ -296,7 +296,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             if(is_multi_frame)
             {
                 std::cout << "Response from ReadDataByIdentifier received." << std::endl;
-                std::cout << "Received multiple frames containing " << frame_data.size() << " bytes of data" << std::endl;
+                std::cout << "Received multiple frames containing " << std::dec << frame_data.size() << " bytes of data" << std::endl;
             }
             else 
             {
@@ -410,7 +410,7 @@ void HandleFrames::processNrc(canid_t frame_id, uint8_t sid, uint8_t nrc)
         case 0x11:
             /* Service not supported */
             //GenerateFrames::negativeResponse(can_id, sid, nrc);
-            std::cout << "Error: Service not supported for service: " << std::hex << (int)sid << std::endl;
+            std::cout << "Error: Service not supported for service: " << (int)sid << std::endl;
         break;
         case 0x13:
             /* Incorrect message length or invalid format */
