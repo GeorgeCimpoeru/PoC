@@ -33,73 +33,6 @@ TEST_F(HandleFramesTest, DiagnosticSessionControlValTest){
     EXPECT_EQ(sid, testFrame.data[1]);
 }
 
-/* Test the first frame */
-TEST_F(HandleFramesTest, firstFrameTest){
-    /* Set an arbitrary CAN ID */
-    testFrame.can_id= 0;
-    /* Set the Data Length Code to at least 2 to access data[1] */
-    testFrame.can_dlc = 2;
-    testFrame.data[0] = 0x10;
-    testFrame.data[1] = 0x3E;
-    testFrame.data[2] = 0x22;
-    int pci = testFrame.data[0];
-    int sid = testFrame.data[2];
-   
-    int rest =  testFrame.data[1] % 7 > 0 ? 1 : 0;
-    int expectedFrames = testFrame.data[1] / 7 + rest;
-    
-    bool isMultiFrame = false;
-
-    /* redirect stdout to capture the output */
-    testing::internal::CaptureStdout();    
-    handler.handleFrame(testFrame);
-    std::string output = testing::internal::GetCapturedStdout();
-    /* check if the correct message is printed */
-    EXPECT_EQ(output, "Multi-frame Sequence with 9 frames:\n");   
-}
-
-/* Test if the frame's sequence number matches the expected sequence number */
-TEST_F(HandleFramesTest, MultipleFrameTest){
-    /* Set an arbitrary CAN ID */
-    testFrame.can_id= 0;
-    /* Set the Data Length Code to at least 2 to access data[1] */
-    testFrame.can_dlc = 1;
-    testFrame.data[0] = 0x23;    
-
-    int expectedSequenceNumber = 0x21;
-    
-    bool isMultiFrame = true;
-
-    /* redirect stdout to capture the output */
-    testing::internal::CaptureStderr();    
-    handler.handleFrame(testFrame);
-    std::string output = testing::internal::GetCapturedStderr();
-    /* check if the correct message is printed */
-    EXPECT_EQ(output, "Invalid consecutive frame sequence: expected 21 but received 23\n");
-                         
-}
-
-/* Test for processFrameData with a negative response frame */
-TEST_F(HandleFramesTest, DiagnosticSessionControlNegTest){
-    /* Set an arbitrary CAN ID */
-    testFrame.can_id= 0;
-    /* Set the Data Length Code to at least 4 to access data[3] */
-    testFrame.can_dlc = 4;
-    testFrame.data[0] = 0x03;
-    testFrame.data[1] = 0x7F;
-    testFrame.data[2] = 0x10;
-    testFrame.data[3] = 0x90;
-    //testFrame.data[2] = 0x10;
-    int pci = testFrame.data[0];
-    int sid = testFrame.data[1];
-    std::vector<uint8_t> frame_data = {0x03, 0x7F, 0x10, 0x90};
-    bool isMultiFrame = false;
-    testing::internal::CaptureStdout();
-    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
-    std::string output = testing::internal::GetCapturedStdout();
-    EXPECT_EQ(output, "Negative response received with SID: 127 and message: \x90\n");
-}
-
 /* Test for handleFrame with a valid single frame - DiagnosticSessionControl SID*/
 TEST_F(HandleFramesTest, DiagnosticSessionControlSingTest){
     /* Set an arbitrary CAN ID */
@@ -120,6 +53,275 @@ TEST_F(HandleFramesTest, DiagnosticSessionControlSingTest){
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
     EXPECT_EQ(output, "Single Frame received:\n\nDiagnosticSessionControl called.\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for DiagnosticSessionControl SID - Service not supported */
+TEST_F(HandleFramesTest, DiagnosticSessionControlServiceNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x10;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x10, 0x11};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();       
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Service not supported for service: 10\n");   
+}
+
+/** Test for handleFrame method when frame is negative response - sid = frame.data[2];  */
+TEST_F(HandleFramesTest, DiagnosticSessionControlSidNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x10;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x10, 0x11};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();       
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */
+    handler.handleFrame(testFrame);    
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */    
+    EXPECT_EQ(sid, testFrame.data[2]);
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for DiagnosticSessionControl SID - Incorrect message length or invalid format */
+TEST_F(HandleFramesTest, DiagnosticSessionControlIncorrectNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x10;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x10, 0x13};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Incorrect message length or invalid format for service: 10\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for DiagnosticSessionControl SID - Response too long */
+TEST_F(HandleFramesTest, DiagnosticSessionControlRespLongNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x10;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x10, 0x14};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */   
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Response too long for service: 10\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for DiagnosticSessionControl SID - No response from subnet component */
+TEST_F(HandleFramesTest, DiagnosticSessionControlNoRespNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x10;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x10, 0x25};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */  
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);     
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: No response from subnet component for service: 10\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for DiagnosticSessionControl SID - Authentication failed */
+TEST_F(HandleFramesTest, DiagnosticSessionControlNoAuthNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x10;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x10, 0x34};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */  
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);     
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Authentication failed for service: 10\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for DiagnosticSessionControl SID - Resource temporarily unavailable */
+TEST_F(HandleFramesTest, DiagnosticSessionControlResUnNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x10;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x10, 0x94};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */    
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);     
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Resource temporarily unavailable for service: 10\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for DiagnosticSessionControl SID - Upload download not accepted */
+TEST_F(HandleFramesTest, DiagnosticSessionControlUDNotAccNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x10;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x10, 0x70};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */   
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Upload download not accepted for service: 10\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for DiagnosticSessionControl SID - Transfer data suspended */
+TEST_F(HandleFramesTest, DiagnosticSessionControlTDataSuspNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x10;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x10, 0x71};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */      
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);   
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Transfer data suspended for service: 10\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for DiagnosticSessionControl SID - Transfer data suspended */
+TEST_F(HandleFramesTest, DiagnosticSessionControlDefaultNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x10;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x10, 0x99};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */   
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Unknown negative response code for service: 10\n");
 }
 
 /* Test for processFrameData with a valid EcuReset frame */
@@ -166,6 +368,250 @@ TEST_F(HandleFramesTest, EcuResetSingTest){
     EXPECT_EQ(output, "Single Frame received:\n\nEcuReset called.\n");
 }
 
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for EcuReset SID - Service not supported */
+TEST_F(HandleFramesTest, EcuResetServiceNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x11;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x11, 0x11};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();       
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */    
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame); 
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Service not supported for service: 11\n");
+    EXPECT_EQ(sid, testFrame.data[2]);
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for EcuReset SID - Incorrect message length or invalid format */
+TEST_F(HandleFramesTest, EcuResetIncorrectNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x11;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x11, 0x13};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */    
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Incorrect message length or invalid format for service: 11\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for EcuReset SID - Response too long */
+TEST_F(HandleFramesTest, EcuResetRespLongNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x11;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x11, 0x14};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */    
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Response too long for service: 11\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for EcuReset SID - No response from subnet component */
+TEST_F(HandleFramesTest, EcuResetNoRespNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x11;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x11, 0x25};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+   /* handler.processNrc(testFrame.can_id, sid, nrc); */    
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: No response from subnet component for service: 11\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for EcuReset SID - Authentication failed */
+TEST_F(HandleFramesTest, EcuResetNoAuthNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x11;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x11, 0x34};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */    
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);       
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Authentication failed for service: 11\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for EcuReset SID - Resource temporarily unavailable */
+TEST_F(HandleFramesTest, EcuResetResUnNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x11;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x11, 0x94};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */    
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Resource temporarily unavailable for service: 11\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for EcuReset SID - Upload download not accepted */
+TEST_F(HandleFramesTest, EcuResetUDNotAccNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x11;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x11, 0x70};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+   /* handler.processNrc(testFrame.can_id, sid, nrc); */    
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);   
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Upload download not accepted for service: 11\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for EcuReset SID - Transfer data suspended */
+TEST_F(HandleFramesTest, EcuResetTDataSuspNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x11;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x11, 0x71};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */    
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);       
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Transfer data suspended for service: 11\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for EcuReset SID - Transfer data suspended */
+TEST_F(HandleFramesTest, EcuResetDefaultNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x11;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x11, 0x99};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */    
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Unknown negative response code for service: 11\n");
+}
+
 /* Test for processFrameData with a valid SecurityAccess frame */
 TEST_F(HandleFramesTest, SecurityAccessValTest){
     /* Set an arbitrary CAN ID */
@@ -208,6 +654,249 @@ TEST_F(HandleFramesTest, SecurityAccessSingTest){
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
     EXPECT_EQ(output, "Single Frame received:\n\nSecurityAccess called.\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for SecurityAccess SID - Service not supported */
+TEST_F(HandleFramesTest, SecurityAccessNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x27;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x27, 0x11};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();       
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */    
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame); 
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Service not supported for service: 27\n");    
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for SecurityAccess SID - Incorrect message length or invalid format */
+TEST_F(HandleFramesTest, SecurityAccessIncorrectNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x27;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x27, 0x13};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */    
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Incorrect message length or invalid format for service: 27\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for SecurityAccess SID - Response too long */
+TEST_F(HandleFramesTest, SecurityAccessRespLongNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x27;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x27, 0x14};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */    
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Response too long for service: 27\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for SecurityAccess SID - No response from subnet component */
+TEST_F(HandleFramesTest, SecurityAccessNoRespNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x27;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x27, 0x25};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+   /* handler.processNrc(testFrame.can_id, sid, nrc); */    
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: No response from subnet component for service: 27\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for SecurityAccess SID - Authentication failed */
+TEST_F(HandleFramesTest, SecurityAccessNoAuthNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x27;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x27, 0x34};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */    
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);       
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Authentication failed for service: 27\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for SecurityAccess SID - Resource temporarily unavailable */
+TEST_F(HandleFramesTest, SecurityAccessResUnNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x27;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x27, 0x94};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */    
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Resource temporarily unavailable for service: 27\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for SecurityAccess SID - Upload download not accepted */
+TEST_F(HandleFramesTest, SecurityAccessUDNotAccNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x27;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x27, 0x70};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+   /* handler.processNrc(testFrame.can_id, sid, nrc); */    
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);   
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Upload download not accepted for service: 27\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for SecurityAccess SID - Transfer data suspended */
+TEST_F(HandleFramesTest, SecurityAccessTDataSuspNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x27;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x27, 0x71};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */    
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);       
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Transfer data suspended for service: 27\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for EcuReset SID - Transfer data suspended */
+TEST_F(HandleFramesTest, SecurityAccessDefaultNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x27;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x27, 0x99};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();      
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */    
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Unknown negative response code for service: 27\n");
 }
 
 /* Test for processFrameData with a valid Authentication frame */
@@ -254,6 +943,34 @@ TEST_F(HandleFramesTest, AuthenticationSingTest){
     EXPECT_EQ(output, "Single Frame received:\n\nAuthentication called.\n");
 }
 
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for Authentication SID - Service not supported */
+TEST_F(HandleFramesTest, AuthenticationServiceNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x29;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x29, 0x11};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();       
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Service not supported for service: 29\n");
+    EXPECT_EQ(sid, testFrame.data[2]);
+}
+
 /* Test for processFrameData with a valid TesterPresent frame */
 TEST_F(HandleFramesTest, TesterPresentValTest){
     /* Set an arbitrary CAN ID */
@@ -296,6 +1013,33 @@ TEST_F(HandleFramesTest, TesterPresentSingTest){
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
     EXPECT_EQ(output, "Single Frame received:\n\nTesterPresent called.\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for TesterPresent SID - Service not supported */
+TEST_F(HandleFramesTest, TesterPresentServiceNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x3E;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x3E, 0x11};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();       
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Service not supported for service: 3e\n");
 }
 
 /* Test for processFrameData with a valid AccessTimingParameters frame */
@@ -342,7 +1086,34 @@ TEST_F(HandleFramesTest, AccessTimingParametersSingTest){
     EXPECT_EQ(output, "Single Frame received:\n\nAccessTimingParameters called.\n");
 }
 
-/* Test for processFrameData with a valid AccessTimingParameters frame */
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for AccessTimingParameters SID - Service not supported */
+TEST_F(HandleFramesTest, AccessTimingParametersServiceNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x83;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x83, 0x11};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();       
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Service not supported for service: 83\n");
+}
+
+/* Test for processFrameData with a valid ReadDataByIdentifier frame */
 TEST_F(HandleFramesTest, ReadDataByIdentifierValTest){
     /* Set an arbitrary CAN ID */
     testFrame.can_id= 0;
@@ -384,6 +1155,33 @@ TEST_F(HandleFramesTest, ReadDataByIdentifierSingTest){
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
     EXPECT_EQ(output, "Single Frame received:\n\nReadDataByIdentifier called.\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for ReadDataByIdentifier SID - Service not supported */
+TEST_F(HandleFramesTest, ReadDataByIdentifierServiceNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x22;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x22, 0x11};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();       
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Service not supported for service: 22\n");
 }
 
 /* Test for processFrameData with a valid ReadMemoryByAddress frame */
@@ -430,6 +1228,34 @@ TEST_F(HandleFramesTest, ReadMemoryByAddressSingTest){
     EXPECT_EQ(output, "Single Frame received:\n\nReadMemoryByAddress called.\n");
 }
 
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for ReadMemoryByAddress SID - Service not supported */
+TEST_F(HandleFramesTest, ReadMemoryByAddressServiceNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x23;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x23, 0x11};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();       
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Service not supported for service: 23\n");
+    EXPECT_EQ(sid, testFrame.data[2]);
+}
+
 /* Test for processFrameData with a valid WriteDataByIdentifier frame */
 TEST_F(HandleFramesTest, WriteDataByIdentifierValTest){
     /* Set an arbitrary CAN ID */
@@ -472,6 +1298,33 @@ TEST_F(HandleFramesTest, WriteDataByIdentifierSingTest){
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
     EXPECT_EQ(output, "Single Frame received:\n\nWriteDataByIdentifier called with one frame.\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for WriteDataByIdentifier SID - Service not supported */
+TEST_F(HandleFramesTest, WriteDataByIdentifierServiceNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x2E;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x2E, 0x11};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();       
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Service not supported for service: 2e\n");
 }
 
 /* Test for processFrameData with a valid ClearDiagnosticInformation frame */
@@ -518,6 +1371,34 @@ TEST_F(HandleFramesTest, ClearDiagnosticInformationSingTest){
     EXPECT_EQ(output, "Single Frame received:\n\nClearDiagnosticInformation called.\n");
 }
 
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for ClearDiagnosticInformation SID - Service not supported */
+TEST_F(HandleFramesTest, ClearDiagnosticInformationServiceNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x14;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x14, 0x11};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();       
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Service not supported for service: 14\n");
+    EXPECT_EQ(sid, testFrame.data[2]);
+}
+
 /* Test for processFrameData with a valid ReadDtcInformation frame */
 TEST_F(HandleFramesTest, ReadDtcInformationValTest){
     /* Set an arbitrary CAN ID */
@@ -562,6 +1443,34 @@ TEST_F(HandleFramesTest, ReadDtcInformationSingTest){
     EXPECT_EQ(output, "Single Frame received:\n\nReadDtcInformation called.\n");
 }
 
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for ReadDtcInformation SID - Service not supported */
+TEST_F(HandleFramesTest, ReadDtcInformationServiceNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x19;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x19, 0x11};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();       
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Service not supported for service: 19\n");
+    EXPECT_EQ(sid, testFrame.data[2]);
+}
+
 /* Test for processFrameData with a valid RoutineControl frame */
 TEST_F(HandleFramesTest, RoutineControlValTest){
     /* Set an arbitrary CAN ID */
@@ -604,6 +1513,34 @@ TEST_F(HandleFramesTest, RoutineControlSingTest){
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
     EXPECT_EQ(output, "Single Frame received:\n\nRoutineControl called.\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for RoutineControl SID - Service not supported */
+TEST_F(HandleFramesTest, RoutineControlServiceNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x31;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x31, 0x11};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();       
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Service not supported for service: 31\n");
+    EXPECT_EQ(sid, testFrame.data[2]);
 }
 
 /* Test for processFrameData with a valid ResponseDiagnosticSessionControl frame */
@@ -1178,6 +2115,33 @@ TEST_F(HandleFramesTest, OtaRequestDownloadSingTest){
     EXPECT_EQ(output, "Single Frame received:\n\nRequestDownload called.\n");
 }
 
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for OtaRequestDownload SID - Service not supported */
+TEST_F(HandleFramesTest, OtaRequestDownloadServiceNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x34;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x34, 0x11};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();       
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Service not supported for service: 34\n");
+}
+
 /* Test for processFrameData with a valid TransferData frame */
 TEST_F(HandleFramesTest, TransferDataValTest){
     /* Set an arbitrary CAN ID */
@@ -1220,6 +2184,33 @@ TEST_F(HandleFramesTest, TransferDataSingTest){
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
     EXPECT_EQ(output, "Single Frame received:\n\nTransferData called with one frame\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for TransferData SID - Service not supported */
+TEST_F(HandleFramesTest, TransferDataServiceNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x36;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x36, 0x11};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();       
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Service not supported for service: 36\n");
 }
 
 /* Test for processFrameData with a valid TransferData frame */
@@ -1266,6 +2257,33 @@ TEST_F(HandleFramesTest, RequestTransferExitSingTest){
     EXPECT_EQ(output, "Single Frame received:\n\nRequestTransferExit called.\n");
 }
 
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for RequestTransferExit SID - Service not supported */
+TEST_F(HandleFramesTest, RequestTransferExitServiceNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x37;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x37, 0x11};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();       
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Service not supported for service: 37\n");
+}
+
 /* Test for processFrameData with a valid RequestUpdateStatus frame */
 TEST_F(HandleFramesTest, RequestUpdateStatusValTest){
     /* Set an arbitrary CAN ID */
@@ -1308,6 +2326,34 @@ TEST_F(HandleFramesTest, RequestUpdateStatusSingTest){
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
     EXPECT_EQ(output, "Single Frame received:\n\nRequestUpdateStatus called.\n");
+}
+
+/** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
+for RequestUpdateStatus SID - Service not supported */
+TEST_F(HandleFramesTest, RequestUpdateStatusServiceNegTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code to at least 4 */
+    testFrame.can_dlc = 4;
+    testFrame.data[0] = 0x03;
+    testFrame.data[1] = 0x7F;
+    testFrame.data[2] = 0x32;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    
+    /* simulated frame_data for valid single frame response */
+    std::vector<uint8_t> frame_data = {0x03, 0X7F, 0x32, 0x11};
+    int nrc = int(frame_data[3]);
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();       
+    /* handler.processNrc(testFrame.can_id, sid, nrc); */
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Error: Service not supported for service: 32\n");
+    EXPECT_EQ(sid, testFrame.data[2]);
 }
 
 /* Test for processFrameData with a valid ResponseRequestDownload frame */
@@ -1528,6 +2574,271 @@ TEST_F(HandleFramesTest, UnknownFrameSingTest){
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
     EXPECT_EQ(output, "Single Frame received:\n\nUnknown request/response received.\n");
+}
+
+/** Test the first frame */
+TEST_F(HandleFramesTest, firstFrameTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+    /* Set the Data Length Code */
+    testFrame.can_dlc = 8;
+    testFrame.data[0] = 0x10;
+    testFrame.data[1] = 0x3E;
+    testFrame.data[2] = 0x22;    
+    int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+   
+    // int rest =  testFrame.data[1] % 7 > 0 ? 1 : 0;
+    // int expectedFrames = testFrame.data[1] / 7 + rest;
+    
+    bool isMultiFrame = false;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();    
+    handler.handleFrame(testFrame);
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    ASSERT_EQ(output, "Multi-frame Sequence with 9 frames:\n");   
+}
+
+/* Test if the frame's sequence number matches the expected sequence number */
+TEST_F(HandleFramesTest, MultipleFrameTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+     /* Set the Data Length Code  */
+    testFrame.can_dlc = 8;     
+    testFrame.data[0] = 0x10;
+    testFrame.data[1] = 0x0A;
+    /* sid */
+    testFrame.data[2] = 0x2E; 
+    testFrame.data[5] = 0x99;
+    testFrame.data[6] = 0x99;
+    testFrame.data[7] = 0x99;
+    //int pci = testFrame.data[0];
+    int sid = testFrame.data[2];
+    testing::internal::CaptureStdout(); 
+    handler.handleFrame(testFrame);
+    std::string output = testing::internal::GetCapturedStdout();
+   
+    testFrame.data[0] = 0x23;   
+        
+    bool isMultiFrame = true;
+
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStderr();    
+    handler.handleFrame(testFrame);
+    std::string output1 = testing::internal::GetCapturedStderr();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output1, "Invalid consecutive frame sequence: expected 21 but received 23\n");                  
+}
+
+/** Test if all multi-frames have been received 
+ *  WriteDataByIdentifier
+*/
+TEST_F(HandleFramesTest, WriteDataByIdentifierMultipleFramesReceivedTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0; 
+    /* Set the Data Length Code  */
+    testFrame.can_dlc = 8;     
+    testFrame.data[0] = 0x10;
+    testFrame.data[1] = 0x0A;
+    /* sid */
+    testFrame.data[2] = 0x2E; 
+    testFrame.data[5] = 0x99;
+    testFrame.data[6] = 0x99;
+    testFrame.data[7] = 0x99;
+   
+    int sid = testFrame.data[2];
+    testing::internal::CaptureStdout(); 
+    handler.handleFrame(testFrame);
+    std::string output = testing::internal::GetCapturedStdout();
+   
+    testFrame.can_dlc = 8;
+    testFrame.data[0] = 0x21;
+    testFrame.data[1] = 0x99;
+    testFrame.data[2] = 0x99; 
+    testFrame.data[3] = 0x99;
+    testFrame.data[4] = 0x99; 
+    testFrame.data[5] = 0x99;
+    testFrame.data[6] = 0x99;
+    testFrame.data[7] = 0x99;
+       
+    testing::internal::CaptureStdout(); 
+    handler.handleFrame(testFrame);
+    std::string output1 = testing::internal::GetCapturedStdout();
+           
+    //int expected_frames = 2;
+    std::vector<uint8_t> frame_data = {0x99, 0x99, 0x99, 0X99, 0X99, 0X99, 0X99, 0X99, 0X99, 0X99};  
+    
+    bool isMultiFrame = true;
+     
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();    
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
+    std::string output2= testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output2, "WriteDataByIdentifier called with multiple frames.\n");                        
+}
+
+/** Test if all multi-frames have been received 
+ *  Response from ReadDataByIdentifier
+*/
+TEST_F(HandleFramesTest, ResReadDataByIdentifierMultipleFrameTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0; 
+    /* Set the Data Length Code  */
+    testFrame.can_dlc = 8;     
+    testFrame.data[0] = 0x10;
+    testFrame.data[1] = 0x0A;
+    /* sid */
+    testFrame.data[2] = 0x62; 
+    testFrame.data[5] = 0x99;
+    testFrame.data[6] = 0x99;
+    testFrame.data[7] = 0x99;
+    
+    int sid = testFrame.data[2];
+    testing::internal::CaptureStdout(); 
+    handler.handleFrame(testFrame);
+    std::string output = testing::internal::GetCapturedStdout();
+    
+    testFrame.can_dlc = 8;
+    testFrame.data[0] = 0x21;
+    testFrame.data[1] = 0x99;
+    testFrame.data[2] = 0x99; 
+    testFrame.data[3] = 0x99;
+    testFrame.data[4] = 0x99; 
+    testFrame.data[5] = 0x99;
+    testFrame.data[6] = 0x99;
+    testFrame.data[7] = 0x99;
+       
+    testing::internal::CaptureStdout(); 
+    handler.handleFrame(testFrame);
+    std::string output1 = testing::internal::GetCapturedStdout();
+               
+    std::vector<uint8_t> frame_data = {0x99, 0x99, 0x99, 0X99, 0X99, 0X99, 0X99, 0X99, 0X99, 0X99};  
+    
+    bool isMultiFrame = true;
+     
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();    
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
+    std::string output2= testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output2, "Response from ReadDataByIdentifier received.\nReceived multiple frames containing 10 bytes of data\n");                          
+}
+
+/** Test if all multi-frames have been received 
+ *  Response from ReadMemoryByAddress
+*/
+TEST_F(HandleFramesTest, ResReadMemoryByAddressMultipleFrameTest){
+    /* Set an arbitrary CAN ID */
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0; 
+    /* Set the Data Length Code  */
+    testFrame.can_dlc = 8;     
+    testFrame.data[0] = 0x10;
+    testFrame.data[1] = 0x0A;
+    /* sid */
+    testFrame.data[2] = 0x63; 
+    testFrame.data[5] = 0x99;
+    testFrame.data[6] = 0x99;
+    testFrame.data[7] = 0x99;
+    
+    int sid = testFrame.data[2];
+    testing::internal::CaptureStdout(); 
+    handler.handleFrame(testFrame);
+    std::string output = testing::internal::GetCapturedStdout();
+    
+    testFrame.can_dlc = 8;
+    testFrame.data[0] = 0x21;
+    testFrame.data[1] = 0x99;
+    testFrame.data[2] = 0x99; 
+    testFrame.data[3] = 0x99;
+    testFrame.data[4] = 0x99; 
+    testFrame.data[5] = 0x99;
+    testFrame.data[6] = 0x99;
+    testFrame.data[7] = 0x99;
+       
+    testing::internal::CaptureStdout(); 
+    handler.handleFrame(testFrame);
+    std::string output1 = testing::internal::GetCapturedStdout();
+               
+    std::vector<uint8_t> frame_data = {0x99, 0x99, 0x99, 0X99, 0X99, 0X99, 0X99, 0X99, 0X99, 0X99};  
+    
+    bool isMultiFrame = true;
+     
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();    
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
+    std::string output2= testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output2, "Response from ReadMemoryByAdress received.\nReceived multiple frames containing 10 bytes of data\n");                      
+}
+
+/** Test if all multi-frames have been received 
+ *  TransferData
+*/
+TEST_F(HandleFramesTest, TransferDataMultipleFrameTest){
+    
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0; 
+    /* Set the Data Length Code  */
+    testFrame.can_dlc = 8;     
+    testFrame.data[0] = 0x10;
+    testFrame.data[1] = 0x0A;
+    /* sid */
+    testFrame.data[2] = 0x36; 
+    testFrame.data[5] = 0x99;
+    testFrame.data[6] = 0x99;
+    testFrame.data[7] = 0x99;
+   
+    int sid = testFrame.data[2];
+    testing::internal::CaptureStdout(); 
+    handler.handleFrame(testFrame);
+    std::string output = testing::internal::GetCapturedStdout();
+   
+    testFrame.can_dlc = 8;
+    testFrame.data[0] = 0x21;
+    testFrame.data[1] = 0x99;
+    testFrame.data[2] = 0x99; 
+    testFrame.data[3] = 0x99;
+    testFrame.data[4] = 0x99; 
+    testFrame.data[5] = 0x99;
+    testFrame.data[6] = 0x99;
+    testFrame.data[7] = 0x99;
+       
+    testing::internal::CaptureStdout(); 
+    handler.handleFrame(testFrame);
+    std::string output1 = testing::internal::GetCapturedStdout();
+           
+    //int expected_frames = 2;
+    std::vector<uint8_t> frame_data = {0x99, 0x99, 0x99, 0X99, 0X99, 0X99, 0X99, 0X99, 0X99, 0X99};  
+    
+    bool isMultiFrame = true;
+     
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();    
+    handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
+    std::string output2= testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output2, "TransferData called with multiple frames.\n");
+    /* check if the correct message is printed */                         
+} 
+
+/* Test if the frame type is invalid */
+TEST_F(HandleFramesTest, InvalidFrameTypeTest){
+    /* Set an arbitrary CAN ID */
+    testFrame.can_id= 0;
+   /* Set the Data Length Code to at least 2 to access data[1] */
+    testFrame.can_dlc = 2;
+    testFrame.data[0] = 0x20;          
+   
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStderr();    
+    handler.handleFrame(testFrame);
+    std::string output = testing::internal::GetCapturedStderr();
+    /* check if the correct message is printed */
+    EXPECT_EQ(output, "Invalid frame type\n");                      
 }
 
 int main(int argc, char **argv)
