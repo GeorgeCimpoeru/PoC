@@ -22,18 +22,18 @@
        42:   18:        case DATA_FRAME:
        42:   19:            frame.can_id = id & CAN_EFF_MASK;
        42:   20:            frame.can_dlc = data.size();
-      247:   21:            for (int i = 0; i < frame.can_dlc; i++)
+      247:   21:            for (uint8_t byte = 0; byte < frame.can_dlc; byte++)
         -:   22:            {
-      205:   23:                frame.data[i] = data[i];
+      205:   23:                frame.data[byte] = data[byte];
         -:   24:            }
        42:   25:            break;
         1:   26:        case REMOTE_FRAME:
         1:   27:            frame.can_id = id & CAN_EFF_MASK;
         1:   28:            frame.can_id |= CAN_RTR_FLAG;
         1:   29:            frame.can_dlc = data.size();
-        2:   30:            for (int i = 0; i < frame.can_dlc; i++) 
+        2:   30:            for (uint8_t byte = 0; byte < frame.can_dlc; byte++)
         -:   31:            {
-        1:   32:                frame.data[i] = data[i];
+        1:   32:                frame.data[byte] = data[byte];
         -:   33:            }
         1:   34:            break;
     #####:   35:        default:
@@ -102,9 +102,9 @@
         1:   98:        return;
         -:   99:    }
         2:  100:    std::vector<uint8_t> data = {(uint8_t)(seed.size() + 2), 0x69, 0x1};
-        4:  101:    for (std::size_t i = 0; i < seed.size(); i++)
+        4:  101:    for (uint8_t data_seed: seed)
         -:  102:    {
-        3:  103:        data.push_back(seed[i]);
+        3:  103:        data.push_back(data_seed);
         -:  104:    }
         1:  105:    this->sendFrame(id, data);
         1:  106:    return;
@@ -115,9 +115,9 @@
         2:  111:    if (key.size() > 0 )
         -:  112:    {
         1:  113:        std::vector<uint8_t> data = {(uint8_t)(key.size() + 2), 0x29, 0x2};
-        4:  114:        for (std::size_t i = 0; i<key.size(); i++)
+        4:  114:        for (uint8_t data_key: key)
         -:  115:        {
-        3:  116:            data.push_back(key[i]);
+        3:  116:            data.push_back(data_key);
         -:  117:        }
         1:  118:        this->sendFrame(id, data);
         1:  119:        return;
@@ -165,9 +165,9 @@
         2:  161:    if (length_response <= 4)
         -:  162:    {
         1:  163:        std::vector<uint8_t> data = {(uint8_t)(length_response + 3), 0x62, (uint8_t)(identifier/0x100), (uint8_t)(identifier%0x100)};
-        3:  164:        for (int i = 0; i < length_response; i++)
+        3:  164:        for (uint8_t data_response: response)
         -:  165:        {
-        2:  166:            data.push_back(response[i]);
+        2:  166:            data.push_back(data_response);
         -:  167:        }
         1:  168:        this->sendFrame(id, data);
         1:  169:        return;
@@ -188,9 +188,9 @@
         -:  184:    {
         2:  185:        std::vector<uint8_t> data = {0x10, (uint8_t)(response.size() + 3), sid, uint8_t(identifier/0x100), uint8_t(identifier%0x100)};
         -:  186:        /* Send only 3 first bytes of data */
-        8:  187:        for (int i = 0; i < 3; i++)
+        8:  187:        for (int byte = 0; byte < 3; byte++)
         -:  188:        {
-        6:  189:            data.push_back(response[i]);
+        6:  189:            data.push_back(response[byte]);
         -:  190:        }
         2:  191:        this->sendFrame(id, data);
         2:  192:        return;
@@ -201,12 +201,12 @@
         2:  197:        response.erase(response.begin(), response.begin() + 3);
         2:  198:        int size_of_response = response.size();
         2:  199:        std::vector<uint8_t> data;
-        4:  200:        for (int i = 0; i <= size_of_response / 7; i++)
+        4:  200:        for (int no_frame = 0; no_frame <= size_of_response / 7; no_frame++)
         -:  201:        {
-        2:  202:            data = {(uint8_t)(0x21 + (i % 0xF))};
-       10:  203:            for (int j = 0; j < 7 && ((i*7) + j) < size_of_response; j++)
+        2:  202:            data = {(uint8_t)(0x21 + (no_frame % 0xF))};
+       10:  203:            for (int byte = 0; byte < 7 && ((no_frame*7) + byte) < size_of_response; byte++)
         -:  204:            {
-        8:  205:                data.push_back(response[(i*7)+j]);
+        8:  205:                data.push_back(response[(no_frame*7)+byte]);
         -:  206:            }
         2:  207:            this->sendFrame(id, data);
         -:  208:        }
@@ -247,9 +247,9 @@
         2:  243:    insertBytes(data, memory_size, length_memory_size);
         2:  244:    if (data.size() + response.size() < 9)
         -:  245:    {
-        3:  246:        for (std::size_t i = 0; i < response.size(); i++)
+        3:  246:        for (uint8_t data_response: response)
         -:  247:        {
-        2:  248:            data.push_back(response[i]);
+        2:  248:            data.push_back(data_response);
         -:  249:        }
         1:  250:        this->sendFrame(id, data);
         1:  251:        return;
@@ -274,9 +274,9 @@
         1:  270:        insertBytes(data, memory_address, length_memory_address);
         1:  271:        insertBytes(data, memory_size, length_memory_size);
         -:  272:        /* Send only 3 first bytes of data */
-        2:  273:        for (std::size_t i = 0; i < (data.size() - 8); i++)
+        2:  273:        for (std::size_t byte = 0; byte < (data.size() - 8); byte++)
         -:  274:        {
-        1:  275:            data.push_back(response[i]);
+        1:  275:            data.push_back(response[byte]);
         -:  276:        }
         1:  277:        this->sendFrame(id, data);
         1:  278:        return;
@@ -288,12 +288,12 @@
         1:  284:        response.erase(response.begin(), response.begin() + memory_allready_send);
         1:  285:        int size_of_response = response.size();
         1:  286:        std::vector<uint8_t> data;
-        2:  287:        for (int i = 0; i <= size_of_response / 7; i++)
+        2:  287:        for (int no_frame = 0; no_frame <= size_of_response / 7; no_frame++)
         -:  288:        {
-        1:  289:            data = {(uint8_t)(0x21 + (i % 0xF))};
-        6:  290:            for (int j = 0; j < 7 && ((i*7) + j) < size_of_response; j++)
+        1:  289:            data = {(uint8_t)(0x21 + (no_frame % 0xF))};
+        6:  290:            for (int byte = 0; byte < 7 && ((no_frame*7) + byte) < size_of_response; byte++)
         -:  291:            {
-        5:  292:                data.push_back(response[(i*7)+j]);
+        5:  292:                data.push_back(response[(no_frame*7)+byte]);
         -:  293:            }
         1:  294:            this->sendFrame(id, data);
         -:  295:        }
@@ -309,9 +309,9 @@
         2:  305:        if (data_parameter.size() <= 4)
         -:  306:        {
         1:  307:            std::vector<uint8_t> data = {(uint8_t)(data_parameter.size() + 3),0x2E, (uint8_t)(identifier/0x100),(uint8_t)(identifier%0x100)};
-        3:  308:            for (std::size_t j = 0; j < data_parameter.size(); j++)
+        3:  308:            for (uint8_t data_byte: data_parameter)
         -:  309:            {
-        2:  310:                data.push_back(data_parameter[j]);
+        2:  310:                data.push_back(data_byte);
         -:  311:            }
         1:  312:            this->sendFrame(id, data);
         1:  313:            return;
@@ -356,9 +356,9 @@
         -:  352:        {
         1:  353:            uint8_t number_of_dtc = group_of_dtc.size();
         1:  354:            data = {(uint8_t)(number_of_dtc + 1), 0x14};
-        4:  355:            for (int i = 0; i < number_of_dtc; i++)
+        4:  355:            for (uint8_t dtc: group_of_dtc)
         -:  356:            {
-        3:  357:                data.push_back(group_of_dtc[i]);
+        3:  357:                data.push_back(dtc);
         -:  358:            }
         1:  359:            this->sendFrame(id, data);
         1:  360:            return;
@@ -428,9 +428,9 @@
         3:  424:        if (transfer_request.size() <= 5)
         -:  425:        {
         2:  426:             std::vector<uint8_t> data = {(uint8_t)(transfer_request.size() + 2), 0x36, block_sequence_counter};
-       10:  427:            for (std::size_t i = 0; i < transfer_request.size(); i++)
+       10:  427:            for (uint8_t data_transfer: transfer_request)
         -:  428:            {
-        8:  429:                data.push_back(transfer_request[i]);
+        8:  429:                data.push_back(data_transfer);
         -:  430:            }
         2:  431:            this->sendFrame(id, data);
         2:  432:            return;
@@ -451,9 +451,9 @@
         2:  447:    if (first_frame)
         -:  448:    {
         1:  449:        std::vector<uint8_t> data = {0x10, (uint8_t)(transfer_request.size() + 2), 0x36, block_sequence_counter};
-        5:  450:        for (int i = 0; i < 4 ; i++)
+        5:  450:        for (int byte = 0; byte < 4 ; byte++)
         -:  451:        {
-        4:  452:            data.push_back(transfer_request[i]);
+        4:  452:            data.push_back(transfer_request[byte]);
         -:  453:        }
         1:  454:        this->sendFrame(id, data);
         1:  455:        return;
@@ -464,12 +464,12 @@
         1:  460:        transfer_request.erase(transfer_request.begin(), transfer_request.begin() + 4);
         1:  461:        int size_of_data = transfer_request.size();
         1:  462:        std::vector<uint8_t> data;
-        2:  463:        for (int i = 0; i <= size_of_data / 7; i++)
+        2:  463:        for (int no_frame = 0; no_frame <= size_of_data / 7; no_frame++)
         -:  464:        {
-        1:  465:            data = {(uint8_t)(0x21 + (i % 0xF))};
-        4:  466:            for (int j = 0; j < 7 && ((i*7) + j) < size_of_data; j++)
+        1:  465:            data = {(uint8_t)(0x21 + (no_frame % 0xF))};
+        4:  466:            for (int byte = 0; byte < 7 && ((no_frame*7) + byte) < size_of_data; byte++)
         -:  467:            {
-        3:  468:                data.push_back(transfer_request[(i*7)+j]);
+        3:  468:                data.push_back(transfer_request[(no_frame*7)+byte]);
         -:  469:            }
         1:  470:            this->sendFrame(id, data);
         -:  471:        }

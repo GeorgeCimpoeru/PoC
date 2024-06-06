@@ -60,7 +60,7 @@ int createSocket()
     }
     return s;
 }
-struct can_frame createFrame(std::vector<int> test_data)
+struct can_frame createFrame(std::vector<uint8_t> test_data)
 {
     struct can_frame resultFrame;
     resultFrame.can_id = id;
