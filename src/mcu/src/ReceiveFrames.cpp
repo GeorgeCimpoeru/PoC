@@ -1,21 +1,22 @@
 #include "../include/ReceiveFrames.h"
 
-ReceiveFrames::ReceiveFrames(int socket) : s(socket), generateFrames(socket){}
+ReceiveFrames::ReceiveFrames(int socket) : s(socket), generateFrame(socket) {}
 
 ReceiveFrames::~ReceiveFrames()
 {
     stopRunning();
 }
 
-uint32_t ReceiveFrames::gethexValueId() {
+uint32_t ReceiveFrames::gethexValueId()
+{
     return hexValueId;
- }
+}
 
 /**
  * Function to read frames from the CAN bus and add them to a queue.
  * This function runs in a loop and continually reads frames from the CAN bus.
  */
-int ReceiveFrames::receiveFramesFromCANBus()
+bool ReceiveFrames::receiveFramesFromCANBus()
 {
     struct can_frame frame;
     while (running)
@@ -26,7 +27,7 @@ int ReceiveFrames::receiveFramesFromCANBus()
         {
             std::cerr << "Read Error" << std::endl;
             /* Return error if read fails */
-            return 1;
+            return false;
         }
         else
         {
@@ -39,7 +40,7 @@ int ReceiveFrames::receiveFramesFromCANBus()
             queueCondVar.notify_one();
         }
     }
-    return 0;
+    return true;
 }
 
 /*
@@ -50,7 +51,8 @@ void ReceiveFrames::processQueue()
 {
     std::cout << "Frame processing:..." << std::endl;
     can_frame frameParam;
-    while (true) {
+    while (true)
+    {
         /* Wait until the queue is not empty, then lock the queue */
         std::unique_lock<std::mutex> lock(queueMutex);
         queueCondVar.wait(lock, [this]{ return !frameQueue.empty(); });
@@ -66,34 +68,61 @@ void ReceiveFrames::processQueue()
 
         /* Extracting the components from can_id */
 
-        /* First byte: id_destinatar */
+        /* Last byte: id_sender */
         uint8_t sender_id = (frame.can_id >> 12) & 0xFF;
-        /* 1 bit: request for destinatar */
+        /* 1 bit: request for receiver */
         bool is_for_dest = (frame.can_id >> 8) & 0x01;
-        /* Last byte: id_sender or id_api */
+        /* First byte: id_receiver or id_api */
         uint8_t dest_id = frame.can_id & 0xFF;
 
         /* Compare the CAN ID with the expected hexValueId */
-        if (dest_id == hexValueId) {
+        if (dest_id == hexValueId)
+        {
             /* Check if the request is for the MCU */
-            if (is_for_dest) {
-                std::cout << "Frame for MCU Service" << std::endl;
-                handler.handleFrame(frame);
-            } else {
+            if (is_for_dest)
+            {
+                /* Check if the request is for MCU service or notification that one ECU is up or down */
+                if(frame.data[1] == 0xff)
+                {
+                    if (frame.data[2] == 0x00)
+                    {
+                        std::cout << "Notification from the ECU that it is down" << std::endl;
+                        /* Remove the ECU ID from the list of ECUs that are up */
+                        ecusUp.erase(std::remove(ecusUp.begin(), ecusUp.end(), sender_id), ecusUp.end());
+                    } else
+                    {
+                        std::cout << "Notification from the ECU that it is up" << std::endl;
+                        /* Add the ECU ID to the list of ECUs that are up */
+                        if (std::find(ecusUp.begin(), ecusUp.end(), sender_id) == ecusUp.end())
+                        {
+                            ecusUp.push_back(sender_id);
+                        }
+                    }
+                }
+                else
+                {
+                    std::cout << "Frame for MCU Service" << std::endl;
+                    handler.handleFrame(frame);
+                }
+            } else
+            {
                 /* Check if the request is for the API */
-                if (sender_id == 0xFA) {
+                if (sender_id == 0xFA)
+                {
                     std::cout << "Frame for API Service" << std::endl;
                     /* call function to send the frame to API */
-                } else {
+                } else
+                {
                     /* For ECUs services */
                     int new_can_id = (sender_id << 8) | hexValueId;
-                    std::vector<int> data(frame.data, frame.data + frame.can_dlc);
+                    std::vector<uint8_t> data(frame.data, frame.data + frame.can_dlc);
                     std::cout << "Frame for ECU Service" << std::endl;
                     generateFrame.SendFrame(new_can_id, data);
                 }
             }
         }
-        else if(dest_id == 0xFF){
+        else if(dest_id == 0xFF)
+        {
             /* Test frame betweend MCU and ECU */
             std::cout << "Received the test frame " << std::endl;
         }
@@ -114,9 +143,9 @@ void ReceiveFrames::printFrames(const struct can_frame &frame)
         std::cout << "CAN ID: 0x" << std::hex << frame.can_id << std::endl;
         std::cout << "Data Length: " << std::dec << int(frame.can_dlc) << std::endl;
         std::cout << "Data: ";
-        for (int i = 0; i < frame.can_dlc; ++i)
+        for (uint8_t itr = 0; itr < frame.can_dlc; ++itr)
         {
-            std::cout << std::hex << int(frame.data[i]) << " ";
+            std::cout << std::hex << int(frame.data[itr]) << " ";
         }
         std::cout << std::endl;
 }
@@ -131,8 +160,7 @@ void ReceiveFrames::sendTestFrame()
         /* Set the CAN ID to 0xFF */
         int can_id = 0xFF;
         /* Set the data to an empty vector*/
-        std::vector<int> data;
-
+        std::vector<uint8_t> data;
         /* Call GenerateFrame and SendFrame with the test frame */
         generateFrame.SendFrame(can_id, data);
     }
@@ -153,4 +181,9 @@ void ReceiveFrames::startRunning()
 bool ReceiveFrames::getRunning()
 {
     return running;
+}
+
+const std::vector<uint8_t>& ReceiveFrames::getECUsUp() const
+{
+  return ecusUp;
 }
