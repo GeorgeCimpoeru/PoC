@@ -1,4 +1,3 @@
-import next from 'next';
 import React from 'react'
 import LoginPage from '../components/loginComponents/LoginPage';
 
