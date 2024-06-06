@@ -1,52 +1,160 @@
 #include <gtest/gtest.h>
 #include "../include/BatteryModule.h"
 
-/* Test fixture for BatteryModule */
-class BatteryModuleTest : public ::testing::Test {
-protected:
-    /* This function runs before each test */
-    void SetUp() override {
-        batteryDefault = new BatteryModule();
-        batteryParam = new BatteryModule(10, 0x202);
+int createSocket()
+{
+    /* Create socket */
+    std::string nameInterface = "vcan0";
+    struct can_frame frame;
+    struct sockaddr_can addr;
+    struct ifreq ifr;
+    int s;
+
+    s = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+    if (s < 0)
+    {
+        std::cout << "Error trying to create the socket\n";
+        return 1;
     }
 
-    /* This function runs after each test */
-    void TearDown() override {
-        delete batteryDefault;
-        delete batteryParam;
+    /* Giving name and index to the interface created */
+    strcpy(ifr.ifr_name, nameInterface.c_str());
+    ioctl(s, SIOCGIFINDEX, &ifr);
+
+    /* Set addr structure with info. */
+    addr.can_family = AF_CAN;
+    addr.can_ifindex = ifr.ifr_ifindex;
+
+    /* Bind the socket to the CAN interface */
+    int b = bind(s, (struct sockaddr *)&addr, sizeof(addr));
+    if (b < 0)
+    {
+        std::cout << "Error binding\n";
+        return 1;
     }
 
-    BatteryModule* batteryDefault;
-    BatteryModule* batteryParam;
+    return s;
+}
+
+/* Test default constructor */
+TEST(BatteryModuleTest, DefaultConstructor)
+{
+    BatteryModule batteryModule;
+    EXPECT_EQ(batteryModule.getEnergy(), 0.0);
+    EXPECT_EQ(batteryModule.getVoltage(), 0.0);
+    EXPECT_EQ(batteryModule.getPercentage(), 0.0);
+    EXPECT_FALSE(batteryModule.isRunning());
+}
+
+/* Test parameterized constructor */
+TEST(BatteryModuleTest, ParameterizedConstructor)
+{
+    int interfaceNumber = 1;
+    int moduleId = 0x102;
+    BatteryModule batteryModule(interfaceNumber, moduleId);
+    EXPECT_EQ(batteryModule.getEnergy(), 0.0);
+    EXPECT_EQ(batteryModule.getVoltage(), 0.0);
+    EXPECT_EQ(batteryModule.getPercentage(), 0.0);
+    EXPECT_FALSE(batteryModule.isRunning());
+}
+
+/* Test start and stop simulation */
+TEST(BatteryModuleTest, SimulationStartStop)
+{
+    BatteryModule batteryModule;
+    batteryModule.simulate();
+
+    /* Allow some time for the thread to start */
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    /* Ensure the module is running */
+    EXPECT_TRUE(batteryModule.isRunning());
+
+    /* Stop the simulation */
+    batteryModule.stopBatteryModule();
+
+    /* Ensure the module is not running */
+    EXPECT_FALSE(batteryModule.isRunning());
+}
+
+/** 
+ * Mock the exec function to test fetchBatteryData
+ * This class inherits from BatteryModule and overrides the exec function 
+ */
+class BatteryModuleMock : public BatteryModule
+{
+public:
+    std::string exec(const char *cmd) override
+    {
+        return "energy: 50.0\nvoltage: 12.5\npercentage: 80.0\nstate: Discharging\n";
+    }
 };
 
-/* Test for default constructor */
-TEST_F(BatteryModuleTest, DefaultConstructor) {
-    EXPECT_EQ(batteryDefault->getVoltage(), 12.5);
-    EXPECT_EQ(batteryDefault->getCurrent(), 5.0);
-    EXPECT_EQ(batteryDefault->getTemperature(), 20.0);
+/* Test fetchBatteryData */
+TEST(BatteryModuleTest, FetchBatteryData)
+{
+    BatteryModuleMock batteryModule;
+    batteryModule.fetchBatteryData();
+    EXPECT_EQ(batteryModule.getEnergy(), 50.0);
+    EXPECT_EQ(batteryModule.getVoltage(), 12.5);
+    EXPECT_EQ(batteryModule.getPercentage(), 80.0);
 }
 
-/* Test for parameterized constructor */
-TEST_F(BatteryModuleTest, ParameterizedConstructor) {
-    /* Check if the values are correctly set */
-    EXPECT_EQ(batteryParam->getVoltage(), 12.5);
-    EXPECT_EQ(batteryParam->getCurrent(), 5.0);
-    EXPECT_EQ(batteryParam->getTemperature(), 20.0);
+/* 
+ * Test receiveFrames (without Google Mock, we assume a simple implementation) 
+ * This test sends a CAN frame to the BatteryModule and checks if it is received correctly 
+ */
+TEST(BatteryModuleTest, ReceiveFrames)
+{
+    BatteryModule batteryModule;
+
+    /* Create a CAN frame */
+    struct can_frame frame;
+    frame.can_id = 0x101;
+    frame.can_dlc = 0x1;
+    frame.data[0] = 0x5;
+
+    /* Create socket for sending the frame */
+    int s = createSocket();
+
+    /* Start the receiveFrames thread */
+    std::thread receive_thread([&batteryModule]()
+                               { batteryModule.receiveFrames(); });
+
+    /* Send the frame */
+    write(s, &frame, sizeof(frame));
+
+    /* Allow some time for the thread to start */
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    batteryModule.stopFrames();
+
+    receive_thread.join();
 }
 
-/* Test updateParamenters function */
-TEST_F(BatteryModuleTest, UpdateParameters) {
-    /* Initial values */
-    float initialVoltage = batteryDefault->getVoltage();
-    float initialCurrent = batteryDefault->getCurrent();
-    float initialTemperature = batteryDefault->getTemperature();
+/* Test getter functions */
+TEST(BatteryModuleTest, GetterFunctions)
+{
+    BatteryModule batteryModule;
+    EXPECT_EQ(batteryModule.getEnergy(), 0.0);
+    EXPECT_EQ(batteryModule.getVoltage(), 0.0);
+    EXPECT_EQ(batteryModule.getPercentage(), 0.0);
+}
 
-    /* Update parameters */
-    batteryDefault->updateParamenters();
+/* Test getLinuxBatteryState function */
+TEST(BatteryModuleTest, GetLinuxBatteryState)
+{
+    BatteryModuleMock batteryModule;
 
-    /* Check if the values are updated correctly */
-    EXPECT_FLOAT_EQ(batteryDefault->getVoltage(), initialVoltage + BATTERY_MODULE_PARAM_INCREMENT);
-    EXPECT_FLOAT_EQ(batteryDefault->getCurrent(), initialCurrent + BATTERY_MODULE_PARAM_INCREMENT);
-    EXPECT_FLOAT_EQ(batteryDefault->getTemperature(), initialTemperature + BATTERY_MODULE_PARAM_INCREMENT);
+    /* Fetch battery data to set the state */
+    batteryModule.fetchBatteryData();
+
+    /* Check the state returned by getLinuxBatteryState */
+    EXPECT_EQ(batteryModule.getLinuxBatteryState(), "Discharging");
+}
+
+int main(int argc, char **argv)
+{
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

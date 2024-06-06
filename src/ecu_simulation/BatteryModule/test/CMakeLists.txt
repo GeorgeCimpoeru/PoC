@@ -20,6 +20,10 @@ include_directories(../include)
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 
+# Add coverage flags
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage -O0 -g")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
+
 # Create the test executable
 add_executable(testFile InterfaceConfigTest.cpp ${SOURCES})
 add_executable(test_battery_module BatteryModuleTest.cpp ${SOURCES})
