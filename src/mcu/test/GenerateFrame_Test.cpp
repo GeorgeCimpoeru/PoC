@@ -61,8 +61,8 @@ TEST(GenerateFrameSuite1, GenerateInvalidSocket) {
 
 /* Test the creation of data frame  */
 TEST(GenerateFrameSuite2, CreateDataFrame) {
-    int can_id = 0x101;
-    std::vector<int> data = {0x2, 0x51, 0x3};
+    uint32_t can_id = 0x101;
+    std::vector<uint8_t> data = {0x2, 0x51, 0x3};
     int dlc = data.size();
     FrameType frame_type = FrameType::DATA_FRAME;
     
@@ -78,8 +78,8 @@ TEST(GenerateFrameSuite2, CreateDataFrame) {
 
 /* Test the creation of remote frame */
 TEST(GenerateFrameSuite2, CreateRemoteFrame) {
-    int can_id = 0x101;
-    std::vector<int> data = {0x2, 0x51, 0x3};
+    uint32_t can_id = 0x101;
+    std::vector<uint8_t> data = {0x2, 0x51, 0x3};
     int dlc = data.size();
     FrameType frame_type = FrameType::REMOTE_FRAME;
     
@@ -95,8 +95,8 @@ TEST(GenerateFrameSuite2, CreateRemoteFrame) {
 
 /* Test the creation of error frame */
 TEST(GenerateFrameSuite2, CreateErrorFrame) {
-    int can_id = 0x20;
-    std::vector<int> data = {0x2, 0x51, 0x3};
+    uint32_t can_id = 0x20;
+    std::vector<uint8_t> data = {0x2, 0x51, 0x3};
     FrameType frame_type = FrameType::ERROR_FRAME;
     
     GenerateFrame gen_frame;
@@ -108,8 +108,8 @@ TEST(GenerateFrameSuite2, CreateErrorFrame) {
 
 /* Test the creation of overload frame */
 TEST(GenerateFrameSuite2, CreateOverloadFrame) {
-    int can_id = 0x20;
-    std::vector<int> data = {0x2, 0x51, 0x3};
+    uint32_t can_id = 0x20;
+    std::vector<uint8_t> data = {0x2, 0x51, 0x3};
     FrameType frame_type = FrameType::OVERLOAD_FRAME;
     
     GenerateFrame gen_frame;
@@ -121,8 +121,8 @@ TEST(GenerateFrameSuite2, CreateOverloadFrame) {
 
 /* Test send frame when socket is invalid */
 TEST_F(GenerateFrameTest, SendInvalidSocketFrame) {
-    int can_id = 0x123;
-    std::vector<int> data = {0x2, 0x51, 0x3};
+    uint32_t can_id = 0x123;
+    std::vector<uint8_t> data = {0x2, 0x51, 0x3};
     FrameType frame_type = FrameType::DATA_FRAME;
     GenerateFrame gen_frame;
 
@@ -131,8 +131,8 @@ TEST_F(GenerateFrameTest, SendInvalidSocketFrame) {
 
 /* Test successful send frame */
 TEST_F(GenerateFrameTest, SendSuccessfulSendFrame) {
-    int can_id = 0x123;
-    std::vector<int> data = {0x2, 0x51, 0x3};
+    uint32_t can_id = 0x123;
+    std::vector<uint8_t> data = {0x2, 0x51, 0x3};
     FrameType frame_type = FrameType::DATA_FRAME;
     GenerateFrame gen_frame(s);
 
@@ -143,8 +143,8 @@ TEST_F(GenerateFrameTest, SendSuccessfulSendFrame) {
 
 /* Test send frame when write fails */
 TEST_F(GenerateFrameTest, SendFailWriteOnSocket) {
-    int can_id = 0x123;
-    std::vector<int> data = {0x2, 0x51, 0x3};
+    uint32_t can_id = 0x123;
+    std::vector<uint8_t> data = {0x2, 0x51, 0x3};
     FrameType frame_type = FrameType::DATA_FRAME;
     GenerateFrame gen_frame(21);
 
@@ -155,8 +155,8 @@ TEST_F(GenerateFrameTest, SendFailWriteOnSocket) {
 
 /* Test getFrame */
 TEST_F(GenerateFrameTest, GetFrame) {
-    int can_id = 0x123;
-    std::vector<int> data = {0x2, 0x51, 0x3};
+    uint32_t can_id = 0x123;
+    std::vector<uint8_t> data = {0x2, 0x51, 0x3};
     int dlc = data.size();
     FrameType frame_type = FrameType::DATA_FRAME;
     
@@ -173,11 +173,11 @@ TEST_F(GenerateFrameTest, GetFrame) {
 
 /* Test Session control response */
 TEST_F(GenerateFrameTest, SessionControlResponse) {
-    int can_id = 0x101;
-    int subfunction = 0x01;
+    uint32_t can_id = 0x101;
+    uint8_t subfunction = 0x01;
     bool response = 1;
 
-    std::vector<int> data = {0x2, 0x50, subfunction};
+    std::vector<uint8_t> data = {0x2, 0x50, subfunction};
     GenerateFrame gen_frame(s);
     gen_frame.SessionControl(can_id, subfunction, response);
 
@@ -189,11 +189,11 @@ TEST_F(GenerateFrameTest, SessionControlResponse) {
 
 /* Test Session control request */
 TEST_F(GenerateFrameTest, SessionControlRequest) {
-    int can_id = 0x101;
-    int subfunction = 0x01;
+    uint32_t can_id = 0x101;
+    uint8_t subfunction = 0x01;
     bool response = 0;
 
-    std::vector<int> data = {0x2, 0x10, subfunction};
+    std::vector<uint8_t> data = {0x2, 0x10, subfunction};
 
     GenerateFrame gen_frame(s);
     gen_frame.SessionControl(can_id, subfunction, response);
@@ -206,7 +206,7 @@ TEST_F(GenerateFrameTest, SessionControlRequest) {
 
 /* Test ECU reset response */
 TEST_F(GenerateFrameTest, EcuResetResponse) {
-    int can_id = 0x101;
+    uint32_t can_id = 0x101;
     bool response = 1;
 
     std::vector<int> data = {0x2, 0x51, 0x3};
@@ -222,7 +222,7 @@ TEST_F(GenerateFrameTest, EcuResetResponse) {
 
 /* Test ECU reset request */
 TEST_F(GenerateFrameTest, EcuResetRequest) {
-    int can_id = 0x101;
+    uint32_t can_id = 0x101;
     int subfunction = 0x01;
     bool response = 0;
 
@@ -239,11 +239,11 @@ TEST_F(GenerateFrameTest, EcuResetRequest) {
 
 /* Test Read Data By Identifier request */
 TEST_F(GenerateFrameTest, ReadDataByIdentifierRequest) {
-    int can_id = 0x101;
-    int data_identifier = 0x01;
-    std::vector<int> response;
+    uint32_t can_id = 0x101;
+    uint8_t data_identifier = 0x01;
+    std::vector<uint8_t> response;
 
-    std::vector<int> data = {0x3, 0x22, data_identifier/0x100, data_identifier%0x100};
+    std::vector<uint8_t> data = {0x3, 0x22, static_cast<uint8_t>(data_identifier/0x100), static_cast<uint8_t>(data_identifier%0x100)};
 
     GenerateFrame gen_frame(s);
     gen_frame.ReadDataByIdentifier(can_id, data_identifier, response);
@@ -256,11 +256,12 @@ TEST_F(GenerateFrameTest, ReadDataByIdentifierRequest) {
 
 /* Test Read Data By Identifier response */
 TEST_F(GenerateFrameTest, ReadDataByIdentifierResponse) {
-    int can_id = 0x123;
-    int data_identifier = 0x01;
-    std::vector<int> response = {0x2};
+    uint32_t can_id = 0x123;
+    uint8_t data_identifier = 0x01;
+    std::vector<uint8_t> response = {0x2};
 
-    std::vector<int> data = {(int)response.size() + 3, 0x62, data_identifier/0x100, data_identifier%0x100, 0x2};
+    std::vector<uint8_t> data = {static_cast<uint8_t>(response.size() + 3), 0x62, static_cast<uint8_t>(data_identifier/0x100), 
+                                 static_cast<uint8_t>(data_identifier%0x100, 0x2)};
 
     GenerateFrame gen_frame(s);
     gen_frame.ReadDataByIdentifier(can_id, data_identifier, response);
@@ -273,9 +274,9 @@ TEST_F(GenerateFrameTest, ReadDataByIdentifierResponse) {
 
 /* Test Read Data By Identifier response too long */
 TEST_F(GenerateFrameTest, RDBIResponseTooLarge) {
-    int can_id = 0x123;
-    int data_identifier = 0x01;    
-    std::vector<int> response = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};
+    uint32_t can_id = 0x123;
+    uint8_t data_identifier = 0x01;    
+    std::vector<uint8_t> response = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};
 
     GenerateFrame gen_frame(s);
 
@@ -287,13 +288,14 @@ TEST_F(GenerateFrameTest, RDBIResponseTooLarge) {
 
 /* Test Create Frame Long first frame */
 TEST_F(GenerateFrameTest, CreateFrameLongFirstFrame) {
-    int can_id = 0x101;
-    int sid = 0x50;
-    int data_identifier = 0x01;  
-    std::vector<int> response = {0x2, 0x2, 0x2};
+    uint32_t can_id = 0x101;
+    uint8_t sid = 0x50;
+    uint8_t data_identifier = 0x01;  
+    std::vector<uint8_t> response = {0x2, 0x2, 0x2};
     bool first_frame = true;
 
-    std::vector<int> data = {0x10, (int)response.size() + 3, sid, data_identifier/0x100, data_identifier%0x100, 0x2, 0x2, 0x2};
+    std::vector<uint8_t> data = {0x10, static_cast<uint8_t>(response.size() + 3), sid, 
+                                static_cast<uint8_t>(data_identifier/0x100), static_cast<uint8_t>(data_identifier%0x100), 0x2, 0x2, 0x2};
 
     GenerateFrame gen_frame(s);
     gen_frame.CreateFrameLong(can_id, sid, data_identifier, response, first_frame);
@@ -306,13 +308,13 @@ TEST_F(GenerateFrameTest, CreateFrameLongFirstFrame) {
 
 /* Test Create Frame Long not first frame */
 TEST_F(GenerateFrameTest, CreateFrameLongNotFirstFrame) {
-    int can_id = 0x101;
-    int sid = 0x50;
-    int data_identifier = 0x01;  
-    std::vector<int> response = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};
+    uint32_t can_id = 0x101;
+    uint8_t sid = 0x50;
+    uint8_t data_identifier = 0x01;  
+    std::vector<uint8_t> response = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};
     bool first_frame = false;
 
-    std::vector<int> data = {0x21, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};
+    std::vector<uint8_t> data = {0x21, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};
 
     GenerateFrame gen_frame(s);
     gen_frame.CreateFrameLong(can_id, sid, data_identifier, response, first_frame);
@@ -325,12 +327,13 @@ TEST_F(GenerateFrameTest, CreateFrameLongNotFirstFrame) {
 
 /* Test Read Data By Identifier Long */
 TEST_F(GenerateFrameTest, ReadDataByIdentifierLong) {
-    int can_id = 0x101;
-    int data_identifier = 0x01;  
-    std::vector<int> response = {0x2, 0x2, 0x2};
+    uint32_t can_id = 0x101;
+    uint8_t data_identifier = 0x01;  
+    std::vector<uint8_t> response = {0x2, 0x2, 0x2};
     bool first_frame = true;
 
-    std::vector<int> data = {0x10, (int)response.size() + 3, 0x62, data_identifier/0x100, data_identifier%0x100, 0x2, 0x2, 0x2};
+    std::vector<uint8_t> data = {0x10, static_cast<uint8_t>(response.size() + 3), 0x62, 
+                                static_cast<uint8_t>(data_identifier/0x100), static_cast<uint8_t>(data_identifier%0x100), 0x2, 0x2, 0x2};
 
     GenerateFrame gen_frame(s);
     gen_frame.ReadDataByIdentifierLong(can_id, data_identifier, response, first_frame);
@@ -343,8 +346,8 @@ TEST_F(GenerateFrameTest, ReadDataByIdentifierLong) {
 
 /* Test Flow Control Frame */
 TEST_F(GenerateFrameTest, FlowControlFrame) {
-    int can_id = 0x101;
-    std::vector<int> data = {0x30, 0x00, 0x00, 0x00};
+    uint32_t can_id = 0x101;
+    std::vector<uint8_t> data = {0x30, 0x00, 0x00, 0x00};
 
     GenerateFrame gen_frame(s);
     gen_frame.FlowControlFrame(can_id);
@@ -357,9 +360,9 @@ TEST_F(GenerateFrameTest, FlowControlFrame) {
 
 /* Test Authentication Request Seed Empty */
 TEST_F(GenerateFrameTest, AuthenticationRequestSeedEmpty) {
-    int can_id = 0x101;
-    std::vector<int> seed;
-    std::vector<int> data = {0x3, 0x29, 0x1};
+    uint32_t can_id = 0x101;
+    std::vector<uint8_t> seed;
+    std::vector<uint8_t> data = {0x3, 0x29, 0x1};
 
     GenerateFrame gen_frame(s);
     gen_frame.AuthenticationRequestSeed(can_id, seed);
@@ -372,9 +375,9 @@ TEST_F(GenerateFrameTest, AuthenticationRequestSeedEmpty) {
 
 /* Test Authentication Request Seed Not Empty */
 TEST_F(GenerateFrameTest, AuthenticationRequestSeedNotEmpty) {
-    int can_id = 0x101;
-    std::vector<int> seed = {0x2, 0x2, 0x2};
-    std::vector<int> data = {(int)seed.size() + 2, 0x69, 0x1, 0x2, 0x2, 0x2};
+    uint32_t can_id = 0x101;
+    std::vector<uint8_t> seed = {0x2, 0x2, 0x2};
+    std::vector<uint8_t> data = {static_cast<uint8_t>(seed.size() + 2), 0x69, 0x1, 0x2, 0x2, 0x2};
 
     GenerateFrame gen_frame(s);
     gen_frame.AuthenticationRequestSeed(can_id, seed);
@@ -387,9 +390,9 @@ TEST_F(GenerateFrameTest, AuthenticationRequestSeedNotEmpty) {
 
 /* Test Authentication Send Key Empty */
 TEST_F(GenerateFrameTest, AuthenticationSendKeyEmpty) {
-    int can_id = 0x101;
-    std::vector<int> key;
-    std::vector<int> data = {0x02, 0x69, 0x02};
+    uint32_t can_id = 0x101;
+    std::vector<uint8_t> key;
+    std::vector<uint8_t> data = {0x02, 0x69, 0x02};
 
     GenerateFrame gen_frame(s);
     gen_frame.AuthenticationSendKey(can_id, key);
@@ -402,9 +405,9 @@ TEST_F(GenerateFrameTest, AuthenticationSendKeyEmpty) {
 
 /* Test Authentication Send Key Not Empty */
 TEST_F(GenerateFrameTest, AuthenticationSendKeyNotEmpty) {
-    int can_id = 0x101;
-    std::vector<int> key = {0x2, 0x2, 0x2};
-    std::vector<int> data = {(int)key.size() + 2, 0x29, 0x2, 0x2, 0x2, 0x2};
+    uint32_t can_id = 0x101;
+    std::vector<uint8_t> key = {0x2, 0x2, 0x2};
+    std::vector<uint8_t> data = {static_cast<uint8_t>(key.size() + 2), 0x29, 0x2, 0x2, 0x2, 0x2};
 
     GenerateFrame gen_frame(s);
     gen_frame.AuthenticationSendKey(can_id, key);
@@ -417,12 +420,13 @@ TEST_F(GenerateFrameTest, AuthenticationSendKeyNotEmpty) {
 
 /* Test Routine Control response */
 TEST_F(GenerateFrameTest, RoutineControlResponse) {
-    int can_id = 0x101;
-    int subfunction = 0x01;
-    int routine_identifier = 0x02;
+    uint32_t can_id = 0x101;
+    uint8_t subfunction = 0x01;
+    uint8_t routine_identifier = 0x02;
     bool response = 1;
 
-    std::vector<int> data = {0x4, 0x71, subfunction, routine_identifier / 0x100, routine_identifier % 0x100};
+    std::vector<uint8_t> data = {0x4, 0x71, subfunction, static_cast<uint8_t>(routine_identifier / 0x100), 
+                                static_cast<uint8_t>(routine_identifier % 0x100)};
 
     GenerateFrame gen_frame(s);
     gen_frame.RoutineControl(can_id, subfunction, routine_identifier, response);
@@ -435,12 +439,13 @@ TEST_F(GenerateFrameTest, RoutineControlResponse) {
 
 /* Test Routine Control request */
 TEST_F(GenerateFrameTest, RoutineControlRequest) {
-    int can_id = 0x101;
-    int subfunction = 0x01;
-    int routine_identifier = 0x02;
+    uint32_t can_id = 0x101;
+    uint8_t subfunction = 0x01;
+    uint8_t routine_identifier = 0x02;
     bool response = 0;
 
-    std::vector<int> data = {0x4, 0x31, subfunction, routine_identifier / 0x100, routine_identifier % 0x100};
+    std::vector<uint8_t> data = {0x4, 0x31, subfunction, static_cast<uint8_t>(routine_identifier / 0x100), 
+                                 static_cast<uint8_t>(routine_identifier % 0x100)};
 
     GenerateFrame gen_frame(s);
     gen_frame.RoutineControl(can_id, subfunction, routine_identifier, response);
@@ -453,10 +458,10 @@ TEST_F(GenerateFrameTest, RoutineControlRequest) {
 
 /* Test Tester Present true */
 TEST_F(GenerateFrameTest, TesterPresentTrue) {
-    int can_id = 0x101;
+    uint32_t can_id = 0x101;
     bool response = 1;
 
-    std::vector<int> data = {0x02, 0x7E, 0x00};
+    std::vector<uint8_t> data = {0x02, 0x7E, 0x00};
 
     GenerateFrame gen_frame(s);
     gen_frame.TesterPresent(can_id, response);
@@ -469,10 +474,10 @@ TEST_F(GenerateFrameTest, TesterPresentTrue) {
 
 /* Test Tester Present false */
 TEST_F(GenerateFrameTest, TesterPresentFalse) {
-    int can_id = 0x101;
+    uint32_t can_id = 0x101;
     bool response = 0;
 
-    std::vector<int> data = {0x2, 0x3E, 0x00};
+    std::vector<uint8_t> data = {0x2, 0x3E, 0x00};
 
     GenerateFrame gen_frame(s);
     gen_frame.TesterPresent(can_id, response);
@@ -490,12 +495,12 @@ TEST_F(GenerateFrameTest, ReadMemoryByAddressResponseEmpty) {
     To be reviewed and fixed */
 
     /*
-    int can_id = 0x101;
-    int memory_size = 0x10;
-    int memory_address = 0x20;
-    std::vector<int> response;
+    uint32_t can_id = 0x101;
+    uint8_t memory_size = 0x10;
+    uint8_t memory_address = 0x20;
+    std::vector<uint8_t> response;
 
-    std::vector<int> data;
+    std::vector<uint8_t> data;
 
     GenerateFrame gen_frame(s);
     gen_frame.ReadMemoryByAddress(can_id, memory_size, memory_address, response);
@@ -520,12 +525,12 @@ TEST_F(GenerateFrameTest, ReadMemoryByAddressResponseNotEmpty) {
     To be reviewed and fixed */
 
     /*
-    int can_id = 0x101;
-    int memory_size = 0x10;
-    int memory_address = 0x20;
-    std::vector<int> response = {0x2, 0x2};
+    uint32_t can_id = 0x101;
+    uint8_t memory_size = 0x10;
+    uint8_t memory_address = 0x20;
+    std::vector<uint8_t> response = {0x2, 0x2};
 
-    std::vector<int> data;
+    std::vector<uint8_t> data;
 
     GenerateFrame gen_frame(s);
     gen_frame.ReadMemoryByAddress(can_id, memory_size, memory_address, response);
@@ -550,10 +555,10 @@ TEST_F(GenerateFrameTest, ReadMemoryByAddressResponseTooLarge) {
     To be reviewed and fixed */
 
     /*
-    int can_id = 0x101;
-    int memory_size = 0x10;
-    int memory_address = 0x20;
-    std::vector<int> response = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};
+    uint32_t can_id = 0x101;
+    uint8_t memory_size = 0x10;
+    uint8_t memory_address = 0x20;
+    std::vector<uint8_t> response = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};
     GenerateFrame gen_frame(s);
 
     testing::internal::CaptureStdout();
@@ -573,13 +578,13 @@ TEST_F(GenerateFrameTest, ReadMemoryByAddressLongFirstFrame) {
        To be reviewed and fixed */
 
     /*
-    int can_id = 0x101;
-    int memory_size = 0x10;
-    int memory_address = 0x20;
-    std::vector<int> response = {0x2, 0x2, 0x2};
+    uint32_t can_id = 0x101;
+    uint8_t memory_size = 0x10;
+    uint8_t memory_address = 0x20;
+    std::vector<uint8_t> response = {0x2, 0x2, 0x2};
     bool first_frame = true;
 
-    std::vector<int> data;
+    std::vector<uint8_t> data;
 
     GenerateFrame gen_frame(s);
     gen_frame.ReadMemoryByAddressLong(can_id, memory_size, memory_address, response, first_frame);
@@ -604,13 +609,13 @@ TEST_F(GenerateFrameTest, ReadMemoryByAddressLongNotFirstFrame) {
        To be reviewed and fixed */
 
     /*
-    int can_id = 0x101;
-    int memory_size = 0x10;
-    int memory_address = 0x20;
-    std::vector<int> response = {0x2, 0x2, 0x2};
+    uint32_t can_id = 0x101;
+    uint8_t memory_size = 0x10;
+    uint8_t memory_address = 0x20;
+    std::vector<uint8_t> response = {0x2, 0x2, 0x2};
     bool first_frame = false;
 
-    std::vector<int> data;
+    std::vector<uint8_t> data;
 
     GenerateFrame gen_frame(s);
     gen_frame.ReadMemoryByAddressLong(can_id, memory_size, memory_address, response, first_frame);
@@ -630,11 +635,12 @@ TEST_F(GenerateFrameTest, ReadMemoryByAddressLongNotFirstFrame) {
 
 /* Test Write Data By Identifier. Data Parameter Empty*/
 TEST_F(GenerateFrameTest, WriteDataByIdentifierEmpty) {
-    int can_id = 0x101;
-    int identifier = 0x20;
-    std::vector<int> data_parameter;
+    uint32_t can_id = 0x101;
+    uint8_t identifier = 0x20;
+    std::vector<uint8_t> data_parameter;
 
-    std::vector<int> data = {0x03, 0x6E, identifier / 0x100, identifier % 0x100};
+    std::vector<uint8_t> data = {0x03, 0x6E, static_cast<uint8_t>(identifier / 0x100), 
+                                static_cast<uint8_t>(identifier % 0x100)};
 
     GenerateFrame gen_frame(s);
     gen_frame.WriteDataByIdentifier(can_id, identifier, data_parameter);
@@ -647,11 +653,12 @@ TEST_F(GenerateFrameTest, WriteDataByIdentifierEmpty) {
 
 /* Test Write Data By Identifier. Data Parameter not empty*/
 TEST_F(GenerateFrameTest, WriteDataByIdentifierNotEmpty) {
-    int can_id = 0x101;
-    int identifier = 0x20;
-    std::vector<int> data_parameter = {0x2, 0x2, 0x2};
+    uint32_t can_id = 0x101;
+    uint8_t identifier = 0x20;
+    std::vector<uint8_t> data_parameter = {0x2, 0x2, 0x2};
 
-    std::vector<int> data = {(int)data_parameter.size() + 3, 0x2E, identifier / 0x100, identifier % 0x100, 0x2, 0x2, 0x2};
+    std::vector<uint8_t> data = {static_cast<uint8_t>(data_parameter.size() + 3), 0x2E, static_cast<uint8_t>(identifier / 0x100), 
+                                static_cast<uint8_t>(identifier % 0x100), 0x2, 0x2, 0x2};
 
     GenerateFrame gen_frame(s);
     gen_frame.WriteDataByIdentifier(can_id, identifier, data_parameter);
@@ -664,9 +671,9 @@ TEST_F(GenerateFrameTest, WriteDataByIdentifierNotEmpty) {
 
 /* Test Write Data By Identifier. Data Parameter too large */
 TEST_F(GenerateFrameTest, WriteDataByIdentifierTooLarge) {
-    int can_id = 0x101;
-    int identifier = 0x20;
-    std::vector<int> data_parameter = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2};
+    uint32_t can_id = 0x101;
+    uint8_t identifier = 0x20;
+    std::vector<uint8_t> data_parameter = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2};
 
     testing::internal::CaptureStdout();
     GenerateFrame gen_frame(s);
@@ -678,12 +685,13 @@ TEST_F(GenerateFrameTest, WriteDataByIdentifierTooLarge) {
 
 /* Test Write Data By Identifier Long */
 TEST_F(GenerateFrameTest, WriteDataByIdentifierLong) {
-    int can_id = 0x101;
-    int identifier = 0x02;
-    std::vector<int> data_parameter = {0x2, 0x2, 0x2};
+    uint32_t can_id = 0x101;
+    uint8_t identifier = 0x02;
+    std::vector<uint8_t> data_parameter = {0x2, 0x2, 0x2};
     bool first_frame = true;
 
-    std::vector<int> data = {0x10, (int)data_parameter.size() + 3, 0x2E, identifier/0x100, identifier%0x100, 0x2, 0x2 ,0x2};
+    std::vector<uint8_t> data = {0x10, static_cast<uint8_t>(data_parameter.size() + 3), 0x2E, static_cast<uint8_t>(identifier/0x100), 
+                                static_cast<uint8_t>(identifier%0x100), 0x2, 0x2 ,0x2};
 
     GenerateFrame gen_frame(s);
     gen_frame.WriteDataByIdentifierLong(can_id, identifier, data_parameter, first_frame);
@@ -696,11 +704,11 @@ TEST_F(GenerateFrameTest, WriteDataByIdentifierLong) {
 
 /* Test Read DTC Information */
 TEST_F(GenerateFrameTest, ReadDTCInformation) {
-    int can_id = 0x101;
-    int subfunction = 0x01;
-    int dtc_status_mask = 0x02;
+    uint32_t can_id = 0x101;
+    uint8_t subfunction = 0x01;
+    uint8_t dtc_status_mask = 0x02;
 
-    std::vector<int> data = {0x03, 0x19, subfunction, dtc_status_mask};
+    std::vector<uint8_t> data = {0x03, 0x19, subfunction, dtc_status_mask};
 
     GenerateFrame gen_frame(s);
     gen_frame.ReadDtcInformation(can_id, subfunction, dtc_status_mask);
@@ -713,12 +721,12 @@ TEST_F(GenerateFrameTest, ReadDTCInformation) {
 
 /* Test Read DTC Information Response 01 */
 TEST_F(GenerateFrameTest, ReadDTCInformationResponse01) {
-    int can_id = 0x101;
-    int status_availability_mask = 0x01;
-    int dtc_format_identifier = 0x02;
-    int dtc_count = 0x03;
+    uint32_t can_id = 0x101;
+    uint8_t status_availability_mask = 0x01;
+    uint8_t dtc_format_identifier = 0x02;
+    uint8_t dtc_count = 0x03;
 
-    std::vector<int> data = {0x03, 0x59, 0x01, status_availability_mask, dtc_format_identifier, dtc_count};
+    std::vector<uint8_t> data = {0x03, 0x59, 0x01, status_availability_mask, dtc_format_identifier, dtc_count};
 
     GenerateFrame gen_frame(s);
     gen_frame.ReadDtcInformationResponse01(can_id, status_availability_mask, dtc_format_identifier, dtc_count);
@@ -731,11 +739,11 @@ TEST_F(GenerateFrameTest, ReadDTCInformationResponse01) {
 
 /* Test Clear Diagnostic Information Response */
 TEST_F(GenerateFrameTest, ClearDiagnosticInformationResponse) {
-    int can_id = 0x101;
-    std::vector<int> group_of_dtc;
+    uint32_t can_id = 0x101;
+    std::vector<uint8_t> group_of_dtc;
     bool response = true;
 
-    std::vector<int> data = {0x01, 0x54};
+    std::vector<uint8_t> data = {0x01, 0x54};
 
     GenerateFrame gen_frame(s);
     gen_frame.ClearDiagnosticInformation(can_id, group_of_dtc, response);
@@ -748,11 +756,11 @@ TEST_F(GenerateFrameTest, ClearDiagnosticInformationResponse) {
 
 /* Test Clear Diagnostic Information Request */
 TEST_F(GenerateFrameTest, ClearDiagnosticInformationRequest) {
-    int can_id = 0x101;
-    std::vector<int> group_of_dtc = {0x2, 0x2};
+    uint32_t can_id = 0x101;
+    std::vector<uint8_t> group_of_dtc = {0x2, 0x2};
     bool response = false;
 
-    std::vector<int> data = {(int)group_of_dtc.size() + 1, 0x14, 0x2, 0x2};
+    std::vector<uint8_t> data = {static_cast<uint8_t>(group_of_dtc.size() + 1), 0x14, 0x2, 0x2};
 
     GenerateFrame gen_frame(s);
     gen_frame.ClearDiagnosticInformation(can_id, group_of_dtc, response);
@@ -765,8 +773,8 @@ TEST_F(GenerateFrameTest, ClearDiagnosticInformationRequest) {
 
 /* Test Clear Diagnostic Information DTC size too large */
 TEST_F(GenerateFrameTest, ClearDiagnosticInformationDTCTooLarge) {
-    int can_id = 0x101;
-    std::vector<int> group_of_dtc = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};
+    uint32_t can_id = 0x101;
+    std::vector<uint8_t> group_of_dtc = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};
     bool response = false;
 
     testing::internal::CaptureStdout();
@@ -779,11 +787,11 @@ TEST_F(GenerateFrameTest, ClearDiagnosticInformationDTCTooLarge) {
 
 /* Test Access Timing Parameters Response */
 TEST_F(GenerateFrameTest, AccessTimingParametersResponse) {
-    int can_id = 0x101;
-    int subfunction = 0x02;
+    uint32_t can_id = 0x101;
+    uint8_t subfunction = 0x02;
     bool response = true;
 
-    std::vector<int> data = {0x02, 0xC3, subfunction};
+    std::vector<uint8_t> data = {0x02, 0xC3, subfunction};
 
     GenerateFrame gen_frame(s);
     gen_frame.AccessTimingParameters(can_id, subfunction, response);
@@ -796,11 +804,11 @@ TEST_F(GenerateFrameTest, AccessTimingParametersResponse) {
 
 /* Test Access Timing Parameters Request */
 TEST_F(GenerateFrameTest, AccessTimingParametersRequest) {
-    int can_id = 0x101;
-    int subfunction = 0x02;
+    uint32_t can_id = 0x101;
+    uint8_t subfunction = 0x02;
     bool response = false;
 
-    std::vector<int> data = {0x02, 0x83, subfunction};
+    std::vector<uint8_t> data = {0x02, 0x83, subfunction};
 
     GenerateFrame gen_frame(s);
     gen_frame.AccessTimingParameters(can_id, subfunction, response);
@@ -813,11 +821,11 @@ TEST_F(GenerateFrameTest, AccessTimingParametersRequest) {
 
 /* Test Negative Response */
 TEST_F(GenerateFrameTest, NegativeResponse) {
-    int can_id = 0x123;
-    int sid = 0x01;
-    int nrc = 0x22;
+    uint32_t can_id = 0x123;
+    uint8_t sid = 0x01;
+    uint8_t nrc = 0x22;
 
-    std::vector<int> data = {0x03, 0x7F, sid, nrc};
+    std::vector<uint8_t> data = {0x03, 0x7F, sid, nrc};
 
     GenerateFrame gen_frame(s);
     gen_frame.NegativeResponse(can_id, sid, nrc);
@@ -835,12 +843,12 @@ TEST_F(GenerateFrameTest, RequestDownload) {
        To be reviewed and fixed */
 
     /*
-    int can_id = 0x101;
-    int data_format_identifier = 0x02;
-    int memory_size = 0x10;
-    int memory_address = 0x3445;
+    uint32_t can_id = 0x101;
+    uint8_t data_format_identifier = 0x02;
+    uint8_t memory_size = 0x10;
+    uint8_t memory_address = 0x3445;
 
-    std::vector<int> data;
+    std::vector<uint8_t> data;
 
     GenerateFrame gen_frame(s);
     gen_frame.RequestDownload(can_id, data_format_identifier, memory_address, memory_size);
@@ -868,10 +876,10 @@ TEST_F(GenerateFrameTest, RequestDownloadResponse) {
     /* Segmentation fault error received
        To be reviewed and fixed */
     /*
-    int can_id = 0x101;
-    int max_number_block = 0x2234;
+    uint32_t can_id = 0x101;
+    uint8_t max_number_block = 0x2234;
 
-    std::vector<int> data;
+    std::vector<uint8_t> data;
 
     GenerateFrame gen_frame(s);
     gen_frame.RequestDownloadResponse(can_id, max_number_block);
@@ -892,11 +900,11 @@ TEST_F(GenerateFrameTest, RequestDownloadResponse) {
 
 /* Test Transfer Data when transfer request is empty */
 TEST_F(GenerateFrameTest, TransferDataEmpty) {
-    int can_id = 0x123;
-    int block_sequence_counter = 0x30;
-    std::vector<int> transfer_request;
+    uint32_t can_id = 0x123;
+    uint8_t block_sequence_counter = 0x30;
+    std::vector<uint8_t> transfer_request;
 
-    std::vector<int> data = {0x02, 0x76, block_sequence_counter};
+    std::vector<uint8_t> data = {0x02, 0x76, block_sequence_counter};
 
     GenerateFrame gen_frame(s);
     gen_frame.TransferData(can_id, block_sequence_counter, transfer_request);
@@ -909,11 +917,11 @@ TEST_F(GenerateFrameTest, TransferDataEmpty) {
 
 /* Test Transfer Data when transfer request is not empty */
 TEST_F(GenerateFrameTest, TransferDataNotEmpty) {
-    int can_id = 0x123;
-    int block_sequence_counter = 0x30;
-    std::vector<int> transfer_request = {0x2, 0x2, 0x2};
+    uint32_t can_id = 0x123;
+    uint8_t block_sequence_counter = 0x30;
+    std::vector<uint8_t> transfer_request = {0x2, 0x2, 0x2};
 
-    std::vector<int> data = {(int)transfer_request.size() + 2, 0x36, block_sequence_counter, 0x2, 0x2, 0x2};
+    std::vector<uint8_t> data = {static_cast<uint8_t>(transfer_request.size() + 2), 0x36, block_sequence_counter, 0x2, 0x2, 0x2};
 
     GenerateFrame gen_frame(s);
     gen_frame.TransferData(can_id, block_sequence_counter, transfer_request);
@@ -926,12 +934,12 @@ TEST_F(GenerateFrameTest, TransferDataNotEmpty) {
 
 /* Test Transfer Data Long first frame */
 TEST_F(GenerateFrameTest, TransferDataLongFirstFrame) {
-    int can_id = 0x101;
-    int block_sequence_counter = 0x03; 
-    std::vector<int> transfer_request = {0x2, 0x2, 0x2, 0x2};
+    uint32_t can_id = 0x101;
+    uint8_t block_sequence_counter = 0x03; 
+    std::vector<uint8_t> transfer_request = {0x2, 0x2, 0x2, 0x2};
     bool first_frame = true;
 
-    std::vector<int> data = {0x10, (int)transfer_request.size() + 2, 0x36, block_sequence_counter, 0x2, 0x2, 0x2, 0x2};
+    std::vector<uint8_t> data = {0x10, static_cast<uint8_t>(transfer_request.size() + 2), 0x36, block_sequence_counter, 0x2, 0x2, 0x2, 0x2};
 
     GenerateFrame gen_frame(s);
     gen_frame.TransferDataLong(can_id, block_sequence_counter, transfer_request, first_frame);
@@ -944,12 +952,12 @@ TEST_F(GenerateFrameTest, TransferDataLongFirstFrame) {
 
 /* Test Transfer Data Long not first frame */
 TEST_F(GenerateFrameTest, TransferDataLongNotFirstFrame) {
-    int can_id = 0x101;
-    int block_sequence_counter = 0x03; 
-    std::vector<int> transfer_request = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};  
+    uint32_t can_id = 0x101;
+    uint8_t block_sequence_counter = 0x03; 
+    std::vector<uint8_t> transfer_request = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};  
     bool first_frame = false;
 
-    std::vector<int> data = {0x21, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};
+    std::vector<uint8_t> data = {0x21, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};
 
     GenerateFrame gen_frame(s);
     gen_frame.TransferDataLong(can_id, block_sequence_counter, transfer_request, first_frame);
@@ -962,15 +970,15 @@ TEST_F(GenerateFrameTest, TransferDataLongNotFirstFrame) {
 
 /* Test Request Transfer Exit Response */
 TEST_F(GenerateFrameTest, RequestTransferExitResponse) {
-    int id = 0x101;
+    uint32_t can_id = 0x101;
     bool response = true;
 
-    std::vector<int> data = {0x01, 0x77};
+    std::vector<uint8_t> data = {0x01, 0x77};
 
     GenerateFrame gen_frame(s);
-    gen_frame.RequestTransferExit(id, response);
+    gen_frame.RequestTransferExit(can_id, response);
 
-    EXPECT_EQ(gen_frame.frame.can_id, id);
+    EXPECT_EQ(gen_frame.frame.can_id, can_id);
     for (int i = 0; i < gen_frame.frame.can_dlc; ++i) {
         EXPECT_EQ(gen_frame.frame.data[i], data[i]);
     }
@@ -978,25 +986,26 @@ TEST_F(GenerateFrameTest, RequestTransferExitResponse) {
 
 /* Test Request Transfer Exit Request */
 TEST_F(GenerateFrameTest, RequestTransferExitRequest) {
-    int id = 0x101;
+    uint32_t can_id = 0x101;
     bool response = false;
 
-    std::vector<int> data = {0x01, 0x37};
+    std::vector<uint8_t> data = {0x01, 0x37};
 
     GenerateFrame gen_frame(s);
-    gen_frame.RequestTransferExit(id, response);
+    gen_frame.RequestTransferExit(can_id, response);
 
-    EXPECT_EQ(gen_frame.frame.can_id, id);
+    EXPECT_EQ(gen_frame.frame.can_id, can_id);
     for (int i = 0; i < gen_frame.frame.can_dlc; ++i) {
         EXPECT_EQ(gen_frame.frame.data[i], data[i]);
     }
 }
 
-/* Test Insert Bytes */
+/* Tests for the two private functions. They are not accesible at the moment */
+/* Test Insert Bytes
 TEST_F(GenerateFrameTest, InsertBytes) {
-    std::vector<int> data;
-    int num_bytes = 1;
-    int index = 0;
+    std::vector<uint8_t> data;
+    uint8_t num_bytes = 1;
+    uint8_t index = 0;
 
     GenerateFrame gen_frame(s);
     gen_frame.InsertBytes(data, index, num_bytes);
@@ -1004,16 +1013,16 @@ TEST_F(GenerateFrameTest, InsertBytes) {
     EXPECT_EQ(data[0], 0);
 }
 
-/* Test Count Digits*/
+/* Test Count Digits
 TEST_F(GenerateFrameTest, CountDigits) {
-    int number_1 = -1;
-    int number_2 = 1001;
+    uint8_t number_1 = -1;
+    uint8_t number_2 = 1001;
 
     GenerateFrame gen_frame(s);
 
     EXPECT_EQ(gen_frame.CountDigits(number_1), 1);
     EXPECT_EQ(gen_frame.CountDigits(number_2), 4);
-}
+}*/
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
