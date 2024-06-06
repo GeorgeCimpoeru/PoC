@@ -441,7 +441,7 @@ TEST_F(GenerateFramesTest, ReadByIdentLongRespTest)
         c1->capture();
     });
     /*Send frame simulation*/
-    std::vector<int> response = {1,2,3,4,5,6,7,8,9};
+    std::vector<uint8_t> response = {1,2,3,4,5,6,7,8,9};
     if (response.size() > 4)
     {
         g1->readDataByIdentifierLongResponse(id,0x1234,response);
@@ -903,7 +903,7 @@ TEST_F(GenerateFramesTest, TransferDataLongTest)
         c1->capture();
     });
     /*Send frame simulation*/
-    std::vector<int> data = {1,2,3,4,5,6,7};
+    std::vector<uint8_t> data = {1,2,3,4,5,6,7};
     if (data.size() > 4)
     {
         g1->transferDataLong(id,0x20,data);
@@ -926,7 +926,7 @@ TEST_F(GenerateFramesTest, TransferDataLongTest2)
         c1->capture();
     });
     /*Send frame simulation*/
-    std::vector<int> data = {1,2,3};
+    std::vector<uint8_t> data = {1,2,3};
     if (data.size() > 4)
     {
         g1->transferDataLong(id,0x20,data);
