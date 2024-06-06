@@ -48,6 +48,25 @@ private:
     SocketCanInterface canInterface;
     ReceiveFrames* frameReceiver;    
 
+public:
+    /**
+     * @brief Construct a new Battery Module object
+     * 
+     */
+    BatteryModule();
+    /**
+     * @brief Construct a new Battery Module object with custom interface name, custom moduleId
+     * 
+     * @param _interfaceNumber 
+     * @param _moduleId 
+     */
+    BatteryModule(int _interfaceNumber, int _moduleId);
+    /**
+     * @brief Destroy the Battery Module object
+     * 
+     */
+    ~BatteryModule();
+
     /**
      * @brief Helper function to execute shell commands and fetch output
      * in order to read System Information about built-in Battery
@@ -70,25 +89,6 @@ private:
      * @param _temperature 
      */
     void parseBatteryInfo(const std::string &data, float &energy, float &voltage, float &percentage, std::string &state);
-
-public:
-    /**
-     * @brief Construct a new Battery Module object
-     * 
-     */
-    BatteryModule();
-    /**
-     * @brief Construct a new Battery Module object with custom interface name, custom moduleId
-     * 
-     * @param _interfaceNumber 
-     * @param _moduleId 
-     */
-    BatteryModule(int _interfaceNumber, int _moduleId);
-    /**
-     * @brief Destroy the Battery Module object
-     * 
-     */
-    ~BatteryModule();
 
     /**
      * @brief Function to fetch data from system about battery
