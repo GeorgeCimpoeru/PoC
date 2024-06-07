@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "../include/BatteryModule.h"
 
+/* Helper function to create a socket for sending CAN frames */
 int createSocket()
 {
     /* Create socket */
@@ -43,7 +44,7 @@ TEST(BatteryModuleTest, DefaultConstructor)
     EXPECT_EQ(batteryModule.getEnergy(), 0.0);
     EXPECT_EQ(batteryModule.getVoltage(), 0.0);
     EXPECT_EQ(batteryModule.getPercentage(), 0.0);
-    EXPECT_FALSE(batteryModule.isRunning());
+    EXPECT_EQ(batteryModule.getLinuxBatteryState(), "");
 }
 
 /* Test parameterized constructor */
@@ -55,29 +56,10 @@ TEST(BatteryModuleTest, ParameterizedConstructor)
     EXPECT_EQ(batteryModule.getEnergy(), 0.0);
     EXPECT_EQ(batteryModule.getVoltage(), 0.0);
     EXPECT_EQ(batteryModule.getPercentage(), 0.0);
-    EXPECT_FALSE(batteryModule.isRunning());
+    EXPECT_EQ(batteryModule.getLinuxBatteryState(), "");
 }
 
-/* Test start and stop simulation */
-TEST(BatteryModuleTest, SimulationStartStop)
-{
-    BatteryModule batteryModule;
-    batteryModule.simulate();
-
-    /* Allow some time for the thread to start */
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-
-    /* Ensure the module is running */
-    EXPECT_TRUE(batteryModule.isRunning());
-
-    /* Stop the simulation */
-    batteryModule.stopBatteryModule();
-
-    /* Ensure the module is not running */
-    EXPECT_FALSE(batteryModule.isRunning());
-}
-
-/** 
+/* 
  * Mock the exec function to test fetchBatteryData
  * This class inherits from BatteryModule and overrides the exec function 
  */
@@ -98,6 +80,7 @@ TEST(BatteryModuleTest, FetchBatteryData)
     EXPECT_EQ(batteryModule.getEnergy(), 50.0);
     EXPECT_EQ(batteryModule.getVoltage(), 12.5);
     EXPECT_EQ(batteryModule.getPercentage(), 80.0);
+    EXPECT_EQ(batteryModule.getLinuxBatteryState(), "Discharging");
 }
 
 /* 
@@ -139,6 +122,7 @@ TEST(BatteryModuleTest, GetterFunctions)
     EXPECT_EQ(batteryModule.getEnergy(), 0.0);
     EXPECT_EQ(batteryModule.getVoltage(), 0.0);
     EXPECT_EQ(batteryModule.getPercentage(), 0.0);
+    EXPECT_EQ(batteryModule.getLinuxBatteryState(), "");
 }
 
 /* Test getLinuxBatteryState function */
@@ -151,6 +135,40 @@ TEST(BatteryModuleTest, GetLinuxBatteryState)
 
     /* Check the state returned by getLinuxBatteryState */
     EXPECT_EQ(batteryModule.getLinuxBatteryState(), "Discharging");
+}
+
+/* Test BatteryModule destructor */
+TEST(BatteryModuleTest, Destructor)
+{
+    BatteryModule* batteryModule = new BatteryModule();
+    delete batteryModule;
+}
+
+/* Test parseBatteryInfo function */
+TEST(BatteryModuleTest, ParseBatteryInfo)
+{
+    BatteryModule batteryModule;
+
+    float energy = 0.0;
+    float voltage = 0.0;
+    float percentage = 0.0;
+    std::string state;
+
+    std::string data = "energy: 50.0\nvoltage: 12.5\npercentage: 80.0\nstate: Discharging\n";
+    batteryModule.parseBatteryInfo(data, energy, voltage, percentage, state);
+
+    EXPECT_EQ(energy, 50.0);
+    EXPECT_EQ(voltage, 12.5);
+    EXPECT_EQ(percentage, 80.0);
+    EXPECT_EQ(state, "Discharging");
+}
+
+/* Test exec function */
+TEST(BatteryModuleTest, ExecFunction)
+{
+    BatteryModule batteryModule;
+    std::string result = batteryModule.exec("echo Hello");
+    EXPECT_EQ(result, "Hello\n");
 }
 
 int main(int argc, char **argv)
