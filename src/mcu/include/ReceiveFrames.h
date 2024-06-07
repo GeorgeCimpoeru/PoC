@@ -28,12 +28,14 @@
 #include<queue>
 #include<mutex>
 #include<condition_variable>
-
+#include <algorithm>
 #include<linux/can.h>
+
 #include "HandleFrames.h"
 #include "GenerateFrame.h"
 
-class ReceiveFrames{
+class ReceiveFrames
+{
  public:
 
   /* Constructor */
@@ -47,7 +49,7 @@ class ReceiveFrames{
    * 
    * @return int return 1 for error and 0 for successfully
    */
-  int receiveFramesFromCANBus();
+  bool receiveFramesFromCANBus();
 
   /**
    * @brief Function that take each frame from process queue and partially parse the frame to know
@@ -88,12 +90,19 @@ class ReceiveFrames{
    */
   uint32_t gethexValueId();
 
-    /**
+  /**
    * @brief Getter for running
    * 
    * @return bool 
    */
   bool getRunning();
+
+  /**
+   * @brief Getter for the list of ECUs that are up
+   * 
+   * @return const std::vector<uint8_t>& 
+   */
+  const std::vector<uint8_t>& getECUsUp() const;
   
  protected:
   /* The socket from where we read the frames */
@@ -105,6 +114,8 @@ class ReceiveFrames{
   bool running;
   HandleFrames handler;
   GenerateFrame generateFrame;
+  /* Vector contains all the ECUs up ids */
+  std::vector<uint8_t> ecusUp;
 };
 
 #endif /* POC_SRC_MCU_RECEIVE_FRAME_MODULE_H */
