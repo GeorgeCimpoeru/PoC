@@ -6,25 +6,27 @@
 #include <net/if.h>
 #include <unistd.h>
 
-/* Mock class for testing */
-class MockGenerateFrame : public GenerateFrame {
-public:
-    using GenerateFrame::GenerateFrame;
-    using GenerateFrame::CreateFrame;
-};
-
-/* Test fixture for GenerateFrame tests */
-class GenerateFrameTest : public ::testing::Test {
+/* Test class for GenerateFrame, which provides setup and teardown for CAN socket */
+class GenerateFrameTest : public testing::Test {
 protected:
-    int mockSocket;
-    MockGenerateFrame* generateFrame;
+	/* Set up a virtual CAN socket before each test */
+    void SetUp() override {
+        s = createSocket();
+    }
 
-    virtual void SetUp() {
-        // Create a mock socket for testing
-        mockSocket = socket(PF_CAN, SOCK_RAW, CAN_RAW);
-        ASSERT_TRUE(mockSocket >= 0);
+	/* Close the CAN socket after each test */
+    void TearDown() override {
+        close(s);
+    }
 
-        // Bind the socket to the CAN interface
+	/* Create and bind a CAN socket to the virtual CAN interface */
+    int createSocket() {
+        int s = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+        if (s < 0) {
+            std::cerr << "Error trying to create the socket\n";
+            return -1;
+        }
+
         struct sockaddr_can addr;
         struct ifreq ifr;
 
@@ -34,10 +36,13 @@ protected:
         addr.can_family = AF_CAN;
         addr.can_ifindex = ifr.ifr_ifindex;
 
-        ASSERT_EQ(bind(mockSocket, (struct sockaddr *)&addr, sizeof(addr)), 0);
+        if (bind(s, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+            std::cerr << "Error binding\n";
+            close(s);
+            return -1;
+        }
 
-        // Initialize the GenerateFrame object with the mock socket
-        generateFrame = new MockGenerateFrame(mockSocket);
+        return s;
     }
 
     int s;
