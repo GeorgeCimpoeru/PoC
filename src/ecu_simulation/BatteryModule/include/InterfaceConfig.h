@@ -29,7 +29,7 @@ private:
     std::string _interfaceName;
     struct sockaddr_can _addr;
     struct ifreq _ifr;
-
+    
     void createLinuxVCanInterface();
     void deleteLinuxVCanInterface();
     void stopLinuxVCanInterface();
