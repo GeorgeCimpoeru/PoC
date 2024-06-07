@@ -1,9 +1,9 @@
 'use client';
 import React, { useState } from 'react'
-import EmailInput from './EmailInput';
-import PasswordInput from './PasswordInput';
-import ConfirmPasswordInput from './ConfirmPasswordInput';
-import SignUpButton from './SignUpButton';
+import EmailInput from '../components/signupComponents/EmailInput';
+import PasswordInput from '../components/signupComponents/PasswordInput';
+import ConfirmPasswordInput from '../components/signupComponents/ConfirmPasswordInput';
+import SignUpButton from '../components/signupComponents/SignUpButton';
 import Link from "next/link";
 
 const SignUpPage = () => {
@@ -26,7 +26,7 @@ const SignUpPage = () => {
           </form>
           <div className='card-actions justify-center'>
             <h2 className='p-1 my-1'>
-              <Link href="/signin">Back to Sign In {email}</Link>
+              <Link href="/login">Back to Sign In {email}</Link>
             </h2>
           </div>
         </div>
