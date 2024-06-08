@@ -36,8 +36,10 @@ class ReceiveFrames
 private:
     /* Descriptor for the socket connection */
     int socket = -1;            
-    /* Module ID for filtering incoming frames */                  
-    int module_id = 0x101;                 
+    /* Module ID for filtering incoming frames */  
+    int frame_id;    
+    /* Battery Module ID for filtering frames for this module */              
+    uint8_t this_module_id = 0x11;                 
     /* Define frame_buffer as a deque of tuples */ 
     std::deque<std::tuple<can_frame, int>> frame_buffer; 
     /* Mutex for ensuring thread safety when accessing the frame buffer */   
@@ -68,9 +70,9 @@ public:
      * @brief Construct a new receive Frames object
      * 
      * @param socket 
-     * @param module_id 
+     * @param frame_id 
      */
-    ReceiveFrames(int socket, int module_id);
+    ReceiveFrames(int socket, int frame_id);
     /**
      * @brief Destroy the receive Frames object
      * 

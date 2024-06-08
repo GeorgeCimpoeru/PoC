@@ -1,7 +1,7 @@
 #include "../include/ReceiveFrames.h"
 #include "../include/HandleFrames.h"
 
-ReceiveFrames::ReceiveFrames(int socket, int module_id) : socket(socket), module_id(module_id), running(true) 
+ReceiveFrames::ReceiveFrames(int socket, int frame_id) : socket(socket), frame_id(frame_id), running(true) 
 {
     if (socket < 0) 
     {
@@ -12,14 +12,14 @@ ReceiveFrames::ReceiveFrames(int socket, int module_id) : socket(socket), module
     const int MIN_VALID_ID = 0x00000000;
     const int MAX_VALID_ID = 0x7FFFFFFF;
 
-    if (module_id < MIN_VALID_ID || module_id > MAX_VALID_ID) 
+    if (frame_id < MIN_VALID_ID || frame_id > MAX_VALID_ID) 
     {
         std::cerr << "Error: Pass a valid Module ID\n";
         exit(EXIT_FAILURE);
     }
 
-    /* Print the module_id for debugging */ 
-    std::cout << "Module ID: 0x" << std::hex << std::setw(8) << std::setfill('0') << this->module_id << std::endl;
+    /* Print the frame_id for debugging */ 
+    std::cout << "Module ID: 0x" << std::hex << std::setw(8) << std::setfill('0') << this->frame_id << std::endl;
 }
 
 ReceiveFrames::~ReceiveFrames() 
@@ -29,7 +29,7 @@ ReceiveFrames::~ReceiveFrames()
 
 void ReceiveFrames::receive(HandleFrames &handle_frame) 
 {
-    std::cout << "Starting receive Method for Module ID: 0x" << std::hex << std::setw(8) << std::setfill('0') << this->module_id << std::endl;
+    std::cout << "Starting receive Method for Module ID: 0x" << std::hex << std::setw(8) << std::setfill('0') << this->frame_id << std::endl;
     try 
     {
         bufferFrameInThread = std::thread(&ReceiveFrames::bufferFrameIn, this);
@@ -110,10 +110,12 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
         int nbytes = std::get<1>(frameTuple);
 
         /* Print the frame for debugging */ 
-            printFrame(frame);
+        printFrame(frame);
 
+        uint8_t frame_dest_id = frame.can_id & 0xFF;
+        this_module_id = frame_id & 0xFF;
          /* Check if the received frame is for your module */ 
-        if (static_cast<int>(frame.can_id) != module_id)
+        if (static_cast<int>(frame_dest_id) != this_module_id)
         {
             std::cerr << "Received frame is not for this module\n";
             continue;
