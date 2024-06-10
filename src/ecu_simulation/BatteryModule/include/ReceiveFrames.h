@@ -24,10 +24,11 @@
 #include <sstream>
 #include <iomanip>
 #include <cstring>
-#include <queue>
+#include <deque>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <atomic>
 #include "../include/HandleFrames.h"
 
 class ReceiveFrames 
@@ -36,44 +37,42 @@ private:
     /* Descriptor for the socket connection */
     int socket = -1;            
     /* Module ID for filtering incoming frames */                  
-    int moduleID = 0x101;                 
-    /* Buffer to store incoming can frames */        
-    std::queue<struct can_frame> frameBuffer;  
+    int module_id = 0x101;                 
+    /* Define frame_buffer as a deque of tuples */ 
+    std::deque<std::tuple<can_frame, int>> frame_buffer; 
     /* Mutex for ensuring thread safety when accessing the frame buffer */   
     std::mutex mtx;              
     /* Condition variable for thread synchronization */                 
     std::condition_variable cv;               
     /* Flag indicating whether the receive threads should continue running */     
-    bool running;                
-    /* Thread for producing (receiving) frames */                
-    std::thread producerThread;        
-    /* Thread for consuming (handling) frames */         
-    std::thread consumerThread;                   
-
+    std::atomic<bool> running;                
+    /* Thread for buffering in receiving frames */                
+    std::thread bufferFrameInThread;                       
     /**
-     * @brief Producer thread function that reads frames from the socket and adds them to the buffer
+     * @brief bufferFrameIn thread function that reads frames from the socket and adds them to the buffer
      * 
      */
-    void producer();
+    void bufferFrameIn();
     /**
      * @brief Consumer thread function that processes frames from the buffer
      * 
-     * @param handleFrame 
+     * @param handle_frame 
      */
-    void consumer(HandleFrames &handleFrame);
+    void bufferFrameOut(HandleFrames &handle_frame);
+    
 protected:
-    HandleFrames handleFrame;
+    HandleFrames handle_frame;
     
 public:
     /**
-     * @brief Construct a new Receive Frames object
+     * @brief Construct a new receive Frames object
      * 
      * @param socket 
-     * @param moduleID 
+     * @param module_id 
      */
-    ReceiveFrames(int socket, int moduleID);
+    ReceiveFrames(int socket, int module_id);
     /**
-     * @brief Destroy the Receive Frames object
+     * @brief Destroy the receive Frames object
      * 
      */
     ~ReceiveFrames();
@@ -84,16 +83,16 @@ public:
      */
     void printFrame(const struct can_frame &frame);
     /**
-     * @brief Starts the receive process by creating producer and consumer threads
+     * @brief Starts the receive process by creating bufferFrameIn and bufferFrameOut threads
      * 
-     * @param handleFrame 
+     * @param handle_frame 
      */
-    void Receive(HandleFrames &handleFrame);
+    void receive(HandleFrames &handle_frame);
     /**
      * @brief Stops the receive process gracefully
      * 
      */
-    void Stop();
+    void stop();
 };
 
 #endif
