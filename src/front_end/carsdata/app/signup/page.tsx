@@ -5,6 +5,7 @@ import PasswordInput from '../components/signupComponents/PasswordInput';
 import ConfirmPasswordInput from '../components/signupComponents/ConfirmPasswordInput';
 import SignUpButton from '../components/signupComponents/SignUpButton';
 import Link from "next/link";
+import { database } from '../firebaseConfig';
 
 const SignUpPage = () => {
   const [email, setEmail] = useState("");
@@ -22,7 +23,7 @@ const SignUpPage = () => {
             <EmailInput onEmailType={setEmail}/>
             <PasswordInput onPasswordType={setPassword}/>
             <ConfirmPasswordInput onConfPasswordType={setConfPassword}/>
-            <SignUpButton email={email} password={password} confPassword={confPassword}/>
+            <SignUpButton email={email} password={password} confPassword={confPassword} database={database}/>
           </form>
           <div className='card-actions justify-center'>
             <h2 className='p-1 my-1'>

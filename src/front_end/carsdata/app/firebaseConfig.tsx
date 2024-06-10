@@ -4,7 +4,7 @@ import { getDatabase } from "firebase/database";
 const firebaseConfig = {
   apiKey: "AIzaSyDMDT80uPX8NbGpHybiPN8gdGJt4pRjdPU",
   authDomain: "nextjsrelatimetest.firebaseapp.com",
-  databaseURL: "https://nextjsrelatimetest-default-rtdb.europe-west1.firebasedatabase.app/",
+  databaseURL: "https://nextjsrelatimetest-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "nextjsrelatimetest",
   storageBucket: "nextjsrelatimetest.appspot.com",
   messagingSenderId: "439663572632",
