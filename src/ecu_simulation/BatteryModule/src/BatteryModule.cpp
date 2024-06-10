@@ -122,7 +122,7 @@ void BatteryModule::receiveFrames()
     HandleFrames handleFrames;
 
     /* Receive a CAN frame using the frame receiver and process it with handleFrames */
-    frameReceiver->Receive(handleFrames);
+    frameReceiver->receive(handleFrames);
 
     /* Sleep for 100 milliseconds before receiving the next frame to prevent busy-waiting */
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -131,7 +131,7 @@ void BatteryModule::receiveFrames()
 /* Functon to Stop receiving frames */
 void BatteryModule::stopFrames()
 {
-    frameReceiver->Stop();
+    frameReceiver->stop();
 }
 
 /* Getter function for current */
