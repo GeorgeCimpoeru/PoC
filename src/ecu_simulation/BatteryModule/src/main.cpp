@@ -2,8 +2,10 @@
 
 int main() {
     BatteryModule batteryModule;
-    batteryModule.simulate();
-    batteryModule.receiveFrames();
+    std::thread receiveFrThread([&batteryModule]()
+                               { batteryModule.receiveFrames(); });
+    sleep(8);
     batteryModule.stopFrames();
+    receiveFrThread.join();
     return 0;
 }
