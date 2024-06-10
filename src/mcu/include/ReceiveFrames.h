@@ -1,4 +1,4 @@
-/**
+/*
  * The ReceiveFrameModule library facilitates the reception of Controller Area Network (CAN) 
  * frames through an interface utilizing sockets. This library allows you to read CAN frames 
  * from the CAN bus and process them based on specific criteria.
@@ -25,26 +25,31 @@
 #include<cstring>
 #include<sstream>
 #include<vector>
-#include <queue>
-#include <mutex>
-#include <condition_variable>
-
+#include<queue>
+#include<mutex>
+#include<condition_variable>
+#include <algorithm>
 #include<linux/can.h>
+
 #include "HandleFrames.h"
 #include "GenerateFrame.h"
 
-class ReceiveFrames{
+class ReceiveFrames
+{
  public:
 
   /* Constructor */
   ReceiveFrames(int socket);
+
+  /* Destructor */
+  ~ReceiveFrames();
 
   /**
    * @brief Function that take the frame from CANBus and put it in process queue.
    * 
    * @return int return 1 for error and 0 for successfully
    */
-  int receiveFramesFromCANBus();
+  bool receiveFramesFromCANBus();
 
   /**
    * @brief Function that take each frame from process queue and partially parse the frame to know
@@ -59,6 +64,45 @@ class ReceiveFrames{
    * @param frame the frame that you want to print
    */
   void printFrames(const struct can_frame &frame);
+
+  /**
+   * @brief Function to send test frame on CANBus.
+   * 
+   */
+  void sendTestFrame();
+
+  /**
+   * @brief Set running member to false
+   * 
+   */
+  void stopRunning();
+
+  /**
+   * @brief Set running member to true
+   * 
+   */
+  void startRunning();
+
+  /**
+   * @brief Getter for hexValueId
+   * 
+   * @return uint32_t 
+   */
+  uint32_t gethexValueId();
+
+  /**
+   * @brief Getter for running
+   * 
+   * @return bool 
+   */
+  bool getRunning();
+
+  /**
+   * @brief Getter for the list of ECUs that are up
+   * 
+   * @return const std::vector<uint8_t>& 
+   */
+  const std::vector<uint8_t>& getECUsUp() const;
   
  protected:
   /* The socket from where we read the frames */
@@ -67,10 +111,11 @@ class ReceiveFrames{
   std::queue<struct can_frame> frameQueue;
   std::mutex queueMutex;
   std::condition_variable queueCondVar;
-  HandleFrames& handler;
-  GenerateFrame& generateFrames;
-
-
+  bool running;
+  HandleFrames handler;
+  GenerateFrame generateFrame;
+  /* Vector contains all the ECUs up ids */
+  std::vector<uint8_t> ecusUp;
 };
 
 #endif /* POC_SRC_MCU_RECEIVE_FRAME_MODULE_H */
