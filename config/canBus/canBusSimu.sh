@@ -52,7 +52,7 @@ link_new_interface() {
 
 #syncronize - loop through the interfaces that are UP and simulate the CAN Bus between the new ones and already existing interfaces
 syncronize() {
-    for interface in $(ip link show | grep -o 'vcan[0-9]*'); do
+    for interface in $(ip link show | grep -o 'vcan[0-9]*' | grep -v 'vcan0'); do
         if [ $(check_status $interface) -eq 1 ]; then
             link_new_interface $interface
         fi
