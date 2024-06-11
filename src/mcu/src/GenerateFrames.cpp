@@ -456,13 +456,10 @@ void GenerateFrames::requestTransferExit(uint32_t can_id, bool response)
 
 void GenerateFrames::insertBytes(std::vector<uint8_t>& data, unsigned int index, int num_bytes) 
 {
-    // for (uint8_t bit = 0; bit < num_bytes; bit++) 
-    // {
-    //     data.insert(data.begin() + index, 0x00);
-    // }
-    for (int i = num_bytes - 1; i >= 0; --i) 
+  
+    for (int bit = num_bytes - 1; bit >= 0; --bit) 
     {
-        data.push_back((index >> (i * 8)) & 0xFF);
+        data.push_back((index >> (bit * 8)) & 0xFF);
     }
 }
 

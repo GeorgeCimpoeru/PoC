@@ -1,5 +1,5 @@
 /**
- * @file GenerateFrame.h
+ * @file GenerateFrames.h
  * @brief For creating a CAN frame
  * This class is used to create a CAN frame and send it to the CAN bus.
  * The class has a constructor that takes the frame type, CAN ID, data, and
