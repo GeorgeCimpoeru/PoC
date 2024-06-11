@@ -15,6 +15,7 @@ BatteryModule::BatteryModule() : moduleId(0x101),
     std::cout << "BatteryModule()" << std::endl;
     std::cout << "(BatteryModule)moduleId = " << this->moduleId << std::endl;
 #endif
+    notifyUp();
 }
 
 /* Parameterized Constructor - initializes the BatteryModule with provided interface number and module ID */
@@ -31,12 +32,40 @@ BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_mo
     std::cout << "BatteryModule(int interfaceNumber, int moduleId)" << std::endl;
     std::cout << "(BatteryModule)moduleId = " << this->moduleId << std::endl;
 #endif
+    notifyUp();
 }
 
 /* Destructor */
 BatteryModule::~BatteryModule()
 {
+    notifyDown();
     delete frameReceiver;
+}
+
+/* Function to notify MCU if the module is Up & Running */
+void BatteryModule::notifyUp()
+{
+    /* Create an instance of GenerateFrames with the CAN socket */
+    GenerateFrames g1 = GenerateFrames(canInterface.getSocketFd());
+
+    /* Create a vector of uint8_t (bytes) containing the data to be sent */
+    std::vector<uint8_t> data = {0x0, 0xff, 0x11, 0x3};
+
+    /* Send the CAN frame with ID 0x22110 and the data vector */
+    g1.sendFrame(0x22110, data);
+}
+
+/* Function to notify MCU if the module is Down */
+void BatteryModule::notifyDown()
+{
+    /* Create an instance of GenerateFrames with the CAN socket */
+    GenerateFrames g1 = GenerateFrames(canInterface.getSocketFd());
+
+    /* Create a vector of uint8_t (bytes) containing the data to be sent */
+    std::vector<uint8_t> data = {0x0, 0xff, 0x0, 0x3};
+
+    /* Send the CAN frame with ID 0x22110 and the data vector */
+    g1.sendFrame(0x22110, data);
 }
 
 /* Helper function to execute shell commands and fetch output */

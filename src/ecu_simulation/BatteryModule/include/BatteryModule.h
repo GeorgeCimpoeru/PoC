@@ -28,6 +28,7 @@
 #include <iostream>
 #include "InterfaceConfig.h"
 #include "ReceiveFrames.h"
+#include "GenerateFrames.h"
 
 class BatteryModule
 {
@@ -66,6 +67,19 @@ public:
      * 
      */
     ~BatteryModule();
+
+    /**
+     * @brief Function to notify MCU if the module is Up & Running
+     * 
+     */
+    void notifyUp();
+
+    /**
+     * @brief Function to notify MCU if the module is Down
+     * 
+     * This will be only temporary.
+     */
+    void notifyDown();
 
     /**
      * @brief Helper function to execute shell commands and fetch output
