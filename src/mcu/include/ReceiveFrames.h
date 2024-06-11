@@ -1,19 +1,36 @@
 /*
  * The ReceiveFrameModule library facilitates the reception of Controller Area Network (CAN) 
  * frames through an interface utilizing sockets. This library allows you to read CAN frames 
- * from the CAN bus and process them based on specific criteria.
+ * from the CAN bus and frames from an API, then process them based on specific criteria.
  *
- * The library provides methods for receiving and handling CAN frames:
- *  - ReceiveFrameFromCANBus: Continuously reads CAN frames from the specified socket and processes them.
- *  - It checks if the received frame's ID matches a predefined value (hexValueId) and processes the frame data accordingly.
+ * The library provides methods for receiving and handling CAN and API frames:
+ *  - receiveFramesFromCANBus: Continuously reads CAN frames from the specified socket and processes them.
+ *  - receiveFramesFromAPI: Continuously reads frames from the API socket and processes them.
+ *  - processQueue: Processes frames from the queue and calls HandleFrames and GenerateFrame as needed.
+ *  - You can choose to listen to frames from either the CAN bus or the API by setting the corresponding listen flags.
  *
  * How to use example:
- *    int socket = //... initialize your socket here
- *    ReceiveFrameModule rfm(socket);
- *    fm.ReceiveFrameFromCANBus();
+ *    int socketCANBus = //... initialize your CAN bus socket here
+ *    int socketAPI = //... initialize your API socket here
+ *    ReceiveFrames rfm(socketCANBus, socketAPI);
+ *
+ *    // Start listening to CAN bus frames
+ *    rfm.startListenCANBus();
+ *    rfm.receiveFramesFromCANBus();
+ *
+ *    // Start listening to API frames
+ *    rfm.startListenAPI();
+ *    rfm.receiveFramesFromAPI();
+ *
+ *    // To stop listening, you can call the stop functions
+ *    rfm.stopListenCANBus();
+ *    rfm.stopListenAPI();
+ *
+ *    // Process the frames in the queue
+ *    rfm.processQueue();
  *
  * Author: Dirva Nicolae, 2024
-*/
+ */
 
 #ifndef POC_SRC_MCU_RECEIVE_FRAME_MODULE_H
 #define POC_SRC_MCU_RECEIVE_FRAME_MODULE_H
@@ -39,7 +56,7 @@ class ReceiveFrames
  public:
 
   /* Constructor */
-  ReceiveFrames(int socket);
+  ReceiveFrames(int socketCANBus, int socketAPI);
 
   /* Destructor */
   ~ReceiveFrames();
@@ -50,6 +67,14 @@ class ReceiveFrames
    * @return int return 1 for error and 0 for successfully
    */
   bool receiveFramesFromCANBus();
+
+   /**
+   * @brief Function that take the frame from API and put it in process queue.
+   * 
+   * @return int return 1 for error and 0 for successfully
+   */
+  bool receiveFramesFromAPI();
+
 
   /**
    * @brief Function that take each frame from process queue and partially parse the frame to know
@@ -72,16 +97,28 @@ class ReceiveFrames
   void sendTestFrame();
 
   /**
-   * @brief Set running member to false
+   * @brief Set listenAPI member to false
    * 
    */
-  void stopRunning();
+  void stopListenAPI();
+
+    /**
+   * @brief Set listenCANBus member to false
+   * 
+   */
+  void stopListenCANBus();
 
   /**
-   * @brief Set running member to true
+   * @brief Set listenAPI member to true
    * 
    */
-  void startRunning();
+  void startListenAPI();
+
+  /**
+   * @brief Set listenCANBus member to true
+   * 
+   */
+  void startListenCANBus();
 
   /**
    * @brief Getter for hexValueId
@@ -91,11 +128,18 @@ class ReceiveFrames
   uint32_t gethexValueId();
 
   /**
-   * @brief Getter for running
+   * @brief Getter for listenAPI
    * 
    * @return bool 
    */
-  bool getRunning();
+  bool getListenAPI();
+
+  /**
+   * @brief Getter for listenCANBus
+   * 
+   * @return bool 
+   */
+  bool getListenCANBus();
 
   /**
    * @brief Getter for the list of ECUs that are up
@@ -106,12 +150,14 @@ class ReceiveFrames
   
  protected:
   /* The socket from where we read the frames */
-  int s;
+  int socketCANBus;
+  int socketAPI;
   const uint32_t hexValueId = 0x10;
   std::queue<struct can_frame> frameQueue;
   std::mutex queueMutex;
   std::condition_variable queueCondVar;
-  bool running;
+  bool listenAPI;
+  bool listenCANBus;
   HandleFrames handler;
   GenerateFrame generateFrame;
   /* Vector contains all the ECUs up ids */
