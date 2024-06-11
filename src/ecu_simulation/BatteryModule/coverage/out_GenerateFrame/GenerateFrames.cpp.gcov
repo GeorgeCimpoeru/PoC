@@ -4,29 +4,29 @@
         -:    0:Runs:1
         -:    1:#include "../include/GenerateFrames.h"
         -:    2:
-       40:    3:GenerateFrames::GenerateFrames(int socket)
+       43:    3:GenerateFrames::GenerateFrames(int socket)
         -:    4:{
-       40:    5:    this->addSocket(socket);
-       40:    6:}
+       43:    5:    this->addSocket(socket);
+       43:    6:}
         -:    7:
         1:    8:int GenerateFrames::getSocket()
         -:    9:{
         1:   10:    return this->socket;
         -:   11:}
         -:   12:
-       43:   13:struct can_frame GenerateFrames::createFrame(int &id,  std::vector<uint8_t> &data, FrameType frameType)
+       45:   13:struct can_frame GenerateFrames::createFrame(int &id,  std::vector<uint8_t> &data, FrameType frameType)
         -:   14:{
         -:   15:    struct can_frame frame;
-       43:   16:    switch (frameType)
+       45:   16:    switch (frameType)
         -:   17:    {
-       42:   18:        case DATA_FRAME:
-       42:   19:            frame.can_id = id & CAN_EFF_MASK;
-       42:   20:            frame.can_dlc = data.size();
-      247:   21:            for (uint8_t byte = 0; byte < frame.can_dlc; byte++)
+       43:   18:        case DATA_FRAME:
+       43:   19:            frame.can_id = id & CAN_EFF_MASK;
+       43:   20:            frame.can_dlc = data.size();
+      253:   21:            for (uint8_t byte = 0; byte < frame.can_dlc; byte++)
         -:   22:            {
-      205:   23:                frame.data[byte] = data[byte];
+      210:   23:                frame.data[byte] = data[byte];
         -:   24:            }
-       42:   25:            break;
+       43:   25:            break;
         1:   26:        case REMOTE_FRAME:
         1:   27:            frame.can_id = id & CAN_EFF_MASK;
         1:   28:            frame.can_id |= CAN_RTR_FLAG;
@@ -36,30 +36,30 @@
         1:   32:                frame.data[byte] = data[byte];
         -:   33:            }
         1:   34:            break;
-    #####:   35:        default:
-    #####:   36:            throw std::invalid_argument("Invalid frame type");
+        1:   35:        default:
+        1:   36:            throw std::invalid_argument("Invalid frame type");
         -:   37:    }
-       43:   38:    return frame;
+       44:   38:    return frame;
         -:   39:}
         -:   40:
-       43:   41:bool GenerateFrames::sendFrame(int id, std::vector<uint8_t > data, FrameType frameType)
+       45:   41:bool GenerateFrames::sendFrame(int id, std::vector<uint8_t > data, FrameType frameType)
         -:   42:{
-       43:   43:    struct can_frame frame = createFrame(id, data, frameType);
-       43:   44:    int nbytes = write(this->socket, &frame, sizeof(frame));
-       43:   45:    if (nbytes != sizeof(frame))
+       45:   43:    struct can_frame frame = createFrame(id, data, frameType);
+       44:   44:    int nbytes = write(this->socket, &frame, sizeof(frame));
+       44:   45:    if (nbytes != sizeof(frame))
         -:   46:    {
         1:   47:        std::cout<<"Write error\n";
         1:   48:        return -1;
         -:   49:    }
-       42:   50:    return 0;
+       43:   50:    return 0;
         -:   51:}
         -:   52:
-       40:   53:void GenerateFrames::addSocket(int socket)
+       43:   53:void GenerateFrames::addSocket(int socket)
         -:   54:{
-       40:   55:    if (socket >= 0)
+       43:   55:    if (socket >= 0)
         -:   56:    {
-       40:   57:        this->socket = socket;
-       40:   58:        return;
+       43:   57:        this->socket = socket;
+       43:   58:        return;
         -:   59:    }
     #####:   60:    std::cout<<"Error: Pass a valid Socket\n";
     #####:   61:    exit(EXIT_FAILURE);
@@ -395,19 +395,19 @@
         2:  391:    return;
         -:  392:}
         -:  393:
-        1:  394:void GenerateFrames::requestDownload(int id, uint8_t data_format_identifier, int memory_address, int memory_size)
+        2:  394:void GenerateFrames::requestDownload(int id, uint8_t data_format_identifier, int memory_address, int memory_size)
         -:  395:{
         -:  396:    /* Request Frame add lengths of of memory size/address to the frame */
-        1:  397:    uint8_t length_memory_size = countDigits(memory_size + 1) / 2;
-        1:  398:    uint8_t length_memory_address = countDigits(memory_address + 1) / 2;
-        1:  399:    uint8_t length_memory = length_memory_size * 0x10 + length_memory_address;
-        1:  400:    uint8_t pci_length = length_memory_size + length_memory_address + 3;
-        2:  401:    std::vector<uint8_t> data = {pci_length, 0x34, data_format_identifier, length_memory};
+        2:  397:    uint8_t length_memory_size = countDigits(memory_size + 1) / 2;
+        2:  398:    uint8_t length_memory_address = countDigits(memory_address + 1) / 2;
+        2:  399:    uint8_t length_memory = length_memory_size * 0x10 + length_memory_address;
+        2:  400:    uint8_t pci_length = length_memory_size + length_memory_address + 3;
+        4:  401:    std::vector<uint8_t> data = {pci_length, 0x34, data_format_identifier, length_memory};
         -:  402:    /* add memory address and size to the frame */
-        1:  403:    insertBytes(data, memory_address, length_memory_address);
-        1:  404:    insertBytes(data, memory_size, length_memory_size);
-        1:  405:    this->sendFrame(id, data);
-        2:  406:    return;
+        2:  403:    insertBytes(data, memory_address, length_memory_address);
+        2:  404:    insertBytes(data, memory_size, length_memory_size);
+        2:  405:    this->sendFrame(id, data);
+        4:  406:    return;
         -:  407:}
         -:  408:
         1:  409:void GenerateFrames::requestDownloadResponse(int id, int max_number_block)
@@ -490,27 +490,27 @@
         1:  486:    return;
         -:  487:}
         -:  488:
-    #####:  489:bool GenerateFrames::requestUpdateStatus(int id, bool response)
+        1:  489:bool GenerateFrames::requestUpdateStatus(int id, bool response)
         -:  490:{
         -:  491:    /* No impplementation, I don't find this service in the standart */
-    #####:  492:    return false;
+        1:  492:    return false;
         -:  493:}
         -:  494:
         -:  495:/* Private */
-       13:  496:int GenerateFrames::countDigits(int number)
+       15:  496:int GenerateFrames::countDigits(int number)
         -:  497:{
-       13:  498:    int digits = 0;
-       13:  499:    if (number < 0) 
-    #####:  500:        digits = 1;
-       48:  501:    while (number) {
-       35:  502:        number /= 10;
-       35:  503:        digits++;
+       15:  498:    int digits = 0;
+       15:  499:    if (number < 0) 
+        1:  500:        return 0;
+       51:  501:    while (number) {
+       37:  502:        number /= 10;
+       37:  503:        digits++;
         -:  504:    }
-       13:  505:    return digits;
+       14:  505:    return digits;
         -:  506:}
         -:  507:
-       11:  508:void GenerateFrames::insertBytes(std::vector<uint8_t>& byteVector, unsigned int num, int numBytes) {
-       27:  509:    for (int i = numBytes - 1; i >= 0; --i) {
-       16:  510:        byteVector.push_back((num >> (i * 8)) & 0xFF);
+       13:  508:void GenerateFrames::insertBytes(std::vector<uint8_t>& byteVector, unsigned int num, int numBytes) {
+       30:  509:    for (int i = numBytes - 1; i >= 0; --i) {
+       17:  510:        byteVector.push_back((num >> (i * 8)) & 0xFF);
         -:  511:    }
-       11:  512:}
+       13:  512:}

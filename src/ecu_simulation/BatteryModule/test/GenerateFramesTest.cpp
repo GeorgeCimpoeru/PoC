@@ -745,6 +745,27 @@ TEST_F(GenerateFramesTest, ErrorLongResponse)
     output = testing::internal::GetCapturedStdout();
     EXPECT_EQ(output, "Write error\n");
 }
+TEST_F(GenerateFramesTest, FrameType) 
+{
+    try {
+        g1->sendFrame(11,{12,23},ERROR_FRAME);
+        FAIL() << "Expected std::invalid_argument";
+    }
+    catch(std::invalid_argument const & err) {
+        EXPECT_EQ(err.what(),std::string("Invalid frame type"));
+    }
+    catch(...) {
+        FAIL() << "Expected std::invalid_argument";
+    }
+}
+/* Test for Service request UpdateStatus */
+TEST_F(GenerateFramesTest, ReqStatus) 
+{
+    /* Send frame */
+    bool response = g1->requestUpdateStatus(id,true);
+    /* TEST */
+    EXPECT_EQ(response, false);
+}
 int main(int argc, char* argv[])
 {
     s1 = createSocket();
