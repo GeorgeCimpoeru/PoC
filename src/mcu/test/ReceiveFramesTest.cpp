@@ -462,6 +462,20 @@ TEST_F(ReceiveFramesTest, TestGetECUsUp)
     std::cerr << "Finished TestGetECUsUp" << std::endl;
 }
 
+/* Test to verify gethexValueId function */
+TEST_F(ReceiveFramesTest, TestGetHexValueId)
+{
+    std::cerr << "Running TestGetHexValueId" << std::endl;
+
+    // Retrieve the hexValueId using the getter function
+    uint32_t actualHexValueId = receiveFrames->gethexValueId();
+    // Verify if the retrieved hexValueId matches the expected value
+    EXPECT_EQ(actualHexValueId, 0x10);
+    
+    std::cerr << "Finished TestGetHexValueId" << std::endl;
+}
+
+
 /* Main function to run all tests */
 int main(int argc, char **argv)
 {
