@@ -136,7 +136,8 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
                 processNrc(frame_id, sid, frame_data[3]);
             }
             else 
-            {
+            {   
+                LOG_INFO(MCULogger.getConsoleLogger(), "BLABLALBALBALBLA");
                 std::cout << "DiagnosticSessionControl called." << std::endl;
             }
             break;
@@ -409,6 +410,7 @@ void HandleFrames::processNrc(canid_t frame_id, uint8_t sid, uint8_t nrc)
         case 0x11:
             /* Service not supported */
             //GenerateFrames::negativeResponse(can_id, sid, nrc);
+            LOG_ERROR(MCULogger.getConsoleLogger(), "BLABLALBALBALBLA");
             std::cout << "Error: Service not supported for service: " << std::hex << (int)sid << std::endl;
         break;
         case 0x13:

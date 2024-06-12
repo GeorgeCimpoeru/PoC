@@ -17,6 +17,7 @@
 #include <linux/can.h>
 #include <iostream>
 #include <vector>
+#include "MCULogger.h"
 
 class HandleFrames 
 {
