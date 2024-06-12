@@ -266,7 +266,7 @@ TEST_F(GenerateFrameTest, ReadDataByIdentifierResponse) {
     std::vector<uint8_t> response = {0x2};
 
     std::vector<uint8_t> data = {static_cast<uint8_t>(response.size() + 3), 0x62, static_cast<uint8_t>(data_identifier/0x100), 
-                                 static_cast<uint8_t>(data_identifier%0x100, 0x2)};
+                                 static_cast<uint8_t>(data_identifier%0x100), 0x2};
 
     GenerateFrame gen_frame(s);
     gen_frame.ReadDataByIdentifier(can_id, data_identifier, response);
@@ -495,74 +495,46 @@ TEST_F(GenerateFrameTest, TesterPresentFalse) {
 
 /* Test Read Memory By Address response empty */
 TEST_F(GenerateFrameTest, ReadMemoryByAddressResponseEmpty) {
+    uint32_t can_id = 0x07;
+    uint8_t memory_size = static_cast<uint8_t>(0x2345);
+    uint8_t memory_address = 0x01;
+    std::vector<uint8_t> response = {};
 
-    /* Segmentation fault error. 
-    To be reviewed and fixed */
-
-    /*
-    uint32_t can_id = 0x101;
-    uint8_t memory_size = 0x10;
-    uint8_t memory_address = 0x20;
-    std::vector<uint8_t> response;
-
-    std::vector<uint8_t> data;
+    std::vector<uint8_t> data = {0x03,0x23,0x10,0x45};
 
     GenerateFrame gen_frame(s);
     gen_frame.ReadMemoryByAddress(can_id, memory_size, memory_address, response);
 
-    for (int i = 0; i < gen_frame.frame.can_dlc; ++i) {
-        std::cout << data[i] << " ";
-        data.push_back(gen_frame.frame.data[i]);
-    }
 
     EXPECT_EQ(gen_frame.frame.can_id, can_id);
     for (int i = 0; i < gen_frame.frame.can_dlc; ++i) {
         EXPECT_EQ(gen_frame.frame.data[i], data[i]);
     }
-    */
-    EXPECT_EQ(1, 2);
 }
 
 /* Test Read Memory By Address response not emtpy */
 TEST_F(GenerateFrameTest, ReadMemoryByAddressResponseNotEmpty) {
-
-    /* Segmentation fault error. 
-    To be reviewed and fixed */
-
-    /*
-    uint32_t can_id = 0x101;
-    uint8_t memory_size = 0x10;
-    uint8_t memory_address = 0x20;
+    uint32_t can_id = 0x07;
+    uint8_t memory_size = static_cast<uint8_t>(0x2345);
+    uint8_t memory_address = 0x01;
     std::vector<uint8_t> response = {0x2, 0x2};
 
-    std::vector<uint8_t> data;
+    std::vector<uint8_t> data = {0x05,0x63,0x10,0x45,0x2,0x2};
 
     GenerateFrame gen_frame(s);
     gen_frame.ReadMemoryByAddress(can_id, memory_size, memory_address, response);
-
-    for (int i = 0; i < gen_frame.frame.can_dlc; ++i) {
-        std::cout << data[i] << " ";
-        data.push_back(gen_frame.frame.data[i]);
-    }
 
     EXPECT_EQ(gen_frame.frame.can_id, can_id);
     for (int i = 0; i < gen_frame.frame.can_dlc; ++i) {
         EXPECT_EQ(gen_frame.frame.data[i], data[i]);
     }
-    */
-    EXPECT_EQ(1, 2);
 }
 
 /* Test Read Memory By Address response too large */
 TEST_F(GenerateFrameTest, ReadMemoryByAddressResponseTooLarge) {
-
-    /* Segmentation fault error. 
-    To be reviewed and fixed */
-
-    /*
-    uint32_t can_id = 0x101;
-    uint8_t memory_size = 0x10;
-    uint8_t memory_address = 0x20;
+    uint32_t can_id = 0x07;
+    uint8_t memory_size = static_cast<uint8_t>(0x2345);
+    uint8_t memory_address = 0x01;
     std::vector<uint8_t> response = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};
     GenerateFrame gen_frame(s);
 
@@ -571,71 +543,43 @@ TEST_F(GenerateFrameTest, ReadMemoryByAddressResponseTooLarge) {
 
     std::string output = testing::internal::GetCapturedStdout();
     EXPECT_EQ(output, "Response size is too large\n");
-    */
-
-    EXPECT_EQ(1, 2);
 }
 
 /* Test Read Memory By Address Long first frame */
 TEST_F(GenerateFrameTest, ReadMemoryByAddressLongFirstFrame) {
-
-    /* free(): invalid pointer. Aborted (core dumped) error received
-       To be reviewed and fixed */
-
-    /*
-    uint32_t can_id = 0x101;
-    uint8_t memory_size = 0x10;
-    uint8_t memory_address = 0x20;
+    uint32_t can_id = 0x07;
+    uint8_t memory_size = static_cast<uint8_t>(0x2345);
+    uint8_t memory_address = 0x01;
     std::vector<uint8_t> response = {0x2, 0x2, 0x2};
     bool first_frame = true;
-
-    std::vector<uint8_t> data;
+    std::vector<uint8_t> data = {0x10,0x6,0x63,0x10,0x45,0x2,0x2,0x2};
 
     GenerateFrame gen_frame(s);
     gen_frame.ReadMemoryByAddressLong(can_id, memory_size, memory_address, response, first_frame);
-
-    for (int i = 0; i < gen_frame.frame.can_dlc; ++i) {
-        std::cout << data[i] << " ";
-        data.push_back(gen_frame.frame.data[i]);
-    }
 
     EXPECT_EQ(gen_frame.frame.can_id, can_id);
     for (int i = 0; i < gen_frame.frame.can_dlc; ++i) {
         EXPECT_EQ(gen_frame.frame.data[i], data[i]);
     }
-    */
-    EXPECT_EQ(1, 2);
 }
 
 /* Test Read Memory By Address Long not first frame */
 TEST_F(GenerateFrameTest, ReadMemoryByAddressLongNotFirstFrame) {
-
-    /* Segmentation fault error received
-       To be reviewed and fixed */
-
-    /*
-    uint32_t can_id = 0x101;
-    uint8_t memory_size = 0x10;
-    uint8_t memory_address = 0x20;
-    std::vector<uint8_t> response = {0x2, 0x2, 0x2};
+    uint32_t can_id = 0x07;
+    uint8_t memory_size = static_cast<uint8_t>(0x2345);
+    uint8_t memory_address = 0x01;
+    std::vector<uint8_t> response = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2}; 
     bool first_frame = false;
-
-    std::vector<uint8_t> data;
+    std::vector<uint8_t> data = {0x21,0x2,0x2,0x2,0x2,0x2,0x2,0x2};
 
     GenerateFrame gen_frame(s);
     gen_frame.ReadMemoryByAddressLong(can_id, memory_size, memory_address, response, first_frame);
-
-    for (int i = 0; i < gen_frame.frame.can_dlc; ++i) {
-        std::cout << data[i] << " ";
-        data.push_back(gen_frame.frame.data[i]);
-    }
 
     EXPECT_EQ(gen_frame.frame.can_id, can_id);
     for (int i = 0; i < gen_frame.frame.can_dlc; ++i) {
         EXPECT_EQ(gen_frame.frame.data[i], data[i]);
     }
-    */
-    EXPECT_EQ(1, 2);
+
 }
 
 /* Test Write Data By Identifier. Data Parameter Empty*/
@@ -843,64 +787,35 @@ TEST_F(GenerateFrameTest, NegativeResponse) {
 
 /* Test Request Download */
 TEST_F(GenerateFrameTest, RequestDownload) {
-
-    /* Segmentation fault error received
-       To be reviewed and fixed */
-
-    /*
-    uint32_t can_id = 0x101;
-    uint8_t data_format_identifier = 0x02;
+    uint32_t can_id = 0x07;
+    uint8_t data_format_identifier = 0x00;
     uint8_t memory_size = 0x10;
-    uint8_t memory_address = 0x3445;
+    uint8_t memory_address = static_cast<uint8_t>(0x3445);
 
-    std::vector<uint8_t> data;
+    std::vector<uint8_t> data = {0x05, 0x34, 0x00, 0x11, 0x45, 0x10};
 
     GenerateFrame gen_frame(s);
     gen_frame.RequestDownload(can_id, data_format_identifier, memory_address, memory_size);
 
-    for (int i = 0; i < gen_frame.frame.can_dlc; ++i) {
-        std::cout << data[i] << " ";
-        data.push_back(gen_frame.frame.data[i]);
-    }
-
     EXPECT_EQ(gen_frame.frame.can_id, can_id);
     for (int i = 0; i < gen_frame.frame.can_dlc; ++i) {
         EXPECT_EQ(gen_frame.frame.data[i], data[i]);
     }
-    */
-    
-    EXPECT_EQ(1, 2);
 }
-
-
-
 
 /* Test Request Download Response */
 TEST_F(GenerateFrameTest, RequestDownloadResponse) {
-
-    /* Segmentation fault error received
-       To be reviewed and fixed */
-    /*
-    uint32_t can_id = 0x101;
-    uint8_t max_number_block = 0x2234;
-
-    std::vector<uint8_t> data;
+    uint32_t can_id = 0x07;
+    uint8_t max_number_block = static_cast<uint8_t>(0x2234);
+    std::vector<uint8_t> data = {0x03, 0x74, 0x10, 0x34};
 
     GenerateFrame gen_frame(s);
     gen_frame.RequestDownloadResponse(can_id, max_number_block);
 
-    for (int i = 0; i < gen_frame.frame.can_dlc; ++i) {
-        std::cout << data[i] << " ";
-        data.push_back(gen_frame.frame.data[i]);
-    }
-
     EXPECT_EQ(gen_frame.frame.can_id, can_id);
     for (int i = 0; i < gen_frame.frame.can_dlc; ++i) {
         EXPECT_EQ(gen_frame.frame.data[i], data[i]);
     }
-    */
-
-    EXPECT_EQ(1, 2);
 }
 
 /* Test Transfer Data when transfer request is empty */
@@ -1004,30 +919,6 @@ TEST_F(GenerateFrameTest, RequestTransferExitRequest) {
         EXPECT_EQ(gen_frame.frame.data[i], data[i]);
     }
 }
-
-/* Tests for the two private functions. They are not accesible at the moment */
-/* Test Insert Bytes
-TEST_F(GenerateFrameTest, InsertBytes) {
-    std::vector<uint8_t> data;
-    uint8_t num_bytes = 1;
-    uint8_t index = 0;
-
-    GenerateFrame gen_frame(s);
-    gen_frame.InsertBytes(data, index, num_bytes);
-
-    EXPECT_EQ(data[0], 0);
-}
-
-/* Test Count Digits
-TEST_F(GenerateFrameTest, CountDigits) {
-    uint8_t number_1 = -1;
-    uint8_t number_2 = 1001;
-
-    GenerateFrame gen_frame(s);
-
-    EXPECT_EQ(gen_frame.CountDigits(number_1), 1);
-    EXPECT_EQ(gen_frame.CountDigits(number_2), 4);
-}*/
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
