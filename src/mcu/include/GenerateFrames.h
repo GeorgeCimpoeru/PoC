@@ -1,5 +1,5 @@
 /**
- * @file GenerateFrame.h
+ * @file GenerateFrames.h
  * @brief For creating a CAN frame
  * This class is used to create a CAN frame and send it to the CAN bus.
  * The class has a constructor that takes the frame type, CAN ID, data, and
@@ -32,7 +32,7 @@ enum FrameType
     OVERLOAD_FRAME
 };
 
-class GenerateFrame
+class GenerateFrames
 {
 public:
     struct can_frame frame;
@@ -41,21 +41,21 @@ public:
      * @brief Constructor for GenerateFrame class.
      * @param socket The CAN socket file descriptor.
      */
-    GenerateFrame(int socket);
+    GenerateFrames(int socket);
 
     /**
      * @brief Default constructor for GenerateFrame class.
      */
-    GenerateFrame();
+    GenerateFrames();
 
     /**
      * @brief Sends the created frame to the CAN bus.
      * @param can_id The CAN ID of the frame.
      * @param data The data to be sent in the frame.
-     * @param frameType The type of the frame (default: DATA_FRAME).
+     * @param frame_type The type of the frame (default: DATA_FRAME).
      * @return Returns 0 on success, -1 on failure.
      */
-    int SendFrame(uint32_t can_id, std::vector<uint8_t> data, FrameType frameType = DATA_FRAME);
+    int sendFrame(uint32_t can_id, std::vector<uint8_t> data, FrameType frame_type = DATA_FRAME);
 
     /**
      * @brief Gets the CAN frame.
@@ -73,88 +73,88 @@ public:
      * @brief Creates a CAN frame with the given arguments.
      * @param can_id The CAN ID of the frame.
      * @param data The data to be sent in the frame.
-     * @param frameType The type of the frame (default: DATA_FRAME).
+     * @param frame_type The type of the frame (default: DATA_FRAME).
      * @return Returns the created CAN frame.
      */
-    can_frame CreateFrame(uint32_t can_id, std::vector<uint8_t> data, FrameType frameType = DATA_FRAME);
+    can_frame createFrame(uint32_t can_id, std::vector<uint8_t> data, FrameType frame_type = DATA_FRAME);
 
     /**
      * @brief Creates a CAN frame with multiple segments with the given arguments.
      * @param can_id The CAN ID of the frame.
      * @param sid The service identifier.
-     * @param dataIdentifier The data identifier.
+     * @param data_identifier The data identifier.
      * @param response The response data.
-     * @param firstFrame Indicates if it is the first frame (default: true).
+     * @param first_frame Indicates if it is the first frame (default: true).
      */
-    void CreateFrameLong(uint32_t can_id, uint8_t sid, uint8_t dataIdentifier, std::vector<uint8_t> response, bool firstFrame);
+    void createFrameLong(uint32_t can_id, uint8_t sid, uint16_t data_identifier, std::vector<uint8_t> response, bool first_frame);
 
     /**
      * @brief Performs session control.
      * @param can_id The CAN ID of the frame.
-     * @param subfunction The subfunction.
+     * @param sub_function The subfunction.
      * @param response Indicates if it is a response frame (default: false).
      */
-    void SessionControl(uint32_t can_id, uint8_t subfunction, bool response = false);
+    void sessionControl(uint32_t can_id, uint8_t sub_function, bool response = false);
 
     /**
      * @brief Performs ECU reset.
      * @param can_id The CAN ID of the frame.
      * @param response Indicates if it is a response frame (default: false).
      */
-    void EcuReset(uint32_t can_id, bool response = false);
+    void ecuReset(uint32_t can_id, bool response = false);
 
     /**
      * @brief Reads data by identifier.
      * @param can_id The CAN ID of the frame.
-     * @param dataIdentifier The data identifier.
+     * @param data_identifier The data identifier.
      * @param response The response data (default: empty vector).
      */
-    void ReadDataByIdentifier(uint32_t can_id, uint8_t dataIdentifier, std::vector<uint8_t> response = {});
+    void readDataByIdentifier(uint32_t can_id, uint16_t data_identifier, std::vector<uint8_t> response = {});
 
     /**
      * @brief Reads data by identifier (long format).
      * @param can_id The CAN ID of the frame.
-     * @param dataIdentifier The data identifier.
+     * @param data_identifier The data identifier.
      * @param response The response data (default: empty vector).
-     * @param firstFrame Indicates if it is the first frame (default: true).
+     * @param first_frame Indicates if it is the first frame (default: true).
      */
-    void ReadDataByIdentifierLong(uint32_t can_id, uint8_t dataIdentifier, std::vector<uint8_t> response = {}, bool firstFrame = true);
+    void readDataByIdentifierLong(uint32_t can_id, uint16_t data_identifier, std::vector<uint8_t> response = {}, bool first_frame = true);
 
     /**
      * @brief Sends flow control frame.
      * @param can_id The CAN ID of the frame.
      */
-    void FlowControlFrame(uint32_t can_id);
+    void flowControlFrame(uint32_t can_id);
 
     /**
      * @brief Sends authentication request seed frame.
      * @param can_id The CAN ID of the frame.
      * @param seed The seed data (default: empty vector).
      */
-    void AuthenticationRequestSeed(uint32_t can_id, const std::vector<uint8_t> &seed = {});
+    void authenticationRequestSeed(uint32_t can_id, const std::vector<uint8_t> &seed = {});
 
     /**
      * @brief Sends authentication send key frame.
      * @param can_id The CAN ID of the frame.
      * @param key The key data (default: empty vector).
      */
-    void AuthenticationSendKey(uint32_t can_id, const std::vector<uint8_t> &key = {});
+    void authenticationSendKey(uint32_t can_id, const std::vector<uint8_t> &key = {});
 
     /**
      * @brief Performs routine control.
      * @param can_id The CAN ID of the frame.
-     * @param subfunction The subfunction.
+     * @param sub_function The subfunction.
      * @param routine_identifier The routine identifier.
      * @param response Indicates if it is a response frame (default: false).
      */
-    void RoutineControl(uint32_t can_id, uint8_t subfunction, uint8_t routine_identifier, bool response = false);
+    void routineControl(uint32_t can_id, uint8_t sub_function, uint16_t routine_identifier, bool response = false);
 
     /**
      * @brief Sends tester present frame.
      * @param can_id The CAN ID of the frame.
      * @param response Indicates if it is a response frame (default: false).
      */
-    void TesterPresent(uint32_t can_id, bool response = false);
+    void testerPresent(uint32_t can_id, bool response = false);
 
     /**
      * @brief Reads memory by address.
@@ -163,7 +163,7 @@ public:
      * @param memory_address The memory address.
      * @param response The response data (default: empty vector).
      */
-    void ReadMemoryByAddress(uint32_t can_id, uint8_t memory_size, uint8_t memory_address, std::vector<uint8_t> response = {});
+    void readMemoryByAddress(uint32_t can_id, int memory_size, int memory_address, std::vector<uint8_t> response = {});
 
     /**
      * @brief Reads memory by address (long format).
@@ -173,7 +173,7 @@ public:
      * @param response The response data.
      * @param first_frame Indicates if it is the first frame (default: true).
      */
-    void ReadMemoryByAddressLong(uint32_t can_id, uint8_t memory_size, uint8_t memory_address, std::vector<uint8_t> response, bool first_frame = true);
+    void readMemoryByAddressLong(uint32_t can_id, int memory_size, int memory_address, std::vector<uint8_t> response, bool first_frame = true);
 
     /**
      * @brief Writes data by identifier.
@@ -181,7 +181,7 @@ public:
      * @param identifier The identifier.
      * @param data_parameter The data parameter (default: empty vector).
      */
-    void WriteDataByIdentifier(uint32_t can_id, uint8_t identifier, std::vector<uint8_t> data_parameter = {});
+    void writeDataByIdentifier(uint32_t can_id, uint16_t identifier, std::vector<uint8_t> data_parameter = {});
 
     /**
      * @brief Writes data by identifier (long format).
@@ -190,15 +190,15 @@ public:
      * @param data_parameter The data parameter.
      * @param first_frame Indicates if it is the first frame (default: true).
      */
-    void WriteDataByIdentifierLong(uint32_t can_id, uint8_t identifier, std::vector<uint8_t> data_parameter, bool first_frame = true);
+    void writeDataByIdentifierLong(uint32_t can_id, uint16_t identifier, std::vector<uint8_t> data_parameter, bool first_frame = true);
 
     /**
      * @brief Reads DTC information.
      * @param can_id The CAN ID of the frame.
-     * @param subfunction The subfunction.
+     * @param sub_function The subfunction.
      * @param dtc_status_mask The DTC status mask.
      */
-    void ReadDtcInformation(uint32_t can_id, uint8_t subfunction, uint8_t dtc_status_mask);
+    void readDtcInformation(uint32_t can_id, uint8_t sub_function, uint8_t dtc_status_mask);
 
     /**
      * @brief Sends DTC information response frame (format 01).
@@ -207,7 +207,7 @@ public:
      * @param dtc_format_identifier The DTC format identifier.
      * @param dtc_count The DTC count.
      */
-    void ReadDtcInformationResponse01(uint32_t can_id, uint8_t status_availability_mask, uint8_t dtc_format_identifier, uint8_t dtc_count);
+    void readDtcInformationResponse01(uint32_t can_id, uint8_t status_availability_mask, uint8_t dtc_format_identifier, uint8_t dtc_count);
 
     /**
      * @brief Clears diagnostic information.
@@ -215,15 +215,15 @@ public:
      * @param group_of_dtc The group of DTC (default: {0xFF, 0xFF, 0xFF}).
      * @param response Indicates if it is a response frame (default: false).
      */
-    void ClearDiagnosticInformation(uint32_t can_id, std::vector<uint8_t> group_of_dtc = {0xFF, 0xFF, 0xFF}, bool response = false);
+    void clearDiagnosticInformation(uint32_t can_id, std::vector<uint8_t> group_of_dtc = {0xFF, 0xFF, 0xFF}, bool response = false);
 
     /**
      * @brief Accesses timing parameters.
      * @param can_id The CAN ID of the frame.
-     * @param subfunction The subfunction.
+     * @param sub_function The subfunction.
      * @param response Indicates if it is a response frame (default: false).
      */
-    void AccessTimingParameters(uint32_t can_id, uint8_t subfunction, bool response = false);
+    void accessTimingParameters(uint32_t can_id, uint8_t sub_function, bool response = false);
 
     /**
      * @brief Sends negative response frame.
@@ -231,7 +231,7 @@ public:
      * @param sid The service identifier.
      * @param nrc The negative response code.
      */
-    void NegativeResponse(uint32_t can_id, uint8_t sid, uint8_t nrc);
+    void negativeResponse(uint32_t can_id, uint8_t sid, uint8_t nrc);
 
     /**
      * @brief Requests download.
@@ -240,14 +240,14 @@ public:
      * @param memory_address The memory address.
      * @param memory_size The memory size.
      */
-    void RequestDownload(uint32_t can_id, uint8_t data_format_identifier, uint8_t memory_address, uint8_t memory_size);
+    void requestDownload(uint32_t can_id, uint8_t data_format_identifier, int memory_address, int memory_size);
 
     /**
      * @brief Sends request download response frame.
      * @param can_id The CAN ID of the frame.
      * @param max_number_block The maximum number of blocks.
      */
-    void RequestDownloadResponse(uint32_t can_id, uint8_t max_number_block);
+    void requestDownloadResponse(uint32_t can_id, int max_number_block);
 
     /**
      * @brief Transfers data.
@@ -255,7 +255,7 @@ public:
      * @param block_sequence_counter The block sequence counter.
      * @param transfer_request The transfer request (default: empty vector).
      */
-    void TransferData(uint32_t can_id, uint8_t block_sequence_counter, std::vector<uint8_t> transfer_request = {});
+    void transferData(uint32_t can_id, uint8_t block_sequence_counter, std::vector<uint8_t> transfer_request = {});
 
     /**
      * @brief Transfers data (long format).
@@ -264,14 +264,14 @@ public:
      * @param transfer_request The transfer request.
      * @param first_frame Indicates if it is the first frame (default: true).
      */
-    void TransferDataLong(uint32_t can_id, uint8_t block_sequence_counter, std::vector<uint8_t> transfer_request, bool first_frame = true);
+    void transferDataLong(uint32_t can_id, uint8_t block_sequence_counter, std::vector<uint8_t> transfer_request, bool first_frame = true);
 
     /**
      * @brief Requests transfer exit.
      * @param can_id The CAN ID of the frame.
      * @param response Indicates if it is a response frame (default: false).
      */
-    void RequestTransferExit(uint32_t can_id, bool response = false);
+    void requestTransferExit(uint32_t can_id, bool response = false);
 
 private:
     int socket = -1;
@@ -284,14 +284,14 @@ private:
      * @param index The index to insert the bytes.
      * @param num_bytes The number of bytes to insert.
      */
-    void InsertBytes(std::vector<uint8_t> &data, uint8_t index, uint8_t num_bytes);
+    void insertBytes(std::vector<uint8_t> &data, unsigned int index, int num_bytes);
 
     /**
      * @brief Counts the number of digits in a number.
      * @param number The number.
      * @return Returns the number of digits.
      */
-    int CountDigits(int number);
+    int countDigits(int number);
 };
 
 #endif
