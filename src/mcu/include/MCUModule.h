@@ -20,7 +20,7 @@ public:
      * When the constructor is called, it creates a new interface with the
      * given number and starts the interface.
     */
-    MCUModule(int interfaceNumber);
+    MCUModule(uint8_t interfacesNumber);
     
     /* Default constructor */
     MCUModule();
@@ -49,7 +49,6 @@ public:
 
 private:
     bool isRunning;
-    int socket;
     INTERFACE_module interfaceModule;
     ReceiveFrames* receiveFrames;
 };
