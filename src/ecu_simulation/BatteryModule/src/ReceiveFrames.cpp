@@ -44,7 +44,7 @@ void ReceiveFrames::receive(HandleFrames &handle_frame)
     }
 }
 
-/* !!!!!!Set the socket to non-blocking mode. */
+/* Set the socket to non-blocking mode. */
 void ReceiveFrames::stop() 
 {   
     {
@@ -61,29 +61,47 @@ void ReceiveFrames::stop()
 void ReceiveFrames::bufferFrameIn() 
 {
     try{
+        /* Define a pollfd structure to monitor the socket */ 
+        struct pollfd pfd;
+        /* Set the socket file descriptor */ 
+        pfd.fd = this->socket; 
+        /* We are interested in read events -use POLLING */ 
+        pfd.events = POLLIN;    
+
         while (running) 
         {
-            struct can_frame frame = {};
-            int nbytes = 0;
-            while(running)
+            /* Use poll to wait for data to be available with a timeout of 1000ms (1 second) */ 
+            int poll_result = poll(&pfd, 1, 1000);
+
+            if (poll_result > 0) 
             {
-                nbytes = read(this->socket, &frame, sizeof(struct can_frame));
-                if(nbytes > 0)
+                if (pfd.revents & POLLIN) 
                 {
-                    break;
+                    struct can_frame frame = {};
+                    int nbytes = read(this->socket, &frame, sizeof(struct can_frame));
+
+                    if (nbytes > 0) 
+                    {
+                        std::unique_lock<std::mutex> lock(mtx);
+                        frame_buffer.push_back(std::make_tuple(frame, nbytes));
+                        cv.notify_one();
+                    }
                 }
-                sleep(1);
-            }
-            if (!running) {
+            } 
+            else if (poll_result == 0) 
+            {
+                /* Timeout occurred, no data available, but we just continue to check */ 
+                continue;
+            } 
+            else 
+            {
+                /* An error occurred */ 
+                std::cerr << "poll error: " << strerror(errno) << std::endl;
                 break;
             }
-            
-            std::unique_lock<std::mutex> lock(mtx);
-            frame_buffer.push_back(std::make_tuple(frame, nbytes));
-            cv.notify_one();
         }
     }
-    catch(const std::exception &e) 
+    catch (const std::exception &e) 
     {
         std::cerr << "Exception in bufferFrameIn: " << e.what() << std::endl;
         stop();
@@ -114,7 +132,7 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
 
         uint8_t frame_dest_id = frame.can_id & 0xFF;
         this_module_id = frame_id & 0xFF;
-         /* Check if the received frame is for your module */ 
+        /* Check if the received frame is for your module */ 
         if (static_cast<int>(frame_dest_id) != this_module_id)
         {
             std::cerr << "Received frame is not for this module\n";

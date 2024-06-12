@@ -29,6 +29,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
+#include <poll.h> 
 #include "../include/HandleFrames.h"
 
 class ReceiveFrames 
