@@ -1,15 +1,29 @@
-#include"../include/InterfaceModule.h"
+#include"../include/CreateInterface.h"
 
 /* Constructor which initializes the interface indicator number */
-INTERFACE_module::INTERFACE_module(uint8_t interface_name)
+CreateInterface::CreateInterface(uint8_t interface_name)
 {
     this->interface_name = interface_name;  
     create_interface();
     start_interface();
 }
-
+/* Method that sets the socket to not block the reading operation */
+int CreateInterface::setSocketBlocking()
+{
+    int flags = fcntl(_socketECU, F_GETFL, 0);
+    if (flags == -1) {
+        std::cerr << "Error for obtaining flags on socket: " << strerror(errno) << std::endl;
+        return 1;
+    }
+    // Set the O_NONBLOCK flag to make the socket non-blocking
+    flags |= O_NONBLOCK;
+    if (fcntl(_socketECU, F_SETFL, flags) == -1) {
+        std::cerr << "Error setting flags: " << strerror(errno) << std::endl;
+        return -1;
+    }
+}
 /* Method to create a vcan interface */
-bool INTERFACE_module::create_interface()
+bool CreateInterface::create_interface()
 {
     /** define the mask for the first 4 bits for the first interface in hexadecimal 
      * get the first 4 bits applying the mask using the bitwise AND operator and shift right
@@ -39,7 +53,7 @@ bool INTERFACE_module::create_interface()
 }
 
 /* Method to start a vcan interface */
-bool INTERFACE_module::start_interface()
+bool CreateInterface::start_interface()
 {
     /** define the mask for the first 4 bits for the first interface in hexadecimal 
      * get the first 4 bits applying the mask using the bitwise AND operator and shift right
@@ -94,7 +108,6 @@ bool INTERFACE_module::start_interface()
         std::cout<<"Error when trying to create the second socket\n";
         return 1;
     }
-
     /* Binding socket */      
     std::string vcan_interface_api =  "vcan" + std::to_string(last_four_bits);
     strcpy(ifr.ifr_name, vcan_interface_api.c_str() );
@@ -111,12 +124,11 @@ bool INTERFACE_module::start_interface()
         std::cout<<"Error when trying to bindAPI\n";
         return 1;
     }    
-
     return true;
 }
 
 /* Method to stop a vcan interface */
-bool INTERFACE_module::stop_interface() 
+bool CreateInterface::stop_interface() 
 {
     /** define the mask for the first 4 bits for the first interface in hexadecimal 
      * get the first 4 bits applying the mask using the bitwise AND operator and shift right
@@ -146,7 +158,7 @@ bool INTERFACE_module::stop_interface()
 }
 
 /* Method to delete a vcan interface */
-bool INTERFACE_module::delete_interface() 
+bool CreateInterface::delete_interface() 
 {
     /** define the mask for the first 4 bits for the first interface in hexadecimal 
      * get the first 4 bits applying the mask using the bitwise AND operator and shift right
@@ -176,13 +188,13 @@ bool INTERFACE_module::delete_interface()
 }
 
 /* Method to get the first socket descriptor */
-int INTERFACE_module::get_socketECU()
+int CreateInterface::get_socketECU()
 {
     return _socketECU;
 }
 
 /* Method to get the second socket descriptor */
-int INTERFACE_module::get_socketAPI()
+int CreateInterface::get_socketAPI()
 {
     return _socketAPI;
 }

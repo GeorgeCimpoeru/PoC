@@ -24,10 +24,10 @@
 
 #include<linux/can.h>
 #include<string.h>
-#include "../include/MCULogger.h"
+#include <fcntl.h>
 
 /* class designed to manage the virtual CAN network interface (vcan) */
-class INTERFACE_module
+class CreateInterface
 {    
     protected:
         uint8_t interface_name;        
@@ -38,8 +38,13 @@ class INTERFACE_module
 
     public:
         /* Constructor that takes the interface indicator number as an argument */
-        INTERFACE_module(uint8_t interface_name);
-        
+        CreateInterface(uint8_t interface_name);
+        /**
+        * @brief Set the socket to not block in the reading operation.
+        * 
+        * @return int 
+        */
+        int setSocketBlocking();
         /**
         * @brief Method to create vcan interfaces: one to communicate 
         * with ECU and one to communicate with API        
@@ -64,8 +69,13 @@ class INTERFACE_module
         */    
         bool delete_interface();
 
-        /* Method to get the socket descriptor for ECU and API communication */
+        /**
+        * @brief Method that returns ECU socket
+        */  
         int get_socketECU();
+        /**
+        * @brief Method that returns API socket
+        */  
         int get_socketAPI();
 };
 
