@@ -23,7 +23,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <vector>
-#include "../include/MCULogger.h"
+#include "MCULogger.h"
 
 enum FrameType
 {

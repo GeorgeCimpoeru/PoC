@@ -222,5 +222,3 @@ const std::vector<uint8_t>& ReceiveFrames::getECUsUp() const
 {
   return ecus_up;
 }
-
-

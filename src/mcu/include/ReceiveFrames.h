@@ -49,7 +49,7 @@
 #include<linux/can.h>
 
 #include "HandleFrames.h"
-#include "GenerateFrames.h"
+#include "GenerateFrame.h"
 
 class ReceiveFrames
 {

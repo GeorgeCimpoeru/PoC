@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "../include/HandleFrames.h"
 #include <linux/can.h>
-
+#include "../include/MCULogger.h"
 class HandleFramesTest : public ::testing::Test{
     public:
     HandleFramesTest(){}
@@ -16,9 +16,12 @@ TEST_F(HandleFramesTest, DiagnosticSessionControlValTest){
     testFrame.can_id= 0;
     /* Set the Data Length Code to at least 2 to access data[1] */
     testFrame.can_dlc = 2;
+
+
     testFrame.data[0] = 0x03;
     testFrame.data[1] = 0x10;
     int pci = testFrame.data[0];
+
     int sid = testFrame.data[1];
     /* simulated frame_data for valid single frame response */
     std::vector<uint8_t> frame_data = {0x03, 0x10};
@@ -29,7 +32,7 @@ TEST_F(HandleFramesTest, DiagnosticSessionControlValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "DiagnosticSessionControl called.\n");
+    EXPECT_NE(output.find("DiagnosticSessionControl called."), std::string::npos);
     EXPECT_EQ(sid, testFrame.data[1]);
 }
 
@@ -52,7 +55,8 @@ TEST_F(HandleFramesTest, DiagnosticSessionControlSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nDiagnosticSessionControl called.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("DiagnosticSessionControl called."), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -79,7 +83,7 @@ TEST_F(HandleFramesTest, DiagnosticSessionControlServiceNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Service not supported for service: 10\n");   
+    EXPECT_NE(output.find("Error: Service not supported for service: 10"), std::string::npos); 
 }
 
 /** Test for handleFrame method when frame is negative response 
@@ -133,7 +137,7 @@ TEST_F(HandleFramesTest, DiagnosticSessionControlIncorrectNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Incorrect message length or invalid format for service: 10\n");
+    EXPECT_NE(output.find("Error: Incorrect message length or invalid format for service: 10"), std::string::npos); 
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -160,7 +164,7 @@ TEST_F(HandleFramesTest, DiagnosticSessionControlRespLongNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Response too long for service: 10\n");
+    EXPECT_NE(output.find("Error: Response too long for service: 10"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -187,7 +191,7 @@ TEST_F(HandleFramesTest, DiagnosticSessionControlNoRespNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);     
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: No response from subnet component for service: 10\n");
+    EXPECT_NE(output.find("Error: No response from subnet component for service: 10"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -214,7 +218,7 @@ TEST_F(HandleFramesTest, DiagnosticSessionControlNoAuthNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);     
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Authentication failed for service: 10\n");
+    EXPECT_NE(output.find("Error: Authentication failed for service: 10"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -241,7 +245,7 @@ TEST_F(HandleFramesTest, DiagnosticSessionControlResUnNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);     
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Resource temporarily unavailable for service: 10\n");
+    EXPECT_NE(output.find("Error: Resource temporarily unavailable for service: 10"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -268,7 +272,7 @@ TEST_F(HandleFramesTest, DiagnosticSessionControlUDNotAccNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Upload download not accepted for service: 10\n");
+    EXPECT_NE(output.find("Error: Upload download not accepted for service: 10"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -295,7 +299,7 @@ TEST_F(HandleFramesTest, DiagnosticSessionControlTDataSuspNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);   
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Transfer data suspended for service: 10\n");
+    EXPECT_NE(output.find("Error: Transfer data suspended for service: 10"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -322,7 +326,7 @@ TEST_F(HandleFramesTest, DiagnosticSessionControlDefaultNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Unknown negative response code for service: 10\n");
+    EXPECT_NE(output.find("Error: Unknown negative response code for service: 10"), std::string::npos);
 }
 
 /* Test for processFrameData with a valid EcuReset frame */
@@ -344,7 +348,7 @@ TEST_F(HandleFramesTest, EcuResetValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "EcuReset called.\n");
+    EXPECT_NE(output.find("EcuReset called."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - EcuReset SID*/
@@ -366,7 +370,8 @@ TEST_F(HandleFramesTest, EcuResetSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nEcuReset called.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("EcuReset called."), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -393,7 +398,7 @@ TEST_F(HandleFramesTest, EcuResetServiceNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame); 
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Service not supported for service: 11\n");
+    EXPECT_NE(output.find("Error: Service not supported for service: 11"), std::string::npos);
     EXPECT_EQ(sid, testFrame.data[2]);
 }
 
@@ -421,7 +426,7 @@ TEST_F(HandleFramesTest, EcuResetIncorrectNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Incorrect message length or invalid format for service: 11\n");
+    EXPECT_NE(output.find("Error: Incorrect message length or invalid format for service: 11"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -448,7 +453,7 @@ TEST_F(HandleFramesTest, EcuResetRespLongNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Response too long for service: 11\n");
+    EXPECT_NE(output.find("Error: Response too long for service: 11"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -475,7 +480,7 @@ TEST_F(HandleFramesTest, EcuResetNoRespNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: No response from subnet component for service: 11\n");
+    EXPECT_NE(output.find("Error: No response from subnet component for service: 11"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -502,7 +507,7 @@ TEST_F(HandleFramesTest, EcuResetNoAuthNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);       
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Authentication failed for service: 11\n");
+    EXPECT_NE(output.find("Error: Authentication failed for service: 11"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -529,7 +534,7 @@ TEST_F(HandleFramesTest, EcuResetResUnNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Resource temporarily unavailable for service: 11\n");
+    EXPECT_NE(output.find("Error: Resource temporarily unavailable for service: 11"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -556,7 +561,7 @@ TEST_F(HandleFramesTest, EcuResetUDNotAccNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);   
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Upload download not accepted for service: 11\n");
+    EXPECT_NE(output.find("Error: Upload download not accepted for service: 11"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -583,7 +588,7 @@ TEST_F(HandleFramesTest, EcuResetTDataSuspNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);       
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Transfer data suspended for service: 11\n");
+    EXPECT_NE(output.find("Error: Transfer data suspended for service: 11"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -610,7 +615,7 @@ TEST_F(HandleFramesTest, EcuResetDefaultNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Unknown negative response code for service: 11\n");
+    EXPECT_NE(output.find("Error: Unknown negative response code for service: 11"), std::string::npos);
 }
 
 /* Test for processFrameData with a valid SecurityAccess frame */
@@ -632,7 +637,7 @@ TEST_F(HandleFramesTest, SecurityAccessValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "SecurityAccess called.\n");
+    EXPECT_NE(output.find("SecurityAccess called."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - SecurityAccess SID*/
@@ -654,7 +659,8 @@ TEST_F(HandleFramesTest, SecurityAccessSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nSecurityAccess called.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("SecurityAccess called."), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -681,7 +687,7 @@ TEST_F(HandleFramesTest, SecurityAccessNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame); 
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Service not supported for service: 27\n");    
+    EXPECT_NE(output.find("Error: Service not supported for service: 27"), std::string::npos);   
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -708,7 +714,7 @@ TEST_F(HandleFramesTest, SecurityAccessIncorrectNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Incorrect message length or invalid format for service: 27\n");
+    EXPECT_NE(output.find("Error: Incorrect message length or invalid format for service: 27"), std::string::npos); 
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -735,7 +741,7 @@ TEST_F(HandleFramesTest, SecurityAccessRespLongNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Response too long for service: 27\n");
+    EXPECT_NE(output.find("Error: Response too long for service: 27"), std::string::npos); 
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -762,7 +768,7 @@ TEST_F(HandleFramesTest, SecurityAccessNoRespNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: No response from subnet component for service: 27\n");
+    EXPECT_NE(output.find("Error: No response from subnet component for service: 27"), std::string::npos); 
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -789,7 +795,7 @@ TEST_F(HandleFramesTest, SecurityAccessNoAuthNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);       
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Authentication failed for service: 27\n");
+    EXPECT_NE(output.find("Error: Authentication failed for service: 27"), std::string::npos); 
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -816,7 +822,7 @@ TEST_F(HandleFramesTest, SecurityAccessResUnNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Resource temporarily unavailable for service: 27\n");
+    EXPECT_NE(output.find("Error: Resource temporarily unavailable for service: 27"), std::string::npos); 
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -843,7 +849,7 @@ TEST_F(HandleFramesTest, SecurityAccessUDNotAccNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);   
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Upload download not accepted for service: 27\n");
+    EXPECT_NE(output.find("Error: Upload download not accepted for service: 27"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -870,7 +876,8 @@ TEST_F(HandleFramesTest, SecurityAccessTDataSuspNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);       
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Transfer data suspended for service: 27\n");
+    EXPECT_NE(output.find("Error: Transfer data suspended for service: 27"), std::string::npos);
+
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -897,7 +904,7 @@ TEST_F(HandleFramesTest, SecurityAccessDefaultNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Unknown negative response code for service: 27\n");
+    EXPECT_NE(output.find("Error: Unknown negative response code for service: 27"), std::string::npos);
 }
 
 /* Test for processFrameData with a valid Authentication frame */
@@ -919,7 +926,7 @@ TEST_F(HandleFramesTest, AuthenticationValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Authentication called.\n");
+    EXPECT_NE(output.find("Authentication called."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - Authentication SID*/
@@ -941,7 +948,8 @@ TEST_F(HandleFramesTest, AuthenticationSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nAuthentication called.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("Authentication called."), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -968,7 +976,7 @@ TEST_F(HandleFramesTest, AuthenticationServiceNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Service not supported for service: 29\n");
+    EXPECT_NE(output.find("Error: Service not supported for service: 29"), std::string::npos);
     EXPECT_EQ(sid, testFrame.data[2]);
 }
 
@@ -996,7 +1004,7 @@ TEST_F(HandleFramesTest, AuthenticationIncorrectNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Incorrect message length or invalid format for service: 29\n");
+    EXPECT_NE(output.find("Error: Incorrect message length or invalid format for service: 29"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -1023,7 +1031,7 @@ TEST_F(HandleFramesTest, AuthenticationRespLongNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Response too long for service: 29\n");
+    EXPECT_NE(output.find("Error: Response too long for service: 29"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -1050,7 +1058,7 @@ TEST_F(HandleFramesTest, AuthenticationNoRespNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: No response from subnet component for service: 29\n");
+    EXPECT_NE(output.find("Error: No response from subnet component for service: 29"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -1077,7 +1085,7 @@ TEST_F(HandleFramesTest, AuthenticationNoAuthNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);       
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Authentication failed for service: 29\n");
+    EXPECT_NE(output.find("Error: Authentication failed for service: 29"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -1104,7 +1112,7 @@ TEST_F(HandleFramesTest, AuthenticationResUnNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Resource temporarily unavailable for service: 29\n");
+    EXPECT_NE(output.find("Error: Resource temporarily unavailable for service: 29"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -1131,7 +1139,7 @@ TEST_F(HandleFramesTest, AuthenticationUDNotAccNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);   
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Upload download not accepted for service: 29\n");
+    EXPECT_NE(output.find("Error: Upload download not accepted for service: 29"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -1158,7 +1166,7 @@ TEST_F(HandleFramesTest, AuthenticationTDataSuspNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);       
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Transfer data suspended for service: 29\n");
+    EXPECT_NE(output.find("Error: Transfer data suspended for service: 29"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -1185,7 +1193,7 @@ TEST_F(HandleFramesTest, AuthenticationDefaultNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Unknown negative response code for service: 29\n");
+    EXPECT_NE(output.find("Error: Unknown negative response code for service: 29"), std::string::npos);
 }
 
 /* Test for processFrameData with a valid TesterPresent frame */
@@ -1207,7 +1215,7 @@ TEST_F(HandleFramesTest, TesterPresentValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "TesterPresent called.\n");
+    EXPECT_NE(output.find("TesterPresent called."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - TesterPresent SID*/
@@ -1229,7 +1237,8 @@ TEST_F(HandleFramesTest, TesterPresentSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nTesterPresent called.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("TesterPresent called."), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -1256,7 +1265,7 @@ TEST_F(HandleFramesTest, TesterPresentServiceNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Service not supported for service: 3e\n");
+    EXPECT_NE(output.find("Error: Service not supported for service: 3e"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -1283,7 +1292,7 @@ TEST_F(HandleFramesTest, TesterPresentIncorrectNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Incorrect message length or invalid format for service: 3e\n");
+    EXPECT_NE(output.find("Error: Incorrect message length or invalid format for service: 3e"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -1310,7 +1319,7 @@ TEST_F(HandleFramesTest, TesterPresentRespLongNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Response too long for service: 3e\n");
+    EXPECT_NE(output.find("Error: Response too long for service: 3e"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -1337,7 +1346,7 @@ TEST_F(HandleFramesTest, TesterPresentNoRespNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: No response from subnet component for service: 3e\n");
+    EXPECT_NE(output.find("Error: No response from subnet component for service: 3e"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -1364,7 +1373,7 @@ TEST_F(HandleFramesTest, TesterPresentNoAuthNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);       
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Authentication failed for service: 3e\n");
+    EXPECT_NE(output.find("Error: Authentication failed for service: 3e"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -1391,7 +1400,7 @@ TEST_F(HandleFramesTest, TesterPresentResUnNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);      
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Resource temporarily unavailable for service: 3e\n");
+    EXPECT_NE(output.find("Error: Resource temporarily unavailable for service: 3e"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -1418,7 +1427,7 @@ TEST_F(HandleFramesTest, TesterPresentUDNotAccNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);   
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Upload download not accepted for service: 3e\n");
+    EXPECT_NE(output.find("Error: Upload download not accepted for service: 3e"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -1445,7 +1454,7 @@ TEST_F(HandleFramesTest, TesterPresentTDataSuspNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);       
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Transfer data suspended for service: 3e\n");
+    EXPECT_NE(output.find("Error: Transfer data suspended for service: 3e"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -1472,7 +1481,7 @@ TEST_F(HandleFramesTest, TesterPresentDefaultNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Unknown negative response code for service: 3e\n");
+    EXPECT_NE(output.find("Error: Unknown negative response code for service: 3e"), std::string::npos);
 }
 
 /* Test for processFrameData with a valid AccessTimingParameters frame */
@@ -1494,7 +1503,7 @@ TEST_F(HandleFramesTest, AccessTimingParametersValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "AccessTimingParameters called.\n");
+    EXPECT_NE(output.find("AccessTimingParameters called."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - AccessTimingParameters SID*/
@@ -1516,7 +1525,8 @@ TEST_F(HandleFramesTest, AccessTimingParametersSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nAccessTimingParameters called.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("AccessTimingParameters called."), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -1543,7 +1553,7 @@ TEST_F(HandleFramesTest, AccessTimingParametersServiceNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Service not supported for service: 83\n");
+    EXPECT_NE(output.find("Error: Service not supported for service: 83"), std::string::npos);
 }
 
 /* Test for processFrameData with a valid ReadDataByIdentifier frame */
@@ -1565,7 +1575,7 @@ TEST_F(HandleFramesTest, ReadDataByIdentifierValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "ReadDataByIdentifier called.\n");
+    EXPECT_NE(output.find("ReadDataByIdentifier called."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - ReadDataByIdentifier SID*/
@@ -1587,7 +1597,8 @@ TEST_F(HandleFramesTest, ReadDataByIdentifierSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nReadDataByIdentifier called.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("ReadDataByIdentifier called."), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -1614,7 +1625,7 @@ TEST_F(HandleFramesTest, ReadDataByIdentifierServiceNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Service not supported for service: 22\n");
+    EXPECT_NE(output.find("Error: Service not supported for service: 22"), std::string::npos);
 }
 
 /* Test for processFrameData with a valid ReadMemoryByAddress frame */
@@ -1636,7 +1647,7 @@ TEST_F(HandleFramesTest, ReadMemoryByAddressValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "ReadMemoryByAddress called.\n");
+    EXPECT_NE(output.find("ReadMemoryByAddress called."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - ReadMemoryByAddress SID*/
@@ -1658,7 +1669,8 @@ TEST_F(HandleFramesTest, ReadMemoryByAddressSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nReadMemoryByAddress called.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("ReadMemoryByAddress called."), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -1685,7 +1697,7 @@ TEST_F(HandleFramesTest, ReadMemoryByAddressServiceNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Service not supported for service: 23\n");
+    EXPECT_NE(output.find("Error: Service not supported for service: 23"), std::string::npos);
     EXPECT_EQ(sid, testFrame.data[2]);
 }
 
@@ -1708,7 +1720,7 @@ TEST_F(HandleFramesTest, WriteDataByIdentifierValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "WriteDataByIdentifier called with one frame.\n");
+    EXPECT_NE(output.find("WriteDataByIdentifier called with one frame."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - WriteDataByIdentifier SID*/
@@ -1730,7 +1742,8 @@ TEST_F(HandleFramesTest, WriteDataByIdentifierSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nWriteDataByIdentifier called with one frame.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("WriteDataByIdentifier called with one frame."), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -1757,7 +1770,7 @@ TEST_F(HandleFramesTest, WriteDataByIdentifierServiceNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Service not supported for service: 2e\n");
+    EXPECT_NE(output.find("Error: Service not supported for service: 2e"), std::string::npos);
 }
 
 /* Test for processFrameData with a valid ClearDiagnosticInformation frame */
@@ -1779,7 +1792,7 @@ TEST_F(HandleFramesTest, ClearDiagnosticInformationValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "ClearDiagnosticInformation called.\n");
+    EXPECT_NE(output.find("ClearDiagnosticInformation called."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - ClearDiagnosticInformation SID*/
@@ -1801,7 +1814,8 @@ TEST_F(HandleFramesTest, ClearDiagnosticInformationSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nClearDiagnosticInformation called.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("ClearDiagnosticInformation called."), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -1828,7 +1842,7 @@ TEST_F(HandleFramesTest, ClearDiagnosticInformationServiceNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Service not supported for service: 14\n");
+    EXPECT_NE(output.find("Error: Service not supported for service: 14"), std::string::npos);
     EXPECT_EQ(sid, testFrame.data[2]);
 }
 
@@ -1851,7 +1865,7 @@ TEST_F(HandleFramesTest, ReadDtcInformationValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "ReadDtcInformation called.\n");
+    EXPECT_NE(output.find("ReadDtcInformation called."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - ReadDtcInformation SID*/
@@ -1873,7 +1887,8 @@ TEST_F(HandleFramesTest, ReadDtcInformationSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nReadDtcInformation called.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("ReadDtcInformation called."), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -1900,7 +1915,7 @@ TEST_F(HandleFramesTest, ReadDtcInformationServiceNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Service not supported for service: 19\n");
+    EXPECT_NE(output.find("Error: Service not supported for service: 19"), std::string::npos);
     EXPECT_EQ(sid, testFrame.data[2]);
 }
 
@@ -1923,7 +1938,7 @@ TEST_F(HandleFramesTest, RoutineControlValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "RoutineControl called.\n");
+    EXPECT_NE(output.find("RoutineControl called."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - RoutineControl SID*/
@@ -1945,7 +1960,8 @@ TEST_F(HandleFramesTest, RoutineControlSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nRoutineControl called.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("RoutineControl called."), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -1972,7 +1988,7 @@ TEST_F(HandleFramesTest, RoutineControlServiceNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Service not supported for service: 31\n");
+    EXPECT_NE(output.find("Error: Service not supported for service: 31"), std::string::npos);
     EXPECT_EQ(sid, testFrame.data[2]);
 }
 
@@ -1995,7 +2011,7 @@ TEST_F(HandleFramesTest, ResponseDiagnosticSessionControlValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Response for DiagnosticSessionControl received.\n");
+    EXPECT_NE(output.find("Response for DiagnosticSessionControl received."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - ResponseDiagnosticSessionControl SID*/
@@ -2017,7 +2033,8 @@ TEST_F(HandleFramesTest, ResponseDiagnosticSessionControlSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nResponse for DiagnosticSessionControl received.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("Response for DiagnosticSessionControl received."), std::string::npos);
 }
 
 /* Test for processFrameData with a valid ResponseEcuReset frame */
@@ -2039,7 +2056,7 @@ TEST_F(HandleFramesTest, ResponseEcuResetValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Response from EcuReset received.\n");
+    EXPECT_NE(output.find("Response from EcuReset received."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - ResponseEcuReset SID*/
@@ -2061,7 +2078,8 @@ TEST_F(HandleFramesTest, ResponseEcuResetSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nResponse from EcuReset received.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("Response from EcuReset received."), std::string::npos);
 }
 
 /* Test for processFrameData with a valid ResponseSecurityAccess frame */
@@ -2083,7 +2101,7 @@ TEST_F(HandleFramesTest, ResponseSecurityAccessValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Response from SecurityAccess received.\n");
+    EXPECT_NE(output.find("Response from SecurityAccess received."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - ResponseSecurityAccess SID*/
@@ -2105,7 +2123,8 @@ TEST_F(HandleFramesTest, ResponseSecurityAccessSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nResponse from SecurityAccess received.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("Response from SecurityAccess received."), std::string::npos);
 }
 
 /* Test for processFrameData with a valid ResponseAuthentication frame */
@@ -2127,7 +2146,7 @@ TEST_F(HandleFramesTest, ResponseAuthenticationValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Response from Authentication received.\n");
+    EXPECT_NE(output.find("Response from Authentication received."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - ResponseAuthentication SID*/
@@ -2149,7 +2168,8 @@ TEST_F(HandleFramesTest, ResponseAuthenticationSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nResponse from Authentication received.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("Response from Authentication received."), std::string::npos);
 }
 
 /* Test for processFrameData with a valid ResponseTesterPresent frame */
@@ -2171,7 +2191,7 @@ TEST_F(HandleFramesTest, ResponseTesterPresentValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Response from TesterPresent received.\n");
+    EXPECT_NE(output.find("Response from TesterPresent received."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - ResponseTesterPresent SID*/
@@ -2193,7 +2213,8 @@ TEST_F(HandleFramesTest, ResponseTesterPresentSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nResponse from TesterPresent received.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("Response from TesterPresent received."), std::string::npos);
 }
 
 /* Test for processFrameData with a valid ResponseAccessTimingParameters frame */
@@ -2215,7 +2236,7 @@ TEST_F(HandleFramesTest, ResponseAccessTimingParametersValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Response from AccessTimingParameters received.\n");
+    EXPECT_NE(output.find("Response from AccessTimingParameters received."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - ResponseAccessTimingParameters SID*/
@@ -2237,7 +2258,8 @@ TEST_F(HandleFramesTest, ResponseAccessTimingParametersSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nResponse from AccessTimingParameters received.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("Response from AccessTimingParameters received."), std::string::npos);
 }
 
 /* Test for processFrameData with a valid ResponseAccessTimingParameters frame */
@@ -2259,7 +2281,7 @@ TEST_F(HandleFramesTest, ResponseReadDataByIdentifierValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Response from ReadDataByIdentifier received in one frame.\n");
+    EXPECT_NE(output.find("Response from ReadDataByIdentifier received in one frame."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - ResponseAccessTimingParameters SID*/
@@ -2281,7 +2303,8 @@ TEST_F(HandleFramesTest, ResponseReadDataByIdentifierSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nResponse from ReadDataByIdentifier received in one frame.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("Response from ReadDataByIdentifier received in one frame."), std::string::npos);
 }
 
 /* Test for processFrameData with a valid ResponseReadMemoryByAdress frame */
@@ -2303,7 +2326,7 @@ TEST_F(HandleFramesTest, ResponseReadMemoryByAdressValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Response from ReadMemoryByAdress received in one frame.\n");
+    EXPECT_NE(output.find("Response from ReadMemoryByAdress received in one frame."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - ResponseReadMemoryByAdress SID*/
@@ -2325,7 +2348,8 @@ TEST_F(HandleFramesTest, ResponseReadMemoryByAdressSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nResponse from ReadMemoryByAdress received in one frame.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("Response from ReadMemoryByAdress received in one frame."), std::string::npos);
 }
 
 /* Test for processFrameData with a valid ResponseWriteDataByIdentifier frame */
@@ -2347,7 +2371,7 @@ TEST_F(HandleFramesTest, ResponseWriteDataByIdentifierValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Response from WriteDataByIdentifier received.\n");
+    EXPECT_NE(output.find("Response from WriteDataByIdentifier received."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - ResponseWriteDataByIdentifier SID*/
@@ -2369,7 +2393,8 @@ TEST_F(HandleFramesTest, ResponseWriteDataByIdentifierSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nResponse from WriteDataByIdentifier received.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("Response from WriteDataByIdentifier received."), std::string::npos);
 }
 
 /* Test for processFrameData with a valid ResponseClearDiagnosticInformation frame */
@@ -2391,7 +2416,7 @@ TEST_F(HandleFramesTest, ResponseClearDiagnosticInformationValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Response from ClearDiagnosticInformation received.\n");
+    EXPECT_NE(output.find("Response from ClearDiagnosticInformation received."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - ResponseClearDiagnosticInformation SID*/
@@ -2413,7 +2438,8 @@ TEST_F(HandleFramesTest, ResponseClearDiagnosticInformationSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nResponse from ClearDiagnosticInformation received.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("Response from ClearDiagnosticInformation received."), std::string::npos);
 }
 
 /* Test for processFrameData with a valid ResponseReadDtcInformation frame */
@@ -2435,7 +2461,7 @@ TEST_F(HandleFramesTest, ResponseReadDtcInformationValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Response from ReadDtcInformation received.\n");
+    EXPECT_NE(output.find("Response from ReadDtcInformation received."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - ResponseReadDtcInformation SID*/
@@ -2457,7 +2483,8 @@ TEST_F(HandleFramesTest, ResponseReadDtcInformationSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nResponse from ReadDtcInformation received.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("Response from ReadDtcInformation received."), std::string::npos);
 }
 
 /* Test for processFrameData with a valid ResponseRoutineControl frame */
@@ -2479,7 +2506,7 @@ TEST_F(HandleFramesTest, ResponseRoutineControlValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Response from RoutineControl received.\n");
+    EXPECT_NE(output.find("Response from RoutineControl received."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - ResponseRoutineControl SID*/
@@ -2501,7 +2528,8 @@ TEST_F(HandleFramesTest, ResponseRoutineControlSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nResponse from RoutineControl received.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("Response from RoutineControl received."), std::string::npos);
 }
 
 /* Test for processFrameData with a valid ResponseRoutineControl frame */
@@ -2523,7 +2551,7 @@ TEST_F(HandleFramesTest, OtaRequestDownloadValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "RequestDownload called.\n");
+    EXPECT_NE(output.find("RequestDownload called."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - RequestDownload SID*/
@@ -2545,7 +2573,8 @@ TEST_F(HandleFramesTest, OtaRequestDownloadSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nRequestDownload called.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("RequestDownload called."), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -2572,7 +2601,7 @@ TEST_F(HandleFramesTest, OtaRequestDownloadServiceNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Service not supported for service: 34\n");
+    EXPECT_NE(output.find("Error: Service not supported for service: 34"), std::string::npos);
 }
 
 /* Test for processFrameData with a valid TransferData frame */
@@ -2594,7 +2623,7 @@ TEST_F(HandleFramesTest, TransferDataValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "TransferData called with one frame\n");
+    EXPECT_NE(output.find("TransferData called with one frame"), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - TransferData SID*/
@@ -2616,7 +2645,8 @@ TEST_F(HandleFramesTest, TransferDataSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nTransferData called with one frame\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("TransferData called with one frame"), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -2643,7 +2673,7 @@ TEST_F(HandleFramesTest, TransferDataServiceNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Service not supported for service: 36\n");
+    EXPECT_NE(output.find("Error: Service not supported for service: 36"), std::string::npos);
 }
 
 /* Test for processFrameData with a valid TransferData frame */
@@ -2664,8 +2694,8 @@ TEST_F(HandleFramesTest, RequestTransferExitValTest){
     testing::internal::CaptureStdout();
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
-    /* check if the correct message is printed */
-    EXPECT_EQ(output, "RequestTransferExit called.\n");
+    /* check if the correct message is printed */\
+    EXPECT_NE(output.find("RequestTransferExit called."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - RequestTransferExit SID*/
@@ -2687,7 +2717,8 @@ TEST_F(HandleFramesTest, RequestTransferExitSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nRequestTransferExit called.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("RequestTransferExit called."), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -2714,7 +2745,7 @@ TEST_F(HandleFramesTest, RequestTransferExitServiceNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Service not supported for service: 37\n");
+    EXPECT_NE(output.find("Error: Service not supported for service: 37"), std::string::npos);
 }
 
 /* Test for processFrameData with a valid RequestUpdateStatus frame */
@@ -2736,7 +2767,7 @@ TEST_F(HandleFramesTest, RequestUpdateStatusValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "RequestUpdateStatus called.\n");
+    EXPECT_NE(output.find("RequestUpdateStatus called."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - RequestUpdateStatus SID*/
@@ -2758,7 +2789,8 @@ TEST_F(HandleFramesTest, RequestUpdateStatusSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nRequestUpdateStatus called.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("RequestUpdateStatus called."), std::string::npos);
 }
 
 /** Test for handleFrameprocessNrc called in processFrameData with a valid single frame for negative response
@@ -2785,7 +2817,7 @@ TEST_F(HandleFramesTest, RequestUpdateStatusServiceNegTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);    
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Error: Service not supported for service: 32\n");
+    EXPECT_NE(output.find("Error: Service not supported for service: 32"), std::string::npos);
     EXPECT_EQ(sid, testFrame.data[2]);
 }
 
@@ -2808,7 +2840,7 @@ TEST_F(HandleFramesTest, ResponseRequestDownloadValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Response from RequestDownload received.\n");
+    EXPECT_NE(output.find("Response from RequestDownload received."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - ResponseRequestDownload SID*/
@@ -2830,7 +2862,8 @@ TEST_F(HandleFramesTest, ResponseRequestDownloadSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nResponse from RequestDownload received.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("Response from RequestDownload received."), std::string::npos);
 }
 
 /* Test for processFrameData with a valid ResponseTransferData frame */
@@ -2852,7 +2885,7 @@ TEST_F(HandleFramesTest, ResponseTransferDataValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Response from TransferData received.\n");
+    EXPECT_NE(output.find("Response from TransferData received."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - ResponseTransferData SID*/
@@ -2874,7 +2907,8 @@ TEST_F(HandleFramesTest, ResponseTransferDataSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nResponse from TransferData received.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("Response from TransferData received."), std::string::npos);
 }
 
 /* Test for processFrameData with a valid ResponseRequestTransferExit frame */
@@ -2896,7 +2930,7 @@ TEST_F(HandleFramesTest, ResponseRequestTransferExitValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Response from RequestTransferExit received.\n");
+    EXPECT_NE(output.find("Response from RequestTransferExit received."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - ResponseRequestTransferExit SID*/
@@ -2918,7 +2952,8 @@ TEST_F(HandleFramesTest, ResponseRequestTransferExitSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nResponse from RequestTransferExit received.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("Response from RequestTransferExit received."), std::string::npos);
 }
 
 /* Test for processFrameData with a valid ResponseRequestUpdateStatus frame */
@@ -2940,7 +2975,7 @@ TEST_F(HandleFramesTest, ResponseRequestUpdateStatusValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Response from RequestUpdateStatus received.\n");
+    EXPECT_NE(output.find("Response from RequestUpdateStatus received."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - ResponseRequestUpdateStatus SID*/
@@ -2962,7 +2997,8 @@ TEST_F(HandleFramesTest, ResponseRequestUpdateStatusSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nResponse from RequestUpdateStatus received.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("Response from RequestUpdateStatus received."), std::string::npos);
 }
 
 /* Test for processFrameData with a valid UnknownFrame frame */
@@ -2984,7 +3020,7 @@ TEST_F(HandleFramesTest, UnknownFrameValTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Unknown request/response received.\n");
+    EXPECT_NE(output.find("Unknown request/response received."), std::string::npos);
 }
 
 /* Test for handleFrame with a valid single frame - ResponseRequestUpdateStatus SID*/
@@ -3006,7 +3042,8 @@ TEST_F(HandleFramesTest, UnknownFrameSingTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Single Frame received:\n\nUnknown request/response received.\n");
+    EXPECT_NE(output.find("Single Frame received:"), std::string::npos);
+    EXPECT_NE(output.find("Unknown request/response received."), std::string::npos);
 }
 
 /** Test the first frame */
@@ -3031,7 +3068,7 @@ TEST_F(HandleFramesTest, firstFrameTest){
     handler.handleFrame(testFrame);
     std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    ASSERT_EQ(output, "Multi-frame Sequence with 9 frames:\n");   
+    EXPECT_NE(output.find("Multi-frame Sequence with 9 frames"), std::string::npos);
 }
 
 /* Test if the frame's sequence number matches the expected sequence number */
@@ -3058,11 +3095,12 @@ TEST_F(HandleFramesTest, MultipleFrameTest){
     bool isMultiFrame = true;
 
     /* redirect stdout to capture the output */
-    testing::internal::CaptureStderr();    
+    testing::internal::CaptureStdout();    
     handler.handleFrame(testFrame);
-    std::string output1 = testing::internal::GetCapturedStderr();
+    std::string output1 = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output1, "Invalid consecutive frame sequence: expected 21 but received 23\n");                  
+    /* values should be 0x21 and 0x23 but I can't log hex and then words in the same print */
+    EXPECT_NE(output1.find("Invalid consecutive frame sequence: expected 33 but received 35"), std::string::npos);                 
 }
 
 /** Test if all multi-frames have been received 
@@ -3110,7 +3148,7 @@ TEST_F(HandleFramesTest, WriteDataByIdentifierMultipleFramesReceivedTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output2= testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output2, "WriteDataByIdentifier called with multiple frames.\n");                        
+    EXPECT_NE(output2.find("WriteDataByIdentifier called with multiple frames."), std::string::npos);                      
 }
 
 /** Test if all multi-frames have been received 
@@ -3157,7 +3195,8 @@ TEST_F(HandleFramesTest, ResReadDataByIdentifierMultipleFrameTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output2= testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output2, "Response from ReadDataByIdentifier received.\nReceived multiple frames containing 10 bytes of data\n");                          
+    EXPECT_NE(output2.find("Response from ReadDataByIdentifier received."), std::string::npos);
+    EXPECT_NE(output2.find("Received multiple frames containing 10 bytes of data"), std::string::npos);                        
 }
 
 /** Test if all multi-frames have been received 
@@ -3205,7 +3244,8 @@ TEST_F(HandleFramesTest, ResReadMemoryByAddressMultipleFrameTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output2= testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output2, "Response from ReadMemoryByAdress received.\nReceived multiple frames containing 10 bytes of data\n");                      
+    EXPECT_NE(output2.find("Response from ReadMemoryByAdress received."), std::string::npos);
+    EXPECT_NE(output2.find("Received multiple frames containing 10 bytes of data"), std::string::npos);                     
 }
 
 /** Test if all multi-frames have been received 
@@ -3254,8 +3294,7 @@ TEST_F(HandleFramesTest, TransferDataMultipleFrameTest){
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
     std::string output2= testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output2, "TransferData called with multiple frames.\n");
-    /* check if the correct message is printed */                         
+    EXPECT_NE(output2.find("TransferData called with multiple frames."), std::string::npos);         
 } 
 
 /* Test if the frame type is invalid */
@@ -3267,11 +3306,11 @@ TEST_F(HandleFramesTest, InvalidFrameTypeTest){
     testFrame.data[0] = 0x20;          
    
     /* redirect stdout to capture the output */
-    testing::internal::CaptureStderr();    
+    testing::internal::CaptureStdout();    
     handler.handleFrame(testFrame);
-    std::string output = testing::internal::GetCapturedStderr();
+    std::string output = testing::internal::GetCapturedStdout();
     /* check if the correct message is printed */
-    EXPECT_EQ(output, "Invalid frame type\n");                      
+    EXPECT_NE(output.find("Invalid frame type"), std::string::npos);                    
 }
 
 int main(int argc, char **argv)
