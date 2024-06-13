@@ -21,16 +21,16 @@ bool INTERFACE_module::create_interface()
     unsigned char last_four_bits =  this->interface_name & 0X0F;
    
     /* Create interface command for the first interface (for ECU communication) */
-    std::string cmdECU = "sudo ip link add vcan" + std::to_string(first_four_bits) + " type vcan";   
+    std::string cmd_ecu = "sudo ip link add vcan" + std::to_string(first_four_bits) + " type vcan";   
     /* Create interface command for the second interface (for API communication) */
-    std::string cmdAPI = "sudo ip link add vcan" + std::to_string(last_four_bits) + " type vcan";
+    std::string cmd_api = "sudo ip link add vcan" + std::to_string(last_four_bits) + " type vcan";
     
-    if (system(cmdECU.c_str())) {
+    if (system(cmd_ecu.c_str())) {
         std::cout << "Error when trying to create the first interface\n";
         return false;
     }
 
-    if (system(cmdAPI.c_str())) {
+    if (system(cmd_api.c_str())) {
         std::cout << "Error when trying to create the second interface\n";
         return false;
     }
@@ -51,16 +51,16 @@ bool INTERFACE_module::start_interface()
     unsigned char last_four_bits = this->interface_name & 0X0F;
     
     /* start interface command for the first interface (for ECU communication)*/
-    std::string cmdECU = "sudo ip link set vcan" + std::to_string(first_four_bits) + " up";
+    std::string cmd_ecu = "sudo ip link set vcan" + std::to_string(first_four_bits) + " up";
     /* start interface command for the second interface (for API communication)*/
-    std::string cmdAPI = "sudo ip link set vcan" + std::to_string(last_four_bits) + " up";   
+    std::string cmd_api = "sudo ip link set vcan" + std::to_string(last_four_bits) + " up";   
     
-    if (system(cmdECU.c_str())) {
+    if (system(cmd_ecu.c_str())) {
         std::cout << "Error when trying to start the first interface\n";
         return false;
     }
 
-     if (system(cmdAPI.c_str())) {
+     if (system(cmd_api.c_str())) {
         std::cout << "Error when trying to start the second interface\n";
         return false;
     }
@@ -73,8 +73,8 @@ bool INTERFACE_module::start_interface()
     }    
 
     /* Binding socket */  
-    std::string vcanInterfaceECU =  "vcan" + std::to_string(first_four_bits);    
-    strcpy(ifr.ifr_name, vcanInterfaceECU.c_str() );    
+    std::string vcan_interface_ecu =  "vcan" + std::to_string(first_four_bits);    
+    strcpy(ifr.ifr_name, vcan_interface_ecu.c_str() );    
     ioctl(_socketECU, SIOCGIFINDEX, &ifr);   
 
     addr.can_family = AF_CAN;
@@ -96,8 +96,8 @@ bool INTERFACE_module::start_interface()
     }
 
     /* Binding socket */      
-    std::string vcanInterfaceAPI =  "vcan" + std::to_string(last_four_bits);
-    strcpy(ifr.ifr_name, vcanInterfaceAPI.c_str() );
+    std::string vcan_interface_api =  "vcan" + std::to_string(last_four_bits);
+    strcpy(ifr.ifr_name, vcan_interface_api.c_str() );
     ioctl(_socketAPI, SIOCGIFINDEX, &ifr);
 
     addr.can_family = AF_CAN;
@@ -128,16 +128,16 @@ bool INTERFACE_module::stop_interface()
     unsigned char last_four_bits = this->interface_name & 0X0F;
 
     /* stop interface command for the first interface */
-    std::string cmdECU = "sudo ip link set vcan" + std::to_string(first_four_bits) + " down";
+    std::string cmd_ecu = "sudo ip link set vcan" + std::to_string(first_four_bits) + " down";
     /* stop interface command for the second interface */
-    std::string cmdAPI = "sudo ip link set vcan" + std::to_string(last_four_bits) + " down";   
+    std::string cmd_api = "sudo ip link set vcan" + std::to_string(last_four_bits) + " down";   
 
-    if (system(cmdECU.c_str())) {
+    if (system(cmd_ecu.c_str())) {
         std::cout << "Error when trying to turn down the first interface\n";
         return false;
     }
 
-    if (system(cmdAPI.c_str())) {
+    if (system(cmd_api.c_str())) {
         std::cout << "Error when trying to turn down the second interface\n";
         return false;
     }
@@ -158,16 +158,16 @@ bool INTERFACE_module::delete_interface()
     unsigned char last_four_bits = this->interface_name & 0X0F;
 
     /* delete interface command for the first interface */
-    std::string cmdECU = "sudo ip link delete vcan" + std::to_string(first_four_bits) + " type can";
+    std::string cmd_ecu = "sudo ip link delete vcan" + std::to_string(first_four_bits) + " type can";
     /* delete interface command for the second interface */
-    std::string cmdAPI = "sudo ip link delete vcan" + std::to_string(last_four_bits) + " type can";
+    std::string cmd_api = "sudo ip link delete vcan" + std::to_string(last_four_bits) + " type can";
 
-    if (system(cmdECU.c_str())) {
+    if (system(cmd_ecu.c_str())) {
         std::cout << "Error when trying to delete the first interface\n";
         return false;
     }
 
-    if (system(cmdAPI.c_str())) {
+    if (system(cmd_api.c_str())) {
         std::cout << "Error when trying to delete the second interface\n";
         return false;
     }
