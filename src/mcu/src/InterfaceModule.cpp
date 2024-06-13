@@ -9,7 +9,7 @@ INTERFACE_module::INTERFACE_module(uint8_t interface_name)
 }
 
 /* Method to create a vcan interface */
-int INTERFACE_module::create_interface()
+bool INTERFACE_module::create_interface()
 {
     /** define the mask for the first 4 bits for the first interface in hexadecimal 
      * get the first 4 bits applying the mask using the bitwise AND operator and shift right
@@ -21,25 +21,25 @@ int INTERFACE_module::create_interface()
     unsigned char last_four_bits =  this->interface_name & 0X0F;
    
     /* Create interface command for the first interface (for ECU communication) */
-    std::string cmd1 = "sudo ip link add vcan" + std::to_string(first_four_bits) + " type vcan";   
+    std::string cmdECU = "sudo ip link add vcan" + std::to_string(first_four_bits) + " type vcan";   
     /* Create interface command for the second interface (for API communication) */
-    std::string cmd2 = "sudo ip link add vcan" + std::to_string(last_four_bits) + " type vcan";
+    std::string cmdAPI = "sudo ip link add vcan" + std::to_string(last_four_bits) + " type vcan";
     
-    if (system(cmd1.c_str())) {
+    if (system(cmdECU.c_str())) {
         std::cout << "Error when trying to create the first interface\n";
-        return 1;
+        return false;
     }
 
-    if (system(cmd2.c_str())) {
+    if (system(cmdAPI.c_str())) {
         std::cout << "Error when trying to create the second interface\n";
-        return 1;
+        return false;
     }
 
-    return 0;
+    return true;
 }
 
 /* Method to start a vcan interface */
-int INTERFACE_module::start_interface()
+bool INTERFACE_module::start_interface()
 {
     /** define the mask for the first 4 bits for the first interface in hexadecimal 
      * get the first 4 bits applying the mask using the bitwise AND operator and shift right
@@ -51,18 +51,18 @@ int INTERFACE_module::start_interface()
     unsigned char last_four_bits = this->interface_name & 0X0F;
     
     /* start interface command for the first interface (for ECU communication)*/
-    std::string cmd1 = "sudo ip link set vcan" + std::to_string(first_four_bits) + " up";
+    std::string cmdECU = "sudo ip link set vcan" + std::to_string(first_four_bits) + " up";
     /* start interface command for the second interface (for API communication)*/
-    std::string cmd2 = "sudo ip link set vcan" + std::to_string(last_four_bits) + " up";   
+    std::string cmdAPI = "sudo ip link set vcan" + std::to_string(last_four_bits) + " up";   
     
-    if (system(cmd1.c_str())) {
+    if (system(cmdECU.c_str())) {
         std::cout << "Error when trying to start the first interface\n";
-        return 1;
+        return false;
     }
 
-     if (system(cmd2.c_str())) {
+     if (system(cmdAPI.c_str())) {
         std::cout << "Error when trying to start the second interface\n";
-        return 1;
+        return false;
     }
 
     /* Create socket for the first interface */
@@ -73,18 +73,18 @@ int INTERFACE_module::start_interface()
     }    
 
     /* Binding socket */  
-    std::string vcanInterface1 =  "vcan" + std::to_string(first_four_bits);    
-    strcpy(ifr.ifr_name, vcanInterface1.c_str() );    
+    std::string vcanInterfaceECU =  "vcan" + std::to_string(first_four_bits);    
+    strcpy(ifr.ifr_name, vcanInterfaceECU.c_str() );    
     ioctl(_socketECU, SIOCGIFINDEX, &ifr);   
 
     addr.can_family = AF_CAN;
     addr.can_ifindex = ifr.ifr_ifindex;
 
-    int bnd1 = bind(_socketECU, (struct sockaddr*)&addr, sizeof(addr));
+    int bndECU = bind(_socketECU, (struct sockaddr*)&addr, sizeof(addr));
 
-    if(bnd1 < 0)
+    if(bndECU < 0)
     {
-        std::cout<<"Error when trying to bind1\n";
+        std::cout<<"Error when trying to bindECU\n";
         return 1;
     }    
 
@@ -96,27 +96,27 @@ int INTERFACE_module::start_interface()
     }
 
     /* Binding socket */      
-    std::string vcanInterface2 =  "vcan" + std::to_string(last_four_bits);
-    strcpy(ifr.ifr_name, vcanInterface2.c_str() );
+    std::string vcanInterfaceAPI =  "vcan" + std::to_string(last_four_bits);
+    strcpy(ifr.ifr_name, vcanInterfaceAPI.c_str() );
     ioctl(_socketAPI, SIOCGIFINDEX, &ifr);
 
     addr.can_family = AF_CAN;
     addr.can_ifindex = ifr.ifr_ifindex;
 
     
-    int bnd2 = bind(_socketAPI, (struct sockaddr*)&addr, sizeof(addr));
+    int bndAPI = bind(_socketAPI, (struct sockaddr*)&addr, sizeof(addr));
 
-    if(bnd2 < 0)
+    if(bndAPI < 0)
     {
-        std::cout<<"Error when trying to bind2\n";
+        std::cout<<"Error when trying to bindAPI\n";
         return 1;
     }    
 
-    return 0;
+    return true;
 }
 
 /* Method to stop a vcan interface */
-int INTERFACE_module::stop_interface() 
+bool INTERFACE_module::stop_interface() 
 {
     /** define the mask for the first 4 bits for the first interface in hexadecimal 
      * get the first 4 bits applying the mask using the bitwise AND operator and shift right
@@ -128,25 +128,25 @@ int INTERFACE_module::stop_interface()
     unsigned char last_four_bits = this->interface_name & 0X0F;
 
     /* stop interface command for the first interface */
-    std::string cmd1 = "sudo ip link set vcan" + std::to_string(first_four_bits) + " down";
+    std::string cmdECU = "sudo ip link set vcan" + std::to_string(first_four_bits) + " down";
     /* stop interface command for the second interface */
-    std::string cmd2 = "sudo ip link set vcan" + std::to_string(last_four_bits) + " down";   
+    std::string cmdAPI = "sudo ip link set vcan" + std::to_string(last_four_bits) + " down";   
 
-    if (system(cmd1.c_str())) {
+    if (system(cmdECU.c_str())) {
         std::cout << "Error when trying to turn down the first interface\n";
-        return 1;
+        return false;
     }
 
-    if (system(cmd2.c_str())) {
+    if (system(cmdAPI.c_str())) {
         std::cout << "Error when trying to turn down the second interface\n";
-        return 1;
+        return false;
     }
 
-    return 0;
+    return true;
 }
 
 /* Method to delete a vcan interface */
-int INTERFACE_module::delete_interface() 
+bool INTERFACE_module::delete_interface() 
 {
     /** define the mask for the first 4 bits for the first interface in hexadecimal 
      * get the first 4 bits applying the mask using the bitwise AND operator and shift right
@@ -158,21 +158,21 @@ int INTERFACE_module::delete_interface()
     unsigned char last_four_bits = this->interface_name & 0X0F;
 
     /* delete interface command for the first interface */
-    std::string cmd1 = "sudo ip link delete vcan" + std::to_string(first_four_bits) + " type can";
+    std::string cmdECU = "sudo ip link delete vcan" + std::to_string(first_four_bits) + " type can";
     /* delete interface command for the second interface */
-    std::string cmd2 = "sudo ip link delete vcan" + std::to_string(last_four_bits) + " type can";
+    std::string cmdAPI = "sudo ip link delete vcan" + std::to_string(last_four_bits) + " type can";
 
-    if (system(cmd1.c_str())) {
+    if (system(cmdECU.c_str())) {
         std::cout << "Error when trying to delete the first interface\n";
-        return 1;
+        return false;
     }
 
-    if (system(cmd2.c_str())) {
+    if (system(cmdAPI.c_str())) {
         std::cout << "Error when trying to delete the second interface\n";
-        return 1;
+        return false;
     }
 
-    return 0;
+    return true;
 }
 
 /* Method to get the first socket descriptor */

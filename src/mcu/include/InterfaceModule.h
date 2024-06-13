@@ -43,25 +43,25 @@ class INTERFACE_module
         * @brief Method to create vcan interfaces: one to communicate 
         * with ECU and one to communicate with API        
         */        
-        int create_interface();
+        bool create_interface();
 
         /**
         * @brief Method to start vcan interfaces: one to communicate 
         * with ECU and one to communicate with API        
         */        
-        int start_interface();
+        bool start_interface();
 
         /**
         * @brief Method to stop vcan interfaces: one to communicate 
         * with ECU and one to communicate with API       
         */    
-        int stop_interface();
+        bool stop_interface();
 
         /**
         * @brief Method to delete vcan interfaces when no longer needed: 
         * one to communicate with ECU and one to communicate with API
         */    
-        int delete_interface();
+        bool delete_interface();
 
         /* Method to get the socket descriptor for ECU and API communication */
         int get_socketECU();
