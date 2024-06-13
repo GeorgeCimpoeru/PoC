@@ -61,8 +61,6 @@ can_frame GenerateFrames::createFrame(uint32_t can_id, std::vector<uint8_t> data
             frame.can_id = CAN_ERR_FLAG;
             frame.can_dlc = 0;
             break;
-        default:
-            throw std::invalid_argument("Invalid frame type");
     }
     return frame;
 }
@@ -80,6 +78,28 @@ int GenerateFrames::sendFrame(uint32_t can_id, std::vector<uint8_t> data, FrameT
 
     /* Send the CAN frame */
     if (write(this->socket, &frame, sizeof(frame)) != sizeof(frame)) 
+    {
+        perror("Write");
+        return -1;
+    }
+
+    /* Close the socket */
+    // close(socket);
+    return 0;
+}
+
+int GenerateFrames::sendFrame(uint32_t can_id, std::vector<uint8_t> data, int s, FrameType frameType) 
+{
+    if (s < 0)
+    {
+        throw std::runtime_error("Socket not initialized");
+    }
+
+    /* Create the CAN frame */
+    this->frame = createFrame(can_id, data, frameType);
+
+    /* Send the CAN frame */
+    if (write(s, &frame, sizeof(frame)) != sizeof(frame)) 
     {
         perror("Write");
         return -1;

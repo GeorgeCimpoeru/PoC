@@ -57,6 +57,8 @@ public:
      */
     int sendFrame(uint32_t can_id, std::vector<uint8_t> data, FrameType frame_type = DATA_FRAME);
 
+    int sendFrame(uint32_t can_id, std::vector<uint8_t> data, int s, FrameType frame_type = DATA_FRAME);
+
     /**
      * @brief Gets the CAN frame.
      * @return Returns the CAN frame.
