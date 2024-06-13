@@ -8,7 +8,7 @@ MCUModule::MCUModule(int interfaceNumber) :
                 {
     interfaceModule.create_interface();
     interfaceModule.start_interface();
-    receiveFrames = new ReceiveFrames(interfaceModule.get_socket());
+    receiveFrames = new ReceiveFrames(interfaceModule.get_socket(), interfaceModule.get_socket());
 }
 
 /* Default constructor */

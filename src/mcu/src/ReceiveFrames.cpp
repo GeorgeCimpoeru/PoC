@@ -212,6 +212,7 @@ const std::vector<uint8_t>& ReceiveFrames::getECUsUp() const
 }
 
 void ReceiveFrames::startTimerThread() {
+    running = true;
     timerThread = std::thread(&ReceiveFrames::timerCheck, this);
 }
 
@@ -222,21 +223,28 @@ void ReceiveFrames::stopTimerThread() {
     }
 }
 
-void ReceiveFrames::timerCheck() {
-    while (running) {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        auto now = std::chrono::steady_clock::now();
-        std::lock_guard<std::mutex> lock(queueMutex);
-        for (auto it = ecuTimers.begin(); it != ecuTimers.end();) {
-            if (std::chrono::duration_cast<std::chrono::seconds>(now - it->second) >= timeoutDuration) {
-                uint8_t ecu_id = it->first;
-                // Send request frame
-                std::vector<uint8_t> data = {0x01};
-                generateFrame.sendFrame(ecu_id, data);
-                it = ecuTimers.erase(it);
-            } else {
-                ++it;
+void ReceiveFrames::timerCheck()
+{
+    try {
+        while (running) {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            auto now = std::chrono::steady_clock::now();
+            std::lock_guard<std::mutex> lock(queueMutex);
+            for (auto it = ecuTimers.begin(); it != ecuTimers.end();) {
+                if (std::chrono::duration_cast<std::chrono::seconds>(now - it->second) >= timeoutDuration) {
+                    uint8_t ecu_id = it->first;
+                    /* Send request frame */
+                    std::vector<uint8_t> data = {0x01};
+                    generateFrame.sendFrame(ecu_id, data);
+                    it = ecuTimers.erase(it);
+                } else {
+                    ++it;
+                }
             }
         }
+    } catch (const std::exception& e) {
+        std::cerr << "Exception in timerCheck: " << e.what() << std::endl;
+    } catch (...) {
+        std::cerr << "Unknown exception in timerCheck" << std::endl;
     }
 }
