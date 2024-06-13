@@ -24,7 +24,7 @@
 
 #include<linux/can.h>
 #include<string.h>
-#include "MCULogger.h"
+#include "../../utils/Logger/include/Logger.h"
 
 /* class designed to manage the virtual CAN network interface (vcan) */
 class INTERFACE_module

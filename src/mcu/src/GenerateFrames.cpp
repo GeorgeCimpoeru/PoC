@@ -5,7 +5,11 @@
  * This file contains the implementation of the GenerateFrames class, which is responsible for creating and sending CAN frames.
  */
 #include "../include/GenerateFrames.h"
-
+#ifndef TESTING
+Logger generateLogger = Logger("generateLogger", "logs/generateFramesLog.log");
+#else
+Logger generateLogger = Logger();
+#endif
 /* Constructor which create a CAN frame */
 GenerateFrames::GenerateFrames(int socket) 
 {

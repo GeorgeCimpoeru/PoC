@@ -50,7 +50,7 @@
 
 #include "HandleFrames.h"
 #include "GenerateFrame.h"
-
+#include "../../utils/Logger/include/Logger.h"
 class ReceiveFrames
 {
  public:
