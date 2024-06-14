@@ -1,19 +1,18 @@
 /**
- *        This class is used to manage a virtual CAN network interface (vcan) 
+ *        This class is used to manage two virtual CAN network interfaces (vcan) :
+ *        one for ECU and one for API
  *        in a Linux environment due to the fact there is no access to actual CAN hardware.
- *        The class has a constructor that initializes the class with the interface name 
- *        (the name of vcan interface).
- *        The method create_interface is used to create a vcan interface.
- *        The method start_interface is used to bring the vcan interface up.
- *        The method stop_interface is used to bring the vcan interface down.
- *        The method delete_interface is used to delete the vcan interface.
- *        The method get_socket is used to return the socket file descriptor.
- *        The method get_interface_name is used to return the vcan interface name.
+ *        The class has a constructor that initializes the class with the interface indicator number 
+ *        The method create_interface is used to create the vcan interfaces.
+ *        The method start_interface is used to bring the vcan interfaces up.
+ *        The method stop_interface is used to bring the vcan interfaces down.
+ *        The method delete_interface is used to delete the vcan interfaces.
+ *        The method get_socket is used to return the sockets file descriptor.
  */
 
 
-#ifndef MCU_MODULE_H
-#define MCU_MODULE_H
+#ifndef INTERFACE_MODULE_H
+#define INTERFACE_MODULE_H
 
 #include <iostream>
 #include <string>
@@ -30,32 +29,43 @@
 class INTERFACE_module
 {    
     protected:
-        std::string interface_name;        
+        uint8_t interface_name;        
         struct sockaddr_can addr;
         struct ifreq ifr;
-        int _socket;
+        int _socketECU;
+        int _socketAPI;
 
     public:
-        /* Constructor that takes the interface name as an argument */
-        INTERFACE_module(std::string interface_name);
+        /* Constructor that takes the interface indicator number as an argument */
+        INTERFACE_module(uint8_t interface_name);
+        
+        /**
+        * @brief Method to create vcan interfaces: one to communicate 
+        * with ECU and one to communicate with API        
+        */        
+        bool create_interface();
 
-        /* Method to create a vcan interface */
-        int create_interface();
+        /**
+        * @brief Method to start vcan interfaces: one to communicate 
+        * with ECU and one to communicate with API        
+        */        
+        bool start_interface();
 
-        /* Method to start a vcan interface */
-        int start_interface();
+        /**
+        * @brief Method to stop vcan interfaces: one to communicate 
+        * with ECU and one to communicate with API       
+        */    
+        bool stop_interface();
 
-        /* Method to stop a vcan interface */
-        int stop_interface();
+        /**
+        * @brief Method to delete vcan interfaces when no longer needed: 
+        * one to communicate with ECU and one to communicate with API
+        */    
+        bool delete_interface();
 
-        /* Method to delete a vcan interface when no longer needed */
-        int delete_interface();
-
-        /* Method to get the socket descriptor */
-        int get_socket();
-
-        /* Method to get the vcan name interface */
-        std::string get_interface_name();
+        /* Method to get the socket descriptor for ECU and API communication */
+        int get_socketECU();
+        int get_socketAPI();
 };
 
 #endif

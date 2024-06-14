@@ -112,7 +112,7 @@ class ReceiveFrames
    */
   void stopListenAPI();
 
-    /**
+  /**
    * @brief Set listenCANBus member to false
    * 
    */
@@ -165,19 +165,20 @@ class ReceiveFrames
   
  protected:
   /* The socket from where we read the frames */
-  int socketCANBus;
-  int socketAPI;
-  const uint32_t hexValueId = 0x10;
-  std::queue<struct can_frame> frameQueue;
-  std::mutex queueMutex;
-  std::condition_variable queueCondVar;
-  bool listenAPI;
-  bool listenCANBus;
+  setTimer(uint8_t ecu_id);
+  int socket_canbus;
+  int socket_api;
+  const uint32_t hex_value_id = 0x10;
+  std::queue<struct can_frame> frame_queue;
+  std::mutex queue_mutex;
+  std::condition_variable queue_cond_var;
+  bool listen_api;
+  bool listen_canbus;
   HandleFrames handler;
-  GenerateFrames generateFrame;
+  GenerateFrames generate_frames;
   /* Vector contains all the ECUs up ids */
-  std::vector<uint8_t> ecusUp;
-
+  std::vector<uint8_t> ecus_up;
+  
   void startTimerThread();
   void stopTimerThread();
   void timerCheck();

@@ -10,77 +10,101 @@ bool is_interface_created(const std::string& interface_name)
     return file.good();
 }
 
-/** TEST SUITE 1 
+/* a method designed to check if the socket is valid */
+bool is_valid_socket(int sockfd)
+{
+    return sockfd >= 0;
+}
+
+/** TEST SUITE 
 * test the create_interface method
 */
-TEST(InterfaceTestSuite1, CreateInterface)
+TEST(InterfaceTestSuite, CreateInterface)
 {
-    INTERFACE_module interface("vcan0");
-    ASSERT_EQ(interface.create_interface(),0);   
-
-    ASSERT_TRUE(is_interface_created("vcan0"));
+    INTERFACE_module interface(0x01);
+    EXPECT_TRUE(is_interface_created("vcan0"));
+    EXPECT_TRUE(is_interface_created("vcan1"));
+    interface.delete_interface(); 
+    EXPECT_FALSE(is_interface_created("vcan0"));
+    EXPECT_FALSE(is_interface_created("vcan1"));
+    EXPECT_EQ(interface.create_interface(),true);     
+    EXPECT_TRUE(is_interface_created("vcan0"));
+    EXPECT_TRUE(is_interface_created("vcan1"));
+   
+    EXPECT_EQ(interface.delete_interface(),true); 
 }
 
 /* test the start_interface method */
-TEST(InterfaceTestSuite1, StartInterface)
+TEST(InterfaceTestSuite, StartInterface)
 {
-    INTERFACE_module interface("vcan0");
-    ASSERT_EQ(interface.start_interface(),0);
+    INTERFACE_module interface(0x01);
+    EXPECT_TRUE(is_interface_created("vcan0"));
+    EXPECT_TRUE(is_interface_created("vcan1"));    
+    EXPECT_EQ(interface.start_interface(),true); 
+    /* clean up any existing interface to ensure a clean test environment for the next test */ 
+    interface.delete_interface();
 }
 
 /* test the stop_interface method */
-TEST(InterfaceTestSuite1, StopInterface)
+TEST(InterfaceTestSuite, StopInterface)
 {
-    INTERFACE_module interface("vcan0");
-    ASSERT_EQ(interface.stop_interface(),0);
+    INTERFACE_module interface(0x01);
+    EXPECT_TRUE(is_interface_created("vcan0"));
+    EXPECT_TRUE(is_interface_created("vcan1"));    
+    EXPECT_EQ(interface.start_interface(),true); 
+    EXPECT_EQ(interface.stop_interface(),true);
+    /* clean up any existing interface to ensure a clean test environment for the next test */ 
+    interface.delete_interface();
 }
 
 /* test the delete_interface method */
-TEST(InterfaceTestSuite1, DeleteInterface)
+TEST(InterfaceTestSuite, DeleteInterface)
 {
-    INTERFACE_module interface("vcan0");
-    ASSERT_EQ(interface.delete_interface(),0);
+    INTERFACE_module interface(0x01);
+    EXPECT_TRUE(is_interface_created("vcan0"));
+    EXPECT_TRUE(is_interface_created("vcan1"));    
+    EXPECT_EQ(interface.start_interface(),true); 
+    EXPECT_EQ(interface.stop_interface(),true);
+    EXPECT_EQ(interface.delete_interface(),true);  
 }
 
-/* test the get_interface_name method */
-TEST(InterfaceTestSuite1, GetInterfaceName)
+/* test the delete_interface method */
+TEST(InterfaceTestSuite, ErrorInterface)
 {
-    INTERFACE_module interface("vcan0");   
-    ASSERT_EQ(interface.get_interface_name(),"vcan0");  
+    INTERFACE_module interface(0x01);
+    EXPECT_TRUE(is_interface_created("vcan0"));
+    EXPECT_TRUE(is_interface_created("vcan1"));   
+    EXPECT_EQ(interface.delete_interface(),true); 
+    EXPECT_EQ(interface.start_interface(),false); 
+    EXPECT_EQ(interface.stop_interface(),false);
+    EXPECT_EQ(interface.delete_interface(),false);
+}
+
+/* test if the interface was not created */
+TEST(InterfaceTestSuite, InterfaceNotCreatedTest)
+{
+    INTERFACE_module interface(0x01);
+    interface.delete_interface(); 
+    EXPECT_EQ(interface.start_interface(),false);     
+}
    
+/* test the get_socketECU method */
+TEST(InterfaceTestSuite, GetSocketECU)
+{    
+    INTERFACE_module interface(0X01);   
+    EXPECT_TRUE(is_valid_socket(interface.get_socketECU()));  
+    /* clean up any existing interface to ensure a clean test environment for the next test */ 
+    interface.delete_interface();
 }
 
-/** TEST SUITE 2
-*   check if the interface is started properly
-*/
-TEST(InterfaceTestSuite2, StartInterface)
-{
-    INTERFACE_module interface("vcan0");
-    interface.create_interface();  
-    ASSERT_EQ(interface.start_interface(),0);  
+/* test the get_socketAPI method */
+TEST(InterfaceTestSuite, GetSocketAPI)
+{    
+    INTERFACE_module interface(0X01);   
+    EXPECT_TRUE(is_valid_socket(interface.get_socketAPI()));  
+    /* clean up any existing interface to ensure a clean test environment for the next test */ 
+    interface.delete_interface();
 }
-
-/* check if the interface stopped properly */
-TEST(InterfaceTestSuite2, StopInterface)
-{
-    INTERFACE_module interface("vcan0");
-    interface.create_interface();  
-    interface.start_interface();  
-    ASSERT_EQ(interface.stop_interface(),0);  
-}
-
-/* check if the interface has been deleted properly */
-TEST(InterfaceTestSuite2, DeleteInterface)
-{
-    INTERFACE_module interface("vcan0");
-    interface.create_interface();  
-    interface.start_interface();  
-    interface.stop_interface(); 
-    ASSERT_EQ(interface.delete_interface(),0);  
-
-    ASSERT_FALSE(is_interface_created("vcan0"));
-}
-
 
 int main(int argc, char* argv[])
 {

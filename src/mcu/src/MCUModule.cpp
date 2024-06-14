@@ -1,46 +1,53 @@
 #include "../include/MCUModule.h"
 
 /* Constructor */
-MCUModule::MCUModule(int interfaceNumber) : 
-                interfaceModule("vcan" + std::to_string(interfaceNumber)), 
-                isRunning(false),
-                receiveFrames(nullptr) 
+MCUModule::MCUModule(uint8_t interfaces_number) : 
+                interface_module(interfaces_number), 
+                is_running(false),
+                receive_frames(nullptr) 
                 {
-    interfaceModule.create_interface();
-    interfaceModule.start_interface();
-    receiveFrames = new ReceiveFrames(interfaceModule.get_socket(), interfaceModule.get_socket());
+    receive_frames = new ReceiveFrames(interface_module.get_socketECU(), interface_module.get_socketAPI());
 }
 
 /* Default constructor */
-MCUModule::MCUModule() : interfaceModule("vcan0"), 
-                                            isRunning(false),
-                                            receiveFrames(nullptr) {}
+MCUModule::MCUModule() : interface_module(0x01), 
+                                            is_running(false),
+                                            receive_frames(nullptr) {}
 
 /* Destructor */
 MCUModule::~MCUModule() 
 {
-    interfaceModule.stop_interface();
-    delete receiveFrames;
+    interface_module.stop_interface();
+    delete receive_frames;
 }
 
 /* Start the module */
-void MCUModule::StartModule() { isRunning = true; }
+void MCUModule::StartModule() { is_running = true; }
 
 /* Stop the module */
-void MCUModule::StopModule() { isRunning = false; }
+void MCUModule::StopModule() { is_running = false; }
 
 /* Receive frames */
 void MCUModule::recvFrames() 
 {
-    while (isRunning) 
+    while (is_running)
     {
+        receive_frames->startListenAPI();
+        receive_frames->startListenCANBus();
         /* Start a thread to process the queue */
-        std::thread queueThread(&ReceiveFrames::processQueue, receiveFrames);
+        std::thread queue_thread_process(&ReceiveFrames::processQueue, receive_frames);
+
+        /* Start a thread to listen on API socket */
+        std::thread queue_thread_listen(&ReceiveFrames::receiveFramesFromAPI, receive_frames);
 
         /* Receive frames from the CAN bus */
-        receiveFrames->receiveFramesFromCANBus();
+        receive_frames->receiveFramesFromCANBus();
 
-        /* Wait for the queue thread to finish */
-        queueThread.join();
+        receive_frames->stopListenAPI();
+        receive_frames->stopListenCANBus();
+
+        /* Wait for the threads to finish */
+        queue_thread_process.join();
+        queue_thread_listen.join();
     }
 }
