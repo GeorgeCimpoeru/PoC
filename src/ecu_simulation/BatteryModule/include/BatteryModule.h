@@ -17,7 +17,7 @@
 #ifndef POC_INCLUDE_BATTERY_MODULE_H
 #define POC_INCLUDE_BATTERY_MODULE_H
 
-#define BATTERY_MODULE_ID 0x101
+#define BATTERY_MODULE_ID 0x11
 
 /* comment-out to disable all the prints in module */
 #define BATTERY_MODULE_DEBUG
@@ -48,7 +48,9 @@ private:
 
     SocketCanInterface canInterface;
     ReceiveFrames* frameReceiver;    
-
+    std::thread notificationThread;
+    void checkNotification();
+    
 public:
     /**
      * @brief Construct a new Battery Module object
@@ -129,6 +131,8 @@ public:
      * @return std::string 
      */
     std::string getLinuxBatteryState();
+
+    void startNotificationCheck();
 };
 
 #endif

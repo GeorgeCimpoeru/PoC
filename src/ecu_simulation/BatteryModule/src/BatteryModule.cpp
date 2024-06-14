@@ -2,7 +2,7 @@
 
 /** Constructor - initializes the BatteryModule with default values,
  * sets up the CAN interface, and prepares the frame receiver. */
-BatteryModule::BatteryModule() : moduleId(0x101),
+BatteryModule::BatteryModule() : moduleId(0x11),
                                  energy(0.0),
                                  voltage(0.0),
                                  percentage(0.0),
@@ -15,7 +15,11 @@ BatteryModule::BatteryModule() : moduleId(0x101),
     std::cout << "BatteryModule()" << std::endl;
     std::cout << "(BatteryModule)moduleId = " << this->moduleId << std::endl;
 #endif
+
     notifyUp();
+
+    notificationThread = std::thread(&BatteryModule::startNotificationCheck, this);
+    
 }
 
 /* Parameterized Constructor - initializes the BatteryModule with provided interface number and module ID */
@@ -38,7 +42,6 @@ BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_mo
 /* Destructor */
 BatteryModule::~BatteryModule()
 {
-    notifyDown();
     delete frameReceiver;
 }
 
@@ -66,6 +69,25 @@ void BatteryModule::notifyDown()
 
     /* Send the CAN frame with ID 0x22110 and the data vector */
     g1.sendFrame(0x22110, data);
+}
+
+/* Function to check if the request of status from MCU has arrived */
+void BatteryModule::checkNotification()
+{
+    if(frameReceiver->notificationFlag == 1)
+    {
+        std::cout << "\n\nBattery : Sent up notify to MCU" << std::endl;
+        notifyUp();
+    }
+}
+
+void BatteryModule::startNotificationCheck()
+{
+    while (true)
+    {
+        checkNotification();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
 }
 
 /* Helper function to execute shell commands and fetch output */
