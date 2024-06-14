@@ -59,7 +59,7 @@ class ReceiveFrames
  public:
 
   /* Constructor */
-  ReceiveFrames(int socketCANBus, int socketAPI);
+  ReceiveFrames(int socket_canbus, int socket_api);
 
   /* Destructor */
   ~ReceiveFrames();
@@ -112,7 +112,7 @@ class ReceiveFrames
    */
   void stopListenAPI();
 
-  /**
+    /**
    * @brief Set listenCANBus member to false
    * 
    */
@@ -158,14 +158,13 @@ class ReceiveFrames
    */
   const std::vector<uint8_t>& getECUsUp() const;
 
-  std::map<uint8_t, std::chrono::steady_clock::time_point> ecuTimers;
-  std::chrono::seconds timeoutDuration;
-  std::thread timerThread;
+  std::map<uint8_t, std::chrono::steady_clock::time_point> ecu_timers;
+  std::chrono::seconds timeout_duration;
+  std::thread timer_thread;
   bool running;
   
  protected:
   /* The socket from where we read the frames */
-  setTimer(uint8_t ecu_id);
   int socket_canbus;
   int socket_api;
   const uint32_t hex_value_id = 0x10;
@@ -178,7 +177,7 @@ class ReceiveFrames
   GenerateFrames generate_frames;
   /* Vector contains all the ECUs up ids */
   std::vector<uint8_t> ecus_up;
-  
+
   void startTimerThread();
   void stopTimerThread();
   void timerCheck();
