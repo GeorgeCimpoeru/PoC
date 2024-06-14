@@ -15,11 +15,10 @@ BatteryModule::BatteryModule() : moduleId(0x11),
     std::cout << "BatteryModule()" << std::endl;
     std::cout << "(BatteryModule)moduleId = " << this->moduleId << std::endl;
 #endif
-
+                                   
     notifyUp();
 
     notificationThread = std::thread(&BatteryModule::startNotificationCheck, this);
-    
 }
 
 /* Parameterized Constructor - initializes the BatteryModule with provided interface number and module ID */
@@ -42,6 +41,7 @@ BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_mo
 /* Destructor */
 BatteryModule::~BatteryModule()
 {
+    notifyDown();
     delete frameReceiver;
 }
 
