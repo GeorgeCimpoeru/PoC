@@ -104,6 +104,16 @@ public:
     ~Logger();
 };
 
+// #define TESTING 
+#define CONSOLE_LOGGER getConsoleLogger()
+#define FILE_LOGGER getFileLogger()
+
+#ifdef TESTING
+#define GET_LOGGER() CONSOLE_LOGGER
+#else
+#define GET_LOGGER() FILE_LOGGER
+#endif
+
 /* LOGGING CAN BE TURNED OFF AT COMPILE TIME, BUT USAGE OF MACROS IS NEEDED IN ORDER TO WORK*/
 #define LOG_TRACE(logger, ...) SPDLOG_LOGGER_TRACE(logger, __VA_ARGS__)
 #define LOG_DEBUG(logger, ...) SPDLOG_LOGGER_DEBUG(logger, __VA_ARGS__)
