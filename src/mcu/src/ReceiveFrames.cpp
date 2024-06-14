@@ -1,9 +1,4 @@
 #include "../include/ReceiveFrames.h"
-#ifndef TESTING
-Logger receiveLogger = Logger("receiveLogger", "logs/receiveFramesLog.log");
-#else
-Logger receiveLogger = Logger();
-#endif
 
 ReceiveFrames::ReceiveFrames(int socket_canbus, int socket_api) : socket_canbus(socket_canbus), socket_api(socket_api) , generate_frames(socket_canbus) {}
 

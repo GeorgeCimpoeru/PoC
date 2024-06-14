@@ -1,9 +1,4 @@
 #include"../include/InterfaceModule.h"
-#ifndef TESTING
-Logger interfaceLogger = Logger("interfaceLogger", "logs/interfaceFramesLog.log");
-#else
-Logger interfaceLogger = Logger();
-#endif
 
 /* Constructor which initializes the interface indicator number */
 INTERFACE_module::INTERFACE_module(uint8_t interface_name)

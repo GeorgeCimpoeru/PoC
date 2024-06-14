@@ -49,8 +49,9 @@
 #include<linux/can.h>
 
 #include "HandleFrames.h"
-#include "GenerateFrame.h"
-#include "../../utils/Logger/include/Logger.h"
+#include "GenerateFrames.h"
+#include "../include/MCULogger.h"
+
 class ReceiveFrames
 {
  public:

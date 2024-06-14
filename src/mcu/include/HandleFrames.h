@@ -17,7 +17,8 @@
 #include <linux/can.h>
 #include <iostream>
 #include <vector>
-#include "../../utils/Logger/include/Logger.h"
+#include "../include/MCULogger.h"
+
 class HandleFrames 
 {
 public:

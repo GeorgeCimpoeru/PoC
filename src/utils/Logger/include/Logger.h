@@ -37,7 +37,7 @@
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
 
 /* if testing is defined then logger prints into console, otherwise it prints into a file */
-/* #define TESTING */
+#define TESTING 
 #define CONSOLE_LOGGER getConsoleLogger()
 #define FILE_LOGGER getFileLogger()
 #ifdef TESTING
