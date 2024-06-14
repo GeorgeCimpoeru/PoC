@@ -371,25 +371,53 @@ class GenerateFrame:
 
         self.send_frame(id, data)
 
+
     def read_memory_by_adress(self, id, memory_address, memory_size, response = []):
         address_length = (self.__count_digits(memory_address)+1)//2
         size_length = (self.__count_digits(memory_size)+1)//2
 
         address_size_length = address_length + size_length*0x10
         pci_l = address_length + size_length + 2
-
-
         
         if len(response) == 0:
-
+            
             data =[ pci_l, 0x23, address_size_length]
             self.__add_to_list(data, memory_address)
             self.__add_to_list(data, memory_size)
         else:
-            data =[ pci_l + len(response), 0x63, address_size_length]
+            if len(response) + pci_l + 1 <= 8:
+                data =[ pci_l + len(response), 0x63, address_size_length]
+                self.__add_to_list(data, memory_address)
+                self.__add_to_list(data, memory_size)
+                data = data + response
+            else:
+                print("Error, please use considering read_memory_by_adress_long")
+                return
+        self.send_frame(id, data)
+
+    def read_memory_by_adress_long(self, id, memory_address, memory_size, response = [], first_frame=True):
+        address_length = (self.__count_digits(memory_address)+1)//2
+        size_length = (self.__count_digits(memory_size)+1)//2
+
+        address_size_length = address_length + size_length*0x10
+        pci_l = address_length + size_length + 2 + len(response)
+        bytes_first_frame = 8 - address_length - size_length - 4
+
+        if first_frame == True:
+
+            data = [0x10, pci_l, 0x63, address_size_length]
             self.__add_to_list(data, memory_address)
             self.__add_to_list(data, memory_size)
-            data = data + response
+            data = data + response[:bytes_first_frame]
+            
+        else:
+            last_data = response[bytes_first_frame:]
+            for i in range(0, len(last_data)//7):
+                data = [0x21 + i ] + last_data[i*7:(i+1)*7]
+                self.send_frame(id, data)
+            #Send remaining data
+            if len(last_data)%7:
+                data = [0x21 + len(last_data)//7] + last_data[len(last_data)- len(last_data)%7:]              
 
         self.send_frame(id, data)
 
@@ -554,9 +582,9 @@ data = [0,1,2,3,4,5]
 
 generateFrame = GenerateFrame(can_interface)
 
-generateFrame.read_data_by_identifier(id, 0x1234, data)
-generateFrame.read_data_by_identifier_long(id, 0x1234, data)
-generateFrame.read_data_by_identifier_long(id, 0x1234, data, False)
+generateFrame.read_memory_by_adress(id, 0x1234, 0x56, data)
+generateFrame.read_memory_by_adress_long(id, 0x1234, 0x56, data)
+generateFrame.read_memory_by_adress_long(id, 0x1234, 0x56, data, False)
 
 generateFrame.bus.shutdown()
 
