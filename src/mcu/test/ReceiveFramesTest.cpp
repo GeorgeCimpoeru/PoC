@@ -483,6 +483,19 @@ TEST_F(ReceiveFramesTest, TestGetHexValueId)
     std::cerr << "Finished TestGetHexValueId" << std::endl;
 }
 
+/* Test to verify the startTimerThread function */
+TEST_F(ReceiveFramesTest, TestStartTimerThread)
+{
+    std::cerr << "Running TestStartTimerThread" << std::endl;
+    receiveFrames->stopTimerThread(); // Stop the timer thread if it's already running
+    receiveFrames->startTimerThread(); // Start the timer thread
+    EXPECT_TRUE(receiveFrames->running);
+    std::this_thread::sleep_for(std::chrono::seconds(2)); // Wait for 2 seconds
+    receiveFrames->stopTimerThread(); // Stop the timer thread
+    EXPECT_FALSE(receiveFrames->running);
+    std::cerr << "Finished TestStartTimerThread" << std::endl;
+}
+
 /* Test to check if the timer resets */
 TEST_F(ReceiveFramesTest, TimerReset)
 {
