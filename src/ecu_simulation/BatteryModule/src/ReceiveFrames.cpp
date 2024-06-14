@@ -1,11 +1,16 @@
 #include "../include/ReceiveFrames.h"
 #include "../include/HandleFrames.h"
+#include "../include/BatteryModuleLogger.h"
+
+Logger receiveModuleLogger = Logger("receiveFramesModule", "logs/receive_frames.log");
 
 ReceiveFrames::ReceiveFrames(int socket, int frame_id) : socket(socket), frame_id(frame_id), running(true) 
 {
     if (socket < 0) 
     {
-        std::cerr << "Error: Pass a valid Socket\n";
+        /* std::cerr << "Error: Pass a valid Socket\n"; */
+        LOG_INFO(receiveModuleLogger.getConsoleLogger(), "Error: Pass a valid Socket\n");
+        LOG_INFO(receiveModuleLogger.getFileLogger(), "Error: Pass a valid Socket\n");
         exit(EXIT_FAILURE);
     }
 
@@ -14,12 +19,21 @@ ReceiveFrames::ReceiveFrames(int socket, int frame_id) : socket(socket), frame_i
 
     if (frame_id < MIN_VALID_ID || frame_id > MAX_VALID_ID) 
     {
-        std::cerr << "Error: Pass a valid Module ID\n";
+        /* std::cerr << "Error: Pass a valid Module ID\n"; */
+        LOG_INFO(receiveModuleLogger.getConsoleLogger(), "Error: Pass a valid Module ID\n");
+        LOG_INFO(receiveModuleLogger.getFileLogger(), "Error: Pass a valid Module ID\n");
         exit(EXIT_FAILURE);
     }
 
     /* Print the frame_id for debugging */ 
     std::cout << "Module ID: 0x" << std::hex << std::setw(8) << std::setfill('0') << this->frame_id << std::endl;
+    LOG_INFO(receiveModuleLogger.getConsoleLogger(), 
+                "Module ID: {}", 
+                fmt::format("0x{:08X}", this->frame_id));
+                 
+    LOG_INFO(receiveModuleLogger.getFileLogger(), 
+                "Module ID: {}", 
+                fmt::format("0x{:08X}", this->frame_id));
 }
 
 ReceiveFrames::~ReceiveFrames() 
@@ -131,13 +145,28 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
         printFrame(frame);
 
         uint8_t frame_dest_id = frame.can_id & 0xFF;
-        this_module_id = frame_id & 0xFF;
+        current_module_id = frame_id & 0xFF;
         /* Check if the received frame is for your module */ 
-        if (static_cast<int>(frame_dest_id) != this_module_id)
+        if (static_cast<int>(frame_dest_id) != current_module_id)
         {
             std::cerr << "Received frame is not for this module\n";
             continue;
         }
+
+        if (((frame.can_id >> 8) & 0xFF) == 0) 
+        {
+        std::cerr << "Invalid CAN ID: upper 8 bits are zero\n";
+        return;
+        }
+
+        /* Check if the frame is a request of type 'Up-Notification' from MCU */
+        if (frame_dest_id == 0x11 && frame.data[0] == 0x01)
+        {
+            notificationFlag = true;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+        
+        notificationFlag = false;
 
         /* Process the received frame */ 
         if (!handle_frame.checkReceivedFrame(nbytes, frame)) {

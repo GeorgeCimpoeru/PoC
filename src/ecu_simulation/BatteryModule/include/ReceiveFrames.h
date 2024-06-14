@@ -40,7 +40,7 @@ private:
     /* Module ID for filtering incoming frames */  
     int frame_id;    
     /* Battery Module ID for filtering frames for this module */              
-    uint8_t this_module_id = 0x11;                 
+    uint8_t current_module_id = 0x11;                 
     /* Define frame_buffer as a deque of tuples */ 
     std::deque<std::tuple<can_frame, int>> frame_buffer; 
     /* Mutex for ensuring thread safety when accessing the frame buffer */   
@@ -50,7 +50,8 @@ private:
     /* Flag indicating whether the receive threads should continue running */     
     std::atomic<bool> running;                
     /* Thread for buffering in receiving frames */                
-    std::thread bufferFrameInThread;                       
+    std::thread bufferFrameInThread;    
+
     /**
      * @brief bufferFrameIn thread function that reads frames from the socket and adds them to the buffer
      * 
@@ -67,6 +68,7 @@ protected:
     HandleFrames handle_frame;
     
 public:
+    bool notificationFlag;
     /**
      * @brief Construct a new receive Frames object
      * 
