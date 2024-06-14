@@ -40,15 +40,15 @@ private:
     float percentage;
     std::string state;
 
-    /**
-     * @brief Thread for simulation of battery
-     * 
-     */
-    std::thread simulationThread;
 
     SocketCanInterface canInterface;
     ReceiveFrames* frameReceiver;    
     std::thread notificationThread;
+
+    /**
+     * @brief This function is responsible to read to check if the request of status from MCU has arrived
+     * 
+     */
     void checkNotification();
     
 public:

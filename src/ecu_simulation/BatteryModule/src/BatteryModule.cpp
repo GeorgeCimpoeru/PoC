@@ -15,9 +15,7 @@ BatteryModule::BatteryModule() : moduleId(0x11),
     std::cout << "BatteryModule()" << std::endl;
     std::cout << "(BatteryModule)moduleId = " << this->moduleId << std::endl;
 #endif
-                                   
     notifyUp();
-
     notificationThread = std::thread(&BatteryModule::startNotificationCheck, this);
 }
 
@@ -36,6 +34,7 @@ BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_mo
     std::cout << "(BatteryModule)moduleId = " << this->moduleId << std::endl;
 #endif
     notifyUp();
+    notificationThread = std::thread(&BatteryModule::startNotificationCheck, this);
 }
 
 /* Destructor */
@@ -58,29 +57,17 @@ void BatteryModule::notifyUp()
     g1.sendFrame(0x22110, data);
 }
 
-/* Function to notify MCU if the module is Down */
-void BatteryModule::notifyDown()
-{
-    /* Create an instance of GenerateFrames with the CAN socket */
-    GenerateFrames g1 = GenerateFrames(canInterface.getSocketFd());
-
-    /* Create a vector of uint8_t (bytes) containing the data to be sent */
-    std::vector<uint8_t> data = {0x0, 0xff, 0x0, 0x3};
-
-    /* Send the CAN frame with ID 0x22110 and the data vector */
-    g1.sendFrame(0x22110, data);
-}
-
 /* Function to check if the request of status from MCU has arrived */
 void BatteryModule::checkNotification()
 {
-    if(frameReceiver->notificationFlag == 1)
+    if (frameReceiver->notificationFlag)
     {
-        std::cout << "\n\nBattery : Sent up notify to MCU" << std::endl;
         notifyUp();
+        std::cout << "\n\nBattery : Sent up notify to MCU" << std::endl;
     }
 }
 
+/* Function to check for requests in a loop */
 void BatteryModule::startNotificationCheck()
 {
     while (true)
