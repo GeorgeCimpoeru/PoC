@@ -29,6 +29,7 @@
 #include "InterfaceConfig.h"
 #include "ReceiveFrames.h"
 #include "GenerateFrames.h"
+#include "../../../utils/Logger/include/Logger.h"
 
 class BatteryModule
 {

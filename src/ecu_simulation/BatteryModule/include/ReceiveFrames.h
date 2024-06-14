@@ -30,6 +30,7 @@
 #include <condition_variable>
 #include <atomic>
 #include "../include/HandleFrames.h"
+#include "../../../utils/Logger/include/Logger.h"
 
 class ReceiveFrames 
 {

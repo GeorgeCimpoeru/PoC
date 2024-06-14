@@ -11,6 +11,12 @@
 
 #include "../include/InterfaceConfig.h"
 
+#ifndef TESTING
+Logger interfaceLogger = Logger("interfaceLogger", "logs/interfaceFramesLog.log");
+#else
+Logger interfaceLogger = Logger();
+#endif
+
 SocketCanInterface::SocketCanInterface(const std::string& interfaceName) : _interfaceName{interfaceName}
 {
     init();

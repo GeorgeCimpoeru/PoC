@@ -1,6 +1,12 @@
 #include "../include/HandleFrames.h"
 /* Services to be included here */
 
+#ifndef TESTING
+Logger handleLogger = Logger("handleLogger", "logs/handleFramesLog.log");
+#else
+Logger handleLogger = Logger();
+#endif
+
 bool HandleFrames::checkReceivedFrame(int nbytes, const struct can_frame &frame)
 {
     if (nbytes < 0) 

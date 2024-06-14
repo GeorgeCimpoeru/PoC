@@ -21,6 +21,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include "../../../utils/Logger/include/Logger.h"
 
 class SocketCanInterface
 {

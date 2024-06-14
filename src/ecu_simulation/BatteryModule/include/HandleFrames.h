@@ -25,6 +25,7 @@
 #include <cstring>
 #include <cerrno>
 #include <thread>
+#include "../../../utils/Logger/include/Logger.h"
 
 class HandleFrames 
 {

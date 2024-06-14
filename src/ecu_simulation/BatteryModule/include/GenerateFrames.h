@@ -23,6 +23,7 @@
 
 #include <unistd.h>
 #include <linux/can.h>
+#include "../../../utils/Logger/include/Logger.h"
 
 /* Enumeration for frame types */
 enum FrameType {

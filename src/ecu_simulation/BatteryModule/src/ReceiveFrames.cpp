@@ -1,6 +1,12 @@
 #include "../include/ReceiveFrames.h"
 #include "../include/HandleFrames.h"
 
+#ifndef TESTING
+Logger receiveLogger = Logger("receiveLogger", "logs/receiveFramesLog.log");
+#else
+Logger receiveLogger = Logger();
+#endif
+
 ReceiveFrames::ReceiveFrames(int socket, int module_id) : socket(socket), module_id(module_id), running(true) 
 {
     if (socket < 0) 

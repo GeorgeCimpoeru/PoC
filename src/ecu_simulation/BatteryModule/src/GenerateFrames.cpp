@@ -1,5 +1,11 @@
 #include "../include/GenerateFrames.h"
 
+#ifndef TESTING
+Logger generateLogger = Logger("generateLogger", "logs/generateFramesLog.log");
+#else
+Logger generateLogger = Logger();
+#endif
+
 GenerateFrames::GenerateFrames(int socket)
 {
     this->addSocket(socket);
