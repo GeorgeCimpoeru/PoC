@@ -1,15 +1,16 @@
 #include "../include/ReceiveFrames.h"
 
-ReceiveFrames::ReceiveFrames(int socket) : s(socket), generateFrame(socket) {}
+ReceiveFrames::ReceiveFrames(int socket_canbus, int socket_api) : socket_canbus(socket_canbus), socket_api(socket_api) , generate_frames(socket_canbus) {}
 
 ReceiveFrames::~ReceiveFrames()
 {
-    stopRunning();
+    stopListenAPI();
+    stopListenCANBus();
 }
 
 uint32_t ReceiveFrames::gethexValueId()
 {
-    return hexValueId;
+    return hex_value_id;
 }
 
 /**
@@ -19,10 +20,10 @@ uint32_t ReceiveFrames::gethexValueId()
 bool ReceiveFrames::receiveFramesFromCANBus()
 {
     struct can_frame frame;
-    while (running)
+    while(listen_canbus)
     {
         /* Read frames from the CAN socket */
-        int nbytes = read(s, &frame, sizeof(frame));
+        int nbytes = read(socket_canbus, &frame, sizeof(frame));
         if (nbytes < 0)
         {
             std::cerr << "Read Error" << std::endl;
@@ -33,11 +34,46 @@ bool ReceiveFrames::receiveFramesFromCANBus()
         {
             {
                 /* Lock the queue before adding the frame to ensure thread safety */
-                std::lock_guard<std::mutex> lock(queueMutex);
-                frameQueue.push(frame);
+                std::lock_guard<std::mutex> lock(queue_mutex);
+                
+                /* Take receiver_id */
+                uint8_t dest_id = frame.can_id & 0xFF;
+
+                /* If frame is for MCU module, for API or test frame */
+                if( dest_id == hex_value_id || dest_id == 0xFF || dest_id == 0xFA)
+                {
+                    frame_queue.push(frame);
+                }
             }
             /* Notify one waiting thread that a new frame has been added to the queue */
-            queueCondVar.notify_one();
+            queue_cond_var.notify_one();
+        }
+    }
+    return true;
+}
+
+bool ReceiveFrames::receiveFramesFromAPI()
+{
+    struct can_frame frame;
+    while(listen_api)
+    {
+        /* Read frames from the CAN socket */
+        int nbytes = read(socket_api, &frame, sizeof(frame));
+        if (nbytes < 0)
+        {
+            std::cerr << "Read Error" << std::endl;
+            /* Return error if read fails */
+            return false;
+        }
+        else
+        {
+            {
+                /* Lock the queue before adding the frame to ensure thread safety */
+                std::lock_guard<std::mutex> lock(queue_mutex);
+                frame_queue.push(frame);  
+            }
+            /* Notify one waiting thread that a new frame has been added to the queue */
+            queue_cond_var.notify_one();
         }
     }
     return true;
@@ -50,16 +86,15 @@ bool ReceiveFrames::receiveFramesFromCANBus()
 void ReceiveFrames::processQueue()
 {
     std::cout << "Frame processing:..." << std::endl;
-    can_frame frameParam;
     while (true)
     {
         /* Wait until the queue is not empty, then lock the queue */
-        std::unique_lock<std::mutex> lock(queueMutex);
-        queueCondVar.wait(lock, [this]{ return !frameQueue.empty(); });
+        std::unique_lock<std::mutex> lock(queue_mutex);
+        queue_cond_var.wait(lock, [this]{ return !frame_queue.empty(); });
 
         /* Extract the first element from the queue */
-        struct can_frame frame = frameQueue.front();
-        frameQueue.pop();
+        struct can_frame frame = frame_queue.front();
+        frame_queue.pop();
         /* Unlock the queue to allow other threads to add frames */
         lock.unlock();
 
@@ -69,64 +104,47 @@ void ReceiveFrames::processQueue()
         /* Extracting the components from can_id */
 
         /* Last byte: id_sender */
-        uint8_t sender_id = (frame.can_id >> 12) & 0xFF;
-        /* 1 bit: request for receiver */
-        bool is_for_dest = (frame.can_id >> 8) & 0x01;
+        uint8_t sender_id = (frame.can_id >> 8) & 0xFF;
         /* First byte: id_receiver or id_api */
         uint8_t dest_id = frame.can_id & 0xFF;
 
         /* Compare the CAN ID with the expected hexValueId */
-        if (dest_id == hexValueId)
+        if (dest_id == hex_value_id)
         {
-            /* Check if the request is for the MCU */
-            if (is_for_dest)
+            /* Check if the request is for MCU service or notification that one ECU is up or down */
+            if(frame.data[1] == 0xff)
             {
-                /* Check if the request is for MCU service or notification that one ECU is up or down */
-                if(frame.data[1] == 0xff)
+                std::cout << "Notification from the ECU that it is up" << std::endl;
+                /* Add the ECU ID to the list of ECUs that are up */
+                if (std::find(ecus_up.begin(), ecus_up.end(), sender_id) == ecus_up.end())
                 {
-                    if (frame.data[2] == 0x00)
-                    {
-                        std::cout << "Notification from the ECU that it is down" << std::endl;
-                        /* Remove the ECU ID from the list of ECUs that are up */
-                        ecusUp.erase(std::remove(ecusUp.begin(), ecusUp.end(), sender_id), ecusUp.end());
-                    } else
-                    {
-                        std::cout << "Notification from the ECU that it is up" << std::endl;
-                        /* Add the ECU ID to the list of ECUs that are up */
-                        if (std::find(ecusUp.begin(), ecusUp.end(), sender_id) == ecusUp.end())
-                        {
-                            ecusUp.push_back(sender_id);
-                        }
-                    }
-                }
-                else
-                {
-                    std::cout << "Frame for MCU Service" << std::endl;
-                    handler.handleFrame(frame);
-                }
-            } else
-            {
-                /* Check if the request is for the API */
-                if (sender_id == 0xFA)
-                {
-                    std::cout << "Frame for API Service" << std::endl;
-                    /* call function to send the frame to API */
-                } else
-                {
-                    /* For ECUs services */
-                    int new_can_id = (sender_id << 8) | hexValueId;
-                    std::vector<uint8_t> data(frame.data, frame.data + frame.can_dlc);
-                    std::cout << "Frame for ECU Service" << std::endl;
-                    generateFrame.SendFrame(new_can_id, data);
+                    ecus_up.push_back(sender_id);
                 }
             }
+            else
+            {
+                std::cout << "Frame for MCU Service" << std::endl;
+                handler.handleFrame(frame);
+            }
+        }
+        else if (dest_id == 0xFA) {
+            std::cout << "Frame for API Service" << std::endl;
+            std::vector<uint8_t> data(frame.data, frame.data + frame.can_dlc);
+            /* generateFrames.sendFrame(frame.can_id, data, socketAPI); */
         }
         else if(dest_id == 0xFF)
         {
-            /* Test frame betweend MCU and ECU */
+            /* Test frame between MCU and ECU */
             std::cout << "Received the test frame " << std::endl;
         }
-        if(!running)
+
+        if(sender_id == 0xFA && dest_id != hex_value_id) {
+            /* For ECUs services */
+            std::vector<uint8_t> data(frame.data, frame.data + frame.can_dlc);
+            std::cout << "Frame for ECU Service" << std::endl;
+            generate_frames.sendFrame(frame.can_id, data);
+        }
+        if(!listen_canbus && !listen_api)
         {
             break;
         }
@@ -155,35 +173,52 @@ void ReceiveFrames::printFrames(const struct can_frame &frame)
 */
 void ReceiveFrames::sendTestFrame()
 {
-    if(running)
+    if(listen_canbus)
     {
         /* Set the CAN ID to 0xFF */
         int can_id = 0xFF;
         /* Set the data to an empty vector*/
         std::vector<uint8_t> data;
         /* Call GenerateFrame and SendFrame with the test frame */
-        generateFrame.SendFrame(can_id, data);
+        generate_frames.sendFrame(can_id, data);
     }
 }
 
-void ReceiveFrames::stopRunning()
+void ReceiveFrames::stopListenAPI()
 {
-    running = false;
-    queueCondVar.notify_all();
+    listen_api = false;
+    queue_cond_var.notify_all();
 }
 
-void ReceiveFrames::startRunning()
+void ReceiveFrames::stopListenCANBus()
 {
-    running = true;
-    queueCondVar.notify_all();
+    listen_canbus = false;
+    queue_cond_var.notify_all();
 }
 
-bool ReceiveFrames::getRunning()
+void ReceiveFrames::startListenAPI()
 {
-    return running;
+    listen_api = true;
+    queue_cond_var.notify_all();
+}
+
+void ReceiveFrames::startListenCANBus()
+{
+    listen_canbus = true;
+    queue_cond_var.notify_all();
+}
+
+bool ReceiveFrames::getListenAPI()
+{
+    return listen_api;
+}
+
+bool ReceiveFrames::getListenCANBus()
+{
+    return listen_canbus;
 }
 
 const std::vector<uint8_t>& ReceiveFrames::getECUsUp() const
 {
-  return ecusUp;
+  return ecus_up;
 }
