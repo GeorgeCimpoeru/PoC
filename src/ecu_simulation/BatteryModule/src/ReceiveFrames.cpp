@@ -1,5 +1,6 @@
 #include "../include/ReceiveFrames.h"
 #include "../include/HandleFrames.h"
+#include "../include/GenerateFrames.h"
 #include "../include/BatteryModuleLogger.h"
 
 ReceiveFrames::ReceiveFrames(int socket, int frame_id) : socket(socket), frame_id(frame_id), running(true) 
@@ -149,12 +150,19 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
         /* Check if the frame is a request of type 'Up-Notification' from MCU */
         if (frame_dest_id == 0x11 && frame.data[0] == 0x01)
         {
-            notificationFlag = true;
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Request received from MCU");
+            /* Create and instance of GenerateFrames with the CAN socket */
+            GenerateFrames frame = GenerateFrames(this->socket);
+
+            /* Create a vector of uint8_t (bytes) containing the data to be sent */
+            std::vector<uint8_t> data = {0x0, 0xff, 0x11, 0x3};
+
+            /* Send the CAN frame with ID 0x2210 and the data vector*/
+            frame.sendFrame(0x2210, data);
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Response sent to MCU");
+
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
-        
-        notificationFlag = false;
-
         /* Process the received frame */ 
         if (!handle_frame.checkReceivedFrame(nbytes, frame)) {
             LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Failed to process frame\n");
