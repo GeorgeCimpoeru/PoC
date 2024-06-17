@@ -11,7 +11,7 @@ GenerateFrames::GenerateFrames(int socket)
 {
     if (socket < 0) 
     {
-        throw std::invalid_argument("Invalid socket");
+        LOG_INFO(MCULogger.GET_LOGGER(), "Invalid socket.");
     }
     this->socket = socket;
 }
@@ -62,7 +62,7 @@ can_frame GenerateFrames::createFrame(uint32_t can_id, std::vector<uint8_t> data
             frame.can_dlc = 0;
             break;
         default:
-            throw std::invalid_argument("Invalid frame type");
+            LOG_ERROR(MCULogger.GET_LOGGER(), "Invalid frame type.");
     }
     return frame;
 }
@@ -72,7 +72,7 @@ int GenerateFrames::sendFrame(uint32_t can_id, std::vector<uint8_t> data, FrameT
 {
     if (this->socket < 0)
     {
-        throw std::runtime_error("Socket not initialized");
+        LOG_ERROR(MCULogger.GET_LOGGER(), "Socket not initialized.");
     }
 
     /* Create the CAN frame */
@@ -135,7 +135,7 @@ void GenerateFrames::readDataByIdentifier(uint32_t can_id, uint16_t data_identif
     }
     else
     {
-        std::cout << "Response size is too large" << std::endl;
+        LOG_INFO(MCULogger.GET_LOGGER(), "Response size is too large");
     }
 }
 
@@ -264,7 +264,7 @@ void GenerateFrames::readMemoryByAddress(uint32_t can_id, int memory_size, int m
         }
         else
         {
-            std::cout << "Response size is too large" << std::endl;
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response size is too large.");
         }
     }
 }
@@ -319,7 +319,7 @@ void GenerateFrames::writeDataByIdentifier(uint32_t can_id, uint16_t identifier,
         }
         else
         {
-            std::cout << "Data parameter size is too large" << std::endl;
+            LOG_INFO(MCULogger.GET_LOGGER(), "Data parameter size is too large");
         }
     }
 }
@@ -357,7 +357,7 @@ void GenerateFrames::clearDiagnosticInformation(uint32_t can_id, std::vector<uin
             }
             this->sendFrame(can_id, data);
         }
-        else std::cout << "Group of DTC size is too large" << std::endl;
+        else LOG_INFO(MCULogger.GET_LOGGER(), "Group of DTC size is too large.");
     }
 }
 
