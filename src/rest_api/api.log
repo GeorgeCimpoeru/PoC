@@ -1,0 +1,60 @@
+2024-06-05 15:11:13,471 - werkzeug - INFO -  * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+2024-06-05 15:11:13,473 - werkzeug - INFO -  * Restarting with stat
+2024-06-05 15:11:13,630 - werkzeug - WARNING -  * Debugger is active!
+2024-06-05 15:11:13,725 - werkzeug - INFO -  * Debugger PIN: 823-700-679
+2024-06-05 15:15:24,495 - werkzeug - INFO -  * Detected change in '/home/amalia/PoC/src/rest_api/logapp.py', reloading
+2024-06-05 15:15:24,532 - werkzeug - INFO -  * Restarting with stat
+2024-06-05 15:16:25,299 - werkzeug - INFO -  * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+2024-06-05 15:16:25,301 - werkzeug - INFO -  * Restarting with stat
+2024-06-05 15:16:25,541 - werkzeug - WARNING -  * Debugger is active!
+2024-06-05 15:16:25,542 - werkzeug - INFO -  * Debugger PIN: 823-700-679
+2024-06-05 15:16:52,658 - root - INFO - Request: GET http://127.0.0.1:5000/ - Headers: Host: 127.0.0.1:5000
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/116.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: none
+Sec-Fetch-User: ?1
+
+ - Body: b''
+2024-06-05 15:16:52,658 - root - ERROR - Error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "/usr/lib/python3/dist-packages/flask/app.py", line 1513, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/usr/lib/python3/dist-packages/flask/app.py", line 1489, in dispatch_request
+    self.raise_routing_exception(req)
+  File "/usr/lib/python3/dist-packages/flask/app.py", line 1471, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+  File "/usr/lib/python3/dist-packages/flask/ctx.py", line 367, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/usr/lib/python3/dist-packages/werkzeug/routing.py", line 2041, in match
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+2024-06-05 15:16:52,661 - root - INFO - Response: 500 INTERNAL SERVER ERROR - Headers: Content-Type: application/json
+Content-Length: 35
+
+ - Body: {
+  "error": "An error occurred"
+}
+
+2024-06-05 15:16:52,661 - werkzeug - INFO - 127.0.0.1 - - [05/Jun/2024 15:16:52] "[35m[1mGET / HTTP/1.1[0m" 500 -
+2024-06-05 15:18:26,178 - werkzeug - INFO -  * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+2024-06-05 15:18:26,178 - werkzeug - INFO -  * Restarting with stat
+2024-06-05 15:18:26,331 - werkzeug - WARNING -  * Debugger is active!
+2024-06-05 15:18:26,332 - werkzeug - INFO -  * Debugger PIN: 823-700-679
+2024-06-05 15:27:11,512 - werkzeug - INFO -  * Detected change in '/home/amalia/PoC/src/rest_api/logapp.py', reloading
+2024-06-05 15:27:11,556 - werkzeug - INFO -  * Restarting with stat
+2024-06-05 15:27:11,738 - werkzeug - WARNING -  * Debugger is active!
+2024-06-05 15:27:11,738 - werkzeug - INFO -  * Debugger PIN: 823-700-679
+2024-06-05 15:27:12,776 - werkzeug - INFO -  * Detected change in '/home/amalia/PoC/src/rest_api/logapp.py', reloading
+2024-06-05 15:27:12,835 - werkzeug - INFO -  * Restarting with stat
+2024-06-05 15:27:12,997 - werkzeug - WARNING -  * Debugger is active!
+2024-06-05 15:27:12,998 - werkzeug - INFO -  * Debugger PIN: 823-700-679
+2024-06-05 15:27:16,060 - werkzeug - INFO -  * Detected change in '/home/amalia/PoC/src/rest_api/logapp.py', reloading
+2024-06-05 15:27:16,115 - werkzeug - INFO -  * Restarting with stat
+2024-06-05 15:27:16,302 - werkzeug - WARNING -  * Debugger is active!
+2024-06-05 15:27:16,302 - werkzeug - INFO -  * Debugger PIN: 823-700-679

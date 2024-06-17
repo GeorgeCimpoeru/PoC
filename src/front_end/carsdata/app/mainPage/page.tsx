@@ -43,6 +43,7 @@ const MainPage = () => {
                 <CloseMenu />
             )}
         </div>
+      
     )
 }
 
