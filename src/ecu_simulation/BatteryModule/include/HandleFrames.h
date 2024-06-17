@@ -25,6 +25,7 @@
 #include <cstring>
 #include <cerrno>
 #include <thread>
+#include <sstream>
 
 class HandleFrames 
 {

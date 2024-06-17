@@ -1,4 +1,5 @@
 #include "../include/HandleFrames.h"
+#include "../include/BatteryModuleLogger.h"
 /* Services to be included here */
 
 bool HandleFrames::checkReceivedFrame(int nbytes, const struct can_frame &frame)
@@ -15,25 +16,25 @@ bool HandleFrames::checkReceivedFrame(int nbytes, const struct can_frame &frame)
         else 
         {
             /* Other error occurred, handle it */
-            std::cerr << "Read error: " << strerror(errno) << std::endl;
+            LOG_ERROR(batteryModuleLogger.GET_LOGGER(), "Read error: {}", strerror(errno));
             return false;
         }
     } 
     else if (nbytes < sizeof(struct can_frame)) 
     {
-        std::cerr << "Incomplete frame read\n";
+        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Incomplete frame read\n");
         return false;
     } 
     else if (nbytes == 0) 
     {
-        std::cerr << "Connection closed by peer" << std::endl;
+        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Connection closed by peer");
         return false;
     }
 
     /* Check if the received frame is empty */
     if (frame.can_dlc == 0) 
     {
-        std::cerr << "Received empty frame\n";
+        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Received empty frame\n");
         return false;
     }
 
@@ -60,44 +61,49 @@ void HandleFrames::processReceivedFrame(const struct can_frame &frame)
         /* First frame */ 
         if (pci_type == 0x10)  
         {
-            std::cout << "\nFirst frame received\n";
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "First frame received");
             
             /* Expected total size of data */ 
             expected_data_size = data[1]; 
-            std::cout << "data size " << expected_data_size << std::endl;
-            std::cout << "Data size before inserting: ";
-            for (int value : data) 
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "data size: {}", expected_data_size);
+
+            std::ostringstream dataStream;
+            dataStream << "Data frame before inserting:";
+            for (int value : stored_data) 
             {
-                std::cout << std::hex << value << " ";
+                dataStream << std::hex << value << " ";
             }
-            std::cout << std::endl;
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
+
             /* Calculate the number of consecutive frames expected */ 
             flag = expected_data_size / 7; 
             if (expected_data_size % 7 > 0)
             {
                 flag++;
             }
-            std::cout << "no of frames " << flag << std::endl;
-
+            
             stored_data.clear();
             stored_sid = data[2];
             /* Concatenate data excluding PCI byte */ 
             stored_data.insert(stored_data.end(), data.begin() + 5, data.end()); 
-            std::cout << "Data size after inserting: ";
+
+            dataStream.str(""); 
+            dataStream.clear();
+            dataStream << "Data frame after inserting:";
             for (int value : stored_data) 
             {
-                std::cout << std::hex << value << " ";
+                dataStream << std::hex << value << " ";
             }
-            std::cout << std::endl;
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "no of frames: {}", static_cast<int>(flag));
             first_frame = true;
             flag--;
-            std::cout << "no of frames " << static_cast<int>(flag) << std::endl;
-            std::cout << "SID: 0x" << std::hex << sid << " found at position: " << sid_position << std::dec << "\n"<<std::flush;
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "no of frames: {}", static_cast<int>(flag));
         } 
         /* Handle Single Frames */ 
         else 
         {
-            std::cout << "\nSingle frame received\n";
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Single frame received");
             if (data[1] == 0x7F)
             {
                 sid = data[2];
@@ -114,7 +120,7 @@ void HandleFrames::processReceivedFrame(const struct can_frame &frame)
             handleCompleteData(id, stored_data, true); 
             stored_data.clear();
             expected_data_size = 0;
-            std::cout << "SID: 0x" << std::hex << sid << " found at position: " << sid_position << std::dec << "\n"<<std::flush;
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID: 0x{0:x} found at position: {1}", sid, sid_position);
             return;
         }
     } 
@@ -128,29 +134,33 @@ void HandleFrames::processReceivedFrame(const struct can_frame &frame)
             {
                 return;
             }
-            std::cout << "\nConsecutive frame received\n";
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Consecutive frame received");
             /* Print stored data before inserting the second frame */
-            std::cout << "Data size before inserting: ";
-            for (int value : data) 
+            std::ostringstream dataStream;
+            dataStream << "Data frame before inserting:";
+            for (int value : stored_data) 
             {
-                std::cout << std::hex << value << " ";
+                dataStream << std::hex << value << " ";
             }
-            std::cout << std::endl;
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
             /* Concatenate data excluding PCI byte */ 
             stored_data.insert(stored_data.end(), data.begin() + 1, data.end()); 
             /* Print stored data before inserting the second frame */ 
-            std::cout << "Data size after inserting: ";
+
+            dataStream.str(""); 
+            dataStream.clear();
+            dataStream << "Data frame after inserting:";
             for (int value : stored_data) 
             {
-                std::cout << std::hex << value << " ";
+                dataStream << std::hex << value << " ";
             }
-            std::cout << std::endl;
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
             flag--;
-            std::cout << "no of frames " << static_cast<int>(flag) << std::endl;
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "no of frames: {}", static_cast<int>(flag));
         }
         else
         {
-            std::cerr << "Unexpected frame format\n";
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Unexpected frame format\n");
             return;
         }
     }
@@ -158,29 +168,15 @@ void HandleFrames::processReceivedFrame(const struct can_frame &frame)
     /* If all frames have been received */ 
     if (flag == 0) 
     {
-        std::cout << "All frames received\n";
+        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "All frames received\n");
+        
         
         /* SID is at position 2 in the data vector after excluding PCI byte */ 
         sid = stored_sid;
         sid_position = 2;
-    
-        /* Print stored data before inserting the second frame */ 
-        std::cout << "Data size before inserting: ";
-        for (int value : stored_data) 
-        {
-            std::cout << std::hex << value << " ";
-        }
-        std::cout << std::endl;
+        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID: 0x{0:x} found at position: {1}", sid, sid_position);
         /* Process the complete data */ 
         handleCompleteData(id, stored_data, false);
-
-        /* Print stored data before inserting the second frame */ 
-        std::cout << "Data size before inserting: ";
-        for (int value : stored_data) 
-        {
-            std::cout << std::hex << value << " ";
-        }
-        std::cout << std::endl;
 
         stored_data.clear();
         expected_data_size = 0;
@@ -191,7 +187,7 @@ void HandleFrames::processReceivedFrame(const struct can_frame &frame)
 void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_data,bool is_single_frame) 
 {
     /* Extract the Service Identifier (SID) */ 
-    std::cout << "Handling complete data for SID: 0x" << std::hex << sid << std::dec << "\n";
+    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Handling complete data for SID: 0x{0:x}", sid);
 
     switch (sid) 
     {
@@ -208,11 +204,11 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                 }
                 else
                 {
-                    std::cout << "Service 0x10 SessionControl\n"<<std::flush;
-                    std::cout << "SID pos: " << sid_position << std::endl;
-                    std::cout << "Data size: " << stored_data.size() << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Service 0x10 SessionControl");
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                     sub_function = stored_data[sid_position + 1];
-                    std::cout << "sub_function: " <<  static_cast<int>(sub_function) << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
                     /* sessionControlRequest(id, sub_function); */
                 }
                 break;
@@ -223,11 +219,11 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                  *  Expected response: pci_l + sid + sub_funct
                  *  Index              [0]    [1]     [2]   
                  */
-                std::cout << "Response 0x50 for SessionControl\n"<<std::flush;
-                std::cout << "SID pos: " << sid_position << std::endl;
-                std::cout << "Data size: " << stored_data.size() << std::endl;   
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Response 0x50 for SessionControl");
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                 sub_function = stored_data[sid_position + 1];
-                std::cout << "sub_function: " <<  static_cast<int>(sub_function) << std::endl;
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
                 /* the request succesfully received-> store the data; */ 
                 /* sessionControlResponse(id, sub_function); */
                 break;
@@ -244,11 +240,11 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                 }
                 else
                 {
-                    std::cout << "Service 0x11 EcuReset\n";
-                    std::cout << "SID pos: " << sid_position << std::endl;
-                    std::cout << "Data size: " << stored_data.size() << std::endl;  
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Service 0x11 EcuReset");
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                     sub_function = stored_data[sid_position + 1];
-                    std::cout << "sub_function: " <<  static_cast<int>(sub_function) << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
                     /* ecuResetRequest(id, sub_function); */
                 }
                 break;
@@ -259,11 +255,11 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                  *  Expected response: pci_l + sid + sub_funct
                  *  Index              [0]    [1]     [2]   
                  */
-                std::cout << "Response 0x51 for EcuReset\n"; 
-                std::cout << "SID pos: " << sid_position << std::endl;
-                std::cout << "Data size: " << stored_data.size() << std::endl;  
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Response 0x51 for EcuReset");
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                 sub_function = stored_data[sid_position + 1];
-                std::cout << "sub_function: " <<  static_cast<int>(sub_function) << std::endl;
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
                 /* ecuResetResponse(id, sub_function); */
                 /* the request succesfully received-> store the data; */ 
                 break;
@@ -280,13 +276,12 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                 }
                 else
                 {
-                    std::cout << "Service 0x22 ReadDataByIdentifier\n";
-                    std::cout << "SID pos: " << sid_position << std::endl;
-                    std::cout << "Data size: " << stored_data.size() << std::endl;
-                    
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Service 0x22 ReadDataByIdentifier");
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                     /* Combine the two bytes into a single 16-bit identifier */ 
                     uint16_t identifier = (stored_data[2] << 8) | stored_data[3];
-                    std::cout << "Stored data: " << static_cast<int>(identifier) << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Stored data: {}", static_cast<int>(identifier));
                     /* readDataByIdentifierRequest(id, identifier); */
                 }
                 break;
@@ -294,8 +289,8 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
         case 0x62: 
             {
                 /* ReadDataByIdentifier -response handle --to be implemented */ 
-                std::cout << "SID pos: " << sid_position << std::endl;
-                std::cout << "Data size: " << stored_data.size() << std::endl;
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                 
                 if (is_single_frame) 
                 {
@@ -304,15 +299,17 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                      *  Combine the two bytes into a single 16-bit identifier 
                      */ 
                     uint16_t identifier = (stored_data[2] << 8) | stored_data[3];
-                    std::cout << "Stored data: " << static_cast<int>(identifier) << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Stored data: {}", static_cast<int>(identifier));
                     std::vector<uint8_t> rdata(stored_data.begin() + 4, stored_data.end());
-                    std::cout << "RData: ";
-                    for (const auto& data : rdata) {
-                        std::cout << std::hex << "0x" << static_cast<int>(data) << " "; 
+        
+                    std::ostringstream dataStream;
+                    dataStream << "RData: ";
+                    for (const auto& data : rdata) 
+                    {
+                        dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
                     }
-                    std::cout << std::endl;
-                
-                    std::cout << "Response 0x62 for ReadDataByIdentifier\n";
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Response 0x62 for ReadDataByIdentifier");
                     /* readDataByIdentifierResponse(id, identifier, rdata); */
                     /* the request succesfully received-> store the data; */ 
                 } 
@@ -326,15 +323,17 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                      *  Index              [0]    [1]    
                      *  Combine the two bytes into a single 16-bit identifier 
                      */ 
-                    std::cout << "Response 0x62 for ReadDataByIdentifierLong\n";
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Response 0x62 for ReadDataByIdentifierLong");
                     uint16_t identifier = (stored_data[3] << 8) | stored_data[4];
-                    std::cout << "Stored data: " << static_cast<int>(identifier) << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Stored data: {}", static_cast<int>(identifier));
                     std::vector<uint8_t> rdata(stored_data.begin() + 5, stored_data.end());
-                    std::cout << "RData: ";
-                    for (const auto& data : rdata) {
-                        std::cout << std::hex << "0x" << static_cast<int>(data) << " ";
+                    std::ostringstream dataStream;
+                    dataStream << "RData: ";
+                    for (const auto& data : rdata) 
+                    {
+                        dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
                     }
-                    std::cout << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
                     /* the request succesfully received-> store the data; */ 
                     /* readDataByIdentifierLongResponse(id, identifier, rdata); */
                 }
@@ -355,11 +354,11 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                          *  Expected request: pci_l + sid + sub_funct
                          *  Index              [0]    [1]     [2]   
                          */
-                        std::cout << "Service 0x29 AuthenticationRequestSeed\n";
-                        std::cout << "SID pos: " << sid_position << std::endl;
-                        std::cout << "Data size: " << stored_data.size() << std::endl;
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Service 0x29 AuthenticationRequestSeed");
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                         sub_function = stored_data[sid_position + 1];
-                        std::cout << "sub_function: " <<  static_cast<int>(sub_function) << std::endl;
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
                         /* authenticationRequestSeedRequest(id, sub_function); */
                     }
                     else if (stored_data[2] == 0x2)
@@ -368,13 +367,13 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                          *  Expected request: pci_l + sid + sub_funct + key
                          *  Index              [0]    [1]     [2]       [3] 
                          */
-                        std::cout << "Service 0x29 AuthenticationSendKey\n";
-                        std::cout << "SID pos: " << sid_position << std::endl;
-                        std::cout << "Data size: " << stored_data.size() << std::endl;
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Service 0x29 AuthenticationSendKey");
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                         sub_function = stored_data[sid_position + 1];
-                        std::cout << "sub_function: " <<  static_cast<int>(sub_function) << std::endl;
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
                         uint8_t key = stored_data[3];
-                        std::cout << "key: " << static_cast<int>(key) << std::endl;
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "key: {}", static_cast<int>(key));
                         /* authenticationSendKeyRequest(id, sub_function, key); */
                     }
                 }
@@ -389,13 +388,13 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                      *  Expected response: pci_l + sid + sub_funct + seed 
                      *  Index              [0]    [1]     [2]        [3] 
                      */
-                    std::cout << "Response 0x69 for AuthenticationRequestSeed\n";
-                    std::cout << "SID pos: " << sid_position << std::endl;
-                    std::cout << "Data size: " << stored_data.size() << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Response 0x69 for AuthenticationRequestSeed");
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                     sub_function = stored_data[sid_position + 1];
-                    std::cout << "sub_function: " <<  static_cast<int>(sub_function) << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
                     uint8_t seed = stored_data[3];
-                    std::cout << "seed: " << static_cast<int>(seed) << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "seed: {}", static_cast<int>(seed));
                     /* the request succesfully received-> store the data; */ 
                     /* authenticationRequestSeedResponse(id, sub_function, seed); */
 
@@ -406,11 +405,11 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                      *  Expected response: pci_l + sid + sub_funct
                      *  Index              [0]    [1]     [2]     
                      */
-                    std::cout << "Response 0x69 for AuthenticationSendKey\n";
-                    std::cout << "SID pos: " << sid_position << std::endl;
-                    std::cout << "Data size: " << stored_data.size() << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Response 0x69 for AuthenticationSendKey");
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                     sub_function = stored_data[sid_position + 1];
-                    std::cout << "sub_function: " <<  static_cast<int>(sub_function) << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
                     /* the request succesfully received-> store the data; */ 
                     /* authenticationSendKeyResponse(id, sub_function); */
                 }
@@ -428,18 +427,19 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                 }
                 else
                 {
-                    std::cout << "Service 0x31 RoutineControl\n"; 
-                    std::cout << "SID pos: " << sid_position << std::endl;
-                    std::cout << "Data size: " << stored_data.size() << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Service 0x31 RoutineControl");
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                     sub_function = stored_data[sid_position + 1];
-                    std::cout << "sub_function: " <<  static_cast<int>(sub_function) << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
                     std::vector<uint8_t> routin_id(stored_data.begin() + 3, stored_data.end());
-                    std::cout << "Routin_id: ";
-                        for (const auto& data : routin_id) {
-                            std::cout << std::hex << "0x" << static_cast<int>(data) << " ";
-                        }
-                        std::cout << std::endl;
-                    
+                    std::ostringstream dataStream;
+                    dataStream << "Routin_id: ";
+                    for (const auto& data : routin_id) 
+                    {
+                        dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
+                    }
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
                     /* routineControlRequest(id, sub_function, routin_id); */ 
                 }
                 break;
@@ -447,20 +447,22 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
         case 0x71: 
             {
                 /* RoutineControl -response handle --to be implemented */ 
-                std::cout << "Response 0x71 for RoutineControl\n";
                 /** Expected response: pci_l + sid + sub_funct + Routin_id[2] 
                  *  Index              [0]    [1]     [2]        [3][4]     
                  */
-                std::cout << "SID pos: " << sid_position << std::endl;
-                std::cout << "Data size: " << stored_data.size() << std::endl;
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Response 0x71 for RoutineControl");
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                 sub_function = stored_data[sid_position + 1];
-                std::cout << "sub_function: " <<  static_cast<int>(sub_function) << std::endl;
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
                 std::vector<uint8_t> routin_id(stored_data.begin() + 3, stored_data.end());
-                std::cout << "Routin_id: ";
-                    for (const auto& data : routin_id) {
-                        std::cout << std::hex << "0x" << static_cast<int>(data) << " ";
-                    }
-                    std::cout << std::endl;
+                std::ostringstream dataStream;
+                dataStream << "Routin_id: ";
+                for (const auto& data : routin_id) 
+                {
+                    dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
+                }
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
                 /* the request succesfully received-> store the data; */ 
                 /* routineControlResponse(id, sub_function, routin_id); */ 
                 break;
@@ -477,11 +479,11 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                 }
                 else
                 {
-                    std::cout << "Service 0x3E TesterPresent\n";
-                    std::cout << "SID pos: " << sid_position << std::endl;
-                    std::cout << "Data size: " << stored_data.size() << std::endl;  
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Service 0x3E TesterPresent");
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                     sub_function = stored_data[sid_position + 1];
-                    std::cout << "sub_function: " <<  static_cast<int>(sub_function) << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
                     /* testerPresentRequest(id, sub_function); */
                 }
                 break;
@@ -489,14 +491,14 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
         case 0x7E: 
             {
                 /* TesterPresent -response handle --to be implemented */ 
-                std::cout << "Response 0x7E for TesterPresent\n";
                 /** Expected response: pci_l + sid + sub_funct = 0x00 
                  *  Index              [0]    [1]     [2]     
                  */
-                std::cout << "SID pos: " << sid_position << std::endl;
-                std::cout << "Data size: " << stored_data.size() << std::endl;  
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Response 0x7E for TesterPresent");
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                 sub_function = stored_data[sid_position + 1];
-                std::cout << "sub_function: " <<  static_cast<int>(sub_function) << std::endl;
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
                 /* the request succesfully received-> store the data; */ 
                 /* testerPresentResponse(id, sub_function); */
                 break;
@@ -513,9 +515,9 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                 }
                 else
                 {
-                    std::cout << "Service 0x23 ReadMemoryByAddress\n";
-                    std::cout << "SID pos: " << sid_position << std::endl;
-                    std::cout << "Data size: " << stored_data.size() << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Service 0x23 ReadMemoryByAddress");
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                     
                     /* Retrieve the address_memory_length */ 
                     uint8_t address_memory_length = stored_data[2];
@@ -527,20 +529,27 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     /* Retrieve the memory_address and memory_size based on their lengths */
                     std::vector<int> memory_address(stored_data.begin() + 3, stored_data.begin() + 3 + length_memory_address);
                     std::vector<int> memory_size(stored_data.begin() + 3 + length_memory_address, stored_data.begin() + 3 + length_memory_address + length_memory_size);
-                    std::cout << "Valid data length\n";
-                    std::cout << "address_memory_length: " << std::hex << static_cast<int>(address_memory_length) << std::endl;
-                    std::cout << "length_memory_address: " << static_cast<int>(length_memory_address) << std::endl;
-                    std::cout << "length_memory_size: " << static_cast<int>(length_memory_size) << std::endl;
-                    std::cout << "Memory_address: ";
-                    for (const auto& data : memory_address) {
-                        std::cout << std::hex << "0x" << static_cast<int>(data) << " ";
+
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "address_memory_length: 0x{0:x}", static_cast<int>(address_memory_length));
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_address: ", static_cast<int>(length_memory_address));
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_size: ", static_cast<int>(length_memory_size));
+                    std::ostringstream dataStream;
+                    dataStream << "Memory_address: ";
+                    for (const auto& data : memory_address) 
+                    {
+                        dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
                     }
-                    std::cout << std::endl;
-                    std::cout << "Memory_size: ";
-                    for (const auto& data : memory_size) {
-                        std::cout << std::hex << "0x" << static_cast<int>(data) << " ";
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
+
+                    dataStream.str("");
+                    dataStream.clear();
+
+                    dataStream << "Memory_size: ";
+                    for (const auto& data : memory_size) 
+                    {
+                        dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
                     }
-                    std::cout << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
                     /* readMemoryByAdressRequest(id, address_memory_length, memory_address, memory_size); */
                 }
                 break;
@@ -553,9 +562,9 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     /** Expected response: pci_l + sid + address_memory_lenght + memory_address[] + memory_size[] +            data[] 
                      *  Index              [0]    [1]         [2]                       [3]       [3 + size(memory_adress)]    [3 + size(memory_adress)+size(memory_size)] 
                      */
-                    std::cout << "Response 0x63 for ReadMemoryByAddress\n";
-                    std::cout << "SID pos: " << sid_position << std::endl;
-                    std::cout << "Data size: " << stored_data.size() << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Response 0x63 for ReadMemoryByAddress");
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                     
                     /* Retrieve the address_memory_length */ 
                     uint8_t address_memory_length = stored_data[2];
@@ -569,20 +578,37 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     std::vector<uint8_t> memory_size(stored_data.begin() + 3 + length_memory_address, stored_data.begin() + 3 + length_memory_address + length_memory_size);
                     int start_pos = 3 + length_memory_address + length_memory_size;
                     std::vector<uint8_t> rdata(stored_data.begin() + start_pos, stored_data.end());
-                    std::cout << "Valid data length\n";
-                    std::cout << "address_memory_length: " << std::hex << static_cast<int>(address_memory_length) << std::endl;
-                    std::cout << "length_memory_address: " << static_cast<int>(length_memory_address) << std::endl;
-                    std::cout << "length_memory_size: " << static_cast<int>(length_memory_size) << std::endl;
-                    std::cout << "Memory_address: ";
-                    for (const auto& data : memory_address) {
-                        std::cout << std::hex << "0x" << static_cast<int>(data) << " ";
+
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "address_memory_length: 0x{0:x}", static_cast<int>(address_memory_length));
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_address: ", static_cast<int>(length_memory_address));
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_size: ", static_cast<int>(length_memory_size));
+                    std::ostringstream dataStream;
+                    dataStream << "Memory_address: ";
+                    for (const auto& data : memory_address) 
+                    {
+                        dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
                     }
-                    std::cout << std::endl;
-                    std::cout << "Memory_size: ";
-                    for (const auto& data : memory_size) {
-                        std::cout << std::hex << "0x" << static_cast<int>(data) << " ";
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
+
+                    dataStream.str("");
+                    dataStream.clear();
+
+                    dataStream << "Memory_size: ";
+                    for (const auto& data : memory_size) 
+                    {
+                        dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
                     }
-                    std::cout << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
+
+                    dataStream.str("");
+                    dataStream.clear();
+
+                    dataStream << "Rdata: ";
+                    for (const auto& data : rdata) 
+                    {
+                        dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
+                    }
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
                     /* the request succesfully received-> store the data; */ 
                     /* readMemoryByAdressResponse(id, address_memory_length, memory_address, memory_size, rdata); */
                 } 
@@ -595,9 +621,9 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                      *  Expected response: 0x2X + data[]
                      *  Index              [0]    [1]     
                      */
-                    std::cout << "Reponse 0x63 for ReadMemoryByAddressLong\n";
-                    std::cout << "SID pos: " << sid_position << std::endl;
-                    std::cout << "Data size: " << stored_data.size() << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Reponse 0x63 for ReadMemoryByAddressLong");
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                     
                     /* Retrieve the address_memory_length */ 
                     uint8_t address_memory_length = stored_data[3];
@@ -611,20 +637,36 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     std::vector<int> memory_size(stored_data.begin() + 4 + length_memory_address, stored_data.begin() + 4 + length_memory_address + length_memory_size);
                     int start_pos = 4 + length_memory_address + length_memory_size;
                     std::vector<uint8_t> rdata(stored_data.begin() + start_pos, stored_data.end());
-                    std::cout << "Valid data length\n";
-                    std::cout << "address_memory_length: " << std::hex << static_cast<int>(address_memory_length) << std::endl;
-                    std::cout << "length_memory_address: " << static_cast<int>(length_memory_address) << std::endl;
-                    std::cout << "length_memory_size: " << static_cast<int>(length_memory_size) << std::endl;
-                    std::cout << "Memory_address: ";
-                    for (const auto& data : memory_address) {
-                        std::cout << std::hex << "0x" << static_cast<int>(data) << " ";
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "address_memory_length: 0x{0:x}", static_cast<int>(address_memory_length));
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_address: ", static_cast<int>(length_memory_address));
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_size: ", static_cast<int>(length_memory_size));
+                    std::ostringstream dataStream;
+                    dataStream << "Memory_address: ";
+                    for (const auto& data : memory_address) 
+                    {
+                        dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
                     }
-                    std::cout << std::endl;
-                    std::cout << "Memory_size: ";
-                    for (const auto& data : memory_size) {
-                        std::cout << std::hex << "0x" << static_cast<int>(data) << " ";
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
+
+                    dataStream.str("");
+                    dataStream.clear();
+
+                    dataStream << "Memory_size: ";
+                    for (const auto& data : memory_size) 
+                    {
+                        dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
                     }
-                    std::cout << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
+
+                    dataStream.str("");
+                    dataStream.clear();
+
+                    dataStream << "Rdata: ";
+                    for (const auto& data : rdata) 
+                    {
+                        dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
+                    }
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
                 /* the request succesfully received-> store the data; */ 
                 /* readMemoryByAdressLongResponse(id, address_memory_length, memory_address, memory_size, rdata); */
                 }
@@ -639,9 +681,6 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                 }
                 else
                 {
-                    std::cout << "SID pos: " << sid_position << std::endl;
-                    std::cout << "Data size: " << stored_data.size() << std::endl;
-                    
                     if (is_single_frame) 
                     {
                         /** WriteDataByIdentifier -request method --to be implemented 
@@ -649,16 +688,19 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                          *  Index              [0]    [1]     [2][3]         [4]   
                          *  Combine the two bytes into a single 16-bit identifier 
                          */ 
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Service 0x2E WriteDataByIdentifier");
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                         uint16_t identifier = (stored_data[2] << 8) | stored_data[3];
-                        std::cout << "Stored data: " << static_cast<int>(identifier) << std::endl;
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Stored data: {}", static_cast<int>(identifier));
                         std::vector<uint8_t> rdata(stored_data.begin() + 4, stored_data.end());
-                        std::cout << "RData: ";
-                        for (const auto& data : rdata) {
-                            std::cout << std::hex << "0x" << static_cast<int>(data) << " ";
+                        std::ostringstream dataStream;
+                        dataStream << "Rdata: ";
+                        for (const auto& data : rdata) 
+                        {
+                            dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
                         }
-                        std::cout << std::endl;
-                    
-                        std::cout << "Service 0x2E WriteDataByIdentifier\n";
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
                         /* writeDataByIdentifier(id, identifier, rdata); */
                     } 
                     else 
@@ -672,15 +714,19 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                          *  Index              [0]     [1]    
                          *  Combine the two bytes into a single 16-bit identifier 
                          */ 
-                        std::cout << "Service 0x2E WriteDataByIdentifierLongRequest\n";
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Service 0x2E WriteDataByIdentifierLongRequest");
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                         uint16_t identifier = (stored_data[3] << 8) | stored_data[4];
-                        std::cout << "Stored data: " << static_cast<int>(identifier) << std::endl;
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Stored data: {}", static_cast<int>(identifier));
                         std::vector<uint8_t> rdata(stored_data.begin() + 5, stored_data.end());
-                        std::cout << "RData: ";
-                        for (const auto& data : rdata) {
-                            std::cout << std::hex << "0x" << static_cast<int>(data) << " ";
+                        std::ostringstream dataStream;
+                        dataStream << "Rdata: ";
+                        for (const auto& data : rdata) 
+                        {
+                            dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
                         }
-                        std::cout << std::endl;
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
                         /* writeDataByIdentifierLongRequest(id, identifier, rdata); */
                     }
                 }
@@ -692,13 +738,13 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                  *  Expected response: pci_l + sid + identifier[2]
                  *  Index              [0]    [1]     [2][3]   
                  */
-                std::cout << "Response 0x6E for WriteDataByIdentifier\n";
-                std::cout << "SID pos: " << sid_position << std::endl;
-                std::cout << "Data size: " << stored_data.size() << std::endl;
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Response 0x6E for WriteDataByIdentifier");
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                 
                 /* Combine the two bytes into a single 16-bit identifier */ 
                 uint16_t identifier = (stored_data[2] << 8) | stored_data[3];
-                std::cout << "identifier: " << identifier << std::endl;
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Stored data: {}", static_cast<int>(identifier));
                 /* the request succesfully received-> store the data; */ 
                 /* writeDataByIdentifierResponse(id, identifier); */
                 break;
@@ -715,13 +761,13 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                 }
                 else
                 {
-                    std::cout << "Service 0x19 ReadDtcInformation\n";
-                    std::cout << "SID pos: " << sid_position << std::endl;
-                    std::cout << "Data size: " << stored_data.size() << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Service 0x19 ReadDtcInformation");
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                     sub_function = stored_data[sid_position + 1];
-                    std::cout << "sub_function: " <<  static_cast<int>(sub_function) << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
                     uint8_t dtc_status_mask = stored_data[sid_position + 2];
-                    std::cout << "mask: " << static_cast<int>(dtc_status_mask) << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "mask: {}", static_cast<int>(dtc_status_mask));
                     /* readDtcInformationRequest(id, sub_function, dtc_status_mask); */
                 }
                 break;
@@ -732,17 +778,17 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                  *  Expected response: pci_l + sid + 0x01 + sts_ava_mask + dtc_format + dtc_count
                  *  Index              [0]    [1]     [2]     [3]            [4]         [5]
                  */
-                std::cout << "Response 0x59 for ReadDtcInformation\n"<<std::flush;
-                std::cout << "SID pos: " << sid_position << std::endl;
-                std::cout << "Data size: " << stored_data.size() << std::endl;   
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Response 0x59 for ReadDtcInformation");
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                 sub_function = stored_data[sid_position + 1];
-                std::cout << "sub_function: " <<  static_cast<int>(sub_function) << std::endl;
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
                 uint8_t sts_ava_mask = stored_data[3];
-                std::cout << "mask availab: " << static_cast<int>(sts_ava_mask) << std::endl;
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "mask availab: {}", static_cast<int>(sts_ava_mask));
                 uint8_t dtc_format = stored_data[4];
-                std::cout << "dtc format: " << static_cast<int>(dtc_format) << std::endl;
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "dtc format: {}", static_cast<int>(dtc_format));
                 uint8_t dtc_count = stored_data[5];
-                std::cout << "dtc count: " << static_cast<int>(dtc_count) << std::endl;
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "dtc count: {}", static_cast<int>(dtc_count));
                 /* the request succesfully received-> store the data; */  
                 /* readDtcInformationResponse(id, sub_function, sts_ava_mask, dtc_format, dtc_count); */ 
                 break;
@@ -759,15 +805,17 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                 }
                 else
                 {
-                    std::cout << "Service 0x14 ClearDiagnosticInformation\n"<<std::flush;
-                    std::cout << "SID pos: " << sid_position << std::endl;
-                    std::cout << "Data size: " << stored_data.size() << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Service 0x14 ClearDiagnosticInformation");
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                     std::vector<uint8_t> empty_vector(stored_data.begin() + 2, stored_data.end());
-                    std::cout << "Empty_vector: ";
-                        for (const auto& data : empty_vector) {
-                            std::cout << std::hex << "0x" << static_cast<int>(data) << " ";
-                        }
-                        std::cout << std::endl;
+                    std::ostringstream dataStream;
+                    dataStream << "Empty_vector: ";
+                    for (const auto& data : empty_vector) 
+                    {
+                        dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
+                    }
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
                     /* clearDiagnosticInformationRequest(id, empty_vector); */
                 }
                 break;
@@ -778,11 +826,11 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                  *  Expected response: pci_l + sid + group_of_dtc[]
                  *  Index              [0]    [1]     [2]   
                  */
-                std::cout << "Response 0x54 for ClearDiagnosticInformation\n"<<std::flush;
-                std::cout << "SID pos: " << sid_position << std::endl;
-                std::cout << "Data size: " << stored_data.size() << std::endl;   
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Response 0x54 for ClearDiagnosticInformation");
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                 uint8_t group_of_dtc = stored_data[sid_position + 1];
-                std::cout << "group_of_dtc: " << static_cast<int>(group_of_dtc) << std::endl;
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "group_of_dtc: {}", static_cast<int>(group_of_dtc));
                 /* the request succesfully received-> store the data; */ 
                 /* clearDiagnosticInformationResponse(id, group_of_dtc); */
                 break;
@@ -799,11 +847,11 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                 }
                 else
                 {
-                    std::cout << "Service 0x83 AccessTimingParameters\n";
-                    std::cout << "SID pos: " << sid_position << std::endl;
-                    std::cout << "Data size: " << stored_data.size() << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Service 0x83 AccessTimingParameters");
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                     sub_function = stored_data[sid_position + 1];
-                    std::cout << "sub_function: " <<  static_cast<int>(sub_function) << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
                     /* accessTimingParametersRequest(id, sub_function); */
                 }
                 break;
@@ -814,11 +862,11 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                  *  Expected response: pci_l + sid + sub_funct
                  *  Index              [0]    [1]     [2]   
                  */
-                std::cout << "Response 0xC3 for AccessTimingParameters\n"<<std::flush;
-                std::cout << "SID pos: " << sid_position << std::endl;
-                std::cout << "Data size: " << stored_data.size() << std::endl;   
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Response 0xC3 for AccessTimingParameters");
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                 sub_function = stored_data[sid_position + 1];
-                std::cout << "sub_function: " <<  static_cast<int>(sub_function) << std::endl;
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
                 /* the request succesfully received-> store the data; */ 
                 /* accessTimingParametersResponse(id, sub_function); */
                 break;
@@ -836,9 +884,9 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                 }
                 else
                 {   
-                    std::cout << "Service 0x34 RequestDownload\n";
-                    std::cout << "SID pos: " << sid_position << std::endl;
-                    std::cout << "Data size: " << stored_data.size() << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Service 0x34 RequestDownload");
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                     
                     uint8_t data_format_identifier = stored_data[2];
                     /* Retrieve the address_memory_length */ 
@@ -851,20 +899,28 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     /* Retrieve the memory_address and memory_size based on their lengths */
                     std::vector<int> memory_address(stored_data.begin() + 4, stored_data.begin() + 4 + length_memory_address);
                     std::vector<int> memory_size(stored_data.begin() + 4 + length_memory_address, stored_data.begin() + 4 + length_memory_address + length_memory_size);
-                    std::cout << "Valid data length\n";
-                    std::cout << "address_memory_length: " << std::hex << static_cast<int>(address_memory_length) << std::endl;
-                    std::cout << "length_memory_address: " << static_cast<int>(length_memory_address) << std::endl;
-                    std::cout << "length_memory_size: " << static_cast<int>(length_memory_size) << std::endl;
-                    std::cout << "Memory_address: ";
-                    for (const auto& data : memory_address) {
-                        std::cout << std::hex << "0x" << static_cast<int>(data) << " ";
+
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "address_memory_length: 0x{0:x}", static_cast<int>(address_memory_length));
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_address: ", static_cast<int>(length_memory_address));
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_size: ", static_cast<int>(length_memory_size));
+
+                    std::ostringstream dataStream;
+                    dataStream << "Memory_address: ";
+                    for (const auto& data : memory_address) 
+                    {
+                        dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
                     }
-                    std::cout << std::endl;
-                    std::cout << "Memory_size: ";
-                    for (const auto& data : memory_size) {
-                        std::cout << std::hex << "0x" << static_cast<int>(data) << " ";
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
+
+                    dataStream.str("");
+                    dataStream.clear();
+
+                    dataStream << "Memory_size: ";
+                    for (const auto& data : memory_size) 
+                    {
+                        dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
                     }
-                    std::cout << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
                     /* requestDownloadRequest(id, data_format_identifier, address_memory_length, memory_address, memory_size); */
                 }
                 break;
@@ -872,17 +928,17 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
         case 0x74: 
             {
                 /* RequestDownload -response handle --to be implemented */ 
-                std::cout << "Response 0x74 for RequestDownload\n";
                 /** Expected response: pci_l + sid +  length_max_number_block*0x10  +  max_number_block
                  *  Index              [0]     [1]         [2]                       [3]                  
                  */
-                std::cout << "SID pos: " << sid_position << std::endl;
-                std::cout << "Data size: " << stored_data.size() << std::endl;
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Response 0x74 for RequestDownload");
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                 
                 uint8_t length_max_number_block = stored_data[2];
-                std::cout << "length max no blocks: " << length_max_number_block << std::endl;
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length max no blocks: ", static_cast<int>(length_max_number_block));
                 int max_number_block = stored_data[3];
-                std::cout << "max no blocks: " << max_number_block << std::endl;
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "max no blocks: ", static_cast<int>(max_number_block));
                 /* the request succesfully received-> store the data; */ 
                 /* requestDownloadResponse(id, length_max_number_block, max_number_block); */
                 break;
@@ -902,17 +958,19 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                          *  Expected request: pci_l + sid + block_sequence_counter + transfer_request[]
                          *  Index              [0]    [1]      [2]                     [3]
                          */
-                        std::cout << "Service 0x36 TransferDataRequest\n";
-                        std::cout << "SID pos: " << sid_position << std::endl;
-                        std::cout << "Data size: " << stored_data.size() << std::endl;
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Service 0x36 TransferDataRequest");
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                         uint8_t block_sequence_counter = stored_data[2];
-                        std::cout << "block_counter: " << static_cast<int>(block_sequence_counter) << std::endl;
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "block_counter: ", static_cast<int>(block_sequence_counter));
                         std::vector<uint8_t> transfer_request(stored_data.begin() + 3, stored_data.end());
-                        std::cout << "Transfer Request Data: ";
-                        for (const auto& data : transfer_request) {
-                            std::cout << std::hex << "0x" << static_cast<int>(data) << " ";
+                        std::ostringstream dataStream;
+                        dataStream << "Transfer Request Data: ";
+                        for (const auto& data : transfer_request) 
+                        {
+                            dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
                         }
-                        std::cout << std::endl;
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
                         /* transferDataRequest(id, block_sequence_counter, transfer_request); */
                     }
                     else
@@ -925,17 +983,19 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                          *  Expected response: 0x2X + transfer_request[]
                          *  Index              [0]      [1]     
                          */
-                        std::cout << "Service 0x36 TransferDataLongRequest\n";
-                        std::cout << "SID pos: " << sid_position << std::endl;
-                        std::cout << "Data size: " << stored_data.size() << std::endl;
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Service 0x36 TransferDataLongRequest");
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                         uint8_t block_sequence_counter = stored_data[3];
-                        std::cout << "block_counter: " << block_sequence_counter << std::endl;
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "block_counter: ", static_cast<int>(block_sequence_counter));
                         std::vector<uint8_t> transfer_request(stored_data.begin() + 4, stored_data.end());
-                        std::cout << "Transfer Request Data: ";
-                        for (const auto& data : transfer_request) {
-                            std::cout << std::hex << "0x" << static_cast<int>(data) << " ";
+                        std::ostringstream dataStream;
+                        dataStream << "Transfer Request Data: ";
+                        for (const auto& data : transfer_request) 
+                        {
+                            dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
                         }
-                        std::cout << std::endl;
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
                         /* transferDataLongRequest(id, block_sequence_counter, transfer_request); */
                     }
                 }
@@ -947,10 +1007,11 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                  *  Expected response: pci_l + sid + block_sequence_counter 
                  *  Index              [0]    [1]      [2]                   
                  */
-                std::cout << "Response 0x76 for TransferData\n";
-                std::cout << "SID pos: " << sid_position << std::endl;
-                std::cout << "Data size: " << stored_data.size() << std::endl;
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Response 0x76 for TransferData");
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                 uint8_t block_sequence = stored_data[2];
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "block_counter: ", static_cast<int>(block_sequence));
                 std::cout << "block_counter: " << block_sequence << std::endl;
                 /* the request succesfully received-> store the data; */ 
                 /* transferDataResponse(id, block_sequence_counter); */
@@ -968,9 +1029,9 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                 }
                 else
                 {   
-                    std::cout << "Service 0x37 RequestTransferExit\n";
-                    std::cout << "SID pos: " << sid_position << std::endl;
-                    std::cout << "Data size: " << stored_data.size() << std::endl;
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Service 0x37 RequestTransferExit");
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                     uint8_t empty_vector = stored_data[2];
                     /* requestTransferExitRequest(id, empty_vector); */
                 }
@@ -982,9 +1043,9 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                  *  Expected response: pci_l + sid + empty_vector
                  *  Index              [0]    [1]      [2]                    
                  */
-                std::cout << "Response 0x77 for RequestTransferExit\n";
-                std::cout << "SID pos: " << sid_position << std::endl;
-                std::cout << "Data size: " << stored_data.size() << std::endl;
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Response 0x77 for RequestTransferExit");
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                 uint8_t empty_vector = stored_data[2];
                 /* the request succesfully received-> store the data; */ 
                 /* requestTransferExitResponse(id, empty_vector); */
@@ -992,13 +1053,13 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
             }
         case 0x32: 
             {
-                /* requestUpdateStatus - request method --to be implemented */ 
-                std::cout << "Service 0x32 RequestUpdateStatus\n";
+                /* requestUpdateStatus - request method --to be implemented */
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Service 0x32 RequestUpdateStatus"); 
                 /* requestUpdateStatus(id); */
                 break;
             }
         default:
-            std::cerr << "Unknown service" << std::endl;
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Unknown service"); 
             break;
     }
 }
@@ -1010,47 +1071,47 @@ void HandleFrames::processNrc(int id, uint8_t sid, uint8_t nrc)
         case 0x11:
             /* Service not supported */
             /* negativeResponse(can_id, sid, nrc); */
-            std::cout << "Error: Service not supported for service: " << sid << std::endl;
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Error: Service not supported for service: {}", sid);
         break;
         case 0x13:
             /* Incorrect message length or invalid format */
             /* negativeResponse(can_id, sid, nrc); */
-            std::cout << "Error: Incorrect message length or invalid format for service: " << sid << std::endl;
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Error: Incorrect message length or invalid format for service: {}", sid);
         break;
         case 0x14:
             /*  Response too long */
             /* negativeResponse(can_id, sid, nrc); */
-            std::cout << "Error: Response too long for service: " << sid << std::endl;
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Error: Response too long for service: {}", sid);
         break;
         case 0x25:
             /* No response from subnet component */
             /* negativeResponse(can_id, sid, nrc); */
-            std::cout << "Error: No response from subnet component for service: " << sid << std::endl;
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Error: No response from subnet component for service: {}", sid);
         break;
         case 0x34:
             /* Authentication failed */
             /* negativeResponse(can_id, sid, nrc); */
-            std::cout << "Error: Authentication failed for service: " << sid << std::endl;
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Error: Authentication failed for service: {}", sid);
         break;
         case 0x94:
             /* Resource temporarily unavailable */
             /* negativeResponse(can_id, sid, nrc); */
-            std::cout << "Error: Resource temporarily unavailable for service: " << sid << std::endl;
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Error: Resource temporarily unavailable for service: {}", sid);
         break;
         case 0x70:
             /* Upload download not accepted */
             /* negativeResponse(can_id, sid, nrc); */
-            std::cout << "Error: Upload download not accepted for service: " << sid << std::endl;
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Error: Upload download not accepted for service: {}", sid);
         break;
         case 0x71:
             /* Transfer data suspended */
             /* negativeResponse(can_id, sid, nrc); */
-            std::cout << "Error: Transfer data suspended for service: " << sid << std::endl;
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Error: Transfer data suspended for service: {}", sid);
         break;
         default:
             /* Unknown negative response code */
             /* negativeResponse(can_id, sid, nrc); */
-            std::cout << "Error: Unknown negative response code for service: " << sid << std::endl;
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Error: Unknown negative response code for service: {}", sid);
         break;
     }
 }
