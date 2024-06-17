@@ -95,13 +95,6 @@ class ReceiveFrames
   void printFrames(const struct can_frame &frame);
 
   /**
-   * @brief Function to send ECU request on CANBus.
-   * 
-   * @param id the id of the ECU
-   */
-  void sendECURequest(uint8_t id);
-
-  /**
    * @brief Function to send test frame on CANBus.
    * 
    */

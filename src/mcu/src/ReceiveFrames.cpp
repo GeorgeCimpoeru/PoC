@@ -32,7 +32,7 @@ bool ReceiveFrames::receiveFramesFromCANBus()
         int nbytes = read(socket_canbus, &frame, sizeof(frame));
         if (nbytes < 0)
         {
-            std::cerr << "Read Error" << std::endl;
+            LOG_ERROR(MCULogger.GET_LOGGER(),"Read Error");
             /* Return error if read fails */
             return false;
         }
@@ -67,7 +67,7 @@ bool ReceiveFrames::receiveFramesFromAPI()
         int nbytes = read(socket_api, &frame, sizeof(frame));
         if (nbytes < 0)
         {
-            std::cerr << "Read Error" << std::endl;
+            LOG_ERROR(MCULogger.GET_LOGGER(),"Read Error");
             /* Return error if read fails */
             return false;
         }
@@ -92,9 +92,8 @@ bool ReceiveFrames::receiveFramesFromAPI()
  */
 void ReceiveFrames::processQueue() 
 {
-    std::cout << "Frame processing:..." << std::endl;
-    can_frame frameParam;
-    while (true) 
+    LOG_INFO(MCULogger.GET_LOGGER(),"Frame processing:...");
+    while (true)
     {
         /* Wait until the queue is not empty, then lock the queue */
         std::unique_lock<std::mutex> lock(queue_mutex);
@@ -121,32 +120,34 @@ void ReceiveFrames::processQueue()
         {
             if (frame.data[1] == 0xff) 
             {
-                std::cout << "Notification from the ECU that it is up" << std::endl;
-                if (std::find(ecus_up.begin(), ecus_up.end(), sender_id) == ecus_up.end()) {
+                LOG_INFO(MCULogger.GET_LOGGER(),"Notification from the ECU that it is up");
+                /* Add the ECU ID to the list of ECUs that are up */
+                if (std::find(ecus_up.begin(), ecus_up.end(), sender_id) == ecus_up.end())
+                {
                     ecus_up.push_back(sender_id);
                 }
                 resetTimer(sender_id);
             } 
             else 
             {
-                std::cout << "Frame for MCU Service" << std::endl;
+                LOG_INFO(MCULogger.GET_LOGGER(),"Frame for MCU Service");
                 handler.handleFrame(frame);
             }
-        } 
-        else if (dest_id == 0xFA) 
-        {
-            std::cout << "Frame for API Service" << std::endl;
+        }
+        else if (dest_id == 0xFA) {
+            LOG_INFO(MCULogger.GET_LOGGER(),"Frame for API Service");
             std::vector<uint8_t> data(frame.data, frame.data + frame.can_dlc);
         } 
         else if (dest_id == 0xFF) 
         {
-            std::cout << "Received the test frame " << std::endl;
+            /* Test frame between MCU and ECU */
+            LOG_INFO(MCULogger.GET_LOGGER(),"Received the test frame ");
         }
 
         if (sender_id == 0xFA && dest_id != hex_value_id) 
         {
             std::vector<uint8_t> data(frame.data, frame.data + frame.can_dlc);
-            std::cout << "Frame for ECU Service" << std::endl;
+            LOG_INFO(MCULogger.GET_LOGGER(),"Frame for ECU Service");
             generate_frames.sendFrame(frame.can_id, data);
         }
 
@@ -167,16 +168,17 @@ void ReceiveFrames::resetTimer(uint8_t ecu_id) {
  */
 void ReceiveFrames::printFrames(const struct can_frame &frame)
 {
-        std::cout << "-------------------\n";
-        std::cout << "Processing CAN frame from queue:" << std::endl;
-        std::cout << "CAN ID: 0x" << std::hex << frame.can_id << std::endl;
-        std::cout << "Data Length: " << std::dec << int(frame.can_dlc) << std::endl;
-        std::cout << "Data: ";
-        for (uint8_t itr = 0; itr < frame.can_dlc; ++itr)
-        {
-            std::cout << std::hex << int(frame.data[itr]) << " ";
-        }
-        std::cout << std::endl;
+    std::ostringstream oss;
+    LOG_INFO(MCULogger.GET_LOGGER(),"-------------------\n");
+    LOG_INFO(MCULogger.GET_LOGGER(),"Processing CAN frame from queue:");
+    LOG_INFO(MCULogger.GET_LOGGER(), fmt::format("CAN ID: 0x{:x}", frame.can_id));
+    LOG_INFO(MCULogger.GET_LOGGER(), fmt::format("Data Length: {}", int(frame.can_dlc)));
+    oss << "Data: ";
+    for (uint8_t itr = 0; itr < frame.can_dlc; ++itr)
+    {
+        oss << fmt::format("{} ", int(frame.data[itr]));
+    }
+    LOG_INFO(MCULogger.GET_LOGGER(), oss.str());
 }
 
 /*
