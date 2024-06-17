@@ -10,6 +10,7 @@
 #include "HandleFrames.h"
 #include "InterfaceModule.h"
 #include "ReceiveFrames.h"
+#include "../include/MCULogger.h"
 
 #include <thread>
 

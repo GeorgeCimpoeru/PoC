@@ -1,5 +1,11 @@
 #include "../include/MCUModule.h"
 
+#ifndef TESTING
+Logger MCULogger("MCULogger", "logs/MCULogs.log");
+#else
+Logger MCULogger;
+#endif
+
 /* Constructor */
 MCUModule::MCUModule(uint8_t interfaces_number) : 
                 interface_module(interfaces_number), 

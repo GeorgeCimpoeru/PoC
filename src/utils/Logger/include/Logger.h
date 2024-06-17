@@ -36,6 +36,16 @@
 #define SPDLOG_COMPILED_LIB
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
 
+/* if testing is defined then logger prints into console, otherwise it prints into a file */
+#define TESTING 
+#define CONSOLE_LOGGER getConsoleLogger()
+#define FILE_LOGGER getFileLogger()
+#ifdef TESTING
+#define GET_LOGGER() CONSOLE_LOGGER
+#else
+#define GET_LOGGER() FILE_LOGGER
+#endif
+
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>

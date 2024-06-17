@@ -17,6 +17,7 @@
 #include <linux/can.h>
 #include <iostream>
 #include <vector>
+#include "../include/MCULogger.h"
 
 class HandleFrames 
 {
@@ -33,8 +34,8 @@ public:
      * @brief Method used to call a service or handle a response.
      * It takes frame_id, service id(sid) and frame_data and calls the right service or
      * handles the response received based on the given parameters.
-     * 
-     * @param[in] frame_id 
+     *
+     * @param[in] frame_id
      * @param[in] sid
      * @param[in] frame_data
      * @param[in] is_multi_frame
