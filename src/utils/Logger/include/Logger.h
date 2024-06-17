@@ -104,7 +104,6 @@ public:
     ~Logger();
 };
 
-// #define TESTING 
 #define CONSOLE_LOGGER getConsoleLogger()
 #define FILE_LOGGER getFileLogger()
 
