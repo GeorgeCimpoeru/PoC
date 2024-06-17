@@ -1,8 +1,8 @@
 #Compiler flags
 CFLAGS = -g -Wall -pthread -I./include -I./src -I../../utils/Logger/include -I../../utils/Logger/src
 CFLAGSTST = -std=c++17 -I/include -DUNIT_TESTING_MODE
-CFLAGSTST2 = -lgtest -lgtest_main -pthread
 LDFLAGS = -lspdlog
+CFLAGSTST2 = -lgtest -lgtest_main -pthread -fprofile-arcs -ftest-coverage
 #Sources files
 SRCS = src/main.cpp src/BatteryModule.cpp src/GenerateFrames.cpp src/HandleFrames.cpp src/InterfaceConfig.cpp src/ReceiveFrames.cpp
 

@@ -91,7 +91,7 @@ void HandleFrames::processReceivedFrame(const struct can_frame &frame)
             std::cout << std::endl;
             first_frame = true;
             flag--;
-            std::cout << "no of frames " << flag << std::endl;
+            std::cout << "no of frames " << static_cast<int>(flag) << std::endl;
             std::cout << "SID: 0x" << std::hex << sid << " found at position: " << sid_position << std::dec << "\n"<<std::flush;
         } 
         /* Handle Single Frames */ 
@@ -146,7 +146,7 @@ void HandleFrames::processReceivedFrame(const struct can_frame &frame)
             }
             std::cout << std::endl;
             flag--;
-            std::cout << "no of frames " << flag << std::endl;
+            std::cout << "no of frames " << static_cast<int>(flag) << std::endl;
         }
         else
         {
