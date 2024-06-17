@@ -12,11 +12,11 @@ BatteryModule::BatteryModule() : moduleId(0x101),
                                  energy(0.0),
                                  voltage(0.0),
                                  percentage(0.0),
-                                 canInterface("vcan0"),
+                                 canInterface(0x00),
                                  frameReceiver(nullptr)
 {
     /* Initialize the Frame Receiver */
-    frameReceiver = new ReceiveFrames(canInterface.getSocketFd(), moduleId);
+    frameReceiver = new ReceiveFrames(canInterface.get_socketECU(), moduleId);
 #ifdef BATTERY_MODULE_DEBUG
     std::cout << "BatteryModule()" << std::endl;
     std::cout << "(BatteryModule)moduleId = " << this->moduleId << std::endl;
@@ -29,11 +29,11 @@ BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_mo
                                                                     energy(0.0),
                                                                     voltage(0.0),
                                                                     percentage(0.0),
-                                                                    canInterface("vcan" + std::to_string(_interfaceNumber)),
+                                                                    canInterface(_interfaceNumber),
                                                                     frameReceiver(nullptr)
 {
     /* Initialize the Frame Receiver */
-    frameReceiver = new ReceiveFrames(canInterface.getSocketFd(), moduleId);
+    frameReceiver = new ReceiveFrames(canInterface.get_socketECU(), moduleId);
 #ifdef BATTERY_MODULE_DEBUG
     std::cout << "BatteryModule(int interfaceNumber, int moduleId)" << std::endl;
     std::cout << "(BatteryModule)moduleId = " << this->moduleId << std::endl;
@@ -52,7 +52,7 @@ BatteryModule::~BatteryModule()
 void BatteryModule::notifyUp()
 {
     /* Create an instance of GenerateFrames with the CAN socket */
-    GenerateFrames g1 = GenerateFrames(canInterface.getSocketFd());
+    GenerateFrames g1 = GenerateFrames(canInterface.get_socketECU());
 
     /* Create a vector of uint8_t (bytes) containing the data to be sent */
     std::vector<uint8_t> data = {0x0, 0xff, 0x11, 0x3};
@@ -65,7 +65,7 @@ void BatteryModule::notifyUp()
 void BatteryModule::notifyDown()
 {
     /* Create an instance of GenerateFrames with the CAN socket */
-    GenerateFrames g1 = GenerateFrames(canInterface.getSocketFd());
+    GenerateFrames g1 = GenerateFrames(canInterface.get_socketECU());
 
     /* Create a vector of uint8_t (bytes) containing the data to be sent */
     std::vector<uint8_t> data = {0x0, 0xff, 0x0, 0x3};
