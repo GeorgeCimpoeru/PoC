@@ -148,7 +148,7 @@ class GenerateFrames
          * @param response 
          * Response&Request
          */
-        void readMemoryByAddress(int id, int memory_size, int memory_address, std::vector<uint8_t> response = {});
+        void readMemoryByAddress(int id, int memory_address, int memory_size, std::vector<uint8_t> response = {});
         /**
          * Check the commentary from the readDataByIdentifier() method
          * @param id 
@@ -157,7 +157,7 @@ class GenerateFrames
          * @param response 
          * @param first_frame 
          */
-        void readMemoryByAddressLongResponse(int id, int memory_size, int memory_address, std::vector<uint8_t> response, bool first_frame = true);
+        void readMemoryByAddressLongResponse(int id, int memory_address, int memory_size, std::vector<uint8_t> response, bool first_frame = true);
         /**
          * Check the commentary from the readDataByIdentifier() method
          * @param id 

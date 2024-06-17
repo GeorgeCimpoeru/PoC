@@ -353,7 +353,7 @@ TEST_F(GenerateFramesTest, ReadByIdentLongRespTest)
 TEST_F(GenerateFramesTest, ReadByAddressRespTest) 
 {
     /* Create expected frame */
-    struct can_frame result_frame = createFrame({0x07,0x63,0x21,0x01,0x23,0x45,1,2});
+    struct can_frame result_frame = createFrame({0x07,0x63,0x12,0x23,0x45,0x01,1,2});
     /* Start listening for frame in the CAN-BUS */
     std::thread receive_thread([this]() {
         c1->capture();
@@ -368,7 +368,7 @@ TEST_F(GenerateFramesTest, ReadByAddressRespTest)
 TEST_F(GenerateFramesTest, ReadByAddressRespTest2) 
 {
     /* Create expected frame */
-    struct can_frame result_frame = createFrame({0x05,0x23,0x21,0x01,0x23,0x45});
+    struct can_frame result_frame = createFrame({0x05,0x23,0x12,0x23,0x45,0x01});
     /* Start listening for frame in the CAN-BUS */
     std::thread receive_thread([this]() {
         c1->capture();
@@ -383,7 +383,7 @@ TEST_F(GenerateFramesTest, ReadByAddressRespTest2)
 TEST_F(GenerateFramesTest, ReadMemoryByAddressLong) 
 {
     /* Create expected frame */
-    struct can_frame result_frame = createFrame({0x10,11,0x63,0x21,0x01,0x23,0x45,1});
+    struct can_frame result_frame = createFrame({0x10,11,0x63,0x12,0x23,0x45,0x01,1});
     /* Start listening for frame in the CAN-BUS */
     std::thread receive_thread([this]() {
         c1->capture();
