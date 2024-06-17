@@ -1,10 +1,10 @@
 #include "../include/BatteryModule.h"
 
-#ifdef TESTING
-    Logger batteryModuleLogger();
+#ifdef UNIT_TESTING_MODE
+    Logger batteryModuleLogger;
 #else
     Logger batteryModuleLogger("batteryModuleLogger", "logs/batteryModuleLogger.log");
-#endif
+#endif /* UNIT_TESTING_MODE */
 
 /** Constructor - initializes the BatteryModule with default values,
  * sets up the CAN interface, and prepares the frame receiver. */
@@ -128,8 +128,11 @@ void BatteryModule::parseBatteryInfo(const std::string &data, float &energy, flo
 /* Function to fetch data from system about battery */
 void BatteryModule::fetchBatteryData()
 {
+        LOG_WARN(batteryModuleLogger.GET_LOGGER(), "fething started\n");
+
     try
     {
+
         /* Execute the shell command to read System Info about Battery */
         std::string data = exec("upower -i /org/freedesktop/UPower/devices/battery_BAT0");
 
