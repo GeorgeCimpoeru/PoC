@@ -1,6 +1,6 @@
 #Compiler flags
 CFLAGS = -g -Wall -pthread -I./include -I./src -I../../utils/Logger/include -I../../utils/Logger/src
-CFLAGSTST = -std=c++17 -I/include
+CFLAGSTST = -std=c++17 -I/include -DUNIT_TESTING_MODE
 CFLAGSTST2 = -lgtest -lgtest_main -pthread
 LDFLAGS = -lspdlog
 #Sources files

@@ -1,10 +1,10 @@
 #include "../include/BatteryModule.h"
 
-#ifdef TESTING
-    Logger batteryModuleLogger();
+#ifdef UNIT_TESTING_MODE
+    Logger batteryModuleLogger;
 #else
     Logger batteryModuleLogger("batteryModuleLogger", "logs/batteryModuleLogger.log");
-#endif
+#endif /* UNIT_TESTING_MODE */
 
 /** Constructor - initializes the BatteryModule with default values,
  * sets up the CAN interface, and prepares the frame receiver. */
