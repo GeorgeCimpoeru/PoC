@@ -104,6 +104,16 @@ public:
     ~Logger();
 };
 
+#define CONSOLE_LOGGER getConsoleLogger()
+#define FILE_LOGGER getFileLogger()
+
+/* MACRO CONTROLLED IN THE MAKEFILE CFLAGS */
+#ifdef UNIT_TESTING_MODE
+#define GET_LOGGER() CONSOLE_LOGGER
+#else
+#define GET_LOGGER() FILE_LOGGER
+#endif /* UNIT_TESTING_MODE */
+
 /* LOGGING CAN BE TURNED OFF AT COMPILE TIME, BUT USAGE OF MACROS IS NEEDED IN ORDER TO WORK*/
 #define LOG_TRACE(logger, ...) SPDLOG_LOGGER_TRACE(logger, __VA_ARGS__)
 #define LOG_DEBUG(logger, ...) SPDLOG_LOGGER_DEBUG(logger, __VA_ARGS__)
