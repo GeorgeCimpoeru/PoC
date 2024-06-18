@@ -8,7 +8,7 @@ ReceiveFrames::ReceiveFrames(int socket, int frame_id) : socket(socket), frame_i
     if (socket < 0) 
     {
         /* std::cerr << "Error: Pass a valid Socket\n"; */
-        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Error: Pass a valid Socket\n");
+        LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Error: Pass a valid Socket\n");
         exit(EXIT_FAILURE);
     }
 
@@ -18,7 +18,7 @@ ReceiveFrames::ReceiveFrames(int socket, int frame_id) : socket(socket), frame_i
     if (frame_id < MIN_VALID_ID || frame_id > MAX_VALID_ID) 
     {
         /* std::cerr << "Error: Pass a valid Module ID\n"; */
-        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Error: Pass a valid Module ID\n");
+        LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Error: Pass a valid Module ID\n");
         exit(EXIT_FAILURE);
     }
 
@@ -114,6 +114,7 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
 {
     while (running) 
     {
+        label1: 
         std::unique_lock<std::mutex> lock(mtx);
         cv.wait(lock, [this]{ return !frame_buffer.empty() || !running; });
         if (!running && frame_buffer.empty()) 
@@ -137,13 +138,13 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
         /* Check if the received frame is for your module */ 
         if (static_cast<int>(frame_dest_id) != current_module_id)
         {
-            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Received frame is not for this module\n");
+            LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Received frame is not for this module\n");
             continue;
         }
 
         if (((frame.can_id >> 8) & 0xFF) == 0) 
         {
-        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Invalid CAN ID: upper 8 bits are zero\n");
+        LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Invalid CAN ID: upper 8 bits are zero\n");
         return;
         }
 
@@ -162,10 +163,11 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
             LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Response sent to MCU");
 
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            goto label1;
         }
         /* Process the received frame */ 
         if (!handle_frame.checkReceivedFrame(nbytes, frame)) {
-            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Failed to process frame\n");
+            LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Failed to process frame\n");
         }
     }
 }

@@ -22,19 +22,19 @@ bool HandleFrames::checkReceivedFrame(int nbytes, const struct can_frame &frame)
     } 
     else if (nbytes < sizeof(struct can_frame)) 
     {
-        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Incomplete frame read\n");
+        LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Incomplete frame read\n");
         return false;
     } 
     else if (nbytes == 0) 
     {
-        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Connection closed by peer");
+        LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Connection closed by peer");
         return false;
     }
 
     /* Check if the received frame is empty */
     if (frame.can_dlc == 0) 
     {
-        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Received empty frame\n");
+        LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Received empty frame\n");
         return false;
     }
 
@@ -160,7 +160,7 @@ void HandleFrames::processReceivedFrame(const struct can_frame &frame)
         }
         else
         {
-            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Unexpected frame format\n");
+            LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Unexpected frame format\n");
             return;
         }
     }
@@ -531,8 +531,8 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     std::vector<int> memory_size(stored_data.begin() + 3 + length_memory_address, stored_data.begin() + 3 + length_memory_address + length_memory_size);
 
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "address_memory_length: 0x{0:x}", static_cast<int>(address_memory_length));
-                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_address: ", static_cast<int>(length_memory_address));
-                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_size: ", static_cast<int>(length_memory_size));
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_address: {}", static_cast<int>(length_memory_address));
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_size: {}", static_cast<int>(length_memory_size));
                     std::ostringstream dataStream;
                     dataStream << "Memory_address: ";
                     for (const auto& data : memory_address) 
@@ -580,8 +580,8 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     std::vector<uint8_t> rdata(stored_data.begin() + start_pos, stored_data.end());
 
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "address_memory_length: 0x{0:x}", static_cast<int>(address_memory_length));
-                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_address: ", static_cast<int>(length_memory_address));
-                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_size: ", static_cast<int>(length_memory_size));
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_address {}: ", static_cast<int>(length_memory_address));
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_size: {}", static_cast<int>(length_memory_size));
                     std::ostringstream dataStream;
                     dataStream << "Memory_address: ";
                     for (const auto& data : memory_address) 
@@ -638,8 +638,8 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     int start_pos = 4 + length_memory_address + length_memory_size;
                     std::vector<uint8_t> rdata(stored_data.begin() + start_pos, stored_data.end());
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "address_memory_length: 0x{0:x}", static_cast<int>(address_memory_length));
-                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_address: ", static_cast<int>(length_memory_address));
-                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_size: ", static_cast<int>(length_memory_size));
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_address: {}", static_cast<int>(length_memory_address));
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_size: {}", static_cast<int>(length_memory_size));
                     std::ostringstream dataStream;
                     dataStream << "Memory_address: ";
                     for (const auto& data : memory_address) 
@@ -901,8 +901,8 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     std::vector<int> memory_size(stored_data.begin() + 4 + length_memory_address, stored_data.begin() + 4 + length_memory_address + length_memory_size);
 
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "address_memory_length: 0x{0:x}", static_cast<int>(address_memory_length));
-                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_address: ", static_cast<int>(length_memory_address));
-                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_size: ", static_cast<int>(length_memory_size));
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_address: {}", static_cast<int>(length_memory_address));
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length_memory_size: {}", static_cast<int>(length_memory_size));
 
                     std::ostringstream dataStream;
                     dataStream << "Memory_address: ";
@@ -936,9 +936,9 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                 LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                 
                 uint8_t length_max_number_block = stored_data[2];
-                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length max no blocks: ", static_cast<int>(length_max_number_block));
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "length max no blocks: {}", static_cast<int>(length_max_number_block));
                 int max_number_block = stored_data[3];
-                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "max no blocks: ", static_cast<int>(max_number_block));
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "max no blocks: {}", static_cast<int>(max_number_block));
                 /* the request succesfully received-> store the data; */ 
                 /* requestDownloadResponse(id, length_max_number_block, max_number_block); */
                 break;
@@ -962,7 +962,7 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                         LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
                         LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                         uint8_t block_sequence_counter = stored_data[2];
-                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "block_counter: ", static_cast<int>(block_sequence_counter));
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "block_counter: {}", static_cast<int>(block_sequence_counter));
                         std::vector<uint8_t> transfer_request(stored_data.begin() + 3, stored_data.end());
                         std::ostringstream dataStream;
                         dataStream << "Transfer Request Data: ";
@@ -987,7 +987,7 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                         LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
                         LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                         uint8_t block_sequence_counter = stored_data[3];
-                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "block_counter: ", static_cast<int>(block_sequence_counter));
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "block_counter: {}", static_cast<int>(block_sequence_counter));
                         std::vector<uint8_t> transfer_request(stored_data.begin() + 4, stored_data.end());
                         std::ostringstream dataStream;
                         dataStream << "Transfer Request Data: ";
@@ -1011,8 +1011,7 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                 LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
                 LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                 uint8_t block_sequence = stored_data[2];
-                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "block_counter: ", static_cast<int>(block_sequence));
-                std::cout << "block_counter: " << block_sequence << std::endl;
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "block_counter: {}", static_cast<int>(block_sequence));
                 /* the request succesfully received-> store the data; */ 
                 /* transferDataResponse(id, block_sequence_counter); */
                 break;
@@ -1071,47 +1070,47 @@ void HandleFrames::processNrc(int id, uint8_t sid, uint8_t nrc)
         case 0x11:
             /* Service not supported */
             /* negativeResponse(can_id, sid, nrc); */
-            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Error: Service not supported for service: {}", sid);
+            LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Error: Service not supported for service: {}", sid);
         break;
         case 0x13:
             /* Incorrect message length or invalid format */
             /* negativeResponse(can_id, sid, nrc); */
-            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Error: Incorrect message length or invalid format for service: {}", sid);
+            LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Error: Incorrect message length or invalid format for service: {}", sid);
         break;
         case 0x14:
             /*  Response too long */
             /* negativeResponse(can_id, sid, nrc); */
-            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Error: Response too long for service: {}", sid);
+            LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Error: Response too long for service: {}", sid);
         break;
         case 0x25:
             /* No response from subnet component */
             /* negativeResponse(can_id, sid, nrc); */
-            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Error: No response from subnet component for service: {}", sid);
+            LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Error: No response from subnet component for service: {}", sid);
         break;
         case 0x34:
             /* Authentication failed */
             /* negativeResponse(can_id, sid, nrc); */
-            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Error: Authentication failed for service: {}", sid);
+            LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Error: Authentication failed for service: {}", sid);
         break;
         case 0x94:
             /* Resource temporarily unavailable */
             /* negativeResponse(can_id, sid, nrc); */
-            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Error: Resource temporarily unavailable for service: {}", sid);
+            LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Error: Resource temporarily unavailable for service: {}", sid);
         break;
         case 0x70:
             /* Upload download not accepted */
             /* negativeResponse(can_id, sid, nrc); */
-            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Error: Upload download not accepted for service: {}", sid);
+            LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Error: Upload download not accepted for service: {}", sid);
         break;
         case 0x71:
             /* Transfer data suspended */
             /* negativeResponse(can_id, sid, nrc); */
-            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Error: Transfer data suspended for service: {}", sid);
+            LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Error: Transfer data suspended for service: {}", sid);
         break;
         default:
             /* Unknown negative response code */
             /* negativeResponse(can_id, sid, nrc); */
-            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Error: Unknown negative response code for service: {}", sid);
+            LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Error: Unknown negative response code for service: {}", sid);
         break;
     }
 }
