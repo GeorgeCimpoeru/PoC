@@ -40,7 +40,6 @@ BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_mo
 /* Destructor */
 BatteryModule::~BatteryModule()
 {
-    notifyDown();
     delete frameReceiver;
 }
 
