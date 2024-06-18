@@ -6,7 +6,7 @@
  * 
  *  How to use : Simply instantiate the class in Main solution, and access it's methods there.
  *  BatteryModule batteryObj;  *  Default Constructor for battery object with
- *                             *  moduleID 0x101 and interface name 'vcan0'
+ *                             *  moduleID 0x11 and interface name 'vcan0'
  *  BatteryModule batteryObj(interfaceNumber, moduleID);  *  Custom Constructor, for battery object
  *                             *  with custom moduleID, custom interface name
  * @author: Alexandru Nagy
@@ -17,7 +17,7 @@
 #ifndef POC_INCLUDE_BATTERY_MODULE_H
 #define POC_INCLUDE_BATTERY_MODULE_H
 
-#define BATTERY_MODULE_ID 0x101
+#define BATTERY_MODULE_ID 0x11
 
 #include <thread>
 #include <cstdlib>

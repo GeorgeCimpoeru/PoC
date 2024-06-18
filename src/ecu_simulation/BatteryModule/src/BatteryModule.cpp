@@ -52,13 +52,13 @@ BatteryModule::~BatteryModule()
 void BatteryModule::sendNotificationToMCU()
 {
     /* Create an instance of GenerateFrames with the CAN socket */
-    GenerateFrames g1 = GenerateFrames(canInterface.getSocketFd());
+    GenerateFrames notifyFrame = GenerateFrames(canInterface.getSocketFd());
 
     /* Create a vector of uint8_t (bytes) containing the data to be sent */
     std::vector<uint8_t> data = {0x0, 0xff, 0x11, 0x3};
 
     /* Send the CAN frame with ID 0x22110 and the data vector */
-    g1.sendFrame(0x22110, data);
+    notifyFrame.sendFrame(0x22110, data);
 
     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery module sent UP notification to MCU");
 }
