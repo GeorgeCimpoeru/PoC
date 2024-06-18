@@ -41,12 +41,6 @@ private:
     float percentage;
     std::string state;
 
-    /**
-     * @brief Thread for simulation of battery
-     * 
-     */
-    std::thread simulationThread;
-
     SocketCanInterface canInterface;
     ReceiveFrames* frameReceiver;    
 
@@ -73,14 +67,7 @@ public:
      * @brief Function to notify MCU if the module is Up & Running
      * 
      */
-    void notifyUp();
-
-    /**
-     * @brief Function to notify MCU if the module is Down
-     * 
-     * This will be only temporary.
-     */
-    void notifyDown();
+    void sendNotificationToMCU();
 
     /**
      * @brief Helper function to execute shell commands and fetch output
