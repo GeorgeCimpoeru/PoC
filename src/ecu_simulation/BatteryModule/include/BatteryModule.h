@@ -19,9 +19,6 @@
 
 #define BATTERY_MODULE_ID 0x101
 
-/* comment-out to disable all the prints in module */
-#define BATTERY_MODULE_DEBUG
-
 #include <thread>
 #include <cstdlib>
 #include <chrono>
