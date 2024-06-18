@@ -45,8 +45,11 @@
 #include<queue>
 #include<mutex>
 #include<condition_variable>
-#include <algorithm>
+#include<algorithm>
 #include<linux/can.h>
+#include<map>
+#include<chrono>
+#include<thread>
 
 #include "HandleFrames.h"
 #include "GenerateFrames.h"
@@ -57,7 +60,7 @@ class ReceiveFrames
  public:
 
   /* Constructor */
-  ReceiveFrames(int socketCANBus, int socketAPI);
+  ReceiveFrames(int socket_canbus, int socket_api);
 
   /* Destructor */
   ~ReceiveFrames();
@@ -92,6 +95,13 @@ class ReceiveFrames
   void printFrames(const struct can_frame &frame);
 
   /**
+   * @brief Function to send ECU request on CANBus.
+   * 
+   * @param id the id of the ECU
+   */
+  void sendECURequest(uint8_t id);
+
+  /**
    * @brief Function to send test frame on CANBus.
    * 
    */
@@ -103,7 +113,7 @@ class ReceiveFrames
    */
   void stopListenAPI();
 
-  /**
+    /**
    * @brief Set listenCANBus member to false
    * 
    */
@@ -148,6 +158,11 @@ class ReceiveFrames
    * @return const std::vector<uint8_t>& 
    */
   const std::vector<uint8_t>& getECUsUp() const;
+
+  std::map<uint8_t, std::chrono::steady_clock::time_point> ecu_timers;
+  std::chrono::seconds timeout_duration;
+  std::thread timer_thread;
+  bool running;
   
  protected:
   /* The socket from where we read the frames */
@@ -163,6 +178,11 @@ class ReceiveFrames
   GenerateFrames generate_frames;
   /* Vector contains all the ECUs up ids */
   std::vector<uint8_t> ecus_up;
+
+  void startTimerThread();
+  void stopTimerThread();
+  void timerCheck();
+  void resetTimer(uint8_t ecu_id);
 };
 
 #endif /* POC_SRC_MCU_RECEIVE_FRAME_MODULE_H */
