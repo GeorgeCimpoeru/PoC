@@ -58,7 +58,7 @@ void BatteryModule::sendNotificationToMCU()
     std::vector<uint8_t> data = {0x0, 0xff, 0x11, 0x3};
 
     /* Send the CAN frame with ID 0x22110 and the data vector */
-    notifyFrame.sendFrame(0x22110, data);
+    notifyFrame.sendFrame(0x2110, data);
 
     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery module sent UP notification to MCU");
 }
@@ -130,8 +130,6 @@ void BatteryModule::fetchBatteryData()
         this->voltage = voltage;
         this->percentage = percentage;
 
-        // LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery Data : Energy: " + std::to_string(energy) + " Wh, Voltage: "
-        //     + std::to_string(voltage) + " V, Percentage: " + std::to_string(percentage) + " %, State: " + state);
         LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery Data : Energy: {} Wh, Voltage: {} V, Percentage: {} %, State: {}", energy, voltage, percentage, state);
     }
     catch (const std::exception &e)
