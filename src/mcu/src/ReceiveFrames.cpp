@@ -121,11 +121,25 @@ void ReceiveFrames::processQueue()
             if (frame.data[1] == 0xff) 
             {
                 LOG_INFO(MCULogger.GET_LOGGER(),"Notification from the ECU that it is up");
-                /* Add the ECU ID to the list of ECUs that are up */
-                if (std::find(ecus_up.begin(), ecus_up.end(), sender_id) == ecus_up.end())
+                /* Set the corresponding value from the array with the ECU id */
+                switch(sender_id)
                 {
-                    ecus_up.push_back(sender_id);
+                    case 0x11:
+                        ecus_up[0] = sender_id;
+                        break;
+                    case 0x12:
+                        ecus_up[1] = sender_id;
+                        break;
+                    case 0x13:
+                        ecus_up[2] = sender_id;
+                        break;
+                    case 0x14:
+                        ecus_up[3] = sender_id;
+                        break;
+                    default:
+                        break;
                 }
+
                 resetTimer(sender_id);
             } 
             else 
@@ -146,9 +160,22 @@ void ReceiveFrames::processQueue()
 
         if (sender_id == 0xFA && dest_id != hex_value_id) 
         {
-            std::vector<uint8_t> data(frame.data, frame.data + frame.can_dlc);
-            LOG_INFO(MCULogger.GET_LOGGER(),"Frame for ECU Service");
-            generate_frames.sendFrame(frame.can_id, data);
+            if(frame.data[1] == 0x99)
+            {
+                /** sends back to api a response with all ECUs IDs that are up 
+                    response structure: 
+                    id: MCU_id + API_id 
+                    data: {PCI_L, SID(0xD9), MCU_id, BATTERY_id, DOORS_id, ENGINE_id, ECU4_id}
+                */
+               LOG_INFO(MCULogger.GET_LOGGER(),"Response with all ECUs up.");
+                generate_frames.sendFrame(0x10FA,{0x07, 0xD9, (uint8_t)hex_value_id, ecus_up[0], ecus_up[1], ecus_up[2], ecus_up[3]}, socket_api);
+            }
+            else
+            {
+                std::vector<uint8_t> data(frame.data, frame.data + frame.can_dlc);
+                LOG_INFO(MCULogger.GET_LOGGER(),"Frame for ECU Service");
+                generate_frames.sendFrame(frame.can_id, data);
+            }
         }
 
         if (!listen_api && !listen_canbus) 
@@ -231,9 +258,8 @@ bool ReceiveFrames::getListenCANBus()
     return listen_canbus;
 }
 
-const std::vector<uint8_t>& ReceiveFrames::getECUsUp() const
-{
-  return ecus_up;
+const uint8_t* ReceiveFrames::getECUsUp() const {
+    return ecus_up;
 }
 
 void ReceiveFrames::startTimerThread() {

@@ -150,7 +150,7 @@ class ReceiveFrames
    * 
    * @return const std::vector<uint8_t>& 
    */
-  const std::vector<uint8_t>& getECUsUp() const;
+  const uint8_t* getECUsUp() const;
 
   std::map<uint8_t, std::chrono::steady_clock::time_point> ecu_timers;
   std::chrono::seconds timeout_duration;
@@ -170,7 +170,7 @@ class ReceiveFrames
   HandleFrames handler;
   GenerateFrames generate_frames;
   /* Vector contains all the ECUs up ids */
-  std::vector<uint8_t> ecus_up;
+  uint8_t ecus_up[4] = {0};
 
   void startTimerThread();
   void stopTimerThread();

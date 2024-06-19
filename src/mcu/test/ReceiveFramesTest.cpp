@@ -5,6 +5,13 @@
 #include <thread>
 #include <sstream>
 #include "../include/ReceiveFrames.h"
+#include <vector>
+#include <map>
+#include <chrono>
+#include <mutex>
+#include <condition_variable>
+#include <atomic>
+
 /* MockReceiveFrames class derived from ReceiveFrames to expose protected members for testing */
 class MockReceiveFrames : public ReceiveFrames
 {
@@ -14,6 +21,12 @@ public:
     using ReceiveFrames::queue_mutex;
     using ReceiveFrames::queue_cond_var;
     using ReceiveFrames::printFrames;
+    using ReceiveFrames::resetTimer;
+    using ReceiveFrames::startTimerThread;
+    using ReceiveFrames::stopTimerThread;
+    using ReceiveFrames::ecu_timers;
+    using ReceiveFrames::timeout_duration;
+    using ReceiveFrames::running;
 };
 /* Test fixture class for ReceiveFrames tests */
 class ReceiveFramesTest : public ::testing::Test
@@ -140,7 +153,8 @@ TEST_F(ReceiveFramesTest, TestProcessQueue_ForMCU)
     receive_frames->startListenCANBus(); 
     {
         std::lock_guard<std::mutex> lock(receive_frames->queue_mutex);
-        receive_frames->frame_queue.push(frame);  /* Push frame to queue */
+        /* Push frame to queue */
+        receive_frames->frame_queue.push(frame);
     }
     receive_frames->queue_cond_var.notify_one();
     usleep(100);
@@ -181,7 +195,8 @@ TEST_F(ReceiveFramesTest, TestProcessQueue_ForECUUp)
     receive_frames->startListenCANBus(); 
     {
         std::lock_guard<std::mutex> lock(receive_frames->queue_mutex);
-        receive_frames->frame_queue.push(frame);  /* Push frame to queue */
+        /* Push frame to queue */
+        receive_frames->frame_queue.push(frame);
     }
     receive_frames->queue_cond_var.notify_one();
     usleep(100);
@@ -203,7 +218,84 @@ TEST_F(ReceiveFramesTest, TestProcessQueue_ForECUUp)
     std::cerr << "Finished TestProcessQueue_ForECUUp" << std::endl;
     usleep(100);
 }
-  
+
+/* Test to process queue with an ECU-specific CAN frame */
+TEST_F(ReceiveFramesTest, TestProcessQueue_ForECU)
+{
+    std::cerr << "Running TestProcessQueue_ForECU" << std::endl;
+    struct can_frame frame;
+    frame.can_id = 0xfa11;
+    frame.can_dlc = 4;
+    for (int i = 0; i < 4; ++i)
+    {
+        frame.data[i] = i;
+    }
+    receive_frames->startListenAPI(); 
+    {
+        std::lock_guard<std::mutex> lock(receive_frames->queue_mutex);
+        /* Push frame to queue */
+        receive_frames->frame_queue.push(frame);
+    }
+    receive_frames->queue_cond_var.notify_one();
+    usleep(100);
+    testing::internal::CaptureStdout();
+    std::thread processor_thread([this] {
+        receive_frames->processQueue();
+    });
+    receive_frames->stopListenAPI();
+    processor_thread.join();
+
+    std::string output = testing::internal::GetCapturedStdout();
+    EXPECT_NE(output.find("Frame processing:...\n"), std::string::npos);
+    EXPECT_NE(output.find("-------------------\n\n"), std::string::npos);
+    EXPECT_NE(output.find("Processing CAN frame from queue:\n"), std::string::npos);
+    EXPECT_NE(output.find("CAN ID: 0xfa11\n"), std::string::npos);
+    EXPECT_NE(output.find("Data Length: 4\n"), std::string::npos);
+    EXPECT_NE(output.find("Data: 0 1 2 3 \n"), std::string::npos);
+    EXPECT_NE(output.find("Frame for ECU Service\n"), std::string::npos);
+    std::cerr << "Finished TestProcessQueue_ForECU" << std::endl;
+    usleep(100);
+}
+
+/* Test to process queue with an response to api with all ECUs up */
+TEST_F(ReceiveFramesTest, TestProcessQueue_ForResponseWithECUsUp)
+{
+    std::cerr << "Running TestProcessQueue_ForResponseWithECUsUp" << std::endl;
+    struct can_frame frame;
+    frame.can_id = 0xfa00;
+    frame.can_dlc = 4;
+    for (int i = 0; i < 4; ++i)
+    {
+        frame.data[i] = i;
+    }
+    frame.data[1] = 0x99;
+    receive_frames->startListenAPI(); 
+    {
+        std::lock_guard<std::mutex> lock(receive_frames->queue_mutex);
+        /* Push frame to queue */
+        receive_frames->frame_queue.push(frame);
+    }
+    receive_frames->queue_cond_var.notify_one();
+    usleep(100);
+    testing::internal::CaptureStdout();
+    std::thread processor_thread([this] {
+        receive_frames->processQueue();
+    });
+    receive_frames->stopListenAPI();
+    processor_thread.join();
+
+    std::string output = testing::internal::GetCapturedStdout();
+    EXPECT_NE(output.find("Frame processing:...\n"), std::string::npos);
+    EXPECT_NE(output.find("-------------------\n\n"), std::string::npos);
+    EXPECT_NE(output.find("Processing CAN frame from queue:\n"), std::string::npos);
+    EXPECT_NE(output.find("CAN ID: 0xfa00\n"), std::string::npos);
+    EXPECT_NE(output.find("Data Length: 4\n"), std::string::npos);
+    EXPECT_NE(output.find("Data: 0 153 2 3 \n"), std::string::npos);
+    EXPECT_NE(output.find("Response with all ECUs up.\n"), std::string::npos);
+    std::cerr << "Finished TestProcessQueue_ForResponseWithECUsUp" << std::endl;
+    usleep(100);
+}
+
 /* Test to process queue with an API-specific CAN frame */
 TEST_F(ReceiveFramesTest, TestProcessQueue_ForAPI)
 {
@@ -219,7 +311,8 @@ TEST_F(ReceiveFramesTest, TestProcessQueue_ForAPI)
     receive_frames->startListenAPI(); 
     {
         std::lock_guard<std::mutex> lock(receive_frames->queue_mutex);
-        receive_frames->frame_queue.push(frame);  /* Push frame to queue */
+        /* Push frame to queue */
+        receive_frames->frame_queue.push(frame);
     }
     receive_frames->queue_cond_var.notify_one();
     usleep(100);
@@ -257,7 +350,8 @@ TEST_F(ReceiveFramesTest, TestProcessQueue_TestFrame)
     receive_frames->startListenCANBus(); 
     {
         std::lock_guard<std::mutex> lock(receive_frames->queue_mutex);
-        receive_frames->frame_queue.push(frame);  /* Push frame to queue */
+        /* Push frame to queue */
+        receive_frames->frame_queue.push(frame);
     }
     receive_frames->queue_cond_var.notify_one();
     usleep(100);
@@ -373,10 +467,14 @@ TEST_F(ReceiveFramesTest, TestGetListenCANBus)
 TEST_F(ReceiveFramesTest, TestGetECUsUp)
 {
     std::cerr << "Running TestGetECUsUp" << std::endl;
-    const std::vector<uint8_t>& ecus_up = receive_frames->getECUsUp();
-    EXPECT_TRUE(ecus_up.empty()); // Assuming initial state is empty
+    const uint8_t* ecus_up = receive_frames->getECUsUp();
+    // Assuming initial state is all zeros
+    for (int i = 0; i < 4; ++i) {
+        EXPECT_EQ(ecus_up[i], 0);
+    }
     std::cerr << "Finished TestGetECUsUp" << std::endl;
 }
+
 /* Test to verify get_hex_value_id function */
 TEST_F(ReceiveFramesTest, TestGetHexValueId)
 {
@@ -386,7 +484,57 @@ TEST_F(ReceiveFramesTest, TestGetHexValueId)
     /* Verify if the retrieved hex_value_id matches the expected value */
     EXPECT_EQ(actual_hex_value_id, 0x10);
     std::cerr << "Finished TestGetHexValueId" << std::endl;
-}   
+}
+
+/* Test to verify the startTimerThread function */
+TEST_F(ReceiveFramesTest, TestStartTimerThread)
+{
+    std::cerr << "Running TestStartTimerThread" << std::endl;
+    receive_frames->stopTimerThread(); // Stop the timer thread if it's already running
+    receive_frames->startTimerThread(); // Start the timer thread
+    EXPECT_TRUE(receive_frames->running);
+    std::this_thread::sleep_for(std::chrono::seconds(2)); // Wait for 2 seconds
+    receive_frames->stopTimerThread(); // Stop the timer thread
+    EXPECT_FALSE(receive_frames->running);
+    std::cerr << "Finished TestStartTimerThread" << std::endl;
+}
+
+/* Test to check if the timer resets */
+TEST_F(ReceiveFramesTest, TimerReset)
+{
+    std::cerr << "Running TimerReset" << std::endl;
+    uint8_t ecu_id = 0x11;
+    receive_frames->resetTimer(ecu_id);
+    {
+        std::lock_guard<std::mutex> lock(receive_frames->queue_mutex);
+        auto it = receive_frames->ecu_timers.find(ecu_id);
+        EXPECT_NE(it, receive_frames->ecu_timers.end());
+    }
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    auto oldTimePoint = receive_frames->ecu_timers[ecu_id];
+    receive_frames->resetTimer(ecu_id);
+    {
+        std::lock_guard<std::mutex> lock(receive_frames->queue_mutex);
+        auto newTimePoint = receive_frames->ecu_timers[ecu_id];
+        EXPECT_GT(newTimePoint, oldTimePoint);
+    }
+    std::cerr << "Finished TimerReset" << std::endl;
+}
+
+TEST_F(ReceiveFramesTest, TimerExpiryAndFrameSending)
+{
+    std::cerr << "Running TimerExpiryAndFrameSending" << std::endl;
+    uint8_t ecu_id = 0x11;
+    receive_frames->timeout_duration = std::chrono::seconds(2);
+    receive_frames->resetTimer(ecu_id);
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    {
+        std::lock_guard<std::mutex> lock(receive_frames->queue_mutex);
+        auto it = receive_frames->ecu_timers.find(ecu_id);
+        EXPECT_EQ(it, receive_frames->ecu_timers.end());
+    }
+    std::cerr << "Finished TimerExpiryAndFrameSending" << std::endl;
+}
   
 /* Main function to run all tests */
 int main(int argc, char **argv)
