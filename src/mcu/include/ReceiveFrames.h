@@ -59,103 +59,95 @@ class ReceiveFrames
 {
  public:
 
-  /* Constructor */
+  /**
+   * @brief Parameterized constructor.
+   * @param socket_canbus Socket for ECU communication.
+   * @param socket_api Socket for API communication.
+   */
   ReceiveFrames(int socket_canbus, int socket_api);
 
-  /* Destructor */
+  /**
+   * @brief Destructor.
+   */
   ~ReceiveFrames();
 
   /**
    * @brief Function that take the frame from CANBus and put it in process queue.
-   * 
-   * @return int return 1 for error and 0 for successfully
+   * @return Returns 1 for error and 0 for successfully.
    */
   bool receiveFramesFromCANBus();
 
    /**
    * @brief Function that take the frame from API and put it in process queue.
-   * 
-   * @return int return 1 for error and 0 for successfully
+   * @return Returns 1 for error and 0 for successfully.
    */
   bool receiveFramesFromAPI();
 
 
   /**
    * @brief Function that take each frame from process queue and partially parse the frame to know
-    for who is the frame. After, call handle class
-   * 
+    for who is the frame. After, call handle class.
    */
   void processQueue();
 
   /**
    * @brief Function that print a frame with all information. 
-   * 
-   * @param frame the frame that you want to print
+   * @param frame The frame that will be printed.
    */
   void printFrames(const struct can_frame &frame);
 
   /**
-   * @brief Function to send ECU request on CANBus.
-   * 
-   * @param id the id of the ECU
+   * @brief Function to send ECU request on CAN Bus.
+   * @param id The identifier for the ECU.
    */
   void sendECURequest(uint8_t id);
 
   /**
-   * @brief Function to send test frame on CANBus.
-   * 
+   * @brief Function to send test frame on CAN Bus.
    */
   void sendTestFrame();
 
   /**
-   * @brief Set listenAPI member to false
-   * 
+   * @brief Set listenAPI member to false.
    */
   void stopListenAPI();
 
     /**
-   * @brief Set listenCANBus member to false
-   * 
+   * @brief Set listenCANBus member to false.
    */
   void stopListenCANBus();
 
   /**
-   * @brief Set listenAPI member to true
-   * 
+   * @brief Set listenAPI member to true.
    */
   void startListenAPI();
 
   /**
-   * @brief Set listenCANBus member to true
-   * 
+   * @brief Set listenCANBus member to true.
    */
   void startListenCANBus();
 
   /**
-   * @brief Getter for hexValueId
-   * 
-   * @return uint32_t 
+   * @brief Get method for hexValueId.
+   * @return Returns hexValueId for the object. 
    */
   uint32_t gethexValueId();
 
   /**
-   * @brief Getter for listenAPI
-   * 
-   * @return bool 
+   * @brief Get method for listen_api flag.
+   * @return Returns the listen_api flag. 
    */
   bool getListenAPI();
 
   /**
-   * @brief Getter for listenCANBus
-   * 
-   * @return bool 
+   * @brief Get method for listen_canbus flag.
+   * @return Returns the listen_canbus flag. 
    */
   bool getListenCANBus();
 
   /**
-   * @brief Getter for the list of ECUs that are up
-   * 
-   * @return const std::vector<uint8_t>& 
+   * @brief Get method for the list of ECUs that are up.
+   * @return Returns ecus_up (the list of ECUs that are up). 
    */
   const std::vector<uint8_t>& getECUsUp() const;
 
@@ -179,9 +171,25 @@ class ReceiveFrames
   /* Vector contains all the ECUs up ids */
   std::vector<uint8_t> ecus_up;
 
+  /**
+   * @brief Starts timer_thread and sets running flag on true.
+   */
   void startTimerThread();
+
+  /**
+   * @brief Stops timer_thread and sets running flag on false.
+   */
   void stopTimerThread();
+
+  /**
+   * @brief Checks timer and send requests to check if the ECUs are up.
+   */
   void timerCheck();
+
+  /**
+   * @brief Reset the timer and add the ECU to the list.
+   * @param ecu_id The identifier of the ECU (will be added to the list).
+   */
   void resetTimer(uint8_t ecu_id);
 };
 
