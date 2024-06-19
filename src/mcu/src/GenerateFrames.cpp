@@ -11,7 +11,8 @@ GenerateFrames::GenerateFrames(int socket)
 {
     if (socket < 0) 
     {
-        LOG_INFO(MCULogger.GET_LOGGER(), "Invalid socket.");
+        throw std::invalid_argument("Invalid socket.");
+        LOG_ERROR(MCULogger.GET_LOGGER(), "Invalid socket.");
     }
     this->socket = socket;
 }
@@ -61,8 +62,6 @@ can_frame GenerateFrames::createFrame(uint32_t can_id, std::vector<uint8_t> data
             frame.can_id = CAN_ERR_FLAG;
             frame.can_dlc = 0;
             break;
-        default:
-            LOG_ERROR(MCULogger.GET_LOGGER(), "Invalid frame type.");
     }
     return frame;
 }
@@ -72,6 +71,7 @@ int GenerateFrames::sendFrame(uint32_t can_id, std::vector<uint8_t> data, FrameT
 {
     if (this->socket < 0)
     {
+        throw std::runtime_error("Socket not initialized.");
         LOG_ERROR(MCULogger.GET_LOGGER(), "Socket not initialized.");
     }
 
@@ -82,11 +82,12 @@ int GenerateFrames::sendFrame(uint32_t can_id, std::vector<uint8_t> data, FrameT
     if (write(this->socket, &frame, sizeof(frame)) != sizeof(frame)) 
     {
         perror("Write");
+        std::cout << this->socket << std::endl;
         return -1;
     }
 
     /* Close the socket */
-    // close(socket);
+    close(socket);
     return 0;
 }
 
@@ -95,6 +96,7 @@ int GenerateFrames::sendFrame(uint32_t can_id, std::vector<uint8_t> data, int s,
     if (s < 0)
     {
         throw std::runtime_error("Socket not initialized");
+        LOG_ERROR(MCULogger.GET_LOGGER(), "Socket not initialized");
     }
 
     /* Create the CAN frame */
@@ -108,7 +110,7 @@ int GenerateFrames::sendFrame(uint32_t can_id, std::vector<uint8_t> data, int s,
     }
 
     /* Close the socket */
-    // close(socket);
+    close(socket);
     return 0;
 }
 
@@ -179,7 +181,7 @@ void GenerateFrames::createFrameLong(uint32_t can_id, uint8_t sid, uint16_t data
         for (uint8_t r_bit = 0; r_bit <= response.size() / 7; r_bit++)
         {
             data = {static_cast<uint8_t>(0x21 + (r_bit % 0xF))};
-            for (uint8_t d_bit = 0; d_bit < 7 && ((r_bit * 7) + d_bit) < response.size(); d_bit++)
+            for (uint8_t d_bit = 0; d_bit < 7 && ((r_bit * 7) + d_bit) <= static_cast<uint8_t>(response.size()); d_bit++)
             {
                 data.push_back(response[r_bit * 7 + d_bit]);
             }
@@ -256,7 +258,7 @@ void GenerateFrames::testerPresent(uint32_t can_id, bool response)
     }
 }
 
-void GenerateFrames::readMemoryByAddress(uint32_t can_id, int memory_size, int memory_address, std::vector<uint8_t> response) 
+void GenerateFrames::readMemoryByAddress(uint32_t can_id, int memory_address, int memory_size, std::vector<uint8_t> response) 
 {
     uint8_t len_mem_size = countDigits(memory_size + 1) / 2;
     uint8_t len_mem_addr = countDigits(memory_address + 1) / 2;
@@ -291,7 +293,7 @@ void GenerateFrames::readMemoryByAddress(uint32_t can_id, int memory_size, int m
     }
 }
 
-void GenerateFrames::readMemoryByAddressLong(uint32_t can_id, int memory_size, int memory_address, std::vector<uint8_t> response, bool first_frame) 
+void GenerateFrames::readMemoryByAddressLong(uint32_t can_id, int memory_address, int memory_size, std::vector<uint8_t> response, bool first_frame) 
 {
     uint8_t len_mem_size = countDigits(memory_size + 1) / 2;
     uint8_t len_mem_addr = countDigits(memory_address + 1) / 2;
@@ -316,7 +318,7 @@ void GenerateFrames::readMemoryByAddressLong(uint32_t can_id, int memory_size, i
         for (uint8_t bit = 0; bit <= response.size() / 7; bit++)
         {
             data = {static_cast<uint8_t>(0x21 + (bit % 0xF))};
-            for (uint8_t d_bit = 0; d_bit < 7 && ((bit * 7) + d_bit) < response.size(); d_bit++) 
+            for (uint8_t d_bit = 0; d_bit < 7 && ((bit * 7) + d_bit) <= static_cast<uint8_t>(response.size()); d_bit++) 
             {
                 data.push_back(response[bit * 7 + d_bit]);
             }
@@ -455,7 +457,7 @@ void GenerateFrames::transferDataLong(uint32_t can_id, uint8_t block_sequence_co
         for (uint8_t bit = 0; bit <= transfer_request.size() / 7; bit++)
         {
             data = {static_cast<uint8_t>(0x21 + (bit % 0xF))};
-            for (uint8_t d_bit = 0; d_bit < 7 && ((bit * 7) + d_bit) < transfer_request.size(); d_bit++) 
+            for (uint8_t d_bit = 0; d_bit < 7 && ((bit * 7) + d_bit) <= static_cast<uint8_t>(transfer_request.size()); d_bit++) 
             {
                 data.push_back(transfer_request[bit * 7 + d_bit]);
             }
@@ -476,12 +478,17 @@ void GenerateFrames::requestTransferExit(uint32_t can_id, bool response)
     }
 }
 
+void GenerateFrames::apiResponse(uint32_t api_id, uint8_t sid, uint8_t battery_id, uint8_t doors_id, uint8_t engine_id){
+    uint32_t can_id = (MCU_ID << 8) | api_id;
+    this->sendFrame(can_id, {0x06, sid, MCU_ID, battery_id, doors_id, engine_id});
+}
+
 void GenerateFrames::insertBytes(std::vector<uint8_t>& data, unsigned int index, int num_bytes) 
 {
   
-    for (int bit = num_bytes - 1; bit >= 0; --bit) 
+    for (int i = num_bytes - 1; i >= 0; --i) 
     {
-        data.push_back((index >> (bit * 8)) & 0xFF);
+        data.push_back((index >> (i * 8)) & 0xFF);
     }
 }
 

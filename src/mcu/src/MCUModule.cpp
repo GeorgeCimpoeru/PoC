@@ -8,22 +8,22 @@ Logger MCULogger;
 
 /* Constructor */
 MCUModule::MCUModule(uint8_t interfaces_number) : 
-                interface_module(interfaces_number), 
+                create_interface(interfaces_number), 
                 is_running(false),
                 receive_frames(nullptr) 
                 {
-    receive_frames = new ReceiveFrames(interface_module.get_socketECU(), interface_module.get_socketAPI());
+    receive_frames = new ReceiveFrames(create_interface.get_socketECU(), create_interface.get_socketAPI());
 }
 
 /* Default constructor */
-MCUModule::MCUModule() : interface_module(0x01), 
+MCUModule::MCUModule() : create_interface(0x01), 
                                             is_running(false),
                                             receive_frames(nullptr) {}
 
 /* Destructor */
 MCUModule::~MCUModule() 
 {
-    interface_module.stop_interface();
+    create_interface.stop_interface();
     delete receive_frames;
 }
 

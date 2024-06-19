@@ -258,7 +258,7 @@ void ReceiveFrames::timerCheck()
                     uint8_t ecu_id = it->first;
                     /* Send request frame */
                     std::vector<uint8_t> data = {0x01};
-                    generate_frames.sendFrame(0x11, data);
+                    generate_frames.sendFrame(0x1011, data);
                     it = ecu_timers.erase(it);
                 } else {
                     ++it;
