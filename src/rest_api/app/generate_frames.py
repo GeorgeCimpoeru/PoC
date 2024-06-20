@@ -27,6 +27,7 @@ class GenerateFrame:
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     def read_frame(self, timeout=1.0):
         try:
             message = self.bus.recv(timeout)
@@ -55,6 +56,8 @@ class GenerateFrame:
         except subprocess.CalledProcessError:
             return False
             
+=======
+>>>>>>> added logger and generate frame
     def control_frame(self, id):
         data = [0x30, 0x00, 0x00, 0x00]
         self.send_frame(id, data)
@@ -64,8 +67,11 @@ class GenerateFrame:
         self.send_frame(api_id, data)
 
 
+<<<<<<< HEAD
 =======
 >>>>>>> added more generate frames functions
+=======
+>>>>>>> added logger and generate frame
     def session_control(self, id, sub_funct, response = False):
         
         if response == False:
@@ -170,9 +176,15 @@ class GenerateFrame:
 
     def request_transfer_exit(self, id, response = False):
         if response:
+<<<<<<< HEAD
             data = [1, 0x77]
         else:
              data = [1, 0x37]
+=======
+            data = [1, 0x37]
+        else:
+             data = [1, 0x77]
+>>>>>>> added logger and generate frame
 
         self.send_frame(id, data)
 
@@ -560,14 +572,21 @@ class GenerateFrame:
                 data = [0x21 + len(last_data)//7] + last_data[len(last_data)- len(last_data)%7:]
                 self.send_frame(id, data) 
 
+<<<<<<< HEAD
     def __add_to_list(self, data_list, number):
         temp_list = []
         while number:
             temp_list.append(number%0x100)
             number //=0x100
         data_list.extend(temp_list[::-1])
+=======
+can_interface = "vcan0"
+id = 0x123
+data = [3,0,0,0]
+>>>>>>> added logger and generate frame
 
 
+<<<<<<< HEAD
     def __count_digits(self, number):
         digits = 0
         while number:
@@ -575,6 +594,14 @@ class GenerateFrame:
             number //=10
         return digits
 
+=======
+#generateFrame.read_memory_by_adress(id, 0x1234, 0x56, data)
+#generateFrame.read_memory_by_adress_long(id, 0x1234, 0x56, data)
+#generateFrame.read_memory_by_adress_long(id, 0x1234, 0x56, data, False)
+
+generateFrame.control_frame(id, [])
+generateFrame.bus.shutdown()
+>>>>>>> added logger and generate frame
 
 # can_interface = "vcan0"
 # id = 0x101
