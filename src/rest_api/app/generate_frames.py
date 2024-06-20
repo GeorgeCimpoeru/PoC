@@ -1,16 +1,4 @@
 import can 
-<<<<<<< HEAD
-import subprocess
-import sqlite3
-
-class GenerateFrame:
-    def __init__(self, can_interface):
-        self.bus = can.interface.Bus(channel=can_interface, interface='socketcan')
-        self.can_interface = can_interface
-    
-    def send_frame(self, id, data):
-        message = can.Message(arbitration_id=id, data=data, is_extended_id=False)
-=======
 
 class GenerateFrame:
     def __init__(self, bus):
@@ -19,15 +7,11 @@ class GenerateFrame:
     
     def send_frame(self, id, data):
         message = can.Message(arbitration_id=id, data=data)
->>>>>>> created generate frame
         try: 
             self.bus.send(message)
         except can.CanError:
             print("Message not sent")
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     def read_frame(self, timeout=1.0):
         try:
             message = self.bus.recv(timeout)
@@ -56,8 +40,6 @@ class GenerateFrame:
         except subprocess.CalledProcessError:
             return False
             
-=======
->>>>>>> added logger and generate frame
     def control_frame(self, id):
         data = [0x30, 0x00, 0x00, 0x00]
         self.send_frame(id, data)
@@ -67,18 +49,12 @@ class GenerateFrame:
         self.send_frame(api_id, data)
 
 
-<<<<<<< HEAD
-=======
->>>>>>> added more generate frames functions
-=======
->>>>>>> added logger and generate frame
     def session_control(self, id, sub_funct, response = False):
         
         if response == False:
             data = [2, 0x10, sub_funct]
         else:
             data = [2, 0x50, sub_funct]
-<<<<<<< HEAD
 
         self.send_frame(id, data)
     
@@ -120,11 +96,7 @@ class GenerateFrame:
 
     def response_read_dtc_information(self, id, sts_ava_mask, dtc_format, dtc_count):
 
-<<<<<<< HEAD
-        data = [5, 0x59, 0x01, sts_ava_mask, dtc_format, dtc_count]
-=======
         data = [3, 0x59, 0x01, sts_ava_mask, dtc_format, dtc_count]
->>>>>>> modified generate_frame
 
         self.send_frame(id, data)
 
@@ -180,22 +152,9 @@ class GenerateFrame:
 
     def request_transfer_exit(self, id, response = False):
         if response:
-<<<<<<< HEAD
-<<<<<<< HEAD
             data = [1, 0x77]
         else:
              data = [1, 0x37]
-=======
-            data = [1, 0x37]
-        else:
-             data = [1, 0x77]
->>>>>>> added logger and generate frame
-=======
-            data = [1, 0x77]
-        else:
-             data = [1, 0x37]
->>>>>>> modified generate_frame
-
         self.send_frame(id, data)
 
     def clear_diagnostic_information(self, id, group_of_dtc=0xFFFFFF, response=False):
@@ -343,11 +302,8 @@ class GenerateFrame:
             digits += 1
             number //=10
         return digits
-=======
     def session_control(self, id, sub_funct):
         data = [2, 0x10, sub_funct]
-=======
->>>>>>> added more generate frames functions
 
         self.send_frame(id, data) 
     
@@ -582,21 +538,14 @@ class GenerateFrame:
                 data = [0x21 + len(last_data)//7] + last_data[len(last_data)- len(last_data)%7:]
                 self.send_frame(id, data) 
 
-<<<<<<< HEAD
     def __add_to_list(self, data_list, number):
         temp_list = []
         while number:
             temp_list.append(number%0x100)
             number //=0x100
         data_list.extend(temp_list[::-1])
-=======
-can_interface = "vcan0"
-id = 0x123
-data = [3,0,0,0]
->>>>>>> added logger and generate frame
 
 
-<<<<<<< HEAD
     def __count_digits(self, number):
         digits = 0
         while number:
@@ -604,14 +553,6 @@ data = [3,0,0,0]
             number //=10
         return digits
 
-=======
-#generateFrame.read_memory_by_adress(id, 0x1234, 0x56, data)
-#generateFrame.read_memory_by_adress_long(id, 0x1234, 0x56, data)
-#generateFrame.read_memory_by_adress_long(id, 0x1234, 0x56, data, False)
-
-generateFrame.control_frame(id, [])
-generateFrame.bus.shutdown()
->>>>>>> added logger and generate frame
 
 # can_interface = "vcan0"
 # id = 0x101
@@ -643,4 +584,3 @@ generateFrame.bus.shutdown()
 
 # g.bus.shutdown()
 
->>>>>>> created generate frame
