@@ -21,12 +21,11 @@ const MainElements = () => {
 
                 <div className="hero min-h-screen bg-base-200">
                     <div className="hero-content flex-col lg:flex-row">
-
-                        <img src="/engine.png" className="max-w-sm rounded-lg shadow-2xl" />
+                        <Link href="/batteryModule"><img src="/engine.png" alt="" className="max-w-sm rounded-lg shadow-2xl" /></Link>
                         <div>
                             <h1 className="text-5xl font-bold">Engine</h1>
                             <p className="py-6"> Get informations about the engine </p>
-                            <button className="btn btn-primary">Check here</button>
+                            <button className="btn btn-primary"><Link href="/engineModule">Check here </Link> </button>
                         </div>
                     </div>
                 </div>
