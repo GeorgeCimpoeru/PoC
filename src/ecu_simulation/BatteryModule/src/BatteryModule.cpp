@@ -58,7 +58,7 @@ void BatteryModule::sendNotificationToMCU()
     std::vector<uint8_t> data = {0x0, 0xff, 0x11, 0x3};
 
     /* Send the CAN frame with ID 0x22110 and the data vector */
-    notifyFrame.sendFrame(0x2210, data);
+    notifyFrame.sendFrame(0x1110, data);
 
     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery module sent UP notification to MCU");
 }
