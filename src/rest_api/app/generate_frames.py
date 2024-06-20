@@ -68,7 +68,7 @@ class GenerateFrame:
 
     def response_read_dtc_information(self, id, sts_ava_mask, dtc_format, dtc_count):
 
-        data = [3, 0x19, 0x01, sts_ava_mask, dtc_format, dtc_count]
+        data = [3, 0x59, 0x01, sts_ava_mask, dtc_format, dtc_count]
 
         self.send_frame(id, data)
 
@@ -124,9 +124,9 @@ class GenerateFrame:
 
     def request_transfer_exit(self, id, response = False):
         if response:
-            data = [1, 0x37]
+            data = [1, 0x77]
         else:
-             data = [1, 0x77]
+             data = [1, 0x37]
 
         self.send_frame(id, data)
 
@@ -145,7 +145,7 @@ class GenerateFrame:
     
         self.send_frame(id, data)
 
-    #ruben
+    
     def routine_control(self, id, sub_funct, routine_id, response = False):
         if response:
             data = [4, 0x71, sub_funct, routine_id // 0x100, routine_id % 0x100]
