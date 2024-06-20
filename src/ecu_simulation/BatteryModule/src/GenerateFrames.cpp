@@ -1,4 +1,5 @@
 #include "../include/GenerateFrames.h"
+#include "../include/BatteryModuleLogger.h"
 
 GenerateFrames::GenerateFrames(int socket)
 {
@@ -44,7 +45,8 @@ bool GenerateFrames::sendFrame(int id, std::vector<uint8_t > data, FrameType fra
     int nbytes = write(this->socket, &frame, sizeof(frame));
     if (nbytes != sizeof(frame))
     {
-        std::cout<<"Write error\n";
+        /* std::cout<<"Write error\n"; */
+        LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Write error in sendFrame\n");
         return -1;
     }
     return 0;
