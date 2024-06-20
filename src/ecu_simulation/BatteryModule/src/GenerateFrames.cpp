@@ -47,7 +47,7 @@ bool GenerateFrames::sendFrame(int id, std::vector<uint8_t > data, FrameType fra
     if (nbytes != sizeof(frame))
     {
         /* std::cout<<"Write error\n"; */
-        LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Write error in sendFrame\n");
+        LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Write error\n");
         return -1;
     }
     return 0;
