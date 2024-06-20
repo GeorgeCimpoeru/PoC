@@ -23,7 +23,6 @@ ReceiveFrames::ReceiveFrames(int socket, int frame_id) : socket(socket), frame_i
     }
 
     /* Print the frame_id for debugging */ 
-    //std::cout << "Module ID: 0x" << std::hex << std::setw(8) << std::setfill('0') << this->frame_id << std::endl;
     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Module ID: 0x{0:x}", this->frame_id);
 }
 
@@ -159,11 +158,20 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
             std::vector<uint8_t> data = {0x0, 0xff, 0x11, 0x3};
 
             /* Send the CAN frame with ID 0x2210 and the data vector*/
-            frame.sendFrame(0x2210, data);
+            frame.sendFrame(0x1110, data);
             LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Response sent to MCU");
 
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             goto label1;
+        }
+        if (frame.data[1] == 0xAA)
+        {
+            uint8_t frame_dest_id = frame.can_id & 0xFF;
+            current_module_id = frame_id & 0xFF;
+            GenerateFrames test =GenerateFrames(this->socket);
+            std::vector<uint8_t> data = {0x00, 0xAA};
+            test.sendFrame(0x1110,data);
+
         }
         /* Process the received frame */ 
         if (!handle_frame.checkReceivedFrame(nbytes, frame)) {
