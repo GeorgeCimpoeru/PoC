@@ -1,13 +1,15 @@
 import "./style.css"
 
-function SerialNumber() {
+function BatteryPercentage() {
       return (
             <lord-icon
-                  src="https://cdn.lordicon.com/viawnmii.json"
+                  src="https://cdn.lordicon.com/qzhyimwl.json"
                   trigger="hover"
                   class="my-lordicon">
             </lord-icon>
       );
 }
 
-export default SerialNumber
+export default BatteryPercentage
+
+
