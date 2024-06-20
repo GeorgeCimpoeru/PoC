@@ -63,7 +63,6 @@ const BatteryModule = async () => {
                                     <div className="card-body">
                                         <h2 className="card-title">Battery</h2>
                                         <h1>Battery level: {jsonData.query_params.battery_level}</h1>
-                                        {/* <p>If a dog chews shoes whose shoes does he choose?</p> */}
                                         <div className="card-actions justify-end">
                                             <BatteryPercentage></BatteryPercentage>
                                         </div>
@@ -75,7 +74,6 @@ const BatteryModule = async () => {
                                     <div className="card-body">
                                         <h2 className="card-title">Voltage</h2>
                                         <h1>Voltage: {jsonData.query_params.voltage}</h1>
-                                        {/* <p>If a dog chews shoes whose shoes does he choose?</p> */}
                                         <div className="card-actions justify-end">
                                             <BatteryVoltage></BatteryVoltage>
                                         </div>
@@ -87,7 +85,6 @@ const BatteryModule = async () => {
                                     <div className="card-body">
                                         <h2 className="card-title">Battery state of charge</h2>
                                         <h1>Battery state of charge: {jsonData.query_params.battery_state_of_charge}</h1>
-                                        {/* <p>If a dog chews shoes whose shoes does he choose?</p> */}
                                         <div className="card-actions justify-end">
                                             <BatteryStateOfCharge></BatteryStateOfCharge>
                                         </div>
@@ -99,10 +96,8 @@ const BatteryModule = async () => {
                                     <div className="card-body">
                                         <h2 className="card-title">Temperature</h2>
                                         <h1>Temperature: {jsonData.query_params.temperature}</h1>
-                                        {/* <p>If a dog chews shoes whose shoes does he choose?</p> */}
                                         <div className="card-actions justify-end">
                                             <Temperature></Temperature>
-                                            {/* <img src="/temperature.jpg" alt="" className="h-10 w-10 shadow-2xl" /> */}
                                         </div>
                                     </div>
                                 </div>
@@ -114,7 +109,6 @@ const BatteryModule = async () => {
                                     <div className="card-body">
                                         <h2 className="card-title">Life cycle</h2>
                                         <h1>Life cycle: {jsonData.query_params.life_cycle}</h1>
-                                        {/* <p>If a dog chews shoes whose shoes does he choose?</p> */}
                                         <div className="card-actions justify-end">
                                             <LifeCycle></LifeCycle>
                                         </div>
@@ -126,7 +120,6 @@ const BatteryModule = async () => {
                                     <div className="card-body">
                                         <h2 className="card-title">Fully charged</h2>
                                         <h1>Fully charged: {jsonData.query_params.fully_charged}</h1>
-                                        {/* <p>If a dog chews shoes whose shoes does he choose?</p> */}
                                         <div className="card-actions justify-end">
                                             <BatteryFully></BatteryFully>
                                         </div>
@@ -138,7 +131,6 @@ const BatteryModule = async () => {
                                     <div className="card-body">
                                         <h2 className="card-title">Serial number</h2>
                                         <h1>Serial number: {jsonData.query_params.serial_number}</h1>
-                                        {/* <p>If a dog chews shoes whose shoes does he choose?</p> */}
                                         <div className="card-actions justify-end">
                                             <SerialNumber></SerialNumber>
                                         </div>
@@ -150,7 +142,6 @@ const BatteryModule = async () => {
                                     <div className="card-body">
                                         <h2 className="card-title">Other</h2>
                                         <h1>Other: {jsonData.query_params.other}</h1>
-                                        {/* <p>If a dog chews shoes whose shoes does he choose?</p> */}
                                         <div className="card-actions justify-end">
                                             <Other></Other>
                                         </div>
