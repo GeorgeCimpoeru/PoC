@@ -13,8 +13,8 @@ class GenerateFrame:
 =======
 
 class GenerateFrame:
-    def __init__(self, can_interface):
-        self.bus = can.interface.Bus(channel=can_interface, bustype='socketcan')
+    def __init__(self, bus):
+        self.bus = bus
 
     
     def send_frame(self, id, data):
@@ -367,7 +367,7 @@ class GenerateFrame:
 
     def response_read_dtc_information(self, id, sts_ava_mask, dtc_format, dtc_count):
 
-        data = [3, 0x19, 0x01, sts_ava_mask, dtc_format, dtc_count]
+        data = [5, 0x59, 0x01, sts_ava_mask, dtc_format, dtc_count]
 
         self.send_frame(id, data)
 
@@ -423,9 +423,9 @@ class GenerateFrame:
 
     def request_transfer_exit(self, id, response = False):
         if response:
-            data = [2, 0x37, 0]
+            data = [2, 0x77, 0]
         else:
-             data = [2, 0x77, 0]
+             data = [2, 0x37, 0]
 
         self.send_frame(id, data)
 
@@ -576,16 +576,34 @@ class GenerateFrame:
         return digits
 
 
-can_interface = "vcan0"
-id = 0x1234
-data = [0,1,2,3,4,5]
+# can_interface = "vcan0"
+# id = 0x101
+# data = [1,2,3,4,5,6,7,8,9]
 
-generateFrame = GenerateFrame(can_interface)
+# g = GenerateFrame(can_interface)
 
-generateFrame.read_memory_by_adress(id, 0x1234, 0x56, data)
-generateFrame.read_memory_by_adress_long(id, 0x1234, 0x56, data)
-generateFrame.read_memory_by_adress_long(id, 0x1234, 0x56, data, False)
+# g.session_control(id,0x01)
+# g.ecu_reset(id)
+# g.authntication_seed(id,[0x23,0x34,0x35])
+# g.authntication_key(id,[0x23,0x34,0x35])
+# g.routine_control(id,0x02,0x341A)
+# g.tester_present(id)
+# g.read_data_by_identifier(id,0x3322,[0x32,0x11])
+# g.read_data_by_identifier_long(id,0x1234,data)
+# g.read_memory_by_adress(id, 0x2345, 0x01, [1,2])
+# g.read_memory_by_adress_long(id, 0x2345, 0x01, data)
+# g.write_data_by_identifier(id,0x2345,[1,2])
+# g.write_data_by_identifier_long(id,0x2345,data)
+# #flow controll
+# #request transfer exit
+# g.request_read_dtc_information(id,0x01,0x12)
+# g.clear_diagnostic_information(id,[0xFF,0xFF,0xFF])
+# g.access_timing_parameters(id,0x01)
+# g.request_download(id,0x00,0x3445,0x10)
+# g.transfer_data(id,0x20,[1,2,3,4,5])
+# g.transfer_data_long(id,0x20,data)
+# g.request_transfer_exit(id)
 
-generateFrame.bus.shutdown()
+# g.bus.shutdown()
 
 >>>>>>> created generate frame
