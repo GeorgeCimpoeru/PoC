@@ -120,7 +120,11 @@ class GenerateFrame:
 
     def response_read_dtc_information(self, id, sts_ava_mask, dtc_format, dtc_count):
 
+<<<<<<< HEAD
         data = [5, 0x59, 0x01, sts_ava_mask, dtc_format, dtc_count]
+=======
+        data = [3, 0x59, 0x01, sts_ava_mask, dtc_format, dtc_count]
+>>>>>>> modified generate_frame
 
         self.send_frame(id, data)
 
@@ -177,6 +181,7 @@ class GenerateFrame:
     def request_transfer_exit(self, id, response = False):
         if response:
 <<<<<<< HEAD
+<<<<<<< HEAD
             data = [1, 0x77]
         else:
              data = [1, 0x37]
@@ -185,6 +190,11 @@ class GenerateFrame:
         else:
              data = [1, 0x77]
 >>>>>>> added logger and generate frame
+=======
+            data = [1, 0x77]
+        else:
+             data = [1, 0x37]
+>>>>>>> modified generate_frame
 
         self.send_frame(id, data)
 
