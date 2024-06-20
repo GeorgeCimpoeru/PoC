@@ -108,7 +108,7 @@ bool CreateInterface::start_interface()
     int bndECU = bind(_socketECU, (struct sockaddr*)&addr, sizeof(addr));
 
     if(bndECU < 0)
-    {        
+    {
         LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to bindECU");
         return 1;
     }    
@@ -132,7 +132,7 @@ bool CreateInterface::start_interface()
     int bndAPI = bind(_socketAPI, (struct sockaddr*)&addr, sizeof(addr));
 
     if(bndAPI < 0)
-    {        
+    {
         LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to bindAPI");
         return 1;
     }    
