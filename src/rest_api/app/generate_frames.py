@@ -12,6 +12,15 @@ class GenerateFrame:
         except can.CanError:
             print("Message not sent")
 
+    def control_frame(self, id):
+        data = [0x30, 0x00, 0x00, 0x00]
+        self.send_frame(id, data)
+
+    def request_id_mcu(self, api_id):
+        data = [1, 0x99]
+        self.send_frame(api_id, data)
+
+
     def session_control(self, id, sub_funct, response = False):
         
         if response == False:
@@ -115,13 +124,13 @@ class GenerateFrame:
 
     def request_transfer_exit(self, id, response = False):
         if response:
-            data = [2, 0x77, 0]
+            data = [1, 0x77]
         else:
-             data = [2, 0x37, 0]
+             data = [1, 0x37]
 
         self.send_frame(id, data)
 
-    def clear_diagnostic_information(self, id, group_of_dtc, response=False):
+    def clear_diagnostic_information(self, id, group_of_dtc=0xFFFFFF, response=False):
         pci_l = len(group_of_dtc) + 1
         if response:
             data = [pci_l, 0x14] + group_of_dtc
@@ -136,7 +145,7 @@ class GenerateFrame:
     
         self.send_frame(id, data)
 
-    #ruben
+    
     def routine_control(self, id, sub_funct, routine_id, response = False):
         if response:
             data = [4, 0x71, sub_funct, routine_id // 0x100, routine_id % 0x100]
@@ -266,35 +275,3 @@ class GenerateFrame:
             digits += 1
             number //=10
         return digits
-
-
-# can_interface = "vcan0"
-# id = 0x101
-# data = [1,2,3,4,5,6,7,8,9]
-
-# g = GenerateFrame(can_interface)
-
-# g.session_control(id,0x01)
-# g.ecu_reset(id)
-# g.authntication_seed(id,[0x23,0x34,0x35])
-# g.authntication_key(id,[0x23,0x34,0x35])
-# g.routine_control(id,0x02,0x341A)
-# g.tester_present(id)
-# g.read_data_by_identifier(id,0x3322,[0x32,0x11])
-# g.read_data_by_identifier_long(id,0x1234,data)
-# g.read_memory_by_adress(id, 0x2345, 0x01, [1,2])
-# g.read_memory_by_adress_long(id, 0x2345, 0x01, data)
-# g.write_data_by_identifier(id,0x2345,[1,2])
-# g.write_data_by_identifier_long(id,0x2345,data)
-# #flow controll
-# #request transfer exit
-# g.request_read_dtc_information(id,0x01,0x12)
-# g.clear_diagnostic_information(id,[0xFF,0xFF,0xFF])
-# g.access_timing_parameters(id,0x01)
-# g.request_download(id,0x00,0x3445,0x10)
-# g.transfer_data(id,0x20,[1,2,3,4,5])
-# g.transfer_data_long(id,0x20,data)
-# g.request_transfer_exit(id)
-
-# g.bus.shutdown()
-
