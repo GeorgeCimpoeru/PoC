@@ -30,13 +30,13 @@ const MainElements = () => {
                     </div>
                 </div>
 
-                <div className="hero min-h-screen bg-base-200">
+                <div className="hero min-h-screen bg-base-200" >
                     <div className="hero-content flex-col lg:flex-row">
-                        <img src="/doors.png" className="max-w-sm rounded-lg shadow-2xl" />
+                    <Link href="/doorsModule"><img src="/doors.png" alt="" className="max-w-sm rounded-lg shadow-2xl" /></Link>
                         <div>
-                            <h1 className="text-5xl font-bold">Doors</h1>
-                            <p className="py-6">Get informations about the doors</p>
-                            <button className="btn btn-primary">Check here</button>
+                            <h1 className="text-5xl font-bold">Doors module</h1>
+                            <p className="py-6">Get informations about the doors status</p>
+                            <button className="btn btn-primary"  > <Link href="/doorsModule">Check here </Link> </button>
                         </div>
                     </div>
                 </div>

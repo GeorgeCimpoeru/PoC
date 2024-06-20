@@ -3,7 +3,7 @@ import "./style.css"
 function SerialNumber() {
       return (
             <lord-icon
-                  src="https://cdn.lordicon.com/xfokkfex.json"
+                  src="https://cdn.lordicon.com/viawnmii.json"
                   trigger="hover"
                   class="my-lordicon">
             </lord-icon>
