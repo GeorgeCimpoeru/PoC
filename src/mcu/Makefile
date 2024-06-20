@@ -50,7 +50,7 @@ allTests: handleTest receiveTest generateTest createInterfaceTest
 # HandleFrames Unit tests
 handleTest: HandleFrames_test
 HandleFrames_test: test/HandleFrames_test.cpp src/HandleFrames.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -o test/HandleFrames_test test/HandleFrames_test.cpp src/HandleFrames.cpp src/MCUModule.cpp src/ReceiveFrames.cpp src/GenerateFrames.cpp ../utils/src/CreateInterface.cpp ../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+	$(CXX) $(CFLAGS) -o test/HandleFrames_test test/HandleFrames_test.cpp src/HandleFrames.cpp src/MCUModule.cpp src/ReceiveFrames.cpp src/GenerateFrames.cpp ../utils/src/CreateInterface.cpp ../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
 
 # ReceiveFrames Unit tests
 receiveTest: ReceiveFrames_test
