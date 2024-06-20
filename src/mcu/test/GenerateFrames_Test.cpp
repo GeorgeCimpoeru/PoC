@@ -289,7 +289,6 @@ TEST_F(GenerateFramesTest, RDBIResponseTooLarge) {
     gen_frame.readDataByIdentifier(can_id, data_identifier, response);
     std::string output = testing::internal::GetCapturedStdout();
     EXPECT_NE(output.find("Response size is too large\n"), std::string::npos);
-    // EXPECT_EQ(output, "Response size is too large\n");
 }
 
 /* Test Create Frame Long first frame */
@@ -326,7 +325,6 @@ TEST_F(GenerateFramesTest, createFrameLongNotFirstFrame) {
     testing::internal::CaptureStdout();
     gen_frame.createFrameLong(can_id, sid, data_identifier, response, first_frame);
     std::string output = testing::internal::GetCapturedStdout();
-    // EXPECT_EQ(output, "X\n");
     EXPECT_EQ(gen_frame.frame.can_id, can_id);
     for (int i = 0; i < gen_frame.frame.can_dlc - 1; ++i) {
         EXPECT_EQ(gen_frame.frame.data[i], data[i]);
@@ -931,7 +929,6 @@ TEST_F(GenerateFramesTest, apiResponse) {
     uint8_t battery_id = 0x11;
     uint8_t doors_id = 0x12;
     uint8_t engine_ide = 0x13;
-    // std::vector<uint8_t> response = {0x2, 0x2, 0x2};
     std::vector<uint8_t> data = {0x06, sid, MCU_ID, battery_id, doors_id, engine_ide};
 
     GenerateFrames gen_frame(s);

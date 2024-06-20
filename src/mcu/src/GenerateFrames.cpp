@@ -77,8 +77,6 @@ int GenerateFrames::sendFrame(uint32_t can_id, std::vector<uint8_t> data, FrameT
 
     /* Create the CAN frame */
     this->frame = createFrame(can_id, data, frame_type);
-    // for(int i = 0; i < this->frame.can_dlc; i++)
-    //     std::cout << "Sending frame: " << this->frame.data[i] << std::endl;
 
     /* Send the CAN frame */
     if (write(this->socket, &frame, sizeof(frame)) != sizeof(frame)) 
