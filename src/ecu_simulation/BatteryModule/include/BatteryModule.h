@@ -23,7 +23,7 @@
 #include <cstdlib>
 #include <chrono>
 #include <iostream>
-#include "InterfaceConfig.h"
+#include "../../../utils/include/CreateInterface.h"
 #include "ReceiveFrames.h"
 #include "GenerateFrames.h"
 #include "BatteryModuleLogger.h"
@@ -38,8 +38,8 @@ private:
     float percentage;
     std::string state;
 
-    SocketCanInterface canInterface;
-    ReceiveFrames* frameReceiver;    
+    CreateInterface canInterface;
+    ReceiveFrames* frameReceiver;
 
 public:
     /**

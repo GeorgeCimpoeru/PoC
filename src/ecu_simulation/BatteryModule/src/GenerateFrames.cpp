@@ -220,7 +220,7 @@ void GenerateFrames::flowControlFrame(int id)
     this->sendFrame(id, {0x30,0x00,0x00,0x00});
 }
 
-void GenerateFrames::readMemoryByAddress(int id, int memory_size, int memory_address, std::vector<uint8_t> response )
+void GenerateFrames::readMemoryByAddress(int id, int memory_address, int memory_size, std::vector<uint8_t> response )
 {
     /* add lengths of of memory size/address to the frame */
     uint8_t length_memory_size = (countDigits(memory_size) +1) / 2;
@@ -256,7 +256,7 @@ void GenerateFrames::readMemoryByAddress(int id, int memory_size, int memory_add
     }
 }
 
-void GenerateFrames::readMemoryByAddressLongResponse(int id, int memory_size, int memory_address, std::vector<uint8_t> response, bool first_frame)
+void GenerateFrames::readMemoryByAddressLongResponse(int id, int memory_address, int memory_size, std::vector<uint8_t> response, bool first_frame)
 {
     /* add lengths of of memory size/address to the frame */
     uint8_t length_memory_size = (countDigits(memory_size) +1) / 2;
