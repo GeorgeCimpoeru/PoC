@@ -1,13 +1,16 @@
 import "./style.css"
 
-function SerialNumber() {
+function Temperature() {
       return (
             <lord-icon
-                  src="https://cdn.lordicon.com/viawnmii.json"
+                  src="https://cdn.lordicon.com/fbbaczvt.json"
                   trigger="hover"
                   class="my-lordicon">
             </lord-icon>
       );
 }
 
-export default SerialNumber
+export default Temperature
+
+
+

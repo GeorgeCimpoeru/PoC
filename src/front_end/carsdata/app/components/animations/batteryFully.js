@@ -1,13 +1,14 @@
 import "./style.css"
 
-function SerialNumber() {
+function BatteryFully() {
       return (
             <lord-icon
-                  src="https://cdn.lordicon.com/viawnmii.json"
+                  src="https://cdn.lordicon.com/cwexfkdy.json"
                   trigger="hover"
                   class="my-lordicon">
             </lord-icon>
       );
 }
 
-export default SerialNumber
+export default BatteryFully
+
