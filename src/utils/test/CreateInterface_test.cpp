@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../include/InterfaceModule.h"
+#include "../include/CreateInterface.h"
 #include <fstream>
 #include <iostream>
 
@@ -21,7 +21,7 @@ bool is_valid_socket(int sockfd)
 */
 TEST(InterfaceTestSuite, CreateInterface)
 {
-    INTERFACE_module interface(0x01);
+    CreateInterface interface(0x01);
     EXPECT_TRUE(is_interface_created("vcan0"));
     EXPECT_TRUE(is_interface_created("vcan1"));
     interface.delete_interface(); 
@@ -37,7 +37,7 @@ TEST(InterfaceTestSuite, CreateInterface)
 /* test the start_interface method */
 TEST(InterfaceTestSuite, StartInterface)
 {
-    INTERFACE_module interface(0x01);
+    CreateInterface interface(0x01);
     EXPECT_TRUE(is_interface_created("vcan0"));
     EXPECT_TRUE(is_interface_created("vcan1"));    
     EXPECT_EQ(interface.start_interface(),true); 
@@ -48,7 +48,7 @@ TEST(InterfaceTestSuite, StartInterface)
 /* test the stop_interface method */
 TEST(InterfaceTestSuite, StopInterface)
 {
-    INTERFACE_module interface(0x01);
+    CreateInterface interface(0x01);
     EXPECT_TRUE(is_interface_created("vcan0"));
     EXPECT_TRUE(is_interface_created("vcan1"));    
     EXPECT_EQ(interface.start_interface(),true); 
@@ -60,7 +60,7 @@ TEST(InterfaceTestSuite, StopInterface)
 /* test the delete_interface method */
 TEST(InterfaceTestSuite, DeleteInterface)
 {
-    INTERFACE_module interface(0x01);
+    CreateInterface interface(0x01);
     EXPECT_TRUE(is_interface_created("vcan0"));
     EXPECT_TRUE(is_interface_created("vcan1"));    
     EXPECT_EQ(interface.start_interface(),true); 
@@ -71,7 +71,7 @@ TEST(InterfaceTestSuite, DeleteInterface)
 /* test the delete_interface method */
 TEST(InterfaceTestSuite, ErrorInterface)
 {
-    INTERFACE_module interface(0x01);
+    CreateInterface interface(0x01);
     EXPECT_TRUE(is_interface_created("vcan0"));
     EXPECT_TRUE(is_interface_created("vcan1"));   
     EXPECT_EQ(interface.delete_interface(),true); 
@@ -83,7 +83,7 @@ TEST(InterfaceTestSuite, ErrorInterface)
 /* test if the interface was not created */
 TEST(InterfaceTestSuite, InterfaceNotCreatedTest)
 {
-    INTERFACE_module interface(0x01);
+    CreateInterface interface(0x01);
     interface.delete_interface(); 
     EXPECT_EQ(interface.start_interface(),false);     
 }
@@ -91,7 +91,7 @@ TEST(InterfaceTestSuite, InterfaceNotCreatedTest)
 /* test the get_socketECU method */
 TEST(InterfaceTestSuite, GetSocketECU)
 {    
-    INTERFACE_module interface(0X01);   
+    CreateInterface interface(0X01);   
     EXPECT_TRUE(is_valid_socket(interface.get_socketECU()));  
     /* clean up any existing interface to ensure a clean test environment for the next test */ 
     interface.delete_interface();
@@ -100,7 +100,7 @@ TEST(InterfaceTestSuite, GetSocketECU)
 /* test the get_socketAPI method */
 TEST(InterfaceTestSuite, GetSocketAPI)
 {    
-    INTERFACE_module interface(0X01);   
+    CreateInterface interface(0X01);   
     EXPECT_TRUE(is_valid_socket(interface.get_socketAPI()));  
     /* clean up any existing interface to ensure a clean test environment for the next test */ 
     interface.delete_interface();
