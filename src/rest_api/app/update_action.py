@@ -174,4 +174,8 @@ class Updates(Action):
         n = 0
         for element in array[::-1]:
             n = n * 100 + element
+<<<<<<< HEAD
         return n
+=======
+        return n
+>>>>>>> Add comments to action and update_action class
