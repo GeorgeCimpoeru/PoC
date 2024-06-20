@@ -77,12 +77,13 @@ int GenerateFrames::sendFrame(uint32_t can_id, std::vector<uint8_t> data, FrameT
 
     /* Create the CAN frame */
     this->frame = createFrame(can_id, data, frame_type);
+    // for(int i = 0; i < this->frame.can_dlc; i++)
+    //     std::cout << "Sending frame: " << this->frame.data[i] << std::endl;
 
     /* Send the CAN frame */
     if (write(this->socket, &frame, sizeof(frame)) != sizeof(frame)) 
     {
         perror("Write");
-        std::cout << this->socket << std::endl;
         return -1;
     }
 
@@ -180,7 +181,7 @@ void GenerateFrames::createFrameLong(uint32_t can_id, uint8_t sid, uint16_t data
         std::vector<uint8_t> data;
         for (uint8_t r_bit = 0; r_bit <= response.size() / 7; r_bit++)
         {
-            data = {static_cast<uint8_t>(0x21 + (r_bit % 0xF))};
+            data = {static_cast<uint8_t>(0x21 + (r_bit % 0xFF))};
             for (uint8_t d_bit = 0; d_bit < 7 && ((r_bit * 7) + d_bit) <= static_cast<uint8_t>(response.size()); d_bit++)
             {
                 data.push_back(response[r_bit * 7 + d_bit]);
@@ -486,9 +487,9 @@ void GenerateFrames::apiResponse(uint32_t api_id, uint8_t sid, uint8_t battery_i
 void GenerateFrames::insertBytes(std::vector<uint8_t>& data, unsigned int index, int num_bytes) 
 {
   
-    for (int i = num_bytes - 1; i >= 0; --i) 
+    for (int bit = num_bytes - 1; bit >= 0; --bit) 
     {
-        data.push_back((index >> (i * 8)) & 0xFF);
+        data.push_back((index >> (bit * 8)) & 0xFF);
     }
 }
 

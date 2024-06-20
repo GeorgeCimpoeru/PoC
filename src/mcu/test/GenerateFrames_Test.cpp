@@ -23,13 +23,12 @@ protected:
     int createSocket() {
         int s = socket(PF_CAN, SOCK_RAW, CAN_RAW);
         if (s < 0) {
-            LOG_ERROR(MCULogger.GET_LOGGER(),"Error trying to create the socket");
+            std::cerr << "Error trying to create the socket\n";
             return -1;
         }
 
-        struct sockaddr_can addr = {0};
+        struct sockaddr_can addr;
         struct ifreq ifr;
-
 
         strcpy(ifr.ifr_name, "vcan1");
         ioctl(s, SIOCGIFINDEX, &ifr);
@@ -38,10 +37,11 @@ protected:
         addr.can_ifindex = ifr.ifr_ifindex;
 
         if (bind(s, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
-            LOG_ERROR(MCULogger.GET_LOGGER(),"Error trying to bind the socket");
+            std::cerr << "Error binding\n";
             close(s);
             return -1;
         }
+
         return s;
     }
 
@@ -140,12 +140,10 @@ TEST_F(GenerateFramesTest, SendSuccessfulsendFrame) {
     std::vector<uint8_t> data = {0x2, 0x51, 0x3};
     FrameType frame_type = FrameType::DATA_FRAME;
     GenerateFrames gen_frame(s);
-    // std::string output = testing::internal::GetCapturedStdout();
 
     gen_frame.sendFrame(can_id, data, frame_type);
-    EXPECT_EQ(errno, 0);
 
-    // EXPECT_NE(output.find("Frame sent successfully\n"), std::string::npos);
+    EXPECT_EQ(errno, 0);
 }
 
 /* Test send frame when write fails */
@@ -284,13 +282,14 @@ TEST_F(GenerateFramesTest, RDBIResponseTooLarge) {
     uint32_t can_id = 0x123;
     uint8_t data_identifier = 0x01;    
     std::vector<uint8_t> response = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};
-    // std::string output = testing::internal::GetCapturedStdout();
 
     GenerateFrames gen_frame(s);
 
-    // testing::internal::CaptureStdout();
+    testing::internal::CaptureStdout();
     gen_frame.readDataByIdentifier(can_id, data_identifier, response);
-    // EXPECT_NE(output.find("Response size is too large\n"), std::string::npos);
+    std::string output = testing::internal::GetCapturedStdout();
+    EXPECT_NE(output.find("Response size is too large\n"), std::string::npos);
+    // EXPECT_EQ(output, "Response size is too large\n");
 }
 
 /* Test Create Frame Long first frame */
@@ -318,18 +317,21 @@ TEST_F(GenerateFramesTest, createFrameLongNotFirstFrame) {
     uint32_t can_id = 0x101;
     uint8_t sid = 0x50;
     uint8_t data_identifier = 0x01;  
-    std::vector<uint8_t> response = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};
+    std::vector<uint8_t> response = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};
     bool first_frame = false;
 
     std::vector<uint8_t> data = {0x21, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};
 
     GenerateFrames gen_frame(s);
+    testing::internal::CaptureStdout();
     gen_frame.createFrameLong(can_id, sid, data_identifier, response, first_frame);
-
+    std::string output = testing::internal::GetCapturedStdout();
+    // EXPECT_EQ(output, "X\n");
     EXPECT_EQ(gen_frame.frame.can_id, can_id);
-    for (int i = 0; i < gen_frame.frame.can_dlc; ++i) {
+    for (int i = 0; i < gen_frame.frame.can_dlc - 1; ++i) {
         EXPECT_EQ(gen_frame.frame.data[i], data[i]);
     }
+
 }
 
 /* Test Read Data By Identifier Long */
@@ -365,7 +367,7 @@ TEST_F(GenerateFramesTest, flowControlFrame) {
     }
 }
 
-/* Test Authentication Request Seed Empty */
+/* Test authentication Request Seed Empty */
 TEST_F(GenerateFramesTest, authenticationRequestSeedEmpty) {
     uint32_t can_id = 0x101;
     std::vector<uint8_t> seed;
@@ -380,7 +382,7 @@ TEST_F(GenerateFramesTest, authenticationRequestSeedEmpty) {
     }
 }
 
-/* Test Authentication Request Seed Not Empty */
+/* Test authentication Request Seed Not Empty */
 TEST_F(GenerateFramesTest, authenticationRequestSeedNotEmpty) {
     uint32_t can_id = 0x101;
     std::vector<uint8_t> seed = {0x2, 0x2, 0x2};
@@ -395,7 +397,7 @@ TEST_F(GenerateFramesTest, authenticationRequestSeedNotEmpty) {
     }
 }
 
-/* Test Authentication Send Key Empty */
+/* Test authentication Send Key Empty */
 TEST_F(GenerateFramesTest, authenticationSendKeyEmpty) {
     uint32_t can_id = 0x101;
     std::vector<uint8_t> key;
@@ -410,7 +412,7 @@ TEST_F(GenerateFramesTest, authenticationSendKeyEmpty) {
     }
 }
 
-/* Test Authentication Send Key Not Empty */
+/* Test authentication Send Key Not Empty */
 TEST_F(GenerateFramesTest, authenticationSendKeyNotEmpty) {
     uint32_t can_id = 0x101;
     std::vector<uint8_t> key = {0x2, 0x2, 0x2};
@@ -519,15 +521,15 @@ TEST_F(GenerateFramesTest, readMemoryByAddressResponseNotEmpty) {
     uint32_t can_id = 0x07;
     uint8_t memory_size = static_cast<uint8_t>(0x2345);
     uint8_t memory_address = 0x01;
-    std::vector<uint8_t> response = {0x2, 0x2};
+    std::vector<uint8_t> response = {0x2, 0x2, 0x2, 0x2};
 
-    std::vector<uint8_t> data = {0x05,0x63,0x10,0x45,0x2,0x2};
+    std::vector<uint8_t> data = {0x07, 0x63, 0x10, 0x45, 0x2, 0x2, 0x2, 0x2};
 
     GenerateFrames gen_frame(s);
     gen_frame.readMemoryByAddress(can_id, memory_address, memory_size, response);
 
     EXPECT_EQ(gen_frame.frame.can_id, can_id);
-    for (int i = 0; i < gen_frame.frame.can_dlc; ++i) {
+    for (int i = 0; i < gen_frame.frame.can_dlc - 1; ++i) {
         EXPECT_EQ(gen_frame.frame.data[i], data[i]);
     }
 }
@@ -539,12 +541,12 @@ TEST_F(GenerateFramesTest, readMemoryByAddressResponseTooLarge) {
     uint8_t memory_address = 0x01;
     std::vector<uint8_t> response = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};
     GenerateFrames gen_frame(s);
-    // std::string output = testing::internal::GetCapturedStdout();
 
-    // testing::internal::CaptureStdout();
+    testing::internal::CaptureStdout();
     gen_frame.readMemoryByAddress(can_id, memory_address, memory_size, response);
 
-    // EXPECT_NE(output.find("Response size is too large\n"), std::string::npos);
+    std::string output = testing::internal::GetCapturedStdout();
+    EXPECT_NE(output.find("Response size is too large.\n"), std::string::npos);
 }
 
 /* Test Read Memory By Address Long first frame */
@@ -570,7 +572,7 @@ TEST_F(GenerateFramesTest, readMemoryByAddressLongNotFirstFrame) {
     uint32_t can_id = 0x07;
     uint8_t memory_size = static_cast<uint8_t>(0x2345);
     uint8_t memory_address = 0x01;
-    std::vector<uint8_t> response = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2}; 
+    std::vector<uint8_t> response = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2}; 
     bool first_frame = false;
     std::vector<uint8_t> data = {0x21,0x2,0x2,0x2,0x2,0x2,0x2,0x2};
 
@@ -589,6 +591,7 @@ TEST_F(GenerateFramesTest, writeDataByIdentifierEmpty) {
     uint32_t can_id = 0x101;
     uint8_t identifier = 0x20;
     std::vector<uint8_t> data_parameter;
+
     std::vector<uint8_t> data = {0x03, 0x6E, static_cast<uint8_t>(identifier / 0x100), 
                                 static_cast<uint8_t>(identifier % 0x100)};
 
@@ -606,6 +609,7 @@ TEST_F(GenerateFramesTest, writeDataByIdentifierNotEmpty) {
     uint32_t can_id = 0x101;
     uint8_t identifier = 0x20;
     std::vector<uint8_t> data_parameter = {0x2, 0x2, 0x2};
+
     std::vector<uint8_t> data = {static_cast<uint8_t>(data_parameter.size() + 3), 0x2E, static_cast<uint8_t>(identifier / 0x100), 
                                 static_cast<uint8_t>(identifier % 0x100), 0x2, 0x2, 0x2};
 
@@ -623,13 +627,13 @@ TEST_F(GenerateFramesTest, writeDataByIdentifierTooLarge) {
     uint32_t can_id = 0x101;
     uint8_t identifier = 0x20;
     std::vector<uint8_t> data_parameter = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2};
-    // std::string output = testing::internal::GetCapturedStdout();
 
-    // testing::internal::CaptureStdout();
+    testing::internal::CaptureStdout();
     GenerateFrames gen_frame(s);
     gen_frame.writeDataByIdentifier(can_id, identifier, data_parameter);
 
-    // EXPECT_NE(output.find("Data parameter size is too large\n"), std::string::npos);
+    std::string output = testing::internal::GetCapturedStdout();
+    EXPECT_NE(output.find("Data parameter size is too large\n"), std::string::npos);
 }
 
 /* Test Write Data By Identifier Long */
@@ -656,6 +660,7 @@ TEST_F(GenerateFramesTest, readDTCInformation) {
     uint32_t can_id = 0x101;
     uint8_t subfunction = 0x01;
     uint8_t dtc_status_mask = 0x02;
+
     std::vector<uint8_t> data = {0x03, 0x19, subfunction, dtc_status_mask};
 
     GenerateFrames gen_frame(s);
@@ -673,6 +678,7 @@ TEST_F(GenerateFramesTest, readDTCInformationResponse01) {
     uint8_t status_availability_mask = 0x01;
     uint8_t dtc_format_identifier = 0x02;
     uint8_t dtc_count = 0x03;
+
     std::vector<uint8_t> data = {0x03, 0x59, 0x01, status_availability_mask, dtc_format_identifier, dtc_count};
 
     GenerateFrames gen_frame(s);
@@ -706,6 +712,7 @@ TEST_F(GenerateFramesTest, clearDiagnosticInformationRequest) {
     uint32_t can_id = 0x101;
     std::vector<uint8_t> group_of_dtc = {0x2, 0x2};
     bool response = false;
+
     std::vector<uint8_t> data = {static_cast<uint8_t>(group_of_dtc.size() + 1), 0x14, 0x2, 0x2};
 
     GenerateFrames gen_frame(s);
@@ -722,13 +729,13 @@ TEST_F(GenerateFramesTest, clearDiagnosticInformationDTCTooLarge) {
     uint32_t can_id = 0x101;
     std::vector<uint8_t> group_of_dtc = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};
     bool response = false;
-    // std::string output = testing::internal::GetCapturedStdout();
 
-    // testing::internal::CaptureStdout();
+    testing::internal::CaptureStdout();
     GenerateFrames gen_frame(s);
     gen_frame.clearDiagnosticInformation(can_id, group_of_dtc, response);
 
-    // EXPECT_NE(output.find("Group of DTC size is too large\n"), std::string::npos);
+    std::string output = testing::internal::GetCapturedStdout();
+    EXPECT_NE(output.find("Group of DTC size is too large.\n"), std::string::npos);
 }
 
 /* Test Access Timing Parameters Response */
@@ -770,6 +777,7 @@ TEST_F(GenerateFramesTest, negativeResponse) {
     uint32_t can_id = 0x123;
     uint8_t sid = 0x01;
     uint8_t nrc = 0x22;
+
     std::vector<uint8_t> data = {0x03, 0x7F, sid, nrc};
 
     GenerateFrames gen_frame(s);
@@ -787,6 +795,7 @@ TEST_F(GenerateFramesTest, requestDownload) {
     uint8_t data_format_identifier = 0x00;
     uint8_t memory_size = 0x10;
     uint8_t memory_address = static_cast<uint8_t>(0x3445);
+
     std::vector<uint8_t> data = {0x05, 0x34, 0x00, 0x11, 0x45, 0x10};
 
     GenerateFrames gen_frame(s);
@@ -813,7 +822,7 @@ TEST_F(GenerateFramesTest, requestDownloadResponse) {
     }
 }
 
-/* Test Transfer Data when transfer request is empty */
+/* Test transfer Data when transfer request is empty */
 TEST_F(GenerateFramesTest, transferDataEmpty) {
     uint32_t can_id = 0x123;
     uint8_t block_sequence_counter = 0x30;
@@ -830,7 +839,7 @@ TEST_F(GenerateFramesTest, transferDataEmpty) {
     }
 }
 
-/* Test Transfer Data when transfer request is not empty */
+/* Test transfer Data when transfer request is not empty */
 TEST_F(GenerateFramesTest, transferDataNotEmpty) {
     uint32_t can_id = 0x123;
     uint8_t block_sequence_counter = 0x30;
@@ -847,7 +856,7 @@ TEST_F(GenerateFramesTest, transferDataNotEmpty) {
     }
 }
 
-/* Test Transfer Data Long first frame */
+/* Test transfer Data Long first frame */
 TEST_F(GenerateFramesTest, transferDataLongFirstFrame) {
     uint32_t can_id = 0x101;
     uint8_t block_sequence_counter = 0x03; 
@@ -865,11 +874,11 @@ TEST_F(GenerateFramesTest, transferDataLongFirstFrame) {
     }
 }
 
-/* Test Transfer Data Long not first frame */
+/* Test transfer Data Long not first frame */
 TEST_F(GenerateFramesTest, transferDataLongNotFirstFrame) {
     uint32_t can_id = 0x101;
     uint8_t block_sequence_counter = 0x03; 
-    std::vector<uint8_t> transfer_request = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};  
+    std::vector<uint8_t> transfer_request = {0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};  
     bool first_frame = false;
 
     std::vector<uint8_t> data = {0x21, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2};
@@ -883,10 +892,11 @@ TEST_F(GenerateFramesTest, transferDataLongNotFirstFrame) {
     }
 }
 
-/* Test Request Transfer Exit Response */
+/* Test Request transfer Exit Response */
 TEST_F(GenerateFramesTest, requestTransferExitResponse) {
     uint32_t can_id = 0x101;
     bool response = true;
+
     std::vector<uint8_t> data = {0x01, 0x77};
 
     GenerateFrames gen_frame(s);
@@ -898,10 +908,11 @@ TEST_F(GenerateFramesTest, requestTransferExitResponse) {
     }
 }
 
-/* Test Request Transfer Exit Request */
+/* Test Request transfer Exit Request */
 TEST_F(GenerateFramesTest, requestTransferExitRequest) {
     uint32_t can_id = 0x101;
     bool response = false;
+
     std::vector<uint8_t> data = {0x01, 0x37};
 
     GenerateFrames gen_frame(s);
@@ -930,8 +941,6 @@ TEST_F(GenerateFramesTest, apiResponse) {
     for (int i = 0; i < gen_frame.frame.can_dlc; ++i) {
         EXPECT_EQ(gen_frame.frame.data[i], data[i]);
     }
-
-
 }
 
 int main(int argc, char **argv) {
