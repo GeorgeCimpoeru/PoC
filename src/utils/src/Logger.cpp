@@ -14,6 +14,11 @@
 /* first initialisation of the consoleLogger shall be to nullptr. */
 std::shared_ptr<spdlog::logger> Logger::_consoleLogger = nullptr;
 
+Logger::Logger()
+{
+    spdlog::flush_on(spdlog::level::trace);
+}
+
 Logger::Logger(std::string loggerName, std::string filePath)
 {
     spdlog::flush_on(spdlog::level::trace);

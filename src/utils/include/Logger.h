@@ -51,6 +51,12 @@ private:
     std::vector<std::string> _loggers;
 public:
     /**
+     * @brief Construct a new Logger object without adding a file logger to it. Only console logger by default.
+     * 
+     */
+    Logger();
+    
+    /**
      * @brief Construct a new Logger object and add a file logger to it. The file logger is specific to this logger.
      *  
      * @param[i] loggerName 
