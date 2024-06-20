@@ -12,6 +12,15 @@ class GenerateFrame:
         except can.CanError:
             print("Message not sent")
 
+    def control_frame(self, id):
+        data = [0x30, 0x00, 0x00, 0x00]
+        self.send_frame(id, data)
+
+    def request_id_mcu(self, api_id):
+        data = [1, 0x99]
+        self.send_frame(api_id, data)
+
+
     def session_control(self, id, sub_funct, response = False):
         
         if response == False:
@@ -115,13 +124,13 @@ class GenerateFrame:
 
     def request_transfer_exit(self, id, response = False):
         if response:
-            data = [2, 0x37, 0]
+            data = [1, 0x37]
         else:
-             data = [2, 0x77, 0]
+             data = [1, 0x77]
 
         self.send_frame(id, data)
 
-    def clear_diagnostic_information(self, id, group_of_dtc, response=False):
+    def clear_diagnostic_information(self, id, group_of_dtc=0xFFFFFF, response=False):
         pci_l = len(group_of_dtc) + 1
         if response:
             data = [pci_l, 0x14] + group_of_dtc
@@ -269,14 +278,15 @@ class GenerateFrame:
 
 
 can_interface = "vcan0"
-id = 0x1234
-data = [0,1,2,3,4,5]
+id = 0x123
+data = [3,0,0,0]
 
 generateFrame = GenerateFrame(can_interface)
 
-generateFrame.read_memory_by_adress(id, 0x1234, 0x56, data)
-generateFrame.read_memory_by_adress_long(id, 0x1234, 0x56, data)
-generateFrame.read_memory_by_adress_long(id, 0x1234, 0x56, data, False)
+#generateFrame.read_memory_by_adress(id, 0x1234, 0x56, data)
+#generateFrame.read_memory_by_adress_long(id, 0x1234, 0x56, data)
+#generateFrame.read_memory_by_adress_long(id, 0x1234, 0x56, data, False)
 
+generateFrame.control_frame(id, [])
 generateFrame.bus.shutdown()
 
