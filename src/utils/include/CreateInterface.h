@@ -25,6 +25,7 @@
 #include<linux/can.h>
 #include<string.h>
 #include <fcntl.h>
+#include "../../mcu/include/MCULogger.h"
 
 /* class designed to manage the virtual CAN network interface (vcan) */
 class CreateInterface
