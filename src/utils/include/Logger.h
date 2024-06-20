@@ -51,21 +51,21 @@ private:
     std::vector<std::string> _loggers;
 public:
     /**
-     * @brief Construct a new Logger object without adding a file logger to it. Only console logger by default.
-     * 
-     */
-    Logger();
-
-    /**
-     * @brief Construct a new Logger object and add a file logger to it. The file logger is specific to this logger,
-     *  but can be used in another module to log to it.
+     * @brief Construct a new Logger object and add a file logger to it. The file logger is specific to this logger.
      *  
      * @param[i] loggerName 
      * @param[i] filePath 
      */
     Logger(std::string loggerName, std::string filePath);
-
-    void setFileLogger(std::string& loggerName, std::string& filePath);
+    
+    /**
+     * @brief Add a new file logger. For future use if multiple file loggers will be used.
+     * 
+     * @param[i] loggerName 
+     * @param[i] filePath 
+     * @return std::shared_ptr<spdlog::logger> 
+     */
+    std::shared_ptr<spdlog::logger> addFileLogger(std::string loggerName, std::string filePath);
 
     /**
      * @brief Create only one static consoleLogger for the Logger class. 
