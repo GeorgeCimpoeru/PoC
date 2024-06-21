@@ -50,7 +50,7 @@ jobs:
 
   merge_development-DEV_BE:
     runs-on: ubuntu-latest
-	needs: merge_main-development
+    needs: merge_main-development
     steps:
     - name: Merge development into DEV_BE
       run: |
@@ -64,7 +64,7 @@ jobs:
 
   merge_development-DEV_FE:
     runs-on: ubuntu-latest
-	needs: merge_main-development
+    needs: merge_main-development
     steps:
     - name: Merge development into DEV_FE
       run: |
@@ -78,7 +78,7 @@ jobs:
 
   merge_REST_API:
     runs-on: ubuntu-latest
-	needs: merge_development-DEV_BE
+    needs: merge_development-DEV_BE
     steps:
     - name: Merge feature/rest_api with DEV_BE
       run: |
@@ -92,7 +92,7 @@ jobs:
 
   merge_MCU:
     runs-on: ubuntu-latest
-	needs: merge_development-DEV_BE
+    needs: merge_development-DEV_BE
     steps:
     - name: Merge feature/MCU_module with DEV_BE
       run: |
@@ -106,7 +106,7 @@ jobs:
 
   merge_ECU:
     runs-on: ubuntu-latest
-	needs: merge_development-DEV_BE
+    needs: merge_development-DEV_BE
     steps:
     - name: Merge feature/ECU_BatteryModule with DEV_BE
       run: |
@@ -120,7 +120,7 @@ jobs:
 
   merge_DEV_FE-front:
     runs-on: ubuntu-latest
-	needs: merge_development-DEV_FE
+    needs: merge_development-DEV_FE
     steps:
     - name: Merge DEV_FE into front
       run: |
