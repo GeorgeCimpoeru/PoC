@@ -1,4 +1,5 @@
 #include "../include/GenerateFrames.h"
+#include "../include/BatteryModuleLogger.h"
 
 GenerateFrames::GenerateFrames(int socket)
 {
@@ -33,6 +34,7 @@ struct can_frame GenerateFrames::createFrame(int &id,  std::vector<uint8_t> &dat
             }
             break;
         default:
+            LOG_ERROR(batteryModuleLogger.GET_LOGGER(), "Invalid frame type");
             throw std::invalid_argument("Invalid frame type");
     }
     return frame;
@@ -44,7 +46,8 @@ bool GenerateFrames::sendFrame(int id, std::vector<uint8_t > data, FrameType fra
     int nbytes = write(this->socket, &frame, sizeof(frame));
     if (nbytes != sizeof(frame))
     {
-        std::cout<<"Write error\n";
+        /* std::cout<<"Write error\n"; */
+        LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Write error\n");
         return -1;
     }
     return 0;
@@ -57,7 +60,8 @@ void GenerateFrames::addSocket(int socket)
         this->socket = socket;
         return;
     }
-    std::cout<<"Error: Pass a valid Socket\n";
+    /* std::cout<<"Error: Pass a valid Socket\n"; */
+    LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Error: Pass a valid Socket\n");
     exit(EXIT_FAILURE);
 }
 
@@ -168,7 +172,8 @@ void GenerateFrames::readDataByIdentifier(int id,int identifier, std::vector<uin
         this->sendFrame(id, data);
         return;
     }
-    std::cout<<"ERROR: The frame is to long!, consider using method ReadDataByIdentifierLongResponse\n";
+    /* std::cout<<"ERROR: The frame is to long!, consider using method ReadDataByIdentifierLongResponse\n"; */
+    LOG_WARN(batteryModuleLogger.GET_LOGGER(), "ERROR: The frame is to long!, consider using method ReadDataByIdentifierLongResponse\n");
     return;
     /*
     *According to documentation, the frame can
@@ -220,7 +225,7 @@ void GenerateFrames::flowControlFrame(int id)
     this->sendFrame(id, {0x30,0x00,0x00,0x00});
 }
 
-void GenerateFrames::readMemoryByAddress(int id, int memory_size, int memory_address, std::vector<uint8_t> response )
+void GenerateFrames::readMemoryByAddress(int id, int memory_address, int memory_size, std::vector<uint8_t> response )
 {
     /* add lengths of of memory size/address to the frame */
     uint8_t length_memory_size = (countDigits(memory_size) +1) / 2;
@@ -251,12 +256,13 @@ void GenerateFrames::readMemoryByAddress(int id, int memory_size, int memory_add
         return;
     } else
     {
-        std::cout<<"ERROR: Response to long, consider using ReadMemoryByAdressLongResponse method\n";
+        /* std::cout<<"ERROR: Response to long, consider using ReadMemoryByAdressLongResponse method\n"; */
+        LOG_WARN(batteryModuleLogger.GET_LOGGER(), "ERROR: Response to long, consider using ReadMemoryByAdressLongResponse method\n");
         return;
     }
 }
 
-void GenerateFrames::readMemoryByAddressLongResponse(int id, int memory_size, int memory_address, std::vector<uint8_t> response, bool first_frame)
+void GenerateFrames::readMemoryByAddressLongResponse(int id, int memory_address, int memory_size, std::vector<uint8_t> response, bool first_frame)
 {
     /* add lengths of of memory size/address to the frame */
     uint8_t length_memory_size = (countDigits(memory_size) +1) / 2;
@@ -314,7 +320,8 @@ void GenerateFrames::writeDataByIdentifier(int id, uint16_t identifier, std::vec
         }
         else
         {
-            std::cout<<"The data_parameter is to long. Consider using WriteDataByIdentifierLongData method\n";
+            /* std::cout<<"The data_parameter is to long. Consider using WriteDataByIdentifierLongData method\n"; */
+            LOG_WARN(batteryModuleLogger.GET_LOGGER(), "The data_parameter is to long. Consider using WriteDataByIdentifierLongData method\n");
             return;
         }
     }
@@ -360,7 +367,8 @@ void GenerateFrames::clearDiagnosticInformation(int id, std::vector<uint8_t> gro
             return;
         } else
         {
-            std::cout<<"ERROR: Can't send more than 6 DTC/frame, please consider send 2 or more frames\n";
+            /* std::cout<<"ERROR: Can't send more than 6 DTC/frame, please consider send 2 or more frames\n"; */
+            LOG_WARN(batteryModuleLogger.GET_LOGGER(), "ERROR: Can't send more than 6 DTC/frame, please consider send 2 or more frames\n");
             return;
         }
         
@@ -432,7 +440,8 @@ void GenerateFrames::transferData(int id, uint8_t block_sequence_counter, std::v
             return;
         } else
         {
-            std::cout<<"The transfer_request is to long. Consider using transferDataLong method\n";
+            /* std::cout<<"The transfer_request is to long. Consider using transferDataLong method\n"; */
+            LOG_WARN(batteryModuleLogger.GET_LOGGER(), "The transfer_request is to long. Consider using transferDataLong method\n");
             return;
         }
     }
@@ -497,7 +506,7 @@ int GenerateFrames::countDigits(int number)
 {
     int digits = 0;
     if (number < 0) 
-        digits = 1;
+        return 0;
     while (number) {
         number /= 10;
         digits++;
