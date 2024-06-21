@@ -68,7 +68,6 @@ protected:
     HandleFrames handle_frame;
     
 public:
-    bool notificationFlag;
     /**
      * @brief Construct a new receive Frames object
      * 
