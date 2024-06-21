@@ -1,9 +1,9 @@
-name: Automerge (After push on developement)
+name: Automerge (After push on master)
 
 on:
   push:
     branches:
-      - development
+      - master
 
 env:
   # replace "github_username" with your GitHub username
@@ -25,6 +25,8 @@ env:
 
   # Master branches used to merge back
 
+  master_BRANCH: master
+
   development_BRANCH: development
 
   DEV_BE_BRANCH: DEV_BE
@@ -32,8 +34,22 @@ env:
   DEV_FE_BRANCH: DEV_FE
 
 jobs:
+  merge_master-development:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Merge master into development
+      run: |
+        git clone ${{env.MY_REPO}} -b ${{env.development_BRANCH}} tmp
+        cd tmp
+        git config user.name "Automerge Bot"
+        git config user.email "bot@example.com"
+        git config pull.rebase false
+        git pull ${{env.MASTER_REPO}} ${{env.master_BRANCH}}
+        git push -f
+
   merge_development-DEV_BE:
     runs-on: ubuntu-latest
+    needs: merge_master-development
     steps:
     - name: Merge development into DEV_BE
       run: |
@@ -47,6 +63,7 @@ jobs:
 
   merge_development-DEV_FE:
     runs-on: ubuntu-latest
+    needs: merge_master-development
     steps:
     - name: Merge development into DEV_FE
       run: |
