@@ -17,32 +17,35 @@
 class MCUModule {
 public:
     /** 
-     * Constructor that takes the interface number as an argument.
+     * @brief Constructor that takes the interface number as an argument.
      * When the constructor is called, it creates a new interface with the
      * given number and starts the interface.
+     * @param interface_number The number of the vcan interface
     */
     MCUModule(uint8_t interfaces_number);
     
-    /* Default constructor */
+    /**
+     * @brief Default constructor for MCU Module.
+     */
     MCUModule();
 
-    /* Destructor */
+    /**
+     * @brief Destructor for MCU Module.
+     */
     ~MCUModule();
 
     /**
-     * Method to start the module.
-     * This method sets the isRunning flag to true.
+     * @brief Method to start the module. Sets isRunning flag to true.
     */
     void StartModule();
 
     /**
-     * Method to stop the module.
-     * This method sets the isRunning flag to false.
+     * @brief Method to stop the module. Sets isRunning flag to false.
     */
     void StopModule();
 
     /**
-     * Method to receive frames.
+     * @brief Method to receive frames.
      * This method starts a thread to process the queue and receives frames
      * from the CAN bus.
     */
