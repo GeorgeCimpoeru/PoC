@@ -21,24 +21,6 @@ class GenerateFrame:
         except can.CanError:
             print("Error receiving message")
             return None
-
-    def check_interface_is_up(self):
-        """
-        Checks if the CAN interface is up.
-
-        Returns:
-            bool: True if the interface is up, False otherwise.
-        """
-        try:
-            result = subprocess.run(
-                ['ip', 'link', 'show', self.can_interface],
-                capture_output=True,
-                text=True,
-                check=True
-            )
-            return "UP" in result.stdout
-        except subprocess.CalledProcessError:
-            return False
             
     def control_frame(self, id):
         data = [0x30, 0x00, 0x00, 0x00]
