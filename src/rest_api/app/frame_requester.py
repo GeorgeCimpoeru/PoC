@@ -12,10 +12,10 @@ class CustomError(Exception):
 
 class FrameRequester:
     def __init__(self, can_interface):
-        self.generator = GenerateFrame(can_interface)
+        self.bus = can.interface.Bus(channel=can_interface, interface='socketcan')
+        self.generator = GenerateFrame(self.bus)
         self.can_db_handler = CanFrameDatabaseHandler()
         self.mcu_db_handler = McuIdsDatabaseHandler()
-        self.bus = can.interface.Bus(channel=can_interface, interface='socketcan')
 
     def check_interface(self):
         try:

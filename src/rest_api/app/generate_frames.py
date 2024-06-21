@@ -77,7 +77,7 @@ class GenerateFrame:
 
     def response_read_dtc_information(self, id, sts_ava_mask, dtc_format, dtc_count):
 
-        data = [3, 0x59, 0x01, sts_ava_mask, dtc_format, dtc_count]
+        data = [5, 0x59, 0x01, sts_ava_mask, dtc_format, dtc_count]
 
         self.send_frame(id, data)
 
