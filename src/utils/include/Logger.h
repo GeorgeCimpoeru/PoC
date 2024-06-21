@@ -36,6 +36,13 @@
 #define SPDLOG_COMPILED_LIB
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
 
+#define CONSOLE_LOGGER getConsoleLogger()
+#define FILE_LOGGER getFileLogger()
+#ifdef UNIT_TESTING_MODE
+#define GET_LOGGER() CONSOLE_LOGGER
+#else
+#define GET_LOGGER() FILE_LOGGER
+#endif /* UNIT_TESTING_MODE */
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -55,23 +62,17 @@ public:
      * 
      */
     Logger();
-    
+
     /**
-     * @brief Construct a new Logger object and add a file logger to it. The file logger is specific to this logger.
+     * @brief Construct a new Logger object and add a file logger to it. The file logger is specific to this logger,
+     *  but can be used in another module to log to it.
      *  
      * @param[i] loggerName 
      * @param[i] filePath 
      */
     Logger(std::string loggerName, std::string filePath);
-    
-    /**
-     * @brief Add a new file logger. For future use if multiple file loggers will be used.
-     * 
-     * @param[i] loggerName 
-     * @param[i] filePath 
-     * @return std::shared_ptr<spdlog::logger> 
-     */
-    std::shared_ptr<spdlog::logger> addFileLogger(std::string loggerName, std::string filePath);
+
+    void setFileLogger(std::string& loggerName, std::string& filePath);
 
     /**
      * @brief Create only one static consoleLogger for the Logger class. 
@@ -109,16 +110,6 @@ public:
      */
     ~Logger();
 };
-
-#define CONSOLE_LOGGER getConsoleLogger()
-#define FILE_LOGGER getFileLogger()
-
-/* MACRO CONTROLLED IN THE MAKEFILE CFLAGS */
-#ifdef UNIT_TESTING_MODE
-#define GET_LOGGER() CONSOLE_LOGGER
-#else
-#define GET_LOGGER() FILE_LOGGER
-#endif /* UNIT_TESTING_MODE */
 
 /* LOGGING CAN BE TURNED OFF AT COMPILE TIME, BUT USAGE OF MACROS IS NEEDED IN ORDER TO WORK*/
 #define LOG_TRACE(logger, ...) SPDLOG_LOGGER_TRACE(logger, __VA_ARGS__)

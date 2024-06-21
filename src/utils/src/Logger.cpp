@@ -52,10 +52,16 @@ std::shared_ptr<spdlog::logger> Logger::getFileLogger() const
     return _fileLogger;
 }
 
-std::shared_ptr<spdlog::logger> Logger::addFileLogger(std::string loggerName, std::string filePath)
+void Logger::setFileLogger(std::string& loggerName, std::string& filePath)
 {
+    /* Check for existing logger, delete it and update with new one. */
+    if(_fileLogger != nullptr)
+    {
+        removeLogger(_fileLogger->name());
+        spdlog::drop(_fileLogger->name());
+    }
+    _fileLogger = spdlog::basic_logger_mt(loggerName, filePath);
     _loggers.emplace_back(loggerName);
-    return spdlog::basic_logger_mt(loggerName, filePath);
 }
 
 void Logger::removeLogger(std::string loggerName)
