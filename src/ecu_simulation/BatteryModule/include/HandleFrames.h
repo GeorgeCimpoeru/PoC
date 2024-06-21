@@ -53,40 +53,43 @@ private:
                     
 public:
     /**
-     * @brief Construct a new Handle Frames object
-     * 
+     * @brief Default constructor for Handle Frames object.
      */
     HandleFrames() : expected_data_size(0), flag(0) {}
+
     /**
-     * @brief Method for checking the validity of the received CAN frame
+     * @brief Method for checking the validity of the received CAN frame.
      * 
-     * @param nbytes 
-     * @param frame 
-     * @return false 
+     * @param nbytes Number of bytes.
+     * @param frame Frame to be checked
+     * @return Returns true of the processing is done or false if an error is encountered. 
      */
     bool checkReceivedFrame(int nbytes, const struct can_frame &frame);
+
     /**
-     * @brief Method for processing received CAN frame
+     * @brief Method for processing received CAN frame.
      * 
-     * @param frame 
+     * @param frame Frame to be processed.
      */
     void processReceivedFrame(const struct can_frame &frame);
+
     /**
-     * @brief Method for handling complete data after reception
+     * @brief Method for handling complete data after reception.
      * 
-     * @param id 
-     * @param data 
-     * @param is_single_frame 
+     * @param id The can identifier.
+     * @param data Frame data.
+     * @param is_single_frame Flag to verify if it is a sinle frame or multiple frames.
      */
     void handleCompleteData(int id, const std::vector<uint8_t>& data, bool is_single_frame);
+
     /**
      * @brief  Method used to send a frame based on the nrc(negative response code) received.
      * It takes as parameters frame_id, sid to identify the service, and nrc to send the correct
      * negative response code back to who made the request.
      * 
-     * @param frame_id 
-     * @param sid 
-     * @param nrc 
+     * @param frame_id Frame identifier.
+     * @param sid Service identifier.
+     * @param nrc Negative response code.
      */
     void processNrc(int id, uint8_t sid, uint8_t nrc);
 };
