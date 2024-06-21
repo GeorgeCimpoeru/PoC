@@ -1,14 +1,14 @@
 #include "../include/BatteryModule.h"
 
 #ifdef UNIT_TESTING_MODE
-    Logger batteryModuleLogger;
+Logger batteryModuleLogger;
 #else
-    Logger batteryModuleLogger("batteryModuleLogger", "logs/batteryModuleLogger.log");
+Logger batteryModuleLogger("batteryModuleLogger", "logs/batteryModuleLogger.log");
 #endif /* UNIT_TESTING_MODE */
 
 /** Constructor - initializes the BatteryModule with default values,
  * sets up the CAN interface, and prepares the frame receiver. */
-BatteryModule::BatteryModule() : moduleId(0x101),
+BatteryModule::BatteryModule() : moduleId(0x11),
                                  energy(0.0),
                                  voltage(0.0),
                                  percentage(0.0),
@@ -17,11 +17,11 @@ BatteryModule::BatteryModule() : moduleId(0x101),
 {
     /* Initialize the Frame Receiver */
     frameReceiver = new ReceiveFrames(canInterface.get_socketECU(), moduleId);
-#ifdef BATTERY_MODULE_DEBUG
-    std::cout << "BatteryModule()" << std::endl;
-    std::cout << "(BatteryModule)moduleId = " << this->moduleId << std::endl;
-#endif
-    notifyUp();
+
+    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery object created successfully, ID : 0x{:X}", this->moduleId);
+
+    /* Send Up-Notification to MCU */
+    sendNotificationToMCU();
 }
 
 /* Parameterized Constructor - initializes the BatteryModule with provided interface number and module ID */
@@ -34,44 +34,33 @@ BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_mo
 {
     /* Initialize the Frame Receiver */
     frameReceiver = new ReceiveFrames(canInterface.get_socketECU(), moduleId);
-#ifdef BATTERY_MODULE_DEBUG
-    std::cout << "BatteryModule(int interfaceNumber, int moduleId)" << std::endl;
-    std::cout << "(BatteryModule)moduleId = " << this->moduleId << std::endl;
-#endif
-    notifyUp();
+
+    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery object created successfully using Parameterized Constructor, ID : 0x{:X}", this->moduleId);
+
+    /* Send Up-Notification to MCU */
+    sendNotificationToMCU();
 }
 
 /* Destructor */
 BatteryModule::~BatteryModule()
 {
-    notifyDown();
     delete frameReceiver;
+    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery object out of scope");
 }
 
 /* Function to notify MCU if the module is Up & Running */
-void BatteryModule::notifyUp()
+void BatteryModule::sendNotificationToMCU()
 {
     /* Create an instance of GenerateFrames with the CAN socket */
-    GenerateFrames g1 = GenerateFrames(canInterface.get_socketECU());
+    GenerateFrames notifyFrame = GenerateFrames(canInterface.get_socketECU());
 
     /* Create a vector of uint8_t (bytes) containing the data to be sent */
     std::vector<uint8_t> data = {0x0, 0xff, 0x11, 0x3};
 
     /* Send the CAN frame with ID 0x22110 and the data vector */
-    g1.sendFrame(0x22110, data);
-}
+    notifyFrame.sendFrame(0x1110, data);
 
-/* Function to notify MCU if the module is Down */
-void BatteryModule::notifyDown()
-{
-    /* Create an instance of GenerateFrames with the CAN socket */
-    GenerateFrames g1 = GenerateFrames(canInterface.get_socketECU());
-
-    /* Create a vector of uint8_t (bytes) containing the data to be sent */
-    std::vector<uint8_t> data = {0x0, 0xff, 0x0, 0x3};
-
-    /* Send the CAN frame with ID 0x22110 and the data vector */
-    g1.sendFrame(0x22110, data);
+    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery module sent UP notification to MCU");
 }
 
 /* Helper function to execute shell commands and fetch output */
@@ -140,19 +129,21 @@ void BatteryModule::fetchBatteryData()
         this->energy = energy;
         this->voltage = voltage;
         this->percentage = percentage;
-#ifdef BATTERY_MODULE_DEBUG
-        std::cout << "Fetched Data - Energy: " << energy << " Wh, Voltage: " << voltage << " V, Percentage: " << percentage << "%, State: " << state << std::endl;
-#endif
+
+        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery Data : Energy: {} Wh, Voltage: {} V, Percentage: {} %, State: {}", energy, voltage, percentage, state);
     }
     catch (const std::exception &e)
     {
-        std::cerr << "Error fetching battery data: " << e.what() << std::endl;
+        /* std::cerr << "Error fetching battery data: " << e.what() << std::endl; */
+        LOG_ERROR(batteryModuleLogger.GET_LOGGER(), "Error fetching battery data: {}", e.what());
     }
 }
 
 /* Function to receive CAN frames */
 void BatteryModule::receiveFrames()
 {
+    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery module starts the frame receiver");
+
     /* Create a HandleFrames object to process received frames */
     HandleFrames handleFrames;
 
@@ -167,6 +158,7 @@ void BatteryModule::receiveFrames()
 void BatteryModule::stopFrames()
 {
     frameReceiver->stop();
+    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery module stopped the frame receiver");
 }
 
 /* Getter function for current */

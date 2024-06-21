@@ -6,7 +6,7 @@
  * 
  *  How to use : Simply instantiate the class in Main solution, and access it's methods there.
  *  BatteryModule batteryObj;  *  Default Constructor for battery object with
- *                             *  moduleID 0x101 and interface name 'vcan0'
+ *                             *  moduleID 0x11 and interface name 'vcan0'
  *  BatteryModule batteryObj(interfaceNumber, moduleID);  *  Custom Constructor, for battery object
  *                             *  with custom moduleID, custom interface name
  * @author: Alexandru Nagy
@@ -17,10 +17,7 @@
 #ifndef POC_INCLUDE_BATTERY_MODULE_H
 #define POC_INCLUDE_BATTERY_MODULE_H
 
-#define BATTERY_MODULE_ID 0x101
-
-/* comment-out to disable all the prints in module */
-#define BATTERY_MODULE_DEBUG
+#define BATTERY_MODULE_ID 0x11
 
 #include <thread>
 #include <cstdlib>
@@ -41,14 +38,8 @@ private:
     float percentage;
     std::string state;
 
-    /**
-     * @brief Thread for simulation of battery
-     * 
-     */
-    std::thread simulationThread;
-
     CreateInterface canInterface;
-    ReceiveFrames* frameReceiver;    
+    ReceiveFrames* frameReceiver;
 
 public:
     /**
@@ -73,14 +64,7 @@ public:
      * @brief Function to notify MCU if the module is Up & Running
      * 
      */
-    void notifyUp();
-
-    /**
-     * @brief Function to notify MCU if the module is Down
-     * 
-     * This will be only temporary.
-     */
-    void notifyDown();
+    void sendNotificationToMCU();
 
     /**
      * @brief Helper function to execute shell commands and fetch output
