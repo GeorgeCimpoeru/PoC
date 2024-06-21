@@ -1,11 +1,8 @@
 import can 
-import subprocess
-import sqlite3
 
 class GenerateFrame:
-    def __init__(self, can_interface):
-        self.bus = can.interface.Bus(channel=can_interface, interface='socketcan')
-        self.can_interface = can_interface
+    def __init__(self, bus):
+        self.bus = bus
     
     def send_frame(self, id, data):
         message = can.Message(arbitration_id=id, data=data, is_extended_id=False)
@@ -23,24 +20,6 @@ class GenerateFrame:
         except can.CanError:
             print("Error receiving message")
             return None
-
-    def check_interface_is_up(self):
-        """
-        Checks if the CAN interface is up.
-
-        Returns:
-            bool: True if the interface is up, False otherwise.
-        """
-        try:
-            result = subprocess.run(
-                ['ip', 'link', 'show', self.can_interface],
-                capture_output=True,
-                text=True,
-                check=True
-            )
-            return "UP" in result.stdout
-        except subprocess.CalledProcessError:
-            return False
             
     def control_frame(self, id):
         data = [0x30, 0x00, 0x00, 0x00]
@@ -157,7 +136,6 @@ class GenerateFrame:
             data = [1, 0x77]
         else:
              data = [1, 0x37]
-
         self.send_frame(id, data)
 
     def clear_diagnostic_information(self, id, group_of_dtc=0xFFFFFF, response=False):

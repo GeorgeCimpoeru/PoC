@@ -18,7 +18,7 @@ class MainApp(App):
 
     def setup_vcan_interface(self):
         try:
-            bus = can.interface.Bus(channel='vcan0', interface='socketcan')
+            bus = can.interface.Bus(channel='vcan1', interface='socketcan')
         except OSError:
             import os
             os.system('sudo modprobe vcan')

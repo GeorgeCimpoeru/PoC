@@ -12,15 +12,21 @@ class CustomError(Exception):
 
 class FrameRequester:
     def __init__(self, can_interface):
-        self.generator = GenerateFrame(can_interface)
+        self.bus = can.interface.Bus(channel=can_interface, interface='socketcan')
+        self.generator = GenerateFrame(self.bus)
         self.can_db_handler = CanFrameDatabaseHandler()
         self.mcu_db_handler = McuIdsDatabaseHandler()
-        self.bus = can.interface.Bus(channel=can_interface, interface='socketcan')
 
     def check_interface(self):
-        if self.generator.check_interface_is_up():
+        try:
+            result = subprocess.run(
+                ['ip', 'link', 'show', self.can_interface],
+                capture_output=True,
+                text=True,
+                check=True
+            )
             return "Interface is up."
-        else:
+        except subprocess.CalledProcessError:
             return "Interface is down."
 
     def send_request_frame(self, service_name, arbitration_id, data):

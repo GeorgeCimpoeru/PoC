@@ -45,11 +45,11 @@ class Action:
     - g: Instance of GenerateFrame for generating CAN bus frames.
     """
 
-    def __init__(self, can_interface, my_id, id_ecu):
-        self.bus = can.interface.Bus(channel=can_interface, bustype='socketcan')
+    def __init__(self, bus, my_id, id_ecu):
+        self.bus = bus
         self.my_id = my_id
         self.id_ecu = id_ecu
-        self.g = GF(self.bus)
+        self.g = GF(bus)
 
     def _collect_response(self, sid: int):
         """

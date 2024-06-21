@@ -5,7 +5,7 @@ Future implementations:
     Download from cloud
     Start Routines
 How to use?
-    u = Updates("vcan0", 0x23, 0x12)
+    u = Updates(bus, 0x23, 0x12)
     u.update_to(0x12)
 '''
 
