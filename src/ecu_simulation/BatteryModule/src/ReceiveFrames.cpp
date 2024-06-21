@@ -1,16 +1,14 @@
 #include "../include/ReceiveFrames.h"
 #include "../include/HandleFrames.h"
+#include "../include/GenerateFrames.h"
 #include "../include/BatteryModuleLogger.h"
-
-Logger receiveModuleLogger = Logger("receiveFramesModule", "logs/receive_frames.log");
 
 ReceiveFrames::ReceiveFrames(int socket, int frame_id) : socket(socket), frame_id(frame_id), running(true) 
 {
     if (socket < 0) 
     {
         /* std::cerr << "Error: Pass a valid Socket\n"; */
-        LOG_INFO(receiveModuleLogger.getConsoleLogger(), "Error: Pass a valid Socket\n");
-        LOG_INFO(receiveModuleLogger.getFileLogger(), "Error: Pass a valid Socket\n");
+        LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Error: Pass a valid Socket\n");
         exit(EXIT_FAILURE);
     }
 
@@ -20,20 +18,12 @@ ReceiveFrames::ReceiveFrames(int socket, int frame_id) : socket(socket), frame_i
     if (frame_id < MIN_VALID_ID || frame_id > MAX_VALID_ID) 
     {
         /* std::cerr << "Error: Pass a valid Module ID\n"; */
-        LOG_INFO(receiveModuleLogger.getConsoleLogger(), "Error: Pass a valid Module ID\n");
-        LOG_INFO(receiveModuleLogger.getFileLogger(), "Error: Pass a valid Module ID\n");
+        LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Error: Pass a valid Module ID\n");
         exit(EXIT_FAILURE);
     }
 
     /* Print the frame_id for debugging */ 
-    std::cout << "Module ID: 0x" << std::hex << std::setw(8) << std::setfill('0') << this->frame_id << std::endl;
-    LOG_INFO(receiveModuleLogger.getConsoleLogger(), 
-                "Module ID: {}", 
-                fmt::format("0x{:08X}", this->frame_id));
-                 
-    LOG_INFO(receiveModuleLogger.getFileLogger(), 
-                "Module ID: {}", 
-                fmt::format("0x{:08X}", this->frame_id));
+    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Module ID: 0x{0:x}", this->frame_id);
 }
 
 ReceiveFrames::~ReceiveFrames() 
@@ -43,17 +33,14 @@ ReceiveFrames::~ReceiveFrames()
 
 void ReceiveFrames::receive(HandleFrames &handle_frame) 
 {
-    std::cout << "Starting receive Method for Module ID: 0x" << std::hex << std::setw(8) << std::setfill('0') << this->frame_id << std::endl;
     try 
     {
         bufferFrameInThread = std::thread(&ReceiveFrames::bufferFrameIn, this);
-        std::cout << "bufferFrameInThread\n";
         this->bufferFrameOut(handle_frame);
-        std::cout << "bufferFrameOutThread\n";
     } 
     catch (const std::exception &e) 
     {
-        std::cerr << "Exception in starting threads: " << e.what() << std::endl;
+        LOG_ERROR(batteryModuleLogger.GET_LOGGER(), "Exception in starting threads: {}", e.what());
         stop();
     }
 }
@@ -110,14 +97,14 @@ void ReceiveFrames::bufferFrameIn()
             else 
             {
                 /* An error occurred */ 
-                std::cerr << "poll error: " << strerror(errno) << std::endl;
+                LOG_ERROR(batteryModuleLogger.GET_LOGGER(), "poll error: {}", strerror(errno));
                 break;
             }
         }
     }
     catch (const std::exception &e) 
     {
-        std::cerr << "Exception in bufferFrameIn: " << e.what() << std::endl;
+        LOG_ERROR(batteryModuleLogger.GET_LOGGER(), "Exception in bufferFrameIn: {}", e.what());
         stop();
     }
 }
@@ -126,6 +113,7 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
 {
     while (running) 
     {
+        label1: 
         std::unique_lock<std::mutex> lock(mtx);
         cv.wait(lock, [this]{ return !frame_buffer.empty() || !running; });
         if (!running && frame_buffer.empty()) 
@@ -149,40 +137,60 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
         /* Check if the received frame is for your module */ 
         if (static_cast<int>(frame_dest_id) != current_module_id)
         {
-            std::cerr << "Received frame is not for this module\n";
+            LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Received frame is not for this module\n");
             continue;
         }
 
         if (((frame.can_id >> 8) & 0xFF) == 0) 
         {
-        std::cerr << "Invalid CAN ID: upper 8 bits are zero\n";
+        LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Invalid CAN ID: upper 8 bits are zero\n");
         return;
         }
 
         /* Check if the frame is a request of type 'Up-Notification' from MCU */
         if (frame_dest_id == 0x11 && frame.data[0] == 0x01)
         {
-            notificationFlag = true;
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        }
-        
-        notificationFlag = false;
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Request received from MCU");
+            /* Create and instance of GenerateFrames with the CAN socket */
+            GenerateFrames frame = GenerateFrames(this->socket);
 
+            /* Create a vector of uint8_t (bytes) containing the data to be sent */
+            std::vector<uint8_t> data = {0x0, 0xff, 0x11, 0x3};
+
+            /* Send the CAN frame with ID 0x2210 and the data vector*/
+            frame.sendFrame(0x1110, data);
+            LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Response sent to MCU");
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            goto label1;
+        }
+        if (frame.data[1] == 0xAA)
+        {
+            uint8_t frame_dest_id = frame.can_id & 0xFF;
+            current_module_id = frame_id & 0xFF;
+            GenerateFrames test =GenerateFrames(this->socket);
+            std::vector<uint8_t> data = {0x00, 0xAA};
+            test.sendFrame(0x1110,data);
+
+        }
         /* Process the received frame */ 
         if (!handle_frame.checkReceivedFrame(nbytes, frame)) {
-            std::cerr << "Failed to process frame\n";
+            LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Failed to process frame\n");
         }
     }
 }
 
 void ReceiveFrames::printFrame(const struct can_frame &frame) 
 {
-    std::cout << "\nReceived CAN frame:" << std::endl;
-    std::cout << "CAN ID: 0x" << std::hex << int(frame.can_id) << std::endl;
-    std::cout << "Data Length: " << int(frame.can_dlc) << std::endl;
-    std::cout << "Data:";
+    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "");
+    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Received CAN frame");
+    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Module ID: 0x{0:x}", int(frame.can_id));
+    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data Length: {}", int(frame.can_dlc));
+    std::ostringstream dataStream;
+    dataStream << "Data:";
     for (int frame_byte = 0; frame_byte < frame.can_dlc; ++frame_byte) 
     {
-        std::cout << " 0x" << std::hex << int(frame.data[frame_byte]);
+        dataStream << " 0x" << std::hex << int(frame.data[frame_byte]);
     }
+    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
 }

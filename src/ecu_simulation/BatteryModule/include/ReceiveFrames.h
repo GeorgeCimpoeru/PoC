@@ -68,8 +68,6 @@ protected:
     HandleFrames handle_frame;
     
 public:
-    bool notificationFlag;
-
     /**
      * @brief Parameterized constructor.
      * 

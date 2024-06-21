@@ -6,12 +6,9 @@ int createSocket()
 {
     /* Create socket */
     std::string nameInterface = "vcan0";
-    struct can_frame frame;
     struct sockaddr_can addr;
     struct ifreq ifr;
-    int s;
-
-    s = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+    int s = socket(PF_CAN, SOCK_RAW, CAN_RAW);
     if (s < 0)
     {
         std::cout << "Error trying to create the socket\n";
@@ -22,13 +19,12 @@ int createSocket()
     strcpy(ifr.ifr_name, nameInterface.c_str());
     ioctl(s, SIOCGIFINDEX, &ifr);
 
-    /* Set addr structure with info. */
+    /* Set addr structure with info */
     addr.can_family = AF_CAN;
     addr.can_ifindex = ifr.ifr_ifindex;
 
     /* Bind the socket to the CAN interface */
-    int b = bind(s, (struct sockaddr *)&addr, sizeof(addr));
-    if (b < 0)
+    if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
         std::cout << "Error binding\n";
         return 1;
@@ -37,10 +33,44 @@ int createSocket()
     return s;
 }
 
+/* Mock class for testing fetchBatteryData */
+class BatteryModuleMock : public BatteryModule
+{
+public:
+    /* Override the exec function to return a mock battery data string */
+    std::string exec(const char *cmd) override
+    {
+        return "energy: 50.0\nvoltage: 12.5\npercentage: 80.0\nstate: Discharging\n";
+    }
+};
+
+/* Mock class for testing popen failure */
+class BatteryModulePopenFailMock : public BatteryModule
+{
+public:
+    /* Override the exec function to simulate popen failure */
+    std::string exec(const char *cmd) override
+    {
+        throw std::runtime_error("popen() failed!");
+    }
+};
+
+/* Mock class for testing fetchBatteryData exception handling */
+class BatteryModuleExecExceptionMock : public BatteryModule
+{
+public:
+    /* Override the exec function to throw an exception */
+    std::string exec(const char *cmd) override
+    {
+        throw std::runtime_error("Simulated exec failure");
+    }
+};
+
 /* Test default constructor */
 TEST(BatteryModuleTest, DefaultConstructor)
 {
     BatteryModule batteryModule;
+    /* Check initial values of member variables */
     EXPECT_EQ(batteryModule.getEnergy(), 0.0);
     EXPECT_EQ(batteryModule.getVoltage(), 0.0);
     EXPECT_EQ(batteryModule.getPercentage(), 0.0);
@@ -53,40 +83,42 @@ TEST(BatteryModuleTest, ParameterizedConstructor)
     int interfaceNumber = 1;
     int moduleId = 0x102;
     BatteryModule batteryModule(interfaceNumber, moduleId);
+    /* Check initial values of member variables */
     EXPECT_EQ(batteryModule.getEnergy(), 0.0);
     EXPECT_EQ(batteryModule.getVoltage(), 0.0);
     EXPECT_EQ(batteryModule.getPercentage(), 0.0);
     EXPECT_EQ(batteryModule.getLinuxBatteryState(), "");
 }
 
-/* 
- * Mock the exec function to test fetchBatteryData
- * This class inherits from BatteryModule and overrides the exec function 
- */
-class BatteryModuleMock : public BatteryModule
-{
-public:
-    std::string exec(const char *cmd) override
-    {
-        return "energy: 50.0\nvoltage: 12.5\npercentage: 80.0\nstate: Discharging\n";
-    }
-};
-
-/* Test fetchBatteryData */
+/* Test fetchBatteryData function */
 TEST(BatteryModuleTest, FetchBatteryData)
 {
     BatteryModuleMock batteryModule;
     batteryModule.fetchBatteryData();
+    /* Check if values are correctly fetched and parsed */
     EXPECT_EQ(batteryModule.getEnergy(), 50.0);
     EXPECT_EQ(batteryModule.getVoltage(), 12.5);
     EXPECT_EQ(batteryModule.getPercentage(), 80.0);
     EXPECT_EQ(batteryModule.getLinuxBatteryState(), "Discharging");
 }
 
-/* 
- * Test receiveFrames (without Google Mock, we assume a simple implementation) 
- * This test sends a CAN frame to the BatteryModule and checks if it is received correctly 
- */
+/* Test exception throwing in exec function */
+TEST(BatteryModuleTest, ExecFunctionThrows)
+{
+    BatteryModulePopenFailMock batteryModule;
+    /* Expect the exec function to throw std::runtime_error */
+    EXPECT_THROW(batteryModule.exec("some_command"), std::runtime_error);
+}
+
+/* Test fetchBatteryData exception handling */
+TEST(BatteryModuleTest, FetchBatteryDataExceptionHandling)
+{
+    BatteryModuleExecExceptionMock batteryModule;
+    /* Expect no throw, but error should be logged */
+    EXPECT_NO_THROW(batteryModule.fetchBatteryData());
+}
+
+/* Test receiveFrames function (without Google Mock, simple implementation) */
 TEST(BatteryModuleTest, ReceiveFrames)
 {
     BatteryModule batteryModule;
@@ -104,14 +136,19 @@ TEST(BatteryModuleTest, ReceiveFrames)
     std::thread receive_thread([&batteryModule]()
                                { batteryModule.receiveFrames(); });
 
+    /* Allow some time for the thread to start */
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
     /* Send the frame */
     write(s, &frame, sizeof(frame));
 
-    /* Allow some time for the thread to start */
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    /* Allow some time for the frame to be received */
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
+    /* Stop the frame receiver */
     batteryModule.stopFrames();
 
+    /* Join the thread */
     receive_thread.join();
 }
 
@@ -119,6 +156,7 @@ TEST(BatteryModuleTest, ReceiveFrames)
 TEST(BatteryModuleTest, GetterFunctions)
 {
     BatteryModule batteryModule;
+    /* Check initial values of member variables */
     EXPECT_EQ(batteryModule.getEnergy(), 0.0);
     EXPECT_EQ(batteryModule.getVoltage(), 0.0);
     EXPECT_EQ(batteryModule.getPercentage(), 0.0);
@@ -140,8 +178,9 @@ TEST(BatteryModuleTest, GetLinuxBatteryState)
 /* Test BatteryModule destructor */
 TEST(BatteryModuleTest, Destructor)
 {
-    BatteryModule* batteryModule = new BatteryModule();
+    BatteryModule *batteryModule = new BatteryModule();
     delete batteryModule;
+    /* Check if logger has logged the deletion (requires logger mock, not implemented here) */
 }
 
 /* Test parseBatteryInfo function */
@@ -149,14 +188,17 @@ TEST(BatteryModuleTest, ParseBatteryInfo)
 {
     BatteryModule batteryModule;
 
-    float energy = 0.0;
-    float voltage = 0.0;
-    float percentage = 0.0;
+    /* Variables to hold parsed data */
+    float energy = 0.0, voltage = 0.0, percentage = 0.0;
     std::string state;
 
+    /* Mock battery data string */
     std::string data = "energy: 50.0\nvoltage: 12.5\npercentage: 80.0\nstate: Discharging\n";
+
+    /* Parse the battery data */
     batteryModule.parseBatteryInfo(data, energy, voltage, percentage, state);
 
+    /* Check if values are correctly parsed */
     EXPECT_EQ(energy, 50.0);
     EXPECT_EQ(voltage, 12.5);
     EXPECT_EQ(percentage, 80.0);
@@ -167,10 +209,12 @@ TEST(BatteryModuleTest, ParseBatteryInfo)
 TEST(BatteryModuleTest, ExecFunction)
 {
     BatteryModule batteryModule;
+    /* Execute a simple command and check the result */
     std::string result = batteryModule.exec("echo Hello");
     EXPECT_EQ(result, "Hello\n");
 }
 
+/* Main function to run all tests */
 int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
