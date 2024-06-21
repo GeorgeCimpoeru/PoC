@@ -97,13 +97,8 @@ class ReceiveFrames
   void printFrames(const struct can_frame &frame);
 
   /**
-   * @brief Function to send ECU request on CAN Bus.
-   * @param id The identifier for the ECU.
-   */
-  void sendECURequest(uint8_t id);
-
-  /**
-   * @brief Function to send test frame on CAN Bus.
+   * @brief Function to send test frame on CANBus.
+   * 
    */
   void sendTestFrame();
 
@@ -149,7 +144,7 @@ class ReceiveFrames
    * @brief Get method for the list of ECUs that are up.
    * @return Returns ecus_up (the list of ECUs that are up). 
    */
-  const std::vector<uint8_t>& getECUsUp() const;
+  const uint8_t* getECUsUp() const;
 
   std::map<uint8_t, std::chrono::steady_clock::time_point> ecu_timers;
   std::chrono::seconds timeout_duration;
@@ -169,7 +164,7 @@ class ReceiveFrames
   HandleFrames handler;
   GenerateFrames generate_frames;
   /* Vector contains all the ECUs up ids */
-  std::vector<uint8_t> ecus_up;
+  uint8_t ecus_up[4] = {0};
 
   /**
    * @brief Starts timer_thread and sets running flag on true.

@@ -8,7 +8,7 @@
 #define POC_MCU_MODULE_H
 
 #include "HandleFrames.h"
-#include "InterfaceModule.h"
+#include "../../utils/include/CreateInterface.h"
 #include "ReceiveFrames.h"
 #include "../include/MCULogger.h"
 
@@ -53,7 +53,7 @@ public:
 
 private:
     bool is_running;
-    INTERFACE_module interface_module;
+    CreateInterface create_interface;
     ReceiveFrames* receive_frames;
 };
 

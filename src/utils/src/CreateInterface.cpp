@@ -1,15 +1,29 @@
-#include"../include/InterfaceModule.h"
+#include"../include/CreateInterface.h"
 
 /* Constructor which initializes the interface indicator number */
-INTERFACE_module::INTERFACE_module(uint8_t interface_name)
+CreateInterface::CreateInterface(uint8_t interface_name)
 {
     this->interface_name = interface_name;  
     create_interface();
     start_interface();
 }
-
+/* Method that sets the socket to not block the reading operation */
+int CreateInterface::setSocketBlocking()
+{
+    int flags = fcntl(_socketECU, F_GETFL, 0);
+    if (flags == -1) {
+        LOG_ERROR(MCULogger.GET_LOGGER(), "Error for obtaining flags on socket: {}", strerror(errno));
+        return 1;
+    }
+    // Set the O_NONBLOCK flag to make the socket non-blocking
+    flags |= O_NONBLOCK;
+    if (fcntl(_socketECU, F_SETFL, flags) == -1) {
+        LOG_ERROR(MCULogger.GET_LOGGER(), "Error setting flags: {}", strerror(errno));
+        return -1;
+    }
+}
 /* Method to create a vcan interface */
-bool INTERFACE_module::create_interface()
+bool CreateInterface::create_interface()
 {
     /** define the mask for the first 4 bits for the first interface in hexadecimal 
      * get the first 4 bits applying the mask using the bitwise AND operator and shift right
@@ -19,27 +33,32 @@ bool INTERFACE_module::create_interface()
      * get the last 4 bits applying the mask using the bitwise AND operator
     */ 
     unsigned char last_four_bits =  this->interface_name & 0X0F;
-   
+
+    /* flag to track the succes or failure of each command */
+    bool commandCheck = true;
+
     /* Create interface command for the first interface (for ECU communication) */
     std::string cmd_ecu = "sudo ip link add vcan" + std::to_string(first_four_bits) + " type vcan";   
     /* Create interface command for the second interface (for API communication) */
     std::string cmd_api = "sudo ip link add vcan" + std::to_string(last_four_bits) + " type vcan";
     
-    if (system(cmd_ecu.c_str())) {
-        std::cout << "Error when trying to create the first interface\n";
-        return false;
+    if (system(cmd_ecu.c_str())) {        
+        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to create the first interface");
+        /* Set the flag to false if the first command fails */
+        commandCheck  = false;
     }
 
-    if (system(cmd_api.c_str())) {
-        std::cout << "Error when trying to create the second interface\n";
-        return false;
+    if (system(cmd_api.c_str())) {        
+        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to create the second interface");
+        /* Set the flag to false if the second command fails */
+        commandCheck = false;
     }
 
-    return true;
+    return commandCheck;
 }
 
 /* Method to start a vcan interface */
-bool INTERFACE_module::start_interface()
+bool CreateInterface::start_interface()
 {
     /** define the mask for the first 4 bits for the first interface in hexadecimal 
      * get the first 4 bits applying the mask using the bitwise AND operator and shift right
@@ -55,20 +74,26 @@ bool INTERFACE_module::start_interface()
     /* start interface command for the second interface (for API communication)*/
     std::string cmd_api = "sudo ip link set vcan" + std::to_string(last_four_bits) + " up";   
     
-    if (system(cmd_ecu.c_str())) {
-        std::cout << "Error when trying to start the first interface\n";
-        return false;
+    /* flag to track the succes or failure of each command */
+    bool commandCheck = true; 
+
+    if (system(cmd_ecu.c_str())) {        
+        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to start the first interface");
+        /* Set the flag to false if the first command fails */
+        commandCheck  = false;
     }
 
-     if (system(cmd_api.c_str())) {
-        std::cout << "Error when trying to start the second interface\n";
-        return false;
+     if (system(cmd_api.c_str())) {        
+        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to start the second interface");
+        /* Set the flag to false if the second command fails */
+        commandCheck  = false;
     }
 
     /* Create socket for the first interface */
     _socketECU = socket(PF_CAN, SOCK_RAW, CAN_RAW);
-    if (_socketECU < 0) {
-        std::cout<<"Error when trying to create the first socket\n";
+    if (_socketECU < 0) 
+    {
+        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to create the first socket");
         return 1;
     }    
 
@@ -84,17 +109,17 @@ bool INTERFACE_module::start_interface()
 
     if(bndECU < 0)
     {
-        std::cout<<"Error when trying to bindECU\n";
+        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to bindECU");
         return 1;
     }    
 
     /* Create socket for the second interface (API) */
     _socketAPI = socket(PF_CAN, SOCK_RAW, CAN_RAW);
-    if (_socketAPI < 0) {
-        std::cout<<"Error when trying to create the second socket\n";
+    if (_socketAPI < 0) 
+    {       
+        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to create the second socket");
         return 1;
     }
-
     /* Binding socket */      
     std::string vcan_interface_api =  "vcan" + std::to_string(last_four_bits);
     strcpy(ifr.ifr_name, vcan_interface_api.c_str() );
@@ -108,15 +133,14 @@ bool INTERFACE_module::start_interface()
 
     if(bndAPI < 0)
     {
-        std::cout<<"Error when trying to bindAPI\n";
+        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to bindAPI");
         return 1;
     }    
-
-    return true;
+    return commandCheck;
 }
 
 /* Method to stop a vcan interface */
-bool INTERFACE_module::stop_interface() 
+bool CreateInterface::stop_interface() 
 {
     /** define the mask for the first 4 bits for the first interface in hexadecimal 
      * get the first 4 bits applying the mask using the bitwise AND operator and shift right
@@ -132,21 +156,28 @@ bool INTERFACE_module::stop_interface()
     /* stop interface command for the second interface */
     std::string cmd_api = "sudo ip link set vcan" + std::to_string(last_four_bits) + " down";   
 
-    if (system(cmd_ecu.c_str())) {
-        std::cout << "Error when trying to turn down the first interface\n";
-        return false;
+    /* flag to track the succes or failure of each command */
+    bool commandCheck = true;
+
+    if (system(cmd_ecu.c_str())) 
+    {        
+        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to stop the first interface");
+        /* Set the flag to false if the first command fails */
+        commandCheck  = false;
     }
 
-    if (system(cmd_api.c_str())) {
-        std::cout << "Error when trying to turn down the second interface\n";
-        return false;
+    if (system(cmd_api.c_str())) 
+    {        
+        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to stop the second interface");
+        /* Set the flag to false if the second command fails */
+        commandCheck  = false;
     }
 
-    return true;
+    return commandCheck;
 }
 
 /* Method to delete a vcan interface */
-bool INTERFACE_module::delete_interface() 
+bool CreateInterface::delete_interface() 
 {
     /** define the mask for the first 4 bits for the first interface in hexadecimal 
      * get the first 4 bits applying the mask using the bitwise AND operator and shift right
@@ -162,27 +193,34 @@ bool INTERFACE_module::delete_interface()
     /* delete interface command for the second interface */
     std::string cmd_api = "sudo ip link delete vcan" + std::to_string(last_four_bits) + " type can";
 
-    if (system(cmd_ecu.c_str())) {
-        std::cout << "Error when trying to delete the first interface\n";
-        return false;
+    /* flag to track the succes or failure of each command */
+    bool commandCheck = true;
+
+    if (system(cmd_ecu.c_str())) 
+    {        
+        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to delete the first interface");
+        /* Set the flag to false if the first command fails */
+        commandCheck  = false;
     }
 
-    if (system(cmd_api.c_str())) {
-        std::cout << "Error when trying to delete the second interface\n";
-        return false;
+    if (system(cmd_api.c_str())) 
+    {        
+        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to delete the second interface");
+        /* Set the flag to false if the second command fails */
+        commandCheck  = false;
     }
 
-    return true;
+    return commandCheck;
 }
 
 /* Method to get the first socket descriptor */
-int INTERFACE_module::get_socketECU()
+int CreateInterface::get_socketECU()
 {
     return _socketECU;
 }
 
 /* Method to get the second socket descriptor */
-int INTERFACE_module::get_socketAPI()
+int CreateInterface::get_socketAPI()
 {
     return _socketAPI;
 }

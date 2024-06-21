@@ -25,6 +25,8 @@
 #include <vector>
 #include "../include/MCULogger.h"
 
+#define MCU_ID 0x10
+
 enum FrameType
 {
     DATA_FRAME,
@@ -166,7 +168,7 @@ public:
      * @param memory_address The memory address.
      * @param response The response data (default: empty vector).
      */
-    void readMemoryByAddress(uint32_t can_id, int memory_size, int memory_address, std::vector<uint8_t> response = {});
+    void readMemoryByAddress(uint32_t can_id, int memory_address, int memory_size, std::vector<uint8_t> response = {});
 
     /**
      * @brief Reads memory by address (long format).
@@ -176,7 +178,7 @@ public:
      * @param response The response data.
      * @param first_frame Indicates if it is the first frame (default: true).
      */
-    void readMemoryByAddressLong(uint32_t can_id, int memory_size, int memory_address, std::vector<uint8_t> response, bool first_frame = true);
+    void readMemoryByAddressLong(uint32_t can_id, int memory_address, int memory_size, std::vector<uint8_t> response, bool first_frame = true);
 
     /**
      * @brief Writes data by identifier.
@@ -275,6 +277,15 @@ public:
      * @param response Indicates if it is a response frame (default: false).
      */
     void requestTransferExit(uint32_t can_id, bool response = false);
+    /**
+    * @brief 
+    * @param api_id 
+    * @param sid 
+    * @param battery_id 
+    * @param doors_id 
+    * @param engine_id
+    */ 
+    void apiResponse(uint32_t api_id, uint8_t sid=0xD9, uint8_t battery_id=0x11, uint8_t doors_id=0x12, uint8_t engine_id=0x13);
 
 private:
     int socket = -1;
