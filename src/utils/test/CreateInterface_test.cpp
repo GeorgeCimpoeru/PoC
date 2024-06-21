@@ -35,6 +35,22 @@ TEST(InterfaceTestSuite, CreateInterface)
 }
 
 /* test the start_interface method */
+TEST(InterfaceTestSuite, CreateInterfaceError)
+{
+    CreateInterface interface(0x01);
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();
+    interface.create_interface();
+    std::string output = testing::internal::GetCapturedStdout();   
+    EXPECT_NE(output.find("Error when trying to create the first interface"), std::string::npos);
+    EXPECT_NE(output.find("Error when trying to create the second interface"), std::string::npos);      
+    
+    /* clean up any existing interface to ensure a clean test environment for the next test */ 
+    interface.delete_interface();
+}
+
+
+/* test the start_interface method */
 TEST(InterfaceTestSuite, StartInterface)
 {
     CreateInterface interface(0x01);
@@ -68,24 +84,40 @@ TEST(InterfaceTestSuite, DeleteInterface)
     EXPECT_EQ(interface.delete_interface(),true);  
 }
 
-/* test the delete_interface method */
-TEST(InterfaceTestSuite, ErrorInterface)
+/* test if the interface was not started */
+TEST(InterfaceTestSuite, ErrorStartInterfaceTest)
 {
     CreateInterface interface(0x01);
-    EXPECT_TRUE(is_interface_created("vcan0"));
-    EXPECT_TRUE(is_interface_created("vcan1"));   
-    EXPECT_EQ(interface.delete_interface(),true); 
-    EXPECT_EQ(interface.start_interface(),false); 
-    EXPECT_EQ(interface.stop_interface(),false);
-    EXPECT_EQ(interface.delete_interface(),false);
+    interface.delete_interface();  
+    testing::internal::CaptureStdout();
+    interface.start_interface();
+    std::string output = testing::internal::GetCapturedStdout();   
+    EXPECT_NE(output.find("Error when trying to start the first interface"), std::string::npos);
+    EXPECT_NE(output.find("Error when trying to start the second interface"), std::string::npos);       
 }
 
-/* test if the interface was not created */
-TEST(InterfaceTestSuite, InterfaceNotCreatedTest)
+/* test if the interface was not stopped */
+TEST(InterfaceTestSuite, ErrorStopInterfaceTest)
 {
     CreateInterface interface(0x01);
-    interface.delete_interface(); 
-    EXPECT_EQ(interface.start_interface(),false);     
+    interface.delete_interface();  
+    testing::internal::CaptureStdout();
+    interface.stop_interface();
+    std::string output = testing::internal::GetCapturedStdout();   
+    EXPECT_NE(output.find("Error when trying to stop the first interface"), std::string::npos);
+    EXPECT_NE(output.find("Error when trying to stop the second interface"), std::string::npos);       
+}
+
+/* test if the interface was not deleted*/
+TEST(InterfaceTestSuite, ErrorDeleteInterfaceTest)
+{
+    CreateInterface interface(0x01);
+    interface.delete_interface();  
+    testing::internal::CaptureStdout();
+    interface.delete_interface();
+    std::string output = testing::internal::GetCapturedStdout();   
+    EXPECT_NE(output.find("Error when trying to delete the first interface"), std::string::npos);
+    EXPECT_NE(output.find("Error when trying to delete the second interface"), std::string::npos);       
 }
    
 /* test the get_socketECU method */
@@ -102,6 +134,26 @@ TEST(InterfaceTestSuite, GetSocketAPI)
 {    
     CreateInterface interface(0X01);   
     EXPECT_TRUE(is_valid_socket(interface.get_socketAPI()));  
+    /* clean up any existing interface to ensure a clean test environment for the next test */ 
+    interface.delete_interface();
+}
+
+/* test the setSocketBlocking method */
+TEST(InterfaceTestSuite, setSocketBlocking)
+{    
+    CreateInterface interface(0X01);   
+    EXPECT_EQ(interface.setSocketBlocking(), 0 ); 
+    /* clean up any existing interface to ensure a clean test environment for the next test */ 
+    interface.delete_interface(); 
+}
+
+/* test the setSocketBlocking method */
+TEST(InterfaceTestSuite, setSocketBlockingError)
+{    
+    CreateInterface interface(0X01);       
+    /* Close the file descriptor associated to the socket to simulate error */
+    close(interface.get_socketECU());
+    EXPECT_EQ(interface.setSocketBlocking(), 1 ); 
     /* clean up any existing interface to ensure a clean test environment for the next test */ 
     interface.delete_interface();
 }
