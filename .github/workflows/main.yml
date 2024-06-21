@@ -36,7 +36,6 @@ env:
 jobs:
   merge_main-development:
     runs-on: ubuntu-latest
-	
     steps:
     - name: Merge main into development
       run: |
