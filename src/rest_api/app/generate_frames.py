@@ -3,7 +3,10 @@ import can
 class GenerateFrame:
     def __init__(self, bus):
         self.bus = bus
+<<<<<<< HEAD
 
+=======
+>>>>>>>  Update constructor
     
     def send_frame(self, id, data):
         message = can.Message(arbitration_id=id, data=data)
