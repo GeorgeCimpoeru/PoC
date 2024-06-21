@@ -29,6 +29,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
+#include <poll.h> 
 #include "../include/HandleFrames.h"
 
 class ReceiveFrames 
@@ -36,8 +37,10 @@ class ReceiveFrames
 private:
     /* Descriptor for the socket connection */
     int socket = -1;            
-    /* Module ID for filtering incoming frames */                  
-    int module_id = 0x101;                 
+    /* Module ID for filtering incoming frames */  
+    int frame_id;    
+    /* Battery Module ID for filtering frames for this module */              
+    uint8_t current_module_id = 0x11;                 
     /* Define frame_buffer as a deque of tuples */ 
     std::deque<std::tuple<can_frame, int>> frame_buffer; 
     /* Mutex for ensuring thread safety when accessing the frame buffer */   
@@ -47,16 +50,17 @@ private:
     /* Flag indicating whether the receive threads should continue running */     
     std::atomic<bool> running;                
     /* Thread for buffering in receiving frames */                
-    std::thread bufferFrameInThread;                       
+    std::thread bufferFrameInThread;    
+
     /**
-     * @brief bufferFrameIn thread function that reads frames from the socket and adds them to the buffer
-     * 
+     * @brief bufferFrameIn thread function that reads frames from the socket and adds them to the buffer.
      */
     void bufferFrameIn();
+
     /**
-     * @brief Consumer thread function that processes frames from the buffer
+     * @brief Consumer thread function that processes frames from the buffer.
      * 
-     * @param handle_frame 
+     * @param handle_frame HandleFrame object used for getting new frames.
      */
     void bufferFrameOut(HandleFrames &handle_frame);
     
@@ -65,32 +69,34 @@ protected:
     
 public:
     /**
-     * @brief Construct a new receive Frames object
+     * @brief Parameterized constructor.
      * 
-     * @param socket 
-     * @param module_id 
+     * @param socket The socket file descriptor.
+     * @param frame_id Frame identifier.
      */
-    ReceiveFrames(int socket, int module_id);
+    ReceiveFrames(int socket, int frame_id);
+
     /**
-     * @brief Destroy the receive Frames object
-     * 
+     * @brief Destructor.
      */
     ~ReceiveFrames();
+
     /**
-     * @brief Debug function to print the details of a CAN frame
+     * @brief Debug function to print the details of a CAN frame.
      * 
-     * @param frame 
+     * @param frame The CAN frame to be printed.
      */
     void printFrame(const struct can_frame &frame);
+
     /**
-     * @brief Starts the receive process by creating bufferFrameIn and bufferFrameOut threads
+     * @brief Starts the receive process by creating bufferFrameIn and bufferFrameOut threads.
      * 
-     * @param handle_frame 
+     * @param handle_frame HandleFrame object used for getting new frames.
      */
     void receive(HandleFrames &handle_frame);
+
     /**
-     * @brief Stops the receive process gracefully
-     * 
+     * @brief Stops the receive process gracefully.
      */
     void stop();
 };

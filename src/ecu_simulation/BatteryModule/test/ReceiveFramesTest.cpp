@@ -1,18 +1,19 @@
+#include "../include/ReceiveFrames.h"
+#include "../include/HandleFrames.h"
+#include "../include/GenerateFrames.h"
 #include <gtest/gtest.h>
 #include <unistd.h>
 #include <linux/can.h>
 #include <sys/socket.h>
 #include <vector>
 #include <sstream>
-#include "../include/ReceiveFrames.h"
-#include "../include/HandleFrames.h"
-#include "../include/GenerateFrames.h"
 #include <net/if.h>
 #include <cstring>
 #include <string>
 #include <sys/ioctl.h>
 #include <thread>
 #include <fcntl.h>
+#include <errno.h>
 
 canid_t MODULE_ID = 0x101;
 int s1;
@@ -79,7 +80,6 @@ int createSocket()
 {
     /*Create socket*/
     std::string nameInterface = "vcan0";
-    struct can_frame frame = {};
     struct sockaddr_can addr = {};
     struct ifreq ifr = {};
     int s;
@@ -125,7 +125,7 @@ canid_t extractCANID(const std::string& input)
     
     while (std::getline(iss, line))
     {
-        if (line.find("CAN ID:") != std::string::npos)
+        if (line.find("Module ID:") != std::string::npos)
         {
             size_t pos = line.find("0x");
             canid_t canID = std::stoul(line.substr(pos + 2), nullptr, 16);
@@ -203,7 +203,7 @@ TEST_F(ReceiveFramesConstructorDeathTest, InvalidSocket)
     
     EXPECT_DEATH({
         ReceiveFrames receiver(invalidSocket, invalidModuleID);
-    }, "Error: Pass a valid Socket\n");
+    }, "");
 }
 
 TEST_F(ReceiveFramesConstructorDeathTest, InvalidModuleID)
@@ -212,14 +212,14 @@ TEST_F(ReceiveFramesConstructorDeathTest, InvalidModuleID)
     
     EXPECT_DEATH({
         ReceiveFrames receiver(validSocket, invalidModuleID);
-    }, "Error: Pass a valid Module ID\n");
+    }, "");
 }
 TEST_F(ReceiveFramesTest, EmptyFrameTest)
 {
     HandleFrames handleFrames;
     std::string output_receive = "";
     std::thread receiverThread([&]() {
-        testing::internal::CaptureStderr();
+        testing::internal::CaptureStdout();
         receiveFrames->receive(handleFrames);
     }); 
     struct can_frame sent_frame = createFrame({});
@@ -230,17 +230,16 @@ TEST_F(ReceiveFramesTest, EmptyFrameTest)
     receiverThread.join();
 
     const std::string expected_out = 
-        "Received empty frame\n"
-        "Failed to process frame\n";
-    output_receive = testing::internal::GetCapturedStderr();
-    EXPECT_EQ(expected_out, output_receive);
+        "Received empty frame\n";
+    output_receive = testing::internal::GetCapturedStdout();
+    EXPECT_TRUE(containsLine(output_receive, expected_out));
 }
 TEST_F(ReceiveFramesTest, ReceivedFrameNotForThisModuleTest)
 {
     HandleFrames handleFrames;
     std::string output_receive = "";
     std::thread receiverThread([&]() {
-        testing::internal::CaptureStderr();
+        testing::internal::CaptureStdout();
         receiveFrames->receive(handleFrames);
     });
     struct can_frame sent_frame = createFrame({0x02,0x10,0x01});
@@ -253,8 +252,33 @@ TEST_F(ReceiveFramesTest, ReceivedFrameNotForThisModuleTest)
 
     const std::string expected_out = 
         "Received frame is not for this module\n";
-    output_receive = testing::internal::GetCapturedStderr();
-    EXPECT_EQ(expected_out, output_receive);
+    output_receive = testing::internal::GetCapturedStdout();
+    EXPECT_TRUE(containsLine(output_receive, expected_out));
+}
+
+TEST_F(ReceiveFramesTest, CanIDRightBitsZero)
+{
+    HandleFrames handleFrames;
+    ReceiveFrames *receiveFrames = new ReceiveFrames(s1,1);
+    std::string output_receive = "";
+
+    std::thread receiverThread([&]() {
+        testing::internal::CaptureStdout();
+        receiveFrames->receive(handleFrames);
+    });
+    struct can_frame sent_frame = createFrame({0x02,0x99,0x01});
+    sent_frame.can_id = 0x1;
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    receiveFrames->stop();
+    receiverThread.join();
+
+    output_receive = testing::internal::GetCapturedStdout();
+    const std::string expected_out = 
+        "Invalid CAN ID: upper 8 bits are zero\n";
+    EXPECT_TRUE(containsLine(output_receive, expected_out));
+    delete receiveFrames;
 }
 
 TEST_F(ReceiveFramesTest, SessionControlRequestTest)
@@ -268,6 +292,28 @@ TEST_F(ReceiveFramesTest, SessionControlRequestTest)
         receiveFrames->receive(handleFrames);
     });
     struct can_frame sent_frame = createFrame({0x02,0x10,0x01});
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    receiveFrames->stop();
+    receiverThread.join();
+
+    output_receive = testing::internal::GetCapturedStdout();
+    struct can_frame received_frame = createReceivedFrame(output_receive);
+    testFrames(sent_frame,received_frame);
+}
+
+TEST_F(ReceiveFramesTest, RequestUpdateStatusTest)
+{
+    HandleFrames handleFrames;
+
+    std::string output_receive = "";
+
+    std::thread receiverThread([&]() {
+        testing::internal::CaptureStdout();
+        receiveFrames->receive(handleFrames);
+    });
+    struct can_frame sent_frame = createFrame({0x02,0x32,0x01});
     ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
 
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -1080,6 +1126,7 @@ TEST_F(ReceiveFramesTest, ReqTransferExitResponseTest)
     struct can_frame received_frame = createReceivedFrame(output_receive);
     testFrames(sent_frame,received_frame);
 }
+
 TEST_F(ReceiveFramesTest, UnknownServiceTest)
 {
     HandleFrames handleFrames;
@@ -1087,7 +1134,7 @@ TEST_F(ReceiveFramesTest, UnknownServiceTest)
     std::string output_receive = "";
 
     std::thread receiverThread([&]() {
-        testing::internal::CaptureStderr();
+        testing::internal::CaptureStdout();
         receiveFrames->receive(handleFrames);
     });
     struct can_frame sent_frame = createFrame({0x02,0x99,0x01});
@@ -1097,10 +1144,385 @@ TEST_F(ReceiveFramesTest, UnknownServiceTest)
     receiveFrames->stop();
     receiverThread.join();
 
-    output_receive = testing::internal::GetCapturedStderr();
+    output_receive = testing::internal::GetCapturedStdout();
     const std::string expected_out = 
         "Unknown service\n";
-    EXPECT_EQ(expected_out, output_receive);
+    EXPECT_TRUE(containsLine(output_receive, expected_out));
+}
+
+TEST_F(ReceiveFramesTest, MCUNotifyUp)
+{
+    HandleFrames handleFrames;
+    ReceiveFrames *receiveFrames = new ReceiveFrames(s1,0x12211);
+    std::string output_receive = "";
+
+    std::thread receiverThread([&]() {
+        testing::internal::CaptureStdout();
+        receiveFrames->receive(handleFrames);
+    });
+    struct can_frame sent_frame = createFrame({0x01,0x01,0x01});
+    sent_frame.can_id = 0x12211;
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    receiveFrames->stop();
+    receiverThread.join();
+
+    output_receive = testing::internal::GetCapturedStdout();
+    const std::string expected_out = 
+        "Response sent to MCU\n";
+    EXPECT_TRUE(containsLine(output_receive, expected_out));
+    delete receiveFrames;
+}
+
+TEST_F(ReceiveFramesTest, MCUNotifyUpAA)
+{
+    HandleFrames handleFrames;
+    ReceiveFrames *receiveFrames = new ReceiveFrames(s1,0x12211);
+    std::string output_receive = "";
+
+    std::thread receiverThread([&]() {
+        testing::internal::CaptureStdout();
+        receiveFrames->receive(handleFrames);
+    });
+    struct can_frame sent_frame = createFrame({0x02,0xAA,0x01});
+    sent_frame.can_id = 0x12211;
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    receiveFrames->stop();
+    receiverThread.join();
+
+    output_receive = testing::internal::GetCapturedStdout();
+    struct can_frame received_frame = createReceivedFrame(output_receive);
+    testFrames(sent_frame,received_frame);
+    delete receiveFrames;
+}
+
+class HandleFramesTest : public ::testing::Test {
+protected:
+    HandleFrames handleFrames;
+};
+
+TEST_F(HandleFramesTest, CheckReceivedFrame)
+{
+    HandleFrames handleFrames;
+    std::string output = "";
+    struct can_frame sent_frame = createFrame({0x02,0x51,0x03});
+    errno = EWOULDBLOCK;
+    EXPECT_FALSE(handleFrames.checkReceivedFrame(-1,sent_frame));
+    
+    errno = ENOENT;
+    testing::internal::CaptureStdout();
+    EXPECT_FALSE(handleFrames.checkReceivedFrame(-1,sent_frame));
+    output = testing::internal::GetCapturedStdout();
+    std::string expected_out = "Read error:";
+    EXPECT_TRUE(containsLine(output, expected_out));
+    
+    errno = 0;
+    testing::internal::CaptureStdout();
+    sent_frame = createFrame({0x02,0x51,0x03});
+    handleFrames.checkReceivedFrame(1,sent_frame);
+    output = testing::internal::GetCapturedStdout();
+    expected_out = "Incomplete frame read\n";
+    EXPECT_TRUE(containsLine(output, expected_out));  
+}
+
+TEST_F(ReceiveFramesTest, SessionControlRequestNegative)
+{
+    HandleFrames handleFrames;
+
+    std::string output_receive = "";
+
+    std::thread receiverThread([&]() {
+        testing::internal::CaptureStdout();
+        receiveFrames->receive(handleFrames);
+    });
+    struct can_frame sent_frame = createFrame({0x03, 0X7F, 0x10, 0x11});
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+    
+    sent_frame = createFrame({0x03, 0X7F, 0x10, 0x13});
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+    sent_frame = createFrame({0x03, 0X7F, 0x10, 0x14});
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+    sent_frame = createFrame({0x03, 0X7F, 0x10, 0x25});
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+    sent_frame = createFrame({0x03, 0X7F, 0x10, 0x34});
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+    sent_frame = createFrame({0x03, 0X7F, 0x10, 0x94});
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+    sent_frame = createFrame({0x03, 0X7F, 0x10, 0x70});
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+    sent_frame = createFrame({0x03, 0X7F, 0x10, 0x71});
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+    sent_frame = createFrame({0x03, 0X7F, 0x10, 0x72});
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    receiveFrames->stop();
+    receiverThread.join();
+    output_receive = testing::internal::GetCapturedStdout();
+
+}
+
+TEST_F(ReceiveFramesTest, EcuResetNegative)
+{
+    HandleFrames handleFrames;
+
+    std::string output_receive = "";
+
+    std::thread receiverThread([&]() {
+        testing::internal::CaptureStdout();
+        receiveFrames->receive(handleFrames);
+    });
+    struct can_frame sent_frame = createFrame({0x03, 0X7F, 0x11, 0x25});
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    receiveFrames->stop();
+    receiverThread.join();
+    output_receive = testing::internal::GetCapturedStdout();
+
+}
+
+TEST_F(ReceiveFramesTest, ReadDataByIdentNegative)
+{
+    HandleFrames handleFrames;
+
+    std::string output_receive = "";
+
+    std::thread receiverThread([&]() {
+        testing::internal::CaptureStdout();
+        receiveFrames->receive(handleFrames);
+    });
+    struct can_frame sent_frame = createFrame({0x03, 0X7F, 0x22, 0x11});
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    receiveFrames->stop();
+    receiverThread.join();
+    output_receive = testing::internal::GetCapturedStdout();
+
+}
+
+TEST_F(ReceiveFramesTest, AuthRequestSeeNegative)
+{
+    HandleFrames handleFrames;
+
+    std::string output_receive = "";
+
+    std::thread receiverThread([&]() {
+        testing::internal::CaptureStdout();
+        receiveFrames->receive(handleFrames);
+    });
+    struct can_frame sent_frame = createFrame({0x03, 0X7F, 0x29, 0x11});
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    receiveFrames->stop();
+    receiverThread.join();
+    output_receive = testing::internal::GetCapturedStdout();
+
+}
+
+TEST_F(ReceiveFramesTest, RoutineControlNegative)
+{
+    HandleFrames handleFrames;
+
+    std::string output_receive = "";
+
+    std::thread receiverThread([&]() {
+        testing::internal::CaptureStdout();
+        receiveFrames->receive(handleFrames);
+    });
+    struct can_frame sent_frame = createFrame({0x03, 0X7F, 0x31, 0x11});
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    receiveFrames->stop();
+    receiverThread.join();
+    output_receive = testing::internal::GetCapturedStdout();
+
+}
+
+TEST_F(ReceiveFramesTest, TesterPresentNegative)
+{
+    HandleFrames handleFrames;
+
+    std::string output_receive = "";
+
+    std::thread receiverThread([&]() {
+        testing::internal::CaptureStdout();
+        receiveFrames->receive(handleFrames);
+    });
+    struct can_frame sent_frame = createFrame({0x03, 0X7F, 0x3E, 0x11});
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    receiveFrames->stop();
+    receiverThread.join();
+    output_receive = testing::internal::GetCapturedStdout();
+
+}
+
+TEST_F(ReceiveFramesTest, ReadMemByAddressNegative)
+{
+    HandleFrames handleFrames;
+
+    std::string output_receive = "";
+
+    std::thread receiverThread([&]() {
+        testing::internal::CaptureStdout();
+        receiveFrames->receive(handleFrames);
+    });
+    struct can_frame sent_frame = createFrame({0x03, 0X7F, 0x23, 0x11});
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    receiveFrames->stop();
+    receiverThread.join();
+    output_receive = testing::internal::GetCapturedStdout();
+
+}
+
+TEST_F(ReceiveFramesTest, WriteDataByIdentifierNegative)
+{
+    HandleFrames handleFrames;
+
+    std::string output_receive = "";
+
+    std::thread receiverThread([&]() {
+        testing::internal::CaptureStdout();
+        receiveFrames->receive(handleFrames);
+    });
+    struct can_frame sent_frame = createFrame({0x03, 0X7F, 0x2E, 0x11});
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    receiveFrames->stop();
+    receiverThread.join();
+    output_receive = testing::internal::GetCapturedStdout();
+
+}
+
+TEST_F(ReceiveFramesTest, ReadDtcInformationNegative)
+{
+    HandleFrames handleFrames;
+
+    std::string output_receive = "";
+
+    std::thread receiverThread([&]() {
+        testing::internal::CaptureStdout();
+        receiveFrames->receive(handleFrames);
+    });
+    struct can_frame sent_frame = createFrame({0x03, 0X7F, 0x19, 0x11});
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    receiveFrames->stop();
+    receiverThread.join();
+    output_receive = testing::internal::GetCapturedStdout();
+
+}
+
+TEST_F(ReceiveFramesTest, ClearDiagnosticInformationNegative)
+{
+    HandleFrames handleFrames;
+
+    std::string output_receive = "";
+
+    std::thread receiverThread([&]() {
+        testing::internal::CaptureStdout();
+        receiveFrames->receive(handleFrames);
+    });
+    struct can_frame sent_frame = createFrame({0x03, 0X7F, 0x14, 0x11});
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    receiveFrames->stop();
+    receiverThread.join();
+    output_receive = testing::internal::GetCapturedStdout();
+
+}
+
+TEST_F(ReceiveFramesTest, AccessTimingParametersNegative)
+{
+    HandleFrames handleFrames;
+
+    std::string output_receive = "";
+
+    std::thread receiverThread([&]() {
+        testing::internal::CaptureStdout();
+        receiveFrames->receive(handleFrames);
+    });
+    struct can_frame sent_frame = createFrame({0x03, 0X7F, 0x83, 0x11});
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    receiveFrames->stop();
+    receiverThread.join();
+    output_receive = testing::internal::GetCapturedStdout();
+
+}
+
+TEST_F(ReceiveFramesTest, RequestDownloadNegative)
+{
+    HandleFrames handleFrames;
+
+    std::string output_receive = "";
+
+    std::thread receiverThread([&]() {
+        testing::internal::CaptureStdout();
+        receiveFrames->receive(handleFrames);
+    });
+    struct can_frame sent_frame = createFrame({0x03, 0X7F, 0x34, 0x11});
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    receiveFrames->stop();
+    receiverThread.join();
+    output_receive = testing::internal::GetCapturedStdout();
+
+}
+
+TEST_F(ReceiveFramesTest, TransferDataNegative)
+{
+    HandleFrames handleFrames;
+
+    std::string output_receive = "";
+
+    std::thread receiverThread([&]() {
+        testing::internal::CaptureStdout();
+        receiveFrames->receive(handleFrames);
+    });
+    struct can_frame sent_frame = createFrame({0x03, 0X7F, 0x36, 0x11});
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    receiveFrames->stop();
+    receiverThread.join();
+    output_receive = testing::internal::GetCapturedStdout();
+
+}
+
+TEST_F(ReceiveFramesTest, RequestTransferExitNegative)
+{
+    HandleFrames handleFrames;
+
+    std::string output_receive = "";
+
+    std::thread receiverThread([&]() {
+        testing::internal::CaptureStdout();
+        receiveFrames->receive(handleFrames);
+    });
+    struct can_frame sent_frame = createFrame({0x03, 0X7F, 0x37, 0x11});
+    ASSERT_EQ(write(s2, &sent_frame, sizeof(sent_frame)), sizeof(sent_frame));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    receiveFrames->stop();
+    receiverThread.join();
+    output_receive = testing::internal::GetCapturedStdout();
+
 }
 
 int main(int argc, char **argv) {

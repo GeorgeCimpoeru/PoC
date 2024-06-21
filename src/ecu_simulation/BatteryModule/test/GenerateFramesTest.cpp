@@ -353,7 +353,7 @@ TEST_F(GenerateFramesTest, ReadByIdentLongRespTest)
 TEST_F(GenerateFramesTest, ReadByAddressRespTest) 
 {
     /* Create expected frame */
-    struct can_frame result_frame = createFrame({0x07,0x63,0x21,0x01,0x23,0x45,1,2});
+    struct can_frame result_frame = createFrame({0x07,0x63,0x12,0x23,0x45,0x01,1,2});
     /* Start listening for frame in the CAN-BUS */
     std::thread receive_thread([this]() {
         c1->capture();
@@ -368,7 +368,7 @@ TEST_F(GenerateFramesTest, ReadByAddressRespTest)
 TEST_F(GenerateFramesTest, ReadByAddressRespTest2) 
 {
     /* Create expected frame */
-    struct can_frame result_frame = createFrame({0x05,0x23,0x21,0x01,0x23,0x45});
+    struct can_frame result_frame = createFrame({0x05,0x23,0x12,0x23,0x45,0x01});
     /* Start listening for frame in the CAN-BUS */
     std::thread receive_thread([this]() {
         c1->capture();
@@ -383,7 +383,7 @@ TEST_F(GenerateFramesTest, ReadByAddressRespTest2)
 TEST_F(GenerateFramesTest, ReadMemoryByAddressLong) 
 {
     /* Create expected frame */
-    struct can_frame result_frame = createFrame({0x10,11,0x63,0x21,0x01,0x23,0x45,1});
+    struct can_frame result_frame = createFrame({0x10,11,0x63,0x12,0x23,0x45,0x01,1});
     /* Start listening for frame in the CAN-BUS */
     std::thread receive_thread([this]() {
         c1->capture();
@@ -744,6 +744,27 @@ TEST_F(GenerateFramesTest, ErrorLongResponse)
     g1->sendFrame(id,{1,2,3,4,5,6,7,8,9});
     output = testing::internal::GetCapturedStdout();
     EXPECT_EQ(output, "Write error\n");
+}
+TEST_F(GenerateFramesTest, FrameType) 
+{
+    try {
+        g1->sendFrame(11,{12,23},ERROR_FRAME);
+        FAIL() << "Expected std::invalid_argument";
+    }
+    catch(std::invalid_argument const & err) {
+        EXPECT_EQ(err.what(),std::string("Invalid frame type"));
+    }
+    catch(...) {
+        FAIL() << "Expected std::invalid_argument";
+    }
+}
+/* Test for Service request UpdateStatus */
+TEST_F(GenerateFramesTest, ReqStatus) 
+{
+    /* Send frame */
+    bool response = g1->requestUpdateStatus(id,true);
+    /* TEST */
+    EXPECT_EQ(response, false);
 }
 int main(int argc, char* argv[])
 {
