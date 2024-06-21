@@ -3,10 +3,6 @@ import can
 class GenerateFrame:
     def __init__(self, bus):
         self.bus = bus
-<<<<<<< HEAD
-
-=======
->>>>>>>  Update constructor
     
     def send_frame(self, id, data):
         message = can.Message(arbitration_id=id, data=data)
@@ -537,35 +533,3 @@ class GenerateFrame:
             digits += 1
             number //=10
         return digits
-
-
-# can_interface = "vcan0"
-# id = 0x101
-# data = [1,2,3,4,5,6,7,8,9]
-
-# g = GenerateFrame(can_interface)
-
-# g.session_control(id,0x01)
-# g.ecu_reset(id)
-# g.authntication_seed(id,[0x23,0x34,0x35])
-# g.authntication_key(id,[0x23,0x34,0x35])
-# g.routine_control(id,0x02,0x341A)
-# g.tester_present(id)
-# g.read_data_by_identifier(id,0x3322,[0x32,0x11])
-# g.read_data_by_identifier_long(id,0x1234,data)
-# g.read_memory_by_adress(id, 0x2345, 0x01, [1,2])
-# g.read_memory_by_adress_long(id, 0x2345, 0x01, data)
-# g.write_data_by_identifier(id,0x2345,[1,2])
-# g.write_data_by_identifier_long(id,0x2345,data)
-# #flow controll
-# #request transfer exit
-# g.request_read_dtc_information(id,0x01,0x12)
-# g.clear_diagnostic_information(id,[0xFF,0xFF,0xFF])
-# g.access_timing_parameters(id,0x01)
-# g.request_download(id,0x00,0x3445,0x10)
-# g.transfer_data(id,0x20,[1,2,3,4,5])
-# g.transfer_data_long(id,0x20,data)
-# g.request_transfer_exit(id)
-
-# g.bus.shutdown()
-
