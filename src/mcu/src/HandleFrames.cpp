@@ -36,7 +36,7 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
         {
             sid = frame.data[1];  
         }
-        std::cout << "Single Frame received:" << std::endl;
+        LOG_INFO(MCULogger.GET_LOGGER(), "Single Frame received:");
         for (uint8_t data_pos = 0; data_pos < frame.can_dlc; ++data_pos) 
         {
             frame_data.push_back(frame.data[data_pos]);
@@ -61,7 +61,7 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
         }
         /* get SID from the first frame */
         sid = frame.data[2];
-        std::cout << "Multi-frame Sequence with " << (int)expected_frames << " frames:" << std::endl;
+        LOG_INFO(MCULogger.GET_LOGGER(), "Multi-frame Sequence with {} {}", (int)expected_frames, "frames");
 
         /* Clear the multi_frame_data vector when receiving the first frame */
         frame_data.clear();
@@ -86,9 +86,7 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
         /* Check if the frame's sequence number matches the expected sequence number */
         if (frame.data[0] != expected_sequence_number) 
         {
-            std::cerr << "Invalid consecutive frame sequence: expected " 
-                      << std::hex << int(expected_sequence_number) << " but received " 
-                      << std::hex << int(frame.data[0]) << std::endl;
+            LOG_ERROR(MCULogger.GET_LOGGER(), "Invalid consecutive frame sequence: expected {} {} {}", int(expected_sequence_number), "but received", int(frame.data[0]));
             return;
         }
         /* Concatenate the data from consecutive frames into multi_frame_data */
@@ -101,10 +99,10 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
          /* Check if all multi-frames have been received */
         if (frame_data.size() >= expected_payload) 
         { 
-            std::cout << "data is: ";
+            LOG_INFO(MCULogger.GET_LOGGER(), "Data is: ");
             for (uint8_t data_pos = 0; data_pos < (int)frame_data.size(); ++data_pos) 
             {
-                std::cout << std::hex << int(frame_data[data_pos]) << " ";
+                LOG_INFO(MCULogger.GET_LOGGER(), int(frame_data[data_pos]));
             }
             std::cout << std::endl;
             is_multi_frame = true;
@@ -120,7 +118,7 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
     } 
     else 
     {
-        std::cerr << "Invalid frame type" << std::endl;
+        LOG_ERROR(MCULogger.GET_LOGGER(), "Invalid frame type.");
     }
 }
 
@@ -136,8 +134,8 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
                 processNrc(frame_id, sid, frame_data[3]);
             }
             else 
-            {
-                std::cout << "DiagnosticSessionControl called." << std::endl;
+            {    
+                LOG_INFO(MCULogger.GET_LOGGER(), "DiagnosticSessionControl called.");
             }
             break;
         case 0x11:
@@ -148,7 +146,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             }
             else 
             {
-                std::cout << "EcuReset called." << std::endl;
+                LOG_INFO(MCULogger.GET_LOGGER(), "EcuReset called.");
             }
             break;
         case 0x27:
@@ -159,7 +157,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             }
             else 
             {
-                std::cout << "SecurityAccess called." << std::endl;
+                LOG_INFO(MCULogger.GET_LOGGER(), "SecurityAccess called.");
             }
             break;
         case 0x29:
@@ -170,7 +168,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             }
             else 
             {
-                std::cout << "Authentication called." << std::endl;
+                LOG_INFO(MCULogger.GET_LOGGER(), "Authentication called.");
             }
             break;
         case 0x3E:
@@ -181,7 +179,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             }
             else 
             {
-                std::cout << "TesterPresent called." << std::endl;
+                LOG_INFO(MCULogger.GET_LOGGER(), "TesterPresent called.");
             }
             break;
         case 0x83:
@@ -192,7 +190,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             }
             else 
             {
-                std::cout << "AccessTimingParameters called." << std::endl;
+                LOG_INFO(MCULogger.GET_LOGGER(), "AccessTimingParameters called.");
             }
             break;
         case 0x22:
@@ -203,7 +201,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             }
             else 
             {
-                std::cout << "ReadDataByIdentifier called." << std::endl;
+                LOG_INFO(MCULogger.GET_LOGGER(), "ReadDataByIdentifier called.");
             }
             break;
         case 0x23:
@@ -214,7 +212,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             }
             else 
             {
-                std::cout << "ReadMemoryByAddress called." << std::endl;
+                LOG_INFO(MCULogger.GET_LOGGER(), "ReadMemoryByAddress called.");
             }
             break;
         case 0x2E:
@@ -225,11 +223,11 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             }
             else if (is_multi_frame)
             {
-                std::cout << "WriteDataByIdentifier called with multiple frames." << std::endl;
+                LOG_INFO(MCULogger.GET_LOGGER(), "WriteDataByIdentifier called with multiple frames.");
             }
             else 
             {
-                std::cout << "WriteDataByIdentifier called with one frame." << std::endl;
+                LOG_INFO(MCULogger.GET_LOGGER(), "WriteDataByIdentifier called with one frame.");
             }
             break;
         case 0x14:
@@ -240,7 +238,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             }
             else 
             {
-                std::cout << "ClearDiagnosticInformation called." << std::endl;
+                LOG_INFO(MCULogger.GET_LOGGER(), "ClearDiagnosticInformation called.");
             }
             break;
         case 0x19:
@@ -251,7 +249,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             }
             else 
             {
-                std::cout << "ReadDtcInformation called." << std::endl;
+                LOG_INFO(MCULogger.GET_LOGGER(), "ReadDtcInformation called.");
             }
             break;
         case 0x31:
@@ -262,73 +260,73 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             }
             else 
             {
-                std::cout << "RoutineControl called." << std::endl;
+                LOG_INFO(MCULogger.GET_LOGGER(), "RoutineControl called.");
             }
             break;
         /* UDS Responses */
         case 0x50:
             /* Response for DiagnosticSessionControl */
-            std::cout << "Response for DiagnosticSessionControl received." << std::endl;
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response for DiagnosticSessionControl received.");
             break;
         case 0x51:
             /* Response from EcuReset() service */
-            std::cout << "Response from EcuReset received." << std::endl;
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from EcuReset received.");
             break;
         case 0x67:
             /* Response from SecurityAccess() service */
-            std::cout << "Response from SecurityAccess received." << std::endl;
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from SecurityAccess received.");
             break;
         case 0x69:
-            /* Response from Authentication() service*/
-            std::cout << "Response from Authentication received." << std::endl;
+            /* Response from Authentication() service */
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from Authentication received.");
             break;
         case 0x7E:
             /* Response from TesterPresent() service */
-            std::cout << "Response from TesterPresent received." << std::endl;
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from TesterPresent received.");
             break;
         case 0xC3:
-            /* Response from AccessTimingParameters() service*/
-            std::cout << "Response from AccessTimingParameters received." << std::endl;
+            /* Response from AccessTimingParameters() service */
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from AccessTimingParameters received.");
             break;
         case 0x62:
             /* Response from ReadDataByIdentifier() service */
             if(is_multi_frame)
             {
-                std::cout << "Response from ReadDataByIdentifier received." << std::endl;
-                std::cout << "Received multiple frames containing " << std::dec << frame_data.size() << " bytes of data" << std::endl;
+                LOG_INFO(MCULogger.GET_LOGGER(),"Response from ReadDataByIdentifier received.");
+                LOG_INFO(MCULogger.GET_LOGGER(), "Received multiple frames containing {} {}", frame_data.size(), "bytes of data");
             }
             else 
             {
-                std::cout << "Response from ReadDataByIdentifier received in one frame." << std::endl;
+                LOG_INFO(MCULogger.GET_LOGGER(),"Response from ReadDataByIdentifier received in one frame.");
             }
             break;
         case 0x63:
             /* Response from ReadMemoryByAddress() service */
             if(is_multi_frame)
             {
-                std::cout << "Response from ReadMemoryByAdress received." << std::endl;
-                std::cout << "Received multiple frames containing " << std::dec << frame_data.size() << " bytes of data" << std::endl;
+                LOG_INFO(MCULogger.GET_LOGGER(),"Response from ReadMemoryByAdress received.");
+                LOG_INFO(MCULogger.GET_LOGGER(),"Received multiple frames containing {} {}", frame_data.size(), "bytes of data");
             }
             else 
             {
-                std::cout << "Response from ReadMemoryByAdress received in one frame." << std::endl;
+                LOG_INFO(MCULogger.GET_LOGGER(),"Response from ReadMemoryByAdress received in one frame.");
             }
             break;
         case 0x6E:
             /* Response from WriteDataByIdentifier() service */
-            std::cout << "Response from WriteDataByIdentifier received." << std::endl;
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from WriteDataByIdentifier received.");
             break;
         case 0x54:
             /* Response from ClearDiagnosticInformation() service */
-            std::cout << "Response from ClearDiagnosticInformation received." << std::endl;
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from ClearDiagnosticInformation received.");
             break;
         case 0x59:
             /* Response from ReadDtcInformation() service */
-            std::cout << "Response from ReadDtcInformation received." << std::endl;
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from ReadDtcInformation received.");
             break;
         case 0x71:
             /* Response from RoutineControl() service */
-            std::cout << "Response from RoutineControl received." << std::endl;
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from RoutineControl received.");
             break;
         /* OTA Requests */
         case 0x34:
@@ -339,7 +337,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             }
             else 
             {
-                std::cout << "RequestDownload called." << std::endl;
+                LOG_INFO(MCULogger.GET_LOGGER(), "RequestDownload called.");
             }
             break;
         case 0x36:
@@ -350,11 +348,11 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             }
             else if(is_multi_frame)
             {
-                std::cout << "TransferData called with multiple frames." << std::endl;
+                LOG_INFO(MCULogger.GET_LOGGER(), "TransferData called with multiple frames.");
             }
             else 
             {
-                std::cout << "TransferData called with one frame" << std::endl;
+                LOG_INFO(MCULogger.GET_LOGGER(), "TransferData called with one frame.");
             }
             break;
         case 0x37:
@@ -365,7 +363,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             }
             else 
             {
-                std::cout << "RequestTransferExit called." << std::endl;
+                LOG_INFO(MCULogger.GET_LOGGER(), "RequestTransferExit called.");
             }
             break;
         case 0x32:
@@ -376,29 +374,29 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             }
             else 
             {
-                std::cout << "RequestUpdateStatus called." << std::endl;
+                LOG_INFO(MCULogger.GET_LOGGER(), "RequestUpdateStatus called.");
             }
             break;
         /* OTA Responses */
         case 0x74:
             /* Response from RequestDownload() service */
-            std::cout << "Response from RequestDownload received." << std::endl;
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from RequestDownload received.");
             break;
         case 0x76:
-            /*Response from TransferData() service */
-            std::cout << "Response from TransferData received." << std::endl;
+            /* Response from TransferData() service */
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from TransferData received.");
             break;
         case 0x77:
             /* Response from RequestTransferExit() service */
-            std::cout << "Response from RequestTransferExit received." << std::endl;
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from RequestTransferExit received.");
             break;
         case 0x72:
             /* Response from RequestUpdateStatus() service */
-            std::cout << "Response from RequestUpdateStatus received." << std::endl;
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from RequestUpdateStatus received.");
             break;
         default:
             /* Unknown request/response */
-            std::cout << "Unknown request/response received." << std::endl;
+            LOG_INFO(MCULogger.GET_LOGGER(), "Unknown request/response received.");
             break;
     }
 }
@@ -408,49 +406,48 @@ void HandleFrames::processNrc(canid_t frame_id, uint8_t sid, uint8_t nrc)
     {
         case 0x11:
             /* Service not supported */
-            //GenerateFrames::negativeResponse(can_id, sid, nrc);
-            std::cout << "Error: Service not supported for service: " << std::hex << (int)sid << std::endl;
-        break;
+            /* GenerateFrames::negativeResponse(can_id, sid, nrc); */
+            LOG_ERROR(MCULogger.GET_LOGGER(), "Error: Service not supported for service: {0:x}", (int)sid);
+            break;
         case 0x13:
             /* Incorrect message length or invalid format */
-            //GenerateFrames::negativeResponse(can_id, sid, nrc);
-            std::cout << "Error: Incorrect message length or invalid format for service: " << std::hex << (int)sid << std::endl;
-        break;
+            /* GenerateFrames::negativeResponse(can_id, sid, nrc); */
+            LOG_ERROR(MCULogger.GET_LOGGER(), "Error: Incorrect message length or invalid format for service: {0:x}", (int)sid);
+            break;
         case 0x14:
             /*  Response too long */
-            //GenerateFrames::negativeResponse(can_id, sid, nrc);
-            std::cout << "Error: Response too long for service: " << std::hex << (int)sid << std::endl;
-        break;
+            /* GenerateFrames::negativeResponse(can_id, sid, nrc); */
+            LOG_ERROR(MCULogger.GET_LOGGER(), "Error: Response too long for service: {0:x}", (int)sid);
+            break;
         case 0x25:
             /* No response from subnet component */
-            //GenerateFrames::negativeResponse(can_id, sid, nrc);
-            std::cout << "Error: No response from subnet component for service: " << std::hex << (int)sid << std::endl;
-        break;
+            /* GenerateFrames::negativeResponse(can_id, sid, nrc); */
+            LOG_ERROR(MCULogger.GET_LOGGER(), "Error: No response from subnet component for service: {0:x}", (int)sid);
+            break;
         case 0x34:
             /* Authentication failed */
-            //GenerateFrames::negativeResponse(can_id, sid, nrc);
-            std::cout << "Error: Authentication failed for service: " << std::hex << (int)sid << std::endl;
-        break;
+            /* GenerateFrames::negativeResponse(can_id, sid, nrc); */
+            LOG_ERROR(MCULogger.GET_LOGGER(), "Error: Authentication failed for service: {0:x}", (int)sid);
+            break;
         case 0x94:
             /* Resource temporarily unavailable */
-            //GenerateFrames::negativeResponse(can_id, sid, nrc);
-            std::cout << "Error: Resource temporarily unavailable for service: " << std::hex << (int)sid << std::endl;
-        break;
+            /* GenerateFrames::negativeResponse(can_id, sid, nrc); */
+            LOG_ERROR(MCULogger.GET_LOGGER(), "Error: Resource temporarily unavailable for service: {0:x}", (int)sid);
+            break;
         case 0x70:
             /* Upload download not accepted */
-            //GenerateFrames::negativeResponse(can_id, sid, nrc);
-            std::cout << "Error: Upload download not accepted for service: " << std::hex << (int)sid << std::endl;
-        break;
+            /* GenerateFrames::negativeResponse(can_id, sid, nrc); */
+            LOG_ERROR(MCULogger.GET_LOGGER(), "Error: Upload download not accepted for service: {0:x}", (int)sid);
+            break;
         case 0x71:
             /* Transfer data suspended */
-            //GenerateFrames::negativeResponse(can_id, sid, nrc);
-            std::cout << "Error: Transfer data suspended for service: " << std::hex << (int)sid << std::endl;
-        break;
+            /* GenerateFrames::negativeResponse(can_id, sid, nrc); */
+            LOG_ERROR(MCULogger.GET_LOGGER(), "Error: Transfer data suspended for service: {0:x}", (int)sid);
+            break;
         default:
             /* Unknown negative response code */
-            //GenerateFrames::negativeResponse(can_id, sid, nrc);
-            std::cout << "Error: Unknown negative response code for service: " << std::hex << (int)sid << std::endl;
-        break;
-
+            /* GenerateFrames::negativeResponse(can_id, sid, nrc); */
+            LOG_ERROR(MCULogger.GET_LOGGER(), "Error: Unknown negative response code for service: {0:x}", (int)sid);
+            break;
     }
 }
