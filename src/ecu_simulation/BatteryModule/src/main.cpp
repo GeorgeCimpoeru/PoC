@@ -2,6 +2,7 @@
 
 int main() {
     BatteryModule batteryModule;
+    batteryModule.fetchBatteryData();
     std::thread receiveFrThread([&batteryModule]()
                                { batteryModule.receiveFrames(); });
     sleep(8);

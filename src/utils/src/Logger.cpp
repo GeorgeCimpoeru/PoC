@@ -62,7 +62,6 @@ void Logger::setFileLogger(std::string& loggerName, std::string& filePath)
     }
     _fileLogger = spdlog::basic_logger_mt(loggerName, filePath);
     _loggers.emplace_back(loggerName);
-
 }
 
 void Logger::removeLogger(std::string loggerName)
