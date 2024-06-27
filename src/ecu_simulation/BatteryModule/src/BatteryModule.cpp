@@ -52,7 +52,7 @@ BatteryModule::~BatteryModule()
 void BatteryModule::sendNotificationToMCU()
 {
     /* Create an instance of GenerateFrames with the CAN socket */
-    GenerateFrames notifyFrame = GenerateFrames(canInterface.get_socketECU());
+    GenerateFrames notifyFrame = GenerateFrames(canInterface.get_socketECU(), batteryModuleLogger);
 
     /* Create a vector of uint8_t (bytes) containing the data to be sent */
     std::vector<uint8_t> data = {0x0, 0xff, 0x11, 0x3};

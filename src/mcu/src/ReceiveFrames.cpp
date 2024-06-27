@@ -1,7 +1,7 @@
 #include "../include/ReceiveFrames.h"
 
 ReceiveFrames::ReceiveFrames(int socket_canbus, int socket_api)
-    : socket_canbus(socket_canbus), socket_api(socket_api), generate_frames(socket_canbus),
+    : socket_canbus(socket_canbus), socket_api(socket_api), generate_frames(socket_canbus, MCULogger),
       timeout_duration(120), running(true) 
 {
     startTimerThread();
@@ -168,7 +168,7 @@ void ReceiveFrames::processQueue()
                     data: {PCI_L, SID(0xD9), MCU_id, BATTERY_id, DOORS_id, ENGINE_id, ECU4_id}
                 */
                LOG_INFO(MCULogger.GET_LOGGER(),"Response with all ECUs up.");
-                generate_frames.sendFrame(0x10FA,{0x07, 0xD9, (uint8_t)hex_value_id, ecus_up[0], ecus_up[1], ecus_up[2], ecus_up[3]}, socket_api);
+                generate_frames.sendFrame(0x10FA,{0x07, 0xD9, (uint8_t)hex_value_id, ecus_up[0], ecus_up[1], ecus_up[2], ecus_up[3]}, socket_api, DATA_FRAME);
             }
             else
             {

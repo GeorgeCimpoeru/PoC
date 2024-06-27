@@ -25,7 +25,7 @@
 #include <iostream>
 #include "../../../utils/include/CreateInterface.h"
 #include "ReceiveFrames.h"
-#include "GenerateFrames.h"
+#include "../../../utils/include/GenerateFrames.h"
 #include "BatteryModuleLogger.h"
 
 class BatteryModule
