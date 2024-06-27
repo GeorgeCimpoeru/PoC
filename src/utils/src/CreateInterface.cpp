@@ -1,9 +1,9 @@
 #include"../include/CreateInterface.h"
 
 /* Constructor which initializes the interface indicator number */
-CreateInterface::CreateInterface(uint8_t interface_name)
-{
-    this->interface_name = interface_name;  
+CreateInterface::CreateInterface(uint8_t interface_name, Logger& logger)
+    : logger(logger), interface_name(interface_name) 
+{   
     create_interface();
     start_interface();
 }
@@ -12,13 +12,13 @@ int CreateInterface::setSocketBlocking()
 {
     int flags = fcntl(_socketECU, F_GETFL, 0);
     if (flags == -1) {
-        LOG_ERROR(MCULogger.GET_LOGGER(), "Error for obtaining flags on socket: {}", strerror(errno));
+        LOG_ERROR(logger.GET_LOGGER(), "Error for obtaining flags on socket: {}", strerror(errno));
         return 1;
     }
     // Set the O_NONBLOCK flag to make the socket non-blocking
     flags |= O_NONBLOCK;
     if (fcntl(_socketECU, F_SETFL, flags) == -1) {
-        LOG_ERROR(MCULogger.GET_LOGGER(), "Error setting flags: {}", strerror(errno));
+        LOG_ERROR(logger.GET_LOGGER(), "Error setting flags: {}", strerror(errno));
         return -1;
     }
 }
@@ -43,13 +43,13 @@ bool CreateInterface::create_interface()
     std::string cmd_api = "sudo ip link add vcan" + std::to_string(last_four_bits) + " type vcan";
     
     if (system(cmd_ecu.c_str())) {        
-        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to create the first interface");
+        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to create the first interface");
         /* Set the flag to false if the first command fails */
         commandCheck  = false;
     }
 
     if (system(cmd_api.c_str())) {        
-        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to create the second interface");
+        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to create the second interface");
         /* Set the flag to false if the second command fails */
         commandCheck = false;
     }
@@ -78,13 +78,13 @@ bool CreateInterface::start_interface()
     bool commandCheck = true; 
 
     if (system(cmd_ecu.c_str())) {        
-        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to start the first interface");
+        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to start the first interface");
         /* Set the flag to false if the first command fails */
         commandCheck  = false;
     }
 
      if (system(cmd_api.c_str())) {        
-        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to start the second interface");
+        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to start the second interface");
         /* Set the flag to false if the second command fails */
         commandCheck  = false;
     }
@@ -93,7 +93,7 @@ bool CreateInterface::start_interface()
     _socketECU = socket(PF_CAN, SOCK_RAW, CAN_RAW);
     if (_socketECU < 0) 
     {
-        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to create the first socket");
+        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to create the first socket");
         return 1;
     }    
 
@@ -109,7 +109,7 @@ bool CreateInterface::start_interface()
 
     if(bndECU < 0)
     {
-        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to bindECU");
+        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to bindECU");
         return 1;
     }    
 
@@ -117,7 +117,7 @@ bool CreateInterface::start_interface()
     _socketAPI = socket(PF_CAN, SOCK_RAW, CAN_RAW);
     if (_socketAPI < 0) 
     {       
-        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to create the second socket");
+        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to create the second socket");
         return 1;
     }
     /* Binding socket */      
@@ -133,7 +133,7 @@ bool CreateInterface::start_interface()
 
     if(bndAPI < 0)
     {
-        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to bindAPI");
+        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to bindAPI");
         return 1;
     }    
     return commandCheck;
@@ -161,14 +161,14 @@ bool CreateInterface::stop_interface()
 
     if (system(cmd_ecu.c_str())) 
     {        
-        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to stop the first interface");
+        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to stop the first interface");
         /* Set the flag to false if the first command fails */
         commandCheck  = false;
     }
 
     if (system(cmd_api.c_str())) 
     {        
-        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to stop the second interface");
+        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to stop the second interface");
         /* Set the flag to false if the second command fails */
         commandCheck  = false;
     }
@@ -198,14 +198,14 @@ bool CreateInterface::delete_interface()
 
     if (system(cmd_ecu.c_str())) 
     {        
-        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to delete the first interface");
+        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to delete the first interface");
         /* Set the flag to false if the first command fails */
         commandCheck  = false;
     }
 
     if (system(cmd_api.c_str())) 
     {        
-        LOG_ERROR(MCULogger.GET_LOGGER(),"Error when trying to delete the second interface");
+        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to delete the second interface");
         /* Set the flag to false if the second command fails */
         commandCheck  = false;
     }

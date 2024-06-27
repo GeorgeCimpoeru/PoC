@@ -25,8 +25,7 @@
 #include<linux/can.h>
 #include<string.h>
 #include <fcntl.h>
-#include "../../mcu/include/MCULogger.h"
-
+#include "Logger.h"
 /* class designed to manage the virtual CAN network interface (vcan) */
 class CreateInterface
 {    
@@ -36,10 +35,11 @@ class CreateInterface
         struct ifreq ifr;
         int _socketECU;
         int _socketAPI;
+        Logger& logger;
 
     public:
         /* Constructor that takes the interface indicator number as an argument */
-        CreateInterface(uint8_t interface_name);
+        CreateInterface(uint8_t interface_name, Logger& logger);
         /**
         * @brief Set the socket to not block in the reading operation.
         * 
