@@ -38,7 +38,7 @@ private:
     float percentage;
     std::string state;
 
-    CreateInterface canInterface;
+    CreateInterface* canInterface;
     ReceiveFrames* frameReceiver;
 
 public:

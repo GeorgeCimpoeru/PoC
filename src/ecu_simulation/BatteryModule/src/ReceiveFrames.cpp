@@ -1,7 +1,4 @@
 #include "../include/ReceiveFrames.h"
-#include "../include/HandleFrames.h"
-#include "../../../utils/include/GenerateFrames.h"
-#include "../include/BatteryModuleLogger.h"
 
 ReceiveFrames::ReceiveFrames(int socket, int frame_id) : socket(socket), frame_id(frame_id), running(true) 
 {

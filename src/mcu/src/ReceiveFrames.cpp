@@ -41,7 +41,6 @@ bool ReceiveFrames::receiveFramesFromCANBus()
             {
                 /* Lock the queue before adding the frame to ensure thread safety */
                 std::lock_guard<std::mutex> lock(queue_mutex);
-                
                 /* Take receiver_id */
                 uint8_t dest_id = frame.can_id & 0xFF;
 

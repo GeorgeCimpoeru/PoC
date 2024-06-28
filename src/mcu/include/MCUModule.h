@@ -53,7 +53,7 @@ public:
 
 private:
     bool is_running;
-    CreateInterface create_interface;
+    CreateInterface* create_interface;
     ReceiveFrames* receive_frames;
 };
 
