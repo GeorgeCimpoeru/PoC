@@ -1,13 +1,13 @@
 import "./style.css";
 
-function Other() {
+function MediumSpeed() {
       return (
             <lord-icon
-                  src="https://cdn.lordicon.com/qcnnqpyz.json"
+                  src="https://cdn.lordicon.com/jqnbdcqr.json"
                   trigger="hover"
                   class="my-lordicon">
             </lord-icon>
       );
 }
 
-export default Other
+export default MediumSpeed
