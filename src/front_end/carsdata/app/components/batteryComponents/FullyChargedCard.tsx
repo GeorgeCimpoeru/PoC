@@ -1,6 +1,6 @@
 'use client'
-import React, { useState } from 'react'
-import BatteryFully from '../animations/batteryFully'
+import React, { useState } from 'react';
+import BatteryFully from '../animations/batteryFully.js';
 
 const FullyChargedCard = (props: any) => {
       const [status, setstatus] = useState('off');

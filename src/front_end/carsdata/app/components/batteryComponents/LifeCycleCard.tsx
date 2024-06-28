@@ -1,11 +1,11 @@
 'use client'
-import React, { useState } from 'react'
-import LifeCycle from '../animations/lifeCycle'
-import Modal from '../sharedComponents/ModalString'
+import React, { useState } from 'react';
+import LifeCycle from '../animations/lifeCycle.js';
+import Modal from '../sharedComponents/ModalString';
 
 const LifeCycleCard = (props: any) => {
       const [inputValue, setInputValue] = useState(props.life_cycle);
-      const handleInputChange = (value: any, id: string) => {
+      const handleInputChange = (value: any) => {
             setInputValue(value)
       };
 

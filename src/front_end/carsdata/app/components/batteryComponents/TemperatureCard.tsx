@@ -1,11 +1,11 @@
 'use client'
-import React, { useState } from 'react'
-import Temperature from '../animations/temperature'
-import Modal from '../sharedComponents/ModalString'
+import React, { useState } from 'react';
+import Temperature from '../animations/temperature.js';
+import Modal from '../sharedComponents/ModalString';
 
 const TemperatureCard = (props: any) => {
       const [inputValue, setInputValue] = useState(props.temperature);
-      const handleInputChange = (value: any, id: string) => {
+      const handleInputChange = (value: any) => {
             setInputValue(value)
 
       }

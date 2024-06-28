@@ -1,14 +1,14 @@
-import React from 'react'
-import PercentageCard from '../components/batteryComponents/PercentageCard'
-import VoltageCard from '../components/batteryComponents/VoltageCard'
-import BatteryStateCard from '../components/batteryComponents/BatteryStateCard'
-import TemperatureCard from '../components/batteryComponents/TemperatureCard'
-import LifeCycleCard from '../components/batteryComponents/LifeCycleCard'
-import FullyChargedCard from '../components/batteryComponents/FullyChargedCard'
-import SerialNumberCard from '../components/batteryComponents/SerialNumberCard'
-import RangeBatteryCard from '../components/batteryComponents/RangeBatteryCard'
-import ChargingTimeCard from '../components/batteryComponents/Charging_time'
-import DeviceConsumptionCard from '../components/batteryComponents/DeviceConsumption'
+import React from 'react';
+import PercentageCard from '../components/batteryComponents/PercentageCard';
+import VoltageCard from '../components/batteryComponents/VoltageCard';
+import BatteryStateCard from '../components/batteryComponents/BatteryStateCard';
+import TemperatureCard from '../components/batteryComponents/TemperatureCard';
+import LifeCycleCard from '../components/batteryComponents/LifeCycleCard';
+import FullyChargedCard from '../components/batteryComponents/FullyChargedCard';
+import SerialNumberCard from '../components/batteryComponents/SerialNumberCard';
+import RangeBatteryCard from '../components/batteryComponents/RangeBatteryCard';
+import ChargingTimeCard from '../components/batteryComponents/Charging_time';
+import DeviceConsumptionCard from '../components/batteryComponents/DeviceConsumption';
 
 
 

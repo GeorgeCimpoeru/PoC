@@ -1,6 +1,6 @@
 'use client'
-import React, { useState } from 'react'
-import DeviceConsumption from '../animations/device_consumption'
+import React, { useState } from 'react';
+import DeviceConsumption from '../animations/deviceConsumption.js';
 import ModalDigit from '../sharedComponents/ModalDigit';
 
 const DeviceConsumptionCard = (props: any) => {

@@ -1,11 +1,11 @@
 'use client'
-import React, { useState } from 'react'
-import BatteryPercentage from '../animations/batteryPercentage.js'
-import ModalString from '../sharedComponents/ModalString'
+import React, { useState } from 'react';
+import BatteryPercentage from '../animations/batteryPercentage.js';
+import ModalString from '../sharedComponents/ModalString';
 
 const PercentageCard = (props: any) => {
       const [inputValue, setInputValue] = useState(props.percentageBattery);
-      const handleInputChange = (value: any, id: string) => {
+      const handleInputChange = (value: any) => {
             setInputValue(value)
 
       }

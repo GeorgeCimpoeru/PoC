@@ -1,11 +1,11 @@
 'use client'
-import React, { useState } from 'react'
-import BatteryVoltage from '../animations/batteryVoltage.js'
+import React, { useState } from 'react';
+import BatteryVoltage from '../animations/batteryVoltage.js';
 import ModalString from '../sharedComponents/ModalString';
 
 const VoltageCard = (props: any) => {
       const [inputValue, setInputValue] = useState(props.voltageCard);
-      const handleInputChange = (value: any, id: string) => {
+      const handleInputChange = (value: any) => {
             setInputValue(value)
 
       };

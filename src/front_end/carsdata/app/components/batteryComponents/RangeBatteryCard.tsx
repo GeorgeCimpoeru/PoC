@@ -1,6 +1,6 @@
 'use client'
-import React, { useState } from 'react'
-import Other from '../animations/other'
+import React, { useState } from 'react';
+import RangeBattery from '../animations/rangeBattery.js';
 
 
 const RangeBatteryCard = (props: any) => {
@@ -13,7 +13,7 @@ const RangeBatteryCard = (props: any) => {
                   setstatus('on');
             }
       }
-      
+
       return (
             <div className="card h-64 w-96 bg-green-300  text-black">
                   <div className="card-body">
@@ -21,7 +21,7 @@ const RangeBatteryCard = (props: any) => {
                         <h1>Range: {status}</h1>
                         <input type="checkbox" className="toggle" onChange={change_status} defaultChecked />
                         <div className="card-actions justify-end">
-                              <Other></Other>
+                              <RangeBattery></RangeBattery>
                         </div>
                   </div>
             </div>

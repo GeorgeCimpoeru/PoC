@@ -1,11 +1,11 @@
 'use client'
-import React, { useState } from 'react'
-import ChargingTime from '../animations/charging_time'
-import Modal from '../sharedComponents/ModalString'
+import React, { useState } from 'react';
+import ChargingTime from '../animations/chargingTime.js';
+import Modal from '../sharedComponents/ModalString';
 
 const ChargingTimeCard = (props: any) => {
       const [inputValue, setInputValue] = useState(props.chargingTime);
-      const handleInputChange = (value: any, id: string) => {
+      const handleInputChange = (value: any) => {
             setInputValue(value)
       };
 

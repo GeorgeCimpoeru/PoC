@@ -1,6 +1,6 @@
 import "./style.css";
 
-function Other() {
+function RangeBattery() {
       return (
             <lord-icon
                   src="https://cdn.lordicon.com/qcnnqpyz.json"
@@ -10,4 +10,4 @@ function Other() {
       );
 }
 
-export default Other
+export default RangeBattery
