@@ -1,5 +1,4 @@
 #include "../include/HandleFrames.h"
-#include "../include/BatteryModuleLogger.h"
 /* Services to be included here */
 
 bool HandleFrames::checkReceivedFrame(int nbytes, const struct can_frame &frame)

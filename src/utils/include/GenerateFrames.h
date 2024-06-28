@@ -1,6 +1,6 @@
 /**
  * @file GenerateFrames.h
- * @author Mujdei Ruben
+ * @author Mujdei Ruben & Alexandru Doncea
  * @brief The library facilitates the transmission of Controller Area Network (CAN) 
  * frames through an interface utilizing sockets.
  * The library also gives some methods for the creation of specific 
@@ -23,7 +23,7 @@
 
 #include <unistd.h>
 #include <linux/can.h>
-
+#include "Logger.h"
 /* Enumeration for frame types */
 enum FrameType {
     DATA_FRAME,
@@ -35,6 +35,7 @@ enum FrameType {
 class GenerateFrames
 {
     private:
+        Logger& logger;
         int socket = -1;
     public:
         /**
@@ -42,8 +43,25 @@ class GenerateFrames
          * 
          * @param socket 
          */
-        GenerateFrames(int socket);
+        GenerateFrames(int socket, Logger& logger);
         int getSocket();
+        /**
+         * @brief method to send response back to API
+         * @param api_id 
+         * @param sid 
+         * @param battery_id 
+         * @param doors_id 
+         * @param engine_id
+        */ 
+        void apiResponse(uint32_t api_id, uint8_t sid, uint8_t battery_id, uint8_t doors_id, uint8_t engine_id);
+        /**
+         * @brief Method for creation of custom frames
+         * @param id id of the frame
+         * @param data data to be sent through CAN
+         * @param s socket needed for sendFrame
+         * @param frameType default value: DATA_FRAME. More values: REMOTE_FRAME, ERROR_FRAME
+         */
+        int sendFrame(int can_id, std::vector<uint8_t> data, int s, FrameType frameType);
         /**
          * @brief Method for creation of custom frames
          * @param id id of the frame

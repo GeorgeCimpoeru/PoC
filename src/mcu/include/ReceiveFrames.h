@@ -52,7 +52,7 @@
 #include<thread>
 
 #include "HandleFrames.h"
-#include "GenerateFrames.h"
+#include "../../utils/include/GenerateFrames.h"
 #include "../include/MCULogger.h"
 
 class ReceiveFrames

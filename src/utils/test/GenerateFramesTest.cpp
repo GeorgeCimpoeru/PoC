@@ -83,10 +83,11 @@ struct GenerateFramesTest : testing::Test
 {
     GenerateFrames* g1;
     CaptureFrame* c1;
-
+    Logger* logger;
     GenerateFramesTest()
     {
-        g1 = new GenerateFrames(s1);
+        logger = new Logger();
+        g1 = new GenerateFrames(s1, *logger);
         c1 = new CaptureFrame();
     }
     ~GenerateFramesTest()
@@ -718,32 +719,32 @@ TEST_F(GenerateFramesTest, ErrorLongResponse)
     /* Send frame */
     g1->readDataByIdentifier(id,0x2345,{1,2,3,4,5});
     std::string output = testing::internal::GetCapturedStdout();
-    EXPECT_EQ(output, "ERROR: The frame is to long!, consider using method ReadDataByIdentifierLongResponse\n");
+    EXPECT_NE(output.find("ERROR: The frame is to long!, consider using method ReadDataByIdentifierLongResponse"), std::string::npos);
     testing::internal::CaptureStdout();
     /* Send frame */
     g1->readMemoryByAddress(id,0x23,45,{1,2,3,4});
     output = testing::internal::GetCapturedStdout();
-    EXPECT_EQ(output, "ERROR: Response to long, consider using ReadMemoryByAdressLongResponse method\n");
+    EXPECT_NE(output.find("ERROR: Response to long, consider using ReadMemoryByAdressLongResponse method"), std::string::npos);
     testing::internal::CaptureStdout();
     /* Send frame */
     g1->writeDataByIdentifier(id,0x2345,{1,2,3,4,5});
     output = testing::internal::GetCapturedStdout();
-    EXPECT_EQ(output, "The data_parameter is to long. Consider using WriteDataByIdentifierLongData method\n");
+    EXPECT_NE(output.find("The data_parameter is to long. Consider using WriteDataByIdentifierLongData method"), std::string::npos);
     testing::internal::CaptureStdout();
     /* Send frame */
     g1->transferData(id,0x20,{1,2,3,4,5,6});
     output = testing::internal::GetCapturedStdout();
-    EXPECT_EQ(output, "The transfer_request is to long. Consider using transferDataLong method\n");
+    EXPECT_NE(output.find("The transfer_request is to long. Consider using transferDataLong method"), std::string::npos);
     testing::internal::CaptureStdout();
     /* Send frame */
     g1->clearDiagnosticInformation(id,{0x1,2,3,4,5,6,7});
     output = testing::internal::GetCapturedStdout();
-    EXPECT_EQ(output, "ERROR: Can't send more than 6 DTC/frame, please consider send 2 or more frames\n");
+    EXPECT_NE(output.find("ERROR: Can't send more than 6 DTC/frame, please consider send 2 or more frames"), std::string::npos);
     testing::internal::CaptureStdout();
     /* Send frame */
     g1->sendFrame(id,{1,2,3,4,5,6,7,8,9});
     output = testing::internal::GetCapturedStdout();
-    EXPECT_EQ(output, "Write error\n");
+    EXPECT_NE(output.find("Write error"), std::string::npos);
 }
 TEST_F(GenerateFramesTest, FrameType) 
 {
@@ -766,6 +767,8 @@ TEST_F(GenerateFramesTest, ReqStatus)
     /* TEST */
     EXPECT_EQ(response, false);
 }
+
+
 int main(int argc, char* argv[])
 {
     s1 = createSocket();

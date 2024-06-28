@@ -26,6 +26,7 @@
 #include <cerrno>
 #include <thread>
 #include <sstream>
+#include "../include/BatteryModuleLogger.h"
 
 class HandleFrames 
 {
@@ -49,7 +50,7 @@ private:
     /* Flag indicating if the first frame is received */
     bool first_frame = false;  
     /* Vector to store data subfunction */ 
-    uint8_t sub_function;    
+    uint8_t sub_function;   
                     
 public:
     /**
