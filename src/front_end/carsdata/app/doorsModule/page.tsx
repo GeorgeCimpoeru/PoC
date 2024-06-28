@@ -6,7 +6,6 @@ import DoorState from "../components/doorsComponents/DoorStateCard";
 import CigaretteVoltageLighter from "../components/doorsComponents/CigaretteVoltageLighterCard";
 import Lights from "../components/doorsComponents/LightsCard";
 import Serialnumber from "../components/doorsComponents/SerialnumberCard";
-import Modal from "../components/doorsComponents/Modal";
 import BeltCard from "../components/doorsComponents/BeltCard";
 import WindowStatusCard from "../components/doorsComponents/WindowStatusCard";
 

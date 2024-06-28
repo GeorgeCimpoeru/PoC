@@ -1,13 +1,13 @@
 'use client'
-import React, { useState } from 'react'
-import Belt from '../animations/belt.js'
+import React, { useState } from 'react';
+import Belt from '../animations/belt.js';
 
 const BeltCard = (props: any) => {
     const [belt_state, setstate] = useState(props.belt);
     const change_belt_status = () => {
 
           if (belt_state == 'On') {
-                setstate('Off')
+                setstate('Off');
           } else {
                 setstate('On');
           }

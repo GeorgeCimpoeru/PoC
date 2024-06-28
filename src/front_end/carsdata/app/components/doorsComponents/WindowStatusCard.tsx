@@ -1,7 +1,7 @@
 
 'use client'
-import React, { useState } from 'react'
-import Window from '../animations/window.js'
+import React, { useState } from 'react';
+import Window from '../animations/window.js';
 
 const WindowStatusCard = (props: any) => {
     const [status, setstatus] = useState(props.windows_status);

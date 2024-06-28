@@ -5,7 +5,7 @@ const Modal = (props: any) => {
     const [input, setInput] = useState('');
 
     const handleChange = (event: any) => {
-        props.handleInputChange(event.target.value, props.id);
+        props.handleInputChange(event.target.value);
         setInput(event.target.value);
     };
 

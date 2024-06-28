@@ -1,13 +1,13 @@
 'use client'
-import React from 'react'
-import Car from '../animations/car.js'
+import React from 'react';
+import Car from '../animations/car.js';
 import { SetStateAction, useState } from 'react';
-import Modal from "./Modal"
+import Modal from "./Modal";
 
 const DoorPosition = (props: any) => {
   const [inputValue, setInputValue] = useState(props.doorparam);
 
-  const handleInputChange = (value: any, id: string) => {
+  const handleInputChange = (value: any) => {
       setInputValue(value);
   };
 

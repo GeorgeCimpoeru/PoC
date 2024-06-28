@@ -1,14 +1,11 @@
 'use client'
-import React from 'react'
-import Cigarette_light from '../animations/cigarette_light.js'
+import React from 'react';
+import Cigarette_light from '../animations/cigarette_light.js';
 import { SetStateAction, useState } from 'react';
-import Modal from "./Modal"
+import Modal from "./Modal";
 
 const CigaretteVoltageLighter = (props: any) => {
     const [inputValue, setInputValue] = useState(props.cigarette_lighter);
-    const [randomNumbers, setRandomNumbers] = useState<number[]>([]);
-    const [averageValue, setAverageValue] = useState<number | null>(null);
-    // const [cigaretteLighterVoltage, setCigaretteLighterVoltage] = useState<number | null>(null);
     const handleInputChange = (value: any, id: string) => {
         setInputValue(value);
     };
@@ -19,10 +16,8 @@ const CigaretteVoltageLighter = (props: any) => {
     const generateRandomNumbers = () => {
         const numSamples = 2;
         const numbers: number[] = Array.from({ length: numSamples }, () => Math.random() * 10);
-        setRandomNumbers(numbers);
 
         const avg = numbers.reduce((sum, num) => sum + num, 0) / numSamples;
-        setAverageValue(avg);
         setInputValue(avg); // Set the average value to cigaretteLighterVoltage
     };
     return (

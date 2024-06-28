@@ -1,13 +1,13 @@
 'use client'
-import React, { useState } from 'react'
-import Car from '../animations/car.js'
+import React, { useState } from 'react';
+import Car from '../animations/car.js';
 
 const DoorStatus = (props: any) => {
     const [status, setstatus] = useState(props.doorstatus);
     const change_status = () => {
 
           if (status == 'open') {
-                setstatus('close')
+                setstatus('close');
           } else {
                 setstatus('open');
           }

@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 
 const BatteryLife = (props: any) => {
     const batteryCapacity = props.doorparam
