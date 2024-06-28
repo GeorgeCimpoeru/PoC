@@ -1,5 +1,5 @@
-import React from "react"
-import EngineState from '../animations/engineState.js'
+import React from "react";
+import EngineState from '../animations/engineState.js';
 
 const EngineStateCard = (props:any) => {
     return (

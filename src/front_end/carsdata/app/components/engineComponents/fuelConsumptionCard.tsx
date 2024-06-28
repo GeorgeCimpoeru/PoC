@@ -1,12 +1,12 @@
-'use client'
-import React, { useState } from "react"
-import FuelConsumption from '../animations/fuelConsumption.js'
-import Modal from "./Modal"
+'use client';
+import React, { useState } from "react";
+import FuelConsumption from '../animations/fuelConsumption.js';
+import Modal from "./Modal.jsx";
 
 const FuelConsumptionCard = (props:any) => {
     const [inputValue, setInputValue] = useState(props.fuel_consumption);
 
-    const handleInputChange = (value: any, id: string) => {
+    const handleInputChange = (value: any) => {
             setInputValue(value);
 
     }

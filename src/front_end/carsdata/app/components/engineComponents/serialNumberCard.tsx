@@ -1,12 +1,12 @@
-'use client'
-import React, { useState } from "react"
-import SerialNumber from '../animations/serialNumber.js'
-import Modal from './Modal'
+'use client';
+import React, { useState } from "react";
+import SerialNumber from '../animations/serialNumber.js';
+import Modal from './Modal.jsx';
 
 const SerialNumberCard = (props:any) => {
     const [inputValue, setInputValue] = useState(props.serial_number);
 
-    const handleInputChange = (value: any, id: string) => {
+    const handleInputChange = (value: any) => {
             setInputValue(value);
 
     }

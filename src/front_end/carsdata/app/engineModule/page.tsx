@@ -1,13 +1,13 @@
-import CurrentSpeedCard from '../components/engine_components/currentSpeedCard'
-import EngineStateCard from '../components/engine_components/engineStateCard'
-import FuelConsumptionCard from '../components/engine_components/fuelConsumptionCard'
-import FuelUsedCard from '../components/engine_components/fuelUsedCard'
-import PowerOutputCard from '../components/engine_components/powerOutputCard'
-import SerialNumberCard from '../components/engine_components/serialNumberCard'
-import StateOfRunningCard from '../components/engine_components/stateOfRunningCard'
-import TorqueCard from '../components/engine_components/torqueCard'
-import CombustionRange from '../components/engine_components/rangeCombustionCard'
-import MediumSpeedCard from '../components/engine_components/mediumSpeedCard'
+import CurrentSpeedCard from '../components/engineComponents/currentSpeedCard'
+import EngineStateCard from '../components/engineComponents/engineStateCard'
+import FuelConsumptionCard from '../components/engineComponents/fuelConsumptionCard'
+import FuelUsedCard from '../components/engineComponents/fuelUsedCard'
+import PowerOutputCard from '../components/engineComponents/powerOutputCard'
+import SerialNumberCard from '../components/engineComponents/serialNumberCard'
+import StateOfRunningCard from '../components/engineComponents/stateOfRunningCard'
+import TorqueCard from '../components/engineComponents/torqueCard'
+import CombustionRange from '../components/engineComponents/rangeCombustionCard'
+import MediumSpeedCard from '../components/engineComponents/mediumSpeedCard'
 
 const EnginesModule = async () => {
     const res = await fetch(

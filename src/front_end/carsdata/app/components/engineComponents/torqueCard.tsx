@@ -1,12 +1,12 @@
-'use client'
-import React, { useState } from "react"
-import Torque from '../animations/torque.js'
-import Modal from './Modal'
+'use client';
+import React, { useState } from "react";
+import Torque from '../animations/torque.js';
+import Modal from './Modal.jsx';
 
 const TorqueCard = (props: any) => {
     const [inputValue, setInputValue] = useState(props.torque);
 
-    const handleInputChange = (value: any, id: string) => {
+    const handleInputChange = (value: any) => {
             setInputValue(value);
 
         

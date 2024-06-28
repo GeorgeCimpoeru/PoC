@@ -1,12 +1,12 @@
-'use client'
-import React, { useState } from "react"
-import PowerOuput from '../animations/powerOutput.js'
-import Modal from "./Modal"
+'use client';
+import React, { useState } from "react";
+import PowerOuput from '../animations/powerOutput.js';
+import Modal from "./Modal.jsx";
 
 const PowerOutputCard = (props:any) => {
     const [inputValue, setInputValue] = useState(props.power_output);
 
-    const handleInputChange = (value: any, id: string) => {
+    const handleInputChange = (value: any) => {
             setInputValue(value);
 
     }

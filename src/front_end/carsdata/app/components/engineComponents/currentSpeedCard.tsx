@@ -1,12 +1,12 @@
-'use client'
-import React, { useState } from "react"
-import CurrentSpeed from '../animations/currentSpeed.js'
-import Modal from "./Modal"
+'use client';
+import React, { useState } from "react";
+import CurrentSpeed from '../animations/currentSpeed.js';
+import Modal from "./Modal.jsx";
 
 const CurrentSpeedCard = (props: any) => {
     const [inputValue, setInputValue] = useState(props.current_speed);
 
-    const handleInputChange = (value: any, id: string) => {
+    const handleInputChange = (value: any) => {
             setInputValue(value);
 
     }

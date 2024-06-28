@@ -1,12 +1,12 @@
-'use client'
-import React, { useState } from "react"
-import StateOfRunning from '../animations/stateOfRunning.js'
-import Modal from './Modal'
+'use client';
+import React, { useState } from "react";
+import StateOfRunning from '../animations/stateOfRunning.js';
+import Modal from './Modal.jsx';
 
 const StateOfRunningCard = (props:any) => {
     const [inputValue, setInputValue] = useState(props.state_of_running);
 
-    const handleInputChange = (value: any, id: string) => {
+    const handleInputChange = (value: any) => {
             setInputValue(value);
 
     }
