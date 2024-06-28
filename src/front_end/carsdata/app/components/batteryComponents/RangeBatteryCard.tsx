@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import React, { useState } from 'react';
 import RangeBattery from '../animations/rangeBattery.js';
 
@@ -8,7 +8,7 @@ const RangeBatteryCard = (props: any) => {
       const change_status = () => {
 
             if (status == 'on') {
-                  setstatus('off')
+                  setstatus('off');
             } else {
                   setstatus('on');
             }

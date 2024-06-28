@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import React, { useState } from 'react';
 import SerialNumber from '../animations/serialNumber.js';
 import Modal from '../sharedComponents/ModalString';

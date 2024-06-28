@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import React, { useState } from 'react';
 import Temperature from '../animations/temperature.js';
 import Modal from '../sharedComponents/ModalString';

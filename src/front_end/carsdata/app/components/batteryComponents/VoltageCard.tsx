@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import React, { useState } from 'react';
 import BatteryVoltage from '../animations/batteryVoltage.js';
 import ModalString from '../sharedComponents/ModalString';
