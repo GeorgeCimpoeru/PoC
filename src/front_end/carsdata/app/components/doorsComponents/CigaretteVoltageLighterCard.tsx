@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import React from 'react';
 import Cigarette_light from '../animations/cigarette_light.js';
 import { SetStateAction, useState } from 'react';

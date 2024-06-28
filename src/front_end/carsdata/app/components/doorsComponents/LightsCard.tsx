@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import React, { useState } from 'react';
 import Indoor_light from '../animations/indoor_light.js';
 

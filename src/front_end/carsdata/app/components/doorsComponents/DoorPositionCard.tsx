@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import React from 'react';
 import Car from '../animations/car.js';
 import { SetStateAction, useState } from 'react';

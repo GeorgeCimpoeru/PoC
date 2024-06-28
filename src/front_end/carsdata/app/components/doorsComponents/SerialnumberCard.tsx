@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import React from 'react';
 import SerialNumber from '../animations/serialNumber.js';
 import { SetStateAction, useState } from 'react';
