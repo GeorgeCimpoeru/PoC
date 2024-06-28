@@ -12,11 +12,11 @@ BatteryModule::BatteryModule() : moduleId(0x11),
                                  energy(0.0),
                                  voltage(0.0),
                                  percentage(0.0),
-                                 canInterface(0x00),
+                                 canInterface(CreateInterface::getInstance(0x00, batteryModuleLogger)),
                                  frameReceiver(nullptr)
 {
     /* Initialize the Frame Receiver */
-    frameReceiver = new ReceiveFrames(canInterface.get_socketECU(), moduleId);
+    frameReceiver = new ReceiveFrames(canInterface->getSocketEcuRead(), moduleId);
 
     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery object created successfully, ID : 0x{:X}", this->moduleId);
 
@@ -29,11 +29,11 @@ BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_mo
                                                                     energy(0.0),
                                                                     voltage(0.0),
                                                                     percentage(0.0),
-                                                                    canInterface(_interfaceNumber),
+                                                                    canInterface(CreateInterface::getInstance(_interfaceNumber, batteryModuleLogger)),
                                                                     frameReceiver(nullptr)
 {
     /* Initialize the Frame Receiver */
-    frameReceiver = new ReceiveFrames(canInterface.get_socketECU(), moduleId);
+    frameReceiver = new ReceiveFrames(canInterface->getSocketEcuRead(), moduleId);
 
     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery object created successfully using Parameterized Constructor, ID : 0x{:X}", this->moduleId);
 
@@ -52,7 +52,7 @@ BatteryModule::~BatteryModule()
 void BatteryModule::sendNotificationToMCU()
 {
     /* Create an instance of GenerateFrames with the CAN socket */
-    GenerateFrames notifyFrame = GenerateFrames(canInterface.get_socketECU());
+    GenerateFrames notifyFrame = GenerateFrames(canInterface->getSocketEcuRead(), batteryModuleLogger);
 
     /* Create a vector of uint8_t (bytes) containing the data to be sent */
     std::vector<uint8_t> data = {0x0, 0xff, 0x11, 0x3};
