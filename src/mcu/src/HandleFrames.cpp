@@ -72,6 +72,7 @@ namespace MCU
             {
                 frame_data.push_back(frame.data[data_pos]);
             }
+<<<<<<< HEAD
             /* Make sure sequenceNumber is set after receiving the first frame */
             expected_sequence_number = 0x21;
             first_frame_received = true;
@@ -121,6 +122,193 @@ namespace MCU
         {
             LOG_ERROR(MCULogger.GET_LOGGER(), "Invalid frame type.");
         }
+=======
+            else 
+            {
+                LOG_INFO(MCULogger.GET_LOGGER(), "ReadMemoryByAddress called.");
+            }
+            break;
+        case 0x2E:
+            /* WriteDataByIdentifier(sid, frame_data[2] << 8) | frame_data[3], data_parameter?); */
+            if(frame_data[1] == 0x7F)
+            {
+                processNrc(frame_id, sid, frame_data[3]);
+            }
+            else
+            {
+                LOG_INFO(MCULogger.GET_LOGGER(), "WriteDataByIdentifier service called.");
+                WriteDataByIdentifierService write_data_by_identifier_service(frame_id, frame_data);
+            }
+            break;
+        case 0x14:
+            /* ClearDiagnosticInformation(); */
+            if(frame_data[1] == 0x7F)
+            {
+                processNrc(frame_id, sid, frame_data[3]);
+            }
+            else 
+            {
+                LOG_INFO(MCULogger.GET_LOGGER(), "ClearDiagnosticInformation called.");
+            }
+            break;
+        case 0x19:
+            /* ReadDtcInformation(); */
+            if(frame_data[1] == 0x7F)
+            {
+                processNrc(frame_id, sid, frame_data[3]);
+            }
+            else 
+            {
+                LOG_INFO(MCULogger.GET_LOGGER(), "ReadDtcInformation called.");
+            }
+            break;
+        case 0x31:
+            /* RoutineControl(sid, frame_data[2], frame_data[3] << 8) | frame_data[4]); */
+            if(frame_data[1] == 0x7F)
+            {
+                processNrc(frame_id, sid, frame_data[3]);
+            }
+            else 
+            {
+                LOG_INFO(MCULogger.GET_LOGGER(), "RoutineControl called.");
+            }
+            break;
+        /* UDS Responses */
+        case 0x50:
+            /* Response for DiagnosticSessionControl */
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response for DiagnosticSessionControl received.");
+            break;
+        case 0x51:
+            /* Response from EcuReset() service */
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from EcuReset received.");
+            break;
+        case 0x67:
+            /* Response from SecurityAccess() service */
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from SecurityAccess received.");
+            break;
+        case 0x69:
+            /* Response from Authentication() service */
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from Authentication received.");
+            break;
+        case 0x7E:
+            /* Response from TesterPresent() service */
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from TesterPresent received.");
+            break;
+        case 0xC3:
+            /* Response from AccessTimingParameters() service */
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from AccessTimingParameters received.");
+            break;
+        case 0x62:
+            /* Response from ReadDataByIdentifier() service */
+            if(is_multi_frame)
+            {
+                LOG_INFO(MCULogger.GET_LOGGER(),"Response from ReadDataByIdentifier received.");
+                LOG_INFO(MCULogger.GET_LOGGER(), "Received multiple frames containing {} {}", frame_data.size(), "bytes of data");
+            }
+            else 
+            {
+                LOG_INFO(MCULogger.GET_LOGGER(),"Response from ReadDataByIdentifier received in one frame.");
+            }
+            break;
+        case 0x63:
+            /* Response from ReadMemoryByAddress() service */
+            if(is_multi_frame)
+            {
+                LOG_INFO(MCULogger.GET_LOGGER(),"Response from ReadMemoryByAdress received.");
+                LOG_INFO(MCULogger.GET_LOGGER(),"Received multiple frames containing {} {}", frame_data.size(), "bytes of data");
+            }
+            else 
+            {
+                LOG_INFO(MCULogger.GET_LOGGER(),"Response from ReadMemoryByAdress received in one frame.");
+            }
+            break;
+        case 0x6E:
+            /* Response from WriteDataByIdentifier() service */
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from WriteDataByIdentifier received.");
+            break;
+        case 0x54:
+            /* Response from ClearDiagnosticInformation() service */
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from ClearDiagnosticInformation received.");
+            break;
+        case 0x59:
+            /* Response from ReadDtcInformation() service */
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from ReadDtcInformation received.");
+            break;
+        case 0x71:
+            /* Response from RoutineControl() service */
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from RoutineControl received.");
+            break;
+        /* OTA Requests */
+        case 0x34:
+            /* RequestDownload(sid, frame_data[2], frame_data[3], frame_data[4], frame_data[5]); */
+            if(frame_data[1] == 0x7F)
+            {
+                processNrc(frame_id, sid, frame_data[3]);
+            }
+            else 
+            {
+                LOG_INFO(MCULogger.GET_LOGGER(), "RequestDownload called.");
+            }
+            break;
+        case 0x36:
+            /* TransferData(sid, frame_data[2], frame_data[3], frame_data[4]); */
+            if(frame_data[1] == 0x7F)
+            {
+                processNrc(frame_id, sid, frame_data[3]);
+            }
+            else if(is_multi_frame)
+            {
+                LOG_INFO(MCULogger.GET_LOGGER(), "TransferData called with multiple frames.");
+            }
+            else 
+            {
+                LOG_INFO(MCULogger.GET_LOGGER(), "TransferData called with one frame.");
+            }
+            break;
+        case 0x37:
+            /* RequestTransferExit(sid, frame_data[2]); */
+            if(frame_data[1] == 0x7F)
+            {
+                processNrc(frame_id, sid, frame_data[3]);
+            }
+            else 
+            {
+                LOG_INFO(MCULogger.GET_LOGGER(), "RequestTransferExit called.");
+            }
+            break;
+        case 0x32:
+            /* RequestUpdateStatus(); */
+            if(frame_data[1] == 0x7F)
+            {
+                processNrc(frame_id, sid, frame_data[3]);
+            }
+            else 
+            {
+                LOG_INFO(MCULogger.GET_LOGGER(), "RequestUpdateStatus called.");
+            }
+            break;
+        /* OTA Responses */
+        case 0x74:
+            /* Response from RequestDownload() service */
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from RequestDownload received.");
+            break;
+        case 0x76:
+            /* Response from TransferData() service */
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from TransferData received.");
+            break;
+        case 0x77:
+            /* Response from RequestTransferExit() service */
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from RequestTransferExit received.");
+            break;
+        case 0x72:
+            /* Response from RequestUpdateStatus() service */
+            LOG_INFO(MCULogger.GET_LOGGER(), "Response from RequestUpdateStatus received.");
+            break;
+        default:
+            /* Unknown request/response */
+            LOG_INFO(MCULogger.GET_LOGGER(), "Unknown request/response received.");
+            break;
+>>>>>>> WriteDataByIdentifier draft service added.
     }
 
     /* Method to call the service or handle the response*/
