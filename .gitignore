@@ -1,4 +1,4 @@
-src/rest_api/venv/*
+src/rest_api/venv
 src/rest_api/app/log
 src/rest_api/__pycache__
 src/rest_api/actions/__pycache__
