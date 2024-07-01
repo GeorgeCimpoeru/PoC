@@ -1,13 +1,15 @@
-import "./style.css";
+import "./style.css"
 
-function Other() {
+function ChargingTime() {
       return (
             <lord-icon
-                  src="https://cdn.lordicon.com/qcnnqpyz.json"
+                  src="https://cdn.lordicon.com/ofcynlwa.json"
                   trigger="hover"
                   class="my-lordicon">
             </lord-icon>
       );
 }
 
-export default Other
+export default ChargingTime
+
+
