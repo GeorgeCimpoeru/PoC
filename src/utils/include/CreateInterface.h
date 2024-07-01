@@ -43,17 +43,13 @@ class CreateInterface
         uint8_t interface_name;        
         struct sockaddr_can addr;
         struct ifreq ifr;
-        int socket_ecu_read = -1;
-        int socket_api_read = -1;
-        int socket_ecu_write = -1;
-        int socket_api_write = -1;
+        int _socketECU;
+        int _socketAPI;
         Logger& logger;
 
     public:
-        /**
-        * @brief Method that returns an instance to the object
-        */
-        static CreateInterface* getInstance(uint8_t interface_name, Logger& logger);
+        /* Constructor that takes the interface indicator number as an argument */
+        CreateInterface(uint8_t interface_name, Logger& logger);
         /**
         * @brief Set the socket to not block in the reading operation.
         * 

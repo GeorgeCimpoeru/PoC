@@ -8,7 +8,7 @@ Logger MCULogger;
 
 /* Constructor */
 MCUModule::MCUModule(uint8_t interfaces_number) : 
-                create_interface(CreateInterface::getInstance(interfaces_number, MCULogger)),
+                create_interface(interfaces_number, MCULogger), 
                 is_running(false),
                 receive_frames(nullptr) 
                 {
@@ -17,7 +17,7 @@ MCUModule::MCUModule(uint8_t interfaces_number) :
 }
 
 /* Default constructor */
-MCUModule::MCUModule() : create_interface(CreateInterface::getInstance(0x01, MCULogger)),
+MCUModule::MCUModule() : create_interface(0x01, MCULogger), 
                                             is_running(false),
                                             receive_frames(nullptr) {}
 

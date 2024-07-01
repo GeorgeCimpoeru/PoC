@@ -12,7 +12,7 @@ BatteryModule::BatteryModule() : moduleId(0x11),
                                  energy(0.0),
                                  voltage(0.0),
                                  percentage(0.0),
-                                 canInterface(CreateInterface::getInstance(0x00, batteryModuleLogger)),
+                                 canInterface(0x00, batteryModuleLogger),
                                  frameReceiver(nullptr)
 {
     /* Initialize the Frame Receiver */
@@ -29,7 +29,7 @@ BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_mo
                                                                     energy(0.0),
                                                                     voltage(0.0),
                                                                     percentage(0.0),
-                                                                    canInterface(CreateInterface::getInstance(_interfaceNumber, batteryModuleLogger)),
+                                                                    canInterface(_interfaceNumber, batteryModuleLogger),
                                                                     frameReceiver(nullptr)
 {
     /* Initialize the Frame Receiver */

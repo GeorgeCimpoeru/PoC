@@ -1,23 +1,11 @@
 #include"../include/CreateInterface.h"
 
-/* Initialize static instance to nullptr */
-CreateInterface* CreateInterface::create_interface_instance = nullptr;
-
-/* Private constructor */
+/* Constructor which initializes the interface indicator number */
 CreateInterface::CreateInterface(uint8_t interface_name, Logger& logger)
-    : logger(logger), interface_name(interface_name),
-      socket_ecu_read(-1), socket_api_read(-1),
-      socket_ecu_write(-1), socket_api_write(-1) 
-{
-    createInterface();
-    startInterface();
-}
-/* Static method to get the singleton instance */
-CreateInterface* CreateInterface::getInstance(uint8_t interface_name, Logger& logger) {
-    if (create_interface_instance == nullptr) {
-        create_interface_instance = new CreateInterface(interface_name, logger);
-    }
-    return create_interface_instance;
+    : logger(logger), interface_name(interface_name) 
+{   
+    create_interface();
+    start_interface();
 }
 /* Method that sets the socket to not block the reading operation */
 int CreateInterface::setSocketBlocking()
@@ -29,7 +17,7 @@ int CreateInterface::setSocketBlocking()
     }
     // Set the O_NONBLOCK flag to make the socket non-blocking
     flags |= O_NONBLOCK;
-    if (fcntl(socket_ecu_read, F_SETFL, flags) == -1) {
+    if (fcntl(_socketECU, F_SETFL, flags) == -1) {
         LOG_ERROR(logger.GET_LOGGER(), "Error setting flags: {}", strerror(errno));
         return -1;
     }
@@ -105,7 +93,7 @@ bool CreateInterface::startInterface()
     socket_ecu_read = socket(PF_CAN, SOCK_RAW, CAN_RAW);
     if (socket_ecu_read < 0) 
     {
-        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to create the ECU read socket");
+        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to create the first socket");
         return 1;
     }    
 
@@ -121,7 +109,7 @@ bool CreateInterface::startInterface()
 
     if(bind_ecu_read < 0)
     {
-        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to bind ECU read socket");
+        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to bindECU");
         return 1;
     }    
 
@@ -129,7 +117,7 @@ bool CreateInterface::startInterface()
     socket_api_read = socket(PF_CAN, SOCK_RAW, CAN_RAW);
     if (socket_api_read < 0) 
     {       
-        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to create the API read socket");
+        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to create the second socket");
         return 1;
     }
     /* Binding read socket */      
@@ -166,7 +154,7 @@ bool CreateInterface::startInterface()
 
     if(bind_ecu_write < 0)
     {
-        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to bind ECU write socket");
+        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to bindAPI");
         return 1;
     }    
 
