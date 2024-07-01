@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import LoginPage from '../components/loginComponents/LoginPage';
 
 const login = () => {

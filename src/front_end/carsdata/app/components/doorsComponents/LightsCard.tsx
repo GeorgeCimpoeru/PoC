@@ -4,14 +4,15 @@ import Indoor_light from '../animations/indoor_light.js';
 
 const Lights = (props: any) => {
     const [light_state, setstate] = useState(props.lights);
+    
     const change_status = () => {
-
-          if (light_state == 'On') {
-                setstate('Off');
-          } else {
-                setstate('On');
-          }
+        if (light_state == 'On') {
+            setstate('Off');
+        } else {
+            setstate('On');
+        }
     }
+
     return (
         <div className="card h-64 w-96 bg-green-300  text-black">
             <div className="card-body">

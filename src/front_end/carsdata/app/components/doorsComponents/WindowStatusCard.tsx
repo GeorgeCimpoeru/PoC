@@ -4,14 +4,15 @@ import Window from '../animations/window.js';
 
 const WindowStatusCard = (props: any) => {
     const [status, setstatus] = useState(props.windows_status);
-    const change_status = () => {
 
-          if (status == 'Closed') {
-                setstatus('Open')
-          } else {
-                setstatus('Closed');
-          }
+    const change_status = () => {
+        if (status == 'Closed') {
+            setstatus('Open');
+        } else {
+            setstatus('Closed');
+        }
     }
+
     return (
         <div className="card h-64 w-96 bg-green-300 text-black">
             <div className="card-body">
@@ -19,7 +20,7 @@ const WindowStatusCard = (props: any) => {
                 <h1>Windows status: {status}</h1>
                 <input type="checkbox" className="toggle" onChange={change_status} defaultChecked />
                 <div className="card-actions justify-end">
-                <Window></Window>
+                    <Window></Window>
                 </div>
             </div>
         </div>

@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import SerialNumber from '../animations/serialNumber.js';
-import { SetStateAction, useState } from 'react';
+import { useState } from 'react';
 import Modal from "./Modal";
 
 const Serialnumber = (props: any) => {
@@ -9,11 +9,11 @@ const Serialnumber = (props: any) => {
 
     const handleInputChange = (value: any, id: string) => {
         setInputValue(value);
-    };
+    }
 
     const handleInputClick = () => {
         setInputValue('');
-    };
+    }
 
     return (
         <div className="card h-64 w-96 bg-green-300 text-black">

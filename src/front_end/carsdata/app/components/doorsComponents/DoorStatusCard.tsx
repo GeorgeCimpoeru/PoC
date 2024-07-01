@@ -4,14 +4,15 @@ import Car from '../animations/car.js';
 
 const DoorStatus = (props: any) => {
     const [status, setstatus] = useState(props.doorstatus);
-    const change_status = () => {
 
-          if (status == 'open') {
-                setstatus('close');
-          } else {
-                setstatus('open');
-          }
+    const change_status = () => {
+        if (status == 'open') {
+            setstatus('close');
+        } else {
+            setstatus('open');
+        }
     }
+
     return (
         <div className="card h-64 w-96 bg-green-300 text-black">
             <div className="card-body">

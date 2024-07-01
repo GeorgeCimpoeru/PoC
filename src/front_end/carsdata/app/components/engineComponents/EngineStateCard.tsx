@@ -1,7 +1,7 @@
 import React from "react";
 import EngineState from '../animations/engineState.js';
 
-const EngineStateCard = (props:any) => {
+const EngineStateCard = (props: any) => {
     return (
         <div className="card w-96 bg-green-300  text-black">
             <div className="card-body">

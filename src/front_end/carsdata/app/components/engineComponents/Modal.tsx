@@ -6,12 +6,12 @@ const Modal = (props: any) => {
     const handleChange = (event: any) => {
         props.handleInputChange(event.target.value);
         setInput(event.target.value);
-    };
+    }
 
     const handleClick = () => {
         setInput('');
         props.handleInputClick();
-    };
+    }
 
     return (
         <>

@@ -1,13 +1,13 @@
-import CurrentSpeedCard from '../components/engineComponents/currentSpeedCard'
-import EngineStateCard from '../components/engineComponents/engineStateCard'
-import FuelConsumptionCard from '../components/engineComponents/fuelConsumptionCard'
-import FuelUsedCard from '../components/engineComponents/fuelUsedCard'
-import PowerOutputCard from '../components/engineComponents/powerOutputCard'
-import SerialNumberCard from '../components/engineComponents/serialNumberCard'
-import StateOfRunningCard from '../components/engineComponents/stateOfRunningCard'
-import TorqueCard from '../components/engineComponents/torqueCard'
-import CombustionRange from '../components/engineComponents/rangeCombustionCard'
-import MediumSpeedCard from '../components/engineComponents/mediumSpeedCard'
+import CurrentSpeedCard from '../components/engineComponents/CurrentSpeedCard';
+import EngineStateCard from '../components/engineComponents/EngineStateCard';
+import FuelConsumptionCard from '../components/engineComponents/FuelConsumptionCard';
+import FuelUsedCard from '../components/engineComponents/FuelUsedCard';
+import PowerOutputCard from '../components/engineComponents/PowerOutputCard';
+import SerialNumberCard from '../components/engineComponents/SerialNumberCard';
+import StateOfRunningCard from '../components/engineComponents/StateOfRunningCard';
+import TorqueCard from '../components/engineComponents/TorqueCard';
+import CombustionRange from '../components/engineComponents/RangeCombustionCard';
+import MediumSpeedCard from '../components/engineComponents/MediumSpeedCard';
 
 const EnginesModule = async () => {
     const res = await fetch(
@@ -35,7 +35,7 @@ const EnginesModule = async () => {
                                 <FuelConsumptionCard fuel_consumption={jsonData.query_params.fuel_consumption} ></FuelConsumptionCard>
                             </td>
                             <td>
-                                <FuelUsedCard fuel_used={jsonData.query_params.fuel_used}></FuelUsedCard>      
+                                <FuelUsedCard fuel_used={jsonData.query_params.fuel_used}></FuelUsedCard>
                             </td>
                         </tr>
                         <tr>
@@ -49,7 +49,7 @@ const EnginesModule = async () => {
                                 <StateOfRunningCard state_of_running={jsonData.query_params.state_of_running}></StateOfRunningCard>
                             </td>
                             <td>
-                                <TorqueCard torque={jsonData.query_params.torque}></TorqueCard>         
+                                <TorqueCard torque={jsonData.query_params.torque}></TorqueCard>
                             </td>
                         </tr>
                         <tr>

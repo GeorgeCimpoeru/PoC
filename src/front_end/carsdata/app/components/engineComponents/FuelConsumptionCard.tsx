@@ -1,19 +1,18 @@
 'use client';
 import React, { useState } from "react";
 import FuelConsumption from '../animations/fuelConsumption.js';
-import Modal from "./Modal.jsx";
+import Modal from "./Modal";
 
-const FuelConsumptionCard = (props:any) => {
+const FuelConsumptionCard = (props: any) => {
     const [inputValue, setInputValue] = useState(props.fuel_consumption);
 
     const handleInputChange = (value: any) => {
-            setInputValue(value);
-
+        setInputValue(value);
     }
 
     const handleInputClick = () => {
         setInputValue('');
-    };
+    }
 
     return (
         <div className="card w-96 bg-green-300  text-black">

@@ -1,19 +1,18 @@
 'use client';
 import React, { useState } from "react";
 import CurrentSpeed from '../animations/currentSpeed.js';
-import Modal from "./Modal.jsx";
+import Modal from "./Modal";
 
 const CurrentSpeedCard = (props: any) => {
     const [inputValue, setInputValue] = useState(props.current_speed);
 
     const handleInputChange = (value: any) => {
-            setInputValue(value);
-
+        setInputValue(value);
     }
 
     const handleInputClick = () => {
         setInputValue('');
-    };
+    }
 
     return (
         <div className="card w-96 bg-green-300 text-black">
