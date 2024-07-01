@@ -1,5 +1,7 @@
 #include "../include/GenerateFrames.h"
-
+GenerateFrames::GenerateFrames()
+    : logger(logger)
+{}
 GenerateFrames::GenerateFrames(int socket, Logger& logger)
     : logger(logger), socket(socket)
 {
@@ -17,7 +19,7 @@ struct can_frame GenerateFrames::createFrame(int &id,  std::vector<uint8_t> &dat
     switch (frameType)
     {
         case DATA_FRAME:
-            frame.can_id = id & CAN_EFF_MASK;
+            frame.can_id = (id & CAN_EFF_MASK) | CAN_EFF_FLAG;
             frame.can_dlc = data.size();
             for (uint8_t byte = 0; byte < frame.can_dlc; byte++)
             {
@@ -25,7 +27,7 @@ struct can_frame GenerateFrames::createFrame(int &id,  std::vector<uint8_t> &dat
             }
             break;
         case REMOTE_FRAME:
-            frame.can_id = id & CAN_EFF_MASK;
+            frame.can_id = (id & CAN_EFF_MASK) | CAN_EFF_FLAG;
             frame.can_id |= CAN_RTR_FLAG;
             frame.can_dlc = data.size();
             for (uint8_t byte = 0; byte < frame.can_dlc; byte++)
