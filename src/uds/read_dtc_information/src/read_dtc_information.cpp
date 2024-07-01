@@ -1,50 +1,74 @@
-//#include <../../../ecu_simulation/BatteryModule/include/GenerateFrames.h>
+#include "../include/read_dtc_information.h"
 
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <string>
-#include <cstring>
-
-class ReadDTC
-{
-    private:
-        std::string path_folder;
-    public:
-        ReadDTC(std::string path_folder);
-        void run(int sub_function, int dtc_status_mask);
-};
 ReadDTC::ReadDTC(std::string path_folder)
 {
     this->path_folder = path_folder;
+    Logger logger;
+    this->generate = new GenerateFrames(this->creat_socket(),logger);
+
+    std::cout<<"Here\n";
 }
-void ReadDTC::run(int sub_function, int dtc_status_mask)
+
+ReadDTC::~ReadDTC()
+{
+    delete this->generate;
+}
+
+void ReadDTC::read(int id, int sub_function, int dtc_status_mask)
 {
     switch (sub_function)
     {
         case 0x01:
             std::cout<<"Sub-function 1\n";
+            number_of_dtc(id,dtc_status_mask);
             break;
         case 0x02:
-            std::cout<<"Sub-function 1\n";
+            dtcs(id,dtc_status_mask);
+            std::cout<<"Sub-function 2\n";
             break;
     }
 }
 
-int main(int argc, char** argv)
+void ReadDTC::number_of_dtc(int id, int dtc_status_mask)
 {
-    if (argc > 2)
+    std::ifstream MyReadFile(this->path_folder);
+    
+    int number_of_dtc = 0;
+    std::string line;
+    while (std::getline (MyReadFile, line))
     {
-        ReadDTC obj("/bin/dtc.txt");
-        int sub_function;
-        sscanf(argv[1], "%d", &sub_function);
-        int dtc_status_mask;
-        sscanf(argv[2], "%d", &dtc_status_mask); 
-        obj.run(sub_function, dtc_status_mask);
-        std::cout<<sub_function<<"    "<<dtc_status_mask<<"\n";
+        number_of_dtc++;
     }
-    else
+    MyReadFile.close();
+    this->generate->readDtcInformationResponse01(id,dtc_status_mask,0x11,number_of_dtc);
+}
+
+void ReadDTC::dtcs(int id, int dtc_status_mask)
+{
+    std::ifstream MyReadFile(this->path_folder);
+
+    std::string line;
+    while (std::getline (MyReadFile, line))
     {
-        std::cout<<"Please provide the sub-function and the DTC status mask \n";
+        std::cout << line;
     }
+    MyReadFile.close();
+}
+
+int ReadDTC::creat_socket()
+{
+    int s;
+    struct sockaddr_can addr;
+    struct ifreq ifr;
+
+    s = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+
+    strcpy(ifr.ifr_name, "vcan0" );
+    ioctl(s, SIOCGIFINDEX, &ifr);
+
+    addr.can_family = AF_CAN;
+    addr.can_ifindex = ifr.ifr_ifindex;
+
+    bind(s, (struct sockaddr *)&addr, sizeof(addr));
+    return s;
 }
