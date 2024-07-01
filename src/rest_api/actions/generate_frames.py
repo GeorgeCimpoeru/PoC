@@ -4,9 +4,13 @@ from utils.logger import setup_custom_logger, log_debug_message, log_info_messag
 log_filename = 'logger.log'
 logger, logger_frame = setup_custom_logger(log_filename)
 
+@logger_frame
 class GenerateFrame:
-    def __init__(self, bus):
-        self.bus = bus
+    def __init__(self, bus = None):
+        if bus is None:
+            self.bus = can.interface.Bus(channel="vcan0", bustype='socketcan')
+        else:
+            self.bus = bus
 
     def send_frame(self, id, data):
         message = can.Message(arbitration_id=id, data=data, is_extended_id=False)

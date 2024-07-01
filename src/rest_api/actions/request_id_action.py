@@ -6,14 +6,15 @@ import datetime
 import json
 from .generate_frames import GenerateFrame
 import subprocess
+from config import Config
 
 class CustomError(Exception):
     def __init__(self, message):
         self.message = message
 
 class FrameRequester:
-    def __init__(self, bus):
-        self.bus = bus
+    def __init__(self):
+        self.bus = can.interface.Bus(channel=Config.CAN_CHANNEL, interface='socketcan')
         self.generator = GenerateFrame(self.bus)
         self.can_db_handler = CanFrameDatabaseHandler()
         self.mcu_db_handler = McuIdsDatabaseHandler()

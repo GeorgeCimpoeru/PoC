@@ -1,3 +1,8 @@
+function displayResponse(data) {
+    const responseContainer = document.getElementById('response-output');
+    responseContainer.textContent = JSON.stringify(data, null, 2);
+}
+
 function sendFrame() {
     let canId = document.getElementById('can-id').value;
     let canData = document.getElementById('can-data').value;
@@ -15,27 +20,37 @@ function sendFrame() {
         body: JSON.stringify({ can_id: canId, can_data: canData })
     })
     .then(response => response.json())
-    .then(data => console.log(data))
-    .catch(error => console.error('Error:', error));
+    .then(data => displayResponse(data))
+    .catch(error => {
+        console.error('Error:', error);
+        displayResponse({ status: 'Error', message: error.toString() });
+    });
 }
 
 function requestIds() {
     fetch('/api/request_ids', { method: 'POST' })
     .then(response => response.json())
-    .then(data => console.log(data))
-    .catch(error => console.error('Error:', error));
+    .then(data => displayResponse(data))
+    .catch(error => {
+        console.error('Error:', error);
+        displayResponse({ status: 'Error', message: error.toString() });
+    });
 }
 
 function updateToVersion() {
+    let ecu_id = prompt("Enter ECU ID number:");
     let version = prompt("Enter version number:");
     fetch('/api/update_to_version', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ version: version })
+        body: JSON.stringify({ ecu_id: ecu_id, version: version })
     })
     .then(response => response.json())
-    .then(data => console.log(data))
-    .catch(error => console.error('Error:', error));
+    .then(data => displayResponse(data))
+    .catch(error => {
+        console.error('Error:', error);
+        displayResponse({ status: 'Error', message: error.toString() });
+    });
 }
