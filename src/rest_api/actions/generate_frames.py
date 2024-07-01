@@ -170,7 +170,7 @@ class GenerateFrame:
 
         self.send_frame(id, data)
         
-    def authntication_seed(self, id, seed = []):
+    def authentication_seed(self, id, seed = []):
         length_seed = len(seed)
         if length_seed > 0:
             data = [length_seed + 2, 0x69, 0x1] + seed
@@ -180,7 +180,7 @@ class GenerateFrame:
 
         self.send_frame(id, data)
 
-    def authntication_key(self, id, key = []):
+    def authentication_key(self, id, key = []):
         length_key = len(key)
         if length_key > 0:
             data = [length_key + 2, 0x29, 0x2] + key

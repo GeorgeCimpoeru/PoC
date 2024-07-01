@@ -44,3 +44,203 @@
 2024-07-01 14:15:35,085 - INFO - Collecting the response
 2024-07-01 14:15:38,088 - ERROR - Error reading DTC
 2024-07-01 14:15:38,089 - INFO - Sending JSON
+2024-07-01 14:55:07,135 - INFO - Changing session to default
+2024-07-01 14:55:07,135 - INFO - Function "session_control" called with arguments: 8978, 1
+2024-07-01 14:55:07,135 - INFO - Function "send_frame" called with arguments: 8978, [2, 16, 1]
+2024-07-01 14:55:07,135 - INFO - Collecting the response
+2024-07-01 14:55:10,137 - ERROR - Error changing session control
+2024-07-01 14:55:10,137 - INFO - Authenticating
+2024-07-01 14:56:09,109 - INFO - Changing session to default
+2024-07-01 14:56:09,110 - INFO - Function "session_control" called with arguments: 8978, 1
+2024-07-01 14:56:09,110 - INFO - Function "send_frame" called with arguments: 8978, [2, 16, 1]
+2024-07-01 14:56:09,110 - INFO - Collecting the response
+2024-07-01 14:56:12,119 - ERROR - Error changing session control
+2024-07-01 14:56:12,119 - INFO - Authenticating
+2024-07-01 14:56:12,120 - INFO - Function "authentication_seed" called with arguments: 8978
+2024-07-01 14:56:12,120 - INFO - Function "send_frame" called with arguments: 8978, [2, 41, 1]
+2024-07-01 14:56:12,120 - INFO - Collecting the response
+2024-07-01 14:56:15,124 - ERROR - Error requesting seed
+2024-07-01 14:56:45,121 - INFO - Changing session to default
+2024-07-01 14:56:45,122 - INFO - Function "session_control" called with arguments: 8978, 1
+2024-07-01 14:56:45,122 - INFO - Function "send_frame" called with arguments: 8978, [2, 16, 1]
+2024-07-01 14:56:45,122 - INFO - Collecting the response
+2024-07-01 14:56:48,123 - ERROR - Error changing session control
+2024-07-01 14:56:48,123 - INFO - Authenticating
+2024-07-01 14:56:48,124 - INFO - Function "authentication_seed" called with arguments: 8978
+2024-07-01 14:56:48,124 - INFO - Function "send_frame" called with arguments: 8978, [2, 41, 1]
+2024-07-01 14:56:48,124 - INFO - Collecting the response
+2024-07-01 14:56:51,132 - ERROR - Error requesting seed
+2024-07-01 14:56:51,132 - INFO - Function "authentication_key" called with arguments: 8978, [0, 1, 2, 3, 4]
+2024-07-01 14:56:51,132 - INFO - Function "send_frame" called with arguments: 8978, [7, 41, 2, 0, 1, 2, 3, 4]
+2024-07-01 14:56:51,132 - INFO - Collecting the response
+2024-07-01 14:56:54,137 - ERROR - Error sending key
+2024-07-01 14:56:54,137 - INFO - Reading data from battery
+2024-07-01 14:56:54,138 - INFO - Read from identifier {identifier}
+2024-07-01 14:56:54,138 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 4660
+2024-07-01 14:56:54,138 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 18, 52]
+2024-07-01 14:56:54,138 - INFO - Collecting the response
+2024-07-01 14:56:57,148 - ERROR - Error reading data from identifier 4660
+2024-07-01 14:56:57,148 - INFO - Read from identifier {identifier}
+2024-07-01 14:56:57,148 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 1334
+2024-07-01 14:56:57,148 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 5, 54]
+2024-07-01 14:56:57,148 - INFO - Collecting the response
+2024-07-01 14:57:00,152 - ERROR - Error reading data from identifier 1334
+2024-07-01 14:57:00,152 - INFO - Read from identifier {identifier}
+2024-07-01 14:57:00,152 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 7459
+2024-07-01 14:57:00,152 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 29, 35]
+2024-07-01 14:57:00,152 - INFO - Collecting the response
+2024-07-01 14:57:03,157 - ERROR - Error reading data from identifier 7459
+2024-07-01 14:57:03,157 - INFO - Read from identifier {identifier}
+2024-07-01 14:57:03,157 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 6826
+2024-07-01 14:57:03,157 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 26, 170]
+2024-07-01 14:57:03,157 - INFO - Collecting the response
+2024-07-01 14:57:06,163 - ERROR - Error reading data from identifier 6826
+2024-07-01 14:57:06,164 - INFO - Read from identifier {identifier}
+2024-07-01 14:57:06,164 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 62258
+2024-07-01 14:57:06,164 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 243, 50]
+2024-07-01 14:57:06,165 - INFO - Collecting the response
+2024-07-01 14:57:09,169 - ERROR - Error reading data from identifier 62258
+2024-07-01 14:57:09,171 - INFO - Read from identifier {identifier}
+2024-07-01 14:57:09,171 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 46426
+2024-07-01 14:57:09,171 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 181, 90]
+2024-07-01 14:57:09,171 - INFO - Collecting the response
+2024-07-01 14:57:12,173 - ERROR - Error reading data from identifier 46426
+2024-07-01 14:57:12,174 - INFO - Sending JSON
+2024-07-01 14:58:03,378 - INFO - Changing session to default
+2024-07-01 14:58:03,379 - INFO - Function "session_control" called with arguments: 8978, 1
+2024-07-01 14:58:03,379 - INFO - Function "send_frame" called with arguments: 8978, [2, 16, 1]
+2024-07-01 14:58:03,379 - INFO - Collecting the response
+2024-07-01 14:58:06,384 - ERROR - Error changing session control
+2024-07-01 14:58:06,385 - INFO - Authenticating
+2024-07-01 14:58:06,386 - INFO - Function "authentication_seed" called with arguments: 8978
+2024-07-01 14:58:06,386 - INFO - Function "send_frame" called with arguments: 8978, [2, 41, 1]
+2024-07-01 14:58:06,387 - INFO - Collecting the response
+2024-07-01 14:58:09,390 - ERROR - Error requesting seed
+2024-07-01 14:58:09,390 - INFO - Function "authentication_key" called with arguments: 8978, [0, 1, 2, 3, 4]
+2024-07-01 14:58:09,390 - INFO - Function "send_frame" called with arguments: 8978, [7, 41, 2, 0, 1, 2, 3, 4]
+2024-07-01 14:58:09,391 - INFO - Collecting the response
+2024-07-01 14:58:12,393 - ERROR - Error sending key
+2024-07-01 14:58:12,393 - INFO - Reading data from battery
+2024-07-01 14:58:12,393 - INFO - Read from identifier {identifier}
+2024-07-01 14:58:12,394 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 4660
+2024-07-01 14:58:12,394 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 18, 52]
+2024-07-01 14:58:12,394 - INFO - Collecting the response
+2024-07-01 14:58:15,397 - ERROR - Error reading data from identifier 4660
+2024-07-01 14:58:15,398 - INFO - Read from identifier {identifier}
+2024-07-01 14:58:15,399 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 1334
+2024-07-01 14:58:15,399 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 5, 54]
+2024-07-01 14:58:15,399 - INFO - Collecting the response
+2024-07-01 14:58:18,402 - ERROR - Error reading data from identifier 1334
+2024-07-01 14:58:18,403 - INFO - Read from identifier {identifier}
+2024-07-01 14:58:18,403 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 7459
+2024-07-01 14:58:18,403 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 29, 35]
+2024-07-01 14:58:18,403 - INFO - Collecting the response
+2024-07-01 14:58:21,405 - ERROR - Error reading data from identifier 7459
+2024-07-01 14:58:21,406 - INFO - Read from identifier {identifier}
+2024-07-01 14:58:21,406 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 6826
+2024-07-01 14:58:21,406 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 26, 170]
+2024-07-01 14:58:21,406 - INFO - Collecting the response
+2024-07-01 14:58:24,409 - ERROR - Error reading data from identifier 6826
+2024-07-01 14:58:24,411 - INFO - Read from identifier {identifier}
+2024-07-01 14:58:24,411 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 62258
+2024-07-01 14:58:24,412 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 243, 50]
+2024-07-01 14:58:24,412 - INFO - Collecting the response
+2024-07-01 14:58:27,421 - ERROR - Error reading data from identifier 62258
+2024-07-01 14:58:27,422 - INFO - Read from identifier {identifier}
+2024-07-01 14:58:27,422 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 46426
+2024-07-01 14:58:27,422 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 181, 90]
+2024-07-01 14:58:27,422 - INFO - Collecting the response
+2024-07-01 14:58:30,425 - ERROR - Error reading data from identifier 46426
+2024-07-01 14:58:30,426 - INFO - Sending JSON
+2024-07-01 15:05:49,519 - INFO - Changing session to default
+2024-07-01 15:05:49,520 - INFO - Function "session_control" called with arguments: 8978, 1
+2024-07-01 15:05:49,520 - INFO - Function "send_frame" called with arguments: 8978, [2, 16, 1]
+2024-07-01 15:05:49,520 - INFO - Collecting the response
+2024-07-01 15:05:52,522 - ERROR - Error changing session control
+2024-07-01 15:05:52,522 - INFO - Authenticating
+2024-07-01 15:05:52,523 - INFO - Function "authentication_seed" called with arguments: 8978
+2024-07-01 15:05:52,523 - INFO - Function "send_frame" called with arguments: 8978, [2, 41, 1]
+2024-07-01 15:05:52,523 - INFO - Collecting the response
+2024-07-01 15:05:55,527 - ERROR - Error requesting seed
+2024-07-01 15:05:55,527 - INFO - Function "authentication_key" called with arguments: 8978, [0, 1, 2, 3, 4]
+2024-07-01 15:05:55,527 - INFO - Function "send_frame" called with arguments: 8978, [7, 41, 2, 0, 1, 2, 3, 4]
+2024-07-01 15:05:55,527 - INFO - Collecting the response
+2024-07-01 15:05:58,534 - ERROR - Error sending key
+2024-07-01 15:05:58,535 - INFO - Reading data from battery
+2024-07-01 15:05:58,535 - INFO - Read from identifier {identifier}
+2024-07-01 15:05:58,535 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 4660
+2024-07-01 15:05:58,535 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 18, 52]
+2024-07-01 15:05:58,535 - INFO - Collecting the response
+2024-07-01 15:06:01,550 - ERROR - Error reading data from identifier 4660
+2024-07-01 15:06:01,550 - INFO - Read from identifier {identifier}
+2024-07-01 15:06:01,551 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 1334
+2024-07-01 15:06:01,551 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 5, 54]
+2024-07-01 15:06:01,551 - INFO - Collecting the response
+2024-07-01 15:06:04,558 - ERROR - Error reading data from identifier 1334
+2024-07-01 15:06:04,558 - INFO - Read from identifier {identifier}
+2024-07-01 15:06:04,558 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 7459
+2024-07-01 15:06:04,558 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 29, 35]
+2024-07-01 15:06:04,558 - INFO - Collecting the response
+2024-07-01 15:06:07,563 - ERROR - Error reading data from identifier 7459
+2024-07-01 15:06:07,564 - INFO - Read from identifier {identifier}
+2024-07-01 15:06:07,564 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 6826
+2024-07-01 15:06:07,564 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 26, 170]
+2024-07-01 15:06:07,565 - INFO - Collecting the response
+2024-07-01 15:06:10,568 - ERROR - Error reading data from identifier 6826
+2024-07-01 15:06:10,569 - INFO - Read from identifier {identifier}
+2024-07-01 15:06:10,570 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 62258
+2024-07-01 15:06:10,570 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 243, 50]
+2024-07-01 15:06:10,570 - INFO - Collecting the response
+2024-07-01 15:06:13,575 - ERROR - Error reading data from identifier 62258
+2024-07-01 15:06:13,575 - INFO - Read from identifier {identifier}
+2024-07-01 15:06:13,575 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 46426
+2024-07-01 15:06:13,575 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 181, 90]
+2024-07-01 15:06:13,576 - INFO - Collecting the response
+2024-07-01 15:06:16,579 - ERROR - Error reading data from identifier 46426
+2024-07-01 15:06:16,580 - INFO - Sending JSON
+2024-07-01 15:07:12,761 - INFO - Changing session to default
+2024-07-01 15:07:12,762 - INFO - Function "session_control" called with arguments: 8978, 1
+2024-07-01 15:07:12,762 - INFO - Function "send_frame" called with arguments: 8978, [2, 16, 1]
+2024-07-01 15:07:12,762 - INFO - Collecting the response
+2024-07-01 15:07:15,765 - ERROR - Error changing session control
+2024-07-01 15:07:15,765 - INFO - Authenticating
+2024-07-01 15:07:15,765 - INFO - Function "authentication_seed" called with arguments: 8978
+2024-07-01 15:07:15,765 - INFO - Function "send_frame" called with arguments: 8978, [2, 41, 1]
+2024-07-01 15:07:15,765 - INFO - Collecting the response
+2024-07-01 15:07:18,787 - ERROR - Error requesting seed
+2024-07-01 15:07:18,787 - INFO - Function "authentication_key" called with arguments: 8978, [0, 1, 2, 3, 4]
+2024-07-01 15:07:18,787 - INFO - Function "send_frame" called with arguments: 8978, [7, 41, 2, 0, 1, 2, 3, 4]
+2024-07-01 15:07:18,787 - INFO - Collecting the response
+2024-07-01 15:07:21,793 - ERROR - Error sending key
+2024-07-01 15:07:21,793 - INFO - Reading data from battery
+2024-07-01 15:07:21,793 - INFO - Read from identifier {identifier}
+2024-07-01 15:07:21,793 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 4660
+2024-07-01 15:07:21,793 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 18, 52]
+2024-07-01 15:07:21,794 - INFO - Collecting the response
+2024-07-01 15:07:24,814 - ERROR - Error reading data from identifier 4660
+2024-07-01 15:07:24,815 - INFO - Read from identifier {identifier}
+2024-07-01 15:07:24,815 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 1334
+2024-07-01 15:07:24,815 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 5, 54]
+2024-07-01 15:07:24,816 - INFO - Collecting the response
+2024-07-01 15:07:27,817 - ERROR - Error reading data from identifier 1334
+2024-07-01 15:07:27,818 - INFO - Read from identifier {identifier}
+2024-07-01 15:07:27,818 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 7459
+2024-07-01 15:07:27,818 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 29, 35]
+2024-07-01 15:07:27,818 - INFO - Collecting the response
+2024-07-01 15:07:30,821 - ERROR - Error reading data from identifier 7459
+2024-07-01 15:07:30,821 - INFO - Read from identifier {identifier}
+2024-07-01 15:07:30,821 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 6826
+2024-07-01 15:07:30,821 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 26, 170]
+2024-07-01 15:07:30,821 - INFO - Collecting the response
+2024-07-01 15:07:33,825 - ERROR - Error reading data from identifier 6826
+2024-07-01 15:07:33,826 - INFO - Read from identifier {identifier}
+2024-07-01 15:07:33,826 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 62258
+2024-07-01 15:07:33,826 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 243, 50]
+2024-07-01 15:07:33,826 - INFO - Collecting the response
+2024-07-01 15:07:36,829 - ERROR - Error reading data from identifier 62258
+2024-07-01 15:07:36,829 - INFO - Read from identifier {identifier}
+2024-07-01 15:07:36,829 - INFO - Function "read_data_by_identifier" called with arguments: 8978, 46426
+2024-07-01 15:07:36,830 - INFO - Function "send_frame" called with arguments: 8978, [3, 34, 181, 90]
+2024-07-01 15:07:36,830 - INFO - Collecting the response
+2024-07-01 15:07:39,833 - ERROR - Error reading data from identifier 46426
+2024-07-01 15:07:39,833 - INFO - Sending JSON

@@ -4,7 +4,7 @@ from actions.request_id_action import FrameRequester
 from actions.update_action import Updates
 from config import Config
 from actions.generate_frames import GenerateFrame
-from actions.read_info_action import ReadInfo
+from actions.read_info_action import *
 
 
 api_bp = Blueprint('api', __name__)
@@ -26,9 +26,8 @@ def update_to_version():
 
 @api_bp.route('/read_info_battery', methods=['GET'])
 def read_info_bat():
-    data = request.get_json()
     updater = ReadInfo(0x23, [0x11, 0x12, 0x13])
-    response = updater.read_frame()
+    response = updater.read_from_battery()
     return jsonify(response)
 
 @api_bp.route('/send_frame', methods=['POST'])
