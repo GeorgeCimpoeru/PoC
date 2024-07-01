@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 import MainElements from '../components/mainPageComponents/mainElements';
 import OpenMenu from '../components/mainPageComponents/openedMenu';
 import CloseMenu from '../components/mainPageComponents/closedMenu';
