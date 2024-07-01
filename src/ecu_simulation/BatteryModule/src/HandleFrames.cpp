@@ -193,10 +193,6 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
         /* UDS */
         case 0x10: 
             {
-                /** SessionControl -request method --to be implemented 
-                 *  Expected request: pci_l + sid + sub_funct
-                 *  Index              [0]    [1]     [2]   
-                 */
                 if (stored_data[1] == 0x7F)
                 {
                     processNrc(id, sid, stored_data[3]);
@@ -208,7 +204,11 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                     sub_function = stored_data[sid_position + 1];
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
-                    /* sessionControlRequest(id, sub_function); */
+
+                    /* Call the Session Control function of uds service 0x10 */
+                    diagnosticSessionControl.sessionControl(sid, sub_function);
+
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Current session: {}", diagnosticSessionControl.getCurrentSessionToString());
                 }
                 break;
             }
