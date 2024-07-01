@@ -15,7 +15,7 @@ How to use:
 
 import json
 import datetime
-from actions import *
+from actions.base_actions import *
 
 class ToJSON:
     """Open-Close principle. Base class for different JSON formats."""

@@ -141,7 +141,7 @@ class Action:
     - g: Instance of GenerateFrame for generating CAN bus frames.
     """
 
-    def __init__(self, my_id, id_ecu: list):
+    def __init__(self, my_id, id_ecu: list=[]):
         self.bus = can.interface.Bus(channel=Config.CAN_CHANNEL, interface='socketcan')
         self.my_id = my_id
         self.id_ecu = id_ecu
@@ -215,7 +215,7 @@ class Action:
         if response is None:
             log_error_message(logger,error_str)
             response_json = self._to_json_error("interrupted", 1)
-            #raise CustomError(response_json)
+            # raise CustomError(response_json)
         return response
 
     def _data_from_frame(self, msg: can.Message):

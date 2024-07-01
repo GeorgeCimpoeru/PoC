@@ -54,3 +54,18 @@ function updateToVersion() {
         displayResponse({ status: 'Error', message: error.toString() });
     });
 }
+
+function readInfoBattery() {
+    fetch('/api/read_info_battery', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+    })
+    .then(response => response.json())
+    .then(data => displayResponse(data))
+    .catch(error => {
+        console.error('Error:', error);
+        displayResponse({ status: 'Error', message: error.toString() });
+    });
+}

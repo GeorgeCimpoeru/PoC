@@ -1,0 +1,46 @@
+2024-07-01 14:15:13,048 - INFO - Reading current version
+2024-07-01 14:15:13,048 - INFO - Read from identifier {identifier}
+2024-07-01 14:15:13,048 - INFO - Function "read_data_by_identifier" called with arguments: 36, 4112
+2024-07-01 14:15:13,048 - INFO - Function "send_frame" called with arguments: 36, [3, 34, 16, 16]
+2024-07-01 14:15:13,048 - INFO - Collecting the response
+2024-07-01 14:15:16,052 - ERROR - Error reading data from identifier 4112
+2024-07-01 14:15:16,052 - INFO - Proceeding to download new version
+2024-07-01 14:15:16,053 - INFO - Changing session to programming
+2024-07-01 14:15:16,053 - INFO - Function "session_control" called with arguments: 36, 2
+2024-07-01 14:15:16,053 - INFO - Function "send_frame" called with arguments: 36, [2, 16, 2]
+2024-07-01 14:15:16,053 - INFO - Collecting the response
+2024-07-01 14:15:19,056 - ERROR - Error changing session control
+2024-07-01 14:15:19,057 - INFO - Downloading... Please wait
+2024-07-01 14:15:19,058 - INFO - Function "request_download" called with arguments: 36, 1, 1, 65535
+2024-07-01 14:15:19,058 - INFO - Function "__count_digits" called with arguments: 1
+2024-07-01 14:15:19,058 - INFO - Function "__count_digits" called with arguments: 65535
+2024-07-01 14:15:19,059 - INFO - Function "__add_to_list" called with arguments: [7, 52, 1, 49], 1
+2024-07-01 14:15:19,059 - INFO - Function "__add_to_list" called with arguments: [7, 52, 1, 49, 1], 65535
+2024-07-01 14:15:19,059 - INFO - Function "send_frame" called with arguments: 36, [7, 52, 1, 49, 1, 255, 255]
+2024-07-01 14:15:19,059 - INFO - Collecting the response
+2024-07-01 14:15:22,063 - ERROR - Error requesting download
+2024-07-01 14:15:22,063 - INFO - Function "transfer_data_long" called with arguments: 36, 1, []
+2024-07-01 14:15:22,063 - INFO - Function "send_frame" called with arguments: 36, [16, 2, 54, 1]
+2024-07-01 14:15:22,064 - INFO - Function "transfer_data_long" called with arguments: 36, 1, [], False
+2024-07-01 14:15:22,064 - INFO - Collecting the response
+2024-07-01 14:15:25,067 - ERROR - Error transferring data
+2024-07-01 14:15:25,068 - INFO - Function "request_transfer_exit" called with arguments: 36
+2024-07-01 14:15:25,068 - INFO - Function "send_frame" called with arguments: 36, [1, 55]
+2024-07-01 14:15:25,068 - INFO - Collecting the response
+2024-07-01 14:15:28,070 - ERROR - Error requesting transfer exit
+2024-07-01 14:15:28,071 - INFO - Download finished, restarting ECU...
+2024-07-01 14:15:28,071 - INFO - Function "session_control" called with arguments: 36, 1
+2024-07-01 14:15:28,071 - INFO - Function "send_frame" called with arguments: 36, [2, 16, 1]
+2024-07-01 14:15:28,072 - INFO - Collecting the response
+2024-07-01 14:15:31,073 - ERROR - Error changing session control
+2024-07-01 14:15:31,074 - INFO - Function "ecu_reset" called with arguments: 36
+2024-07-01 14:15:31,075 - INFO - Function "send_frame" called with arguments: 36, [2, 17, 3]
+2024-07-01 14:15:31,075 - INFO - Collecting the response
+2024-07-01 14:15:34,079 - ERROR - Error trying to reset ECU
+2024-07-01 14:15:34,082 - INFO - Waiting until ECU is up
+2024-07-01 14:15:35,084 - INFO - Checking for errors..
+2024-07-01 14:15:35,084 - INFO - Function "request_read_dtc_information" called with arguments: 36, 1, 1
+2024-07-01 14:15:35,084 - INFO - Function "send_frame" called with arguments: 36, [3, 25, 1, 1]
+2024-07-01 14:15:35,085 - INFO - Collecting the response
+2024-07-01 14:15:38,088 - ERROR - Error reading DTC
+2024-07-01 14:15:38,089 - INFO - Sending JSON
