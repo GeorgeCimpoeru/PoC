@@ -2,7 +2,7 @@ import sqlite3
 
 class CanFrameDatabaseHandler:
     def __init__(self):
-        self.conn = sqlite3.connect('can_frames.db')
+        self.conn = sqlite3.connect('database/can_frames.db')
         self.create_table()
 
     def create_table(self):

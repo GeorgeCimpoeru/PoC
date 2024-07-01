@@ -75,13 +75,13 @@ class Updates(Action):
             response_json = self._to_json("downloaded", no_errors)
 
             # Shutdown the CAN bus interface
-            self.bus.shutdown()
+            # self.bus.shutdown()
 
             return response_json
         
         except CustomError as e:
             # Handle custom errors, shutdown the CAN bus, and return the error message
-            self.bus.shutdown()
+            # self.bus.shutdown()
             return e.message
 
     def _download_data(self, data):

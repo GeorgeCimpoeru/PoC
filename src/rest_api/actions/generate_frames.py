@@ -1,4 +1,8 @@
 import can
+from utils.logger import setup_custom_logger, log_debug_message, log_info_message, log_warning_message, log_error_message, log_critical_message
+
+log_filename = 'logger.log'
+logger, logger_frame = setup_custom_logger(log_filename)
 
 class GenerateFrame:
     def __init__(self, bus):

@@ -11,11 +11,12 @@ app.register_blueprint(api_bp, url_prefix='/api')
 app.register_blueprint(main_bp)
 
 # bus = None
+bus = initialize_can_interface(app.config['CAN_INTERFACE'], True)
 
 # def setup_can_interface():
     # global bus
     # bus = initialize_can_interface(app.config['CAN_INTERFACE'], True)
-
+    
 if __name__ == '__main__':
     # setup_can_interface()
     app.run(debug=True)

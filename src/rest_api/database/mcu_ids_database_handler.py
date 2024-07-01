@@ -2,7 +2,7 @@ import sqlite3
 
 class McuIdsDatabaseHandler:
     def __init__(self):
-        self.conn = sqlite3.connect('mcu_ids.db')
+        self.conn = sqlite3.connect('database/mcu_ids.db')
         self.create_table()
 
     def create_table(self):
