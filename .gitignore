@@ -3,7 +3,7 @@ src/rest_api/venv
 
 # ignore logs
 src/rest_api/utils/log/logger_action.log
-src/rest_api/utils/log/logger
+src/rest_api/utils/log/logger.log
 
 # ignore local caches
 src/rest_api/__pycache__

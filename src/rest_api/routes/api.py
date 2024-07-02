@@ -1,6 +1,6 @@
 from flask import request, jsonify, Blueprint
 from . import api_bp
-from actions.request_id_action import FrameRequester
+from actions.request_id_action import RequestIdAction
 from actions.update_action import Updates
 from config import Config
 from actions.generate_frames import GenerateFrame
@@ -11,8 +11,8 @@ api_bp = Blueprint('api', __name__)
 
 @api_bp.route('/request_ids', methods=['POST'])
 def request_ids():
-    requester = FrameRequester()
-    response = requester.request_ids()
+    requester = RequestIdAction(my_id=0xFA)
+    response = requester.run()
     return jsonify(response)
 
 @api_bp.route('/update_to_version', methods=['POST'])
