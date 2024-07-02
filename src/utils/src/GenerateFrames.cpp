@@ -364,11 +364,88 @@ void GenerateFrames::readDtcInformation(int id, uint8_t sub_function, uint8_t dt
     return;
 }
 
-void GenerateFrames::readDtcInformationResponse01(int id, uint8_t status_availability_mask, uint8_t dtc_format_identifier, uint8_t dtc_count)
+void GenerateFrames::readDtcInformationResponse01(int id, uint8_t status_availability_mask, uint8_t dtc_format_identifier, uint16_t dtc_count)
 {
-    std::vector<uint8_t> data = {0x03, 0x59, 0x01, status_availability_mask, dtc_format_identifier, dtc_count};
+    std::vector<uint8_t> data = {0x03, 0x59, 0x01, status_availability_mask, dtc_format_identifier, uint8_t(dtc_count / 0x100), uint8_t(dtc_count % 0x100)};
     this->sendFrame(id, data);
     return;
+}
+
+void GenerateFrames::readDtcInformationResponse02(int id, uint8_t status_availability_mask, std::vector<std::pair<int,int>> dtc_and_status_list)
+{
+    std::vector<uint8_t> data = {0x03, 0x59, 0x02, status_availability_mask};
+    for (std::pair<int, int> dtc_and_status : dtc_and_status_list)
+    {
+        uint8_t length_dtc_and_status = (countDigits(dtc_and_status.first) +1) / 2;
+        insertBytes(data,dtc_and_status.first,length_dtc_and_status);
+        data.push_back(dtc_and_status.second);
+        data[0] = 3 + length_dtc_and_status ;
+    }
+    if (data.size() <= 8)
+    {
+        this->sendFrame(id, data);
+    }
+    else
+    {
+        std::cout<<"The data_parameter is to long. Consider using readDtcInformationResponse02Long method\n";
+        //LOG_WARN(logger.GET_LOGGER(), "The data_parameter is to long. Consider using readDtcInformationResponse02Long method\n");
+    }
+    return;
+}
+
+void GenerateFrames::readDtcInformationResponse02Long(int id, uint8_t status_availability_mask, std::vector<std::pair<int,int>> dtc_and_status_list, bool first_frame)
+{
+    std::vector<uint8_t> data = {0x00, 0x59, 0x02, status_availability_mask};
+    uint8_t pci_l=3;
+    for (std::pair<int, int> dtc_and_status : dtc_and_status_list)
+    {
+        uint8_t length_dtc_and_status = (countDigits(dtc_and_status.first) +1) / 2;
+        insertBytes(data,dtc_and_status.first,length_dtc_and_status);
+        data.push_back(dtc_and_status.second);
+        pci_l += length_dtc_and_status + 1;
+    }
+    data[0] = pci_l ;
+    if (data.size() > 8)
+    {
+        GenerateConsecutiveFrames(id,data,first_frame);
+    }
+     else
+    {
+        std::cout<<"The data_parameter is to short. Consider using readDtcInformationResponse02 method\n";
+        //LOG_WARN(logger.GET_LOGGER(), "The data_parameter is to long. Consider using readDtcInformationResponse02 method\n");
+    }
+}
+
+void GenerateFrames::GenerateConsecutiveFrames(int id, std::vector<uint8_t> data, bool first_frame)
+{
+    
+    if (first_frame)
+    {
+        std::vector<uint8_t> data_in_frame = {0x10};
+        data_in_frame.insert(data_in_frame.end(), data.begin(), data.begin() + 7);
+        this->sendFrame(id, data_in_frame);
+    }
+    else
+    {
+        data.erase(data.begin(), data.begin() + 7);
+        uint8_t index = 0;
+        while (data.size())
+        {
+            uint8_t head = 0x20 + (index++)  % 0xFF;
+            std::vector<uint8_t> data_in_frame = { head };
+            if (data.size() >=8)
+            {
+                data_in_frame.insert(data_in_frame.end(), data.begin(), data.begin() + 7);
+                data.erase(data.begin(), data.begin() + 7);
+            }
+            else
+            {
+                data_in_frame.insert(data_in_frame.end(), data.begin(), data.begin() + data.size());
+                data.erase(data.begin(), data.begin() + data.size());
+            }
+            this->sendFrame(id, data_in_frame);
+        }
+    }
 }
 
 void GenerateFrames::clearDiagnosticInformation(int id, std::vector<uint8_t> group_of_dtc, bool response)
