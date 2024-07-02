@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from "react";
 import FuelConsumption from '../animations/fuelConsumption.js';
-import Modal from "./Modal.jsx";
+import Modal from "./Modal";
 
 const FuelConsumptionCard = (props:any) => {
     const [inputValue, setInputValue] = useState(props.fuel_consumption);
@@ -20,8 +20,8 @@ const FuelConsumptionCard = (props:any) => {
             <div className="card-body">
                 <h2 className="card-title">Fuel consumption</h2>
                 <h1>Fuel consumption: {inputValue}</h1>
-                <label htmlFor="my_modal_6" className="w-10 btn btn-sm">Edit</label>
-                <Modal id="my_modal_6" handleInputChange={handleInputChange} handleInputClick={handleInputClick} cardTitle={'Fuel Consumption'} />
+                {/* <label htmlFor="my_modal_6" className="w-10 btn btn-sm">Edit</label>
+                <Modal id="my_modal_6" handleInputChange={handleInputChange} handleInputClick={handleInputClick} cardTitle={'Fuel Consumption'} /> */}
                 <div className="card-actions justify-end">
                     <FuelConsumption></FuelConsumption>
                 </div>

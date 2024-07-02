@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import CombustionRange from '../animations/combustion.js';
-import Modal from "./Modal.jsx";
+import Modal from "./Modal";
 
 const PowerOutputCard = (props:any) => {
     const [inputValue, setInputValue] = useState(props.combustion_range);
