@@ -6,11 +6,11 @@ const DoorState = (props: any) => {
     const [state, setstate] = useState(props.door_state);
     const change_status = () => {
 
-          if (state == 'Lock') {
-                setstate('Unlock');
-          } else {
-                setstate('Lock');
-          }
+        if (state == 'Lock') {
+            setstate('Unlock');
+        } else {
+            setstate('Lock');
+        }
     }
     return (
         <div className="card h-64 w-96 bg-green-300  text-black">
