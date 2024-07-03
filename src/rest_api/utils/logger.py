@@ -4,6 +4,7 @@ from logging.handlers import RotatingFileHandler
 from flask import request
 from functools import wraps
 
+
 def setup_logger():
     """
     Sets up the logger for the Flask application and returns a decorator for logging.
@@ -38,11 +39,17 @@ def setup_logger():
     return decorator
 
 
+log_memory = []
+
+class MemoryHandler(logging.Handler):
+    def emit(self, record):
+        log_entry = self.format(record)
+        log_memory.append(log_entry)
+
 def setup_custom_logger(log_filename):
     """
-    Set up a custom logger that logs messages to a specified log file and provides a decorator
-    to log method calls and arguments for a class.
-
+    Set up a custom logger that logs messages to a specified log file and an in-memory list.
+    
     Args:
         log_filename (str): Name of the log file where the logs will be written (e.g., 'app.log').
 
@@ -57,13 +64,16 @@ def setup_custom_logger(log_filename):
     logger = logging.getLogger('custom_logger')
     logger.setLevel(logging.DEBUG)
 
-    log_handler = logging.FileHandler(log_path)
+    log_handler = RotatingFileHandler(log_path, maxBytes=10000, backupCount=3)
     log_handler.setLevel(logging.DEBUG)
-
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
     log_handler.setFormatter(formatter)
-
     logger.addHandler(log_handler)
+
+    memory_handler = MemoryHandler()
+    memory_handler.setLevel(logging.DEBUG)
+    memory_handler.setFormatter(formatter)
+    logger.addHandler(memory_handler)
 
     logger.propagate = False
 
@@ -71,18 +81,18 @@ def setup_custom_logger(log_filename):
         for attr_name in dir(cls):
             attr = getattr(cls, attr_name)
             if callable(attr) and not attr_name.startswith('__'):
-                setattr(cls, attr_name, log_method_calls(attr, log_handler))
+                setattr(cls, attr_name, log_method_calls(attr, logger))
         return cls
 
     return logger, logger_frame
 
-def log_method_calls(method, handler):
+def log_method_calls(method, logger):
     """
     Wrapper function to log method calls and arguments.
 
     Args:
         method (function): Method of the class to be wrapped.
-        handler (logging.Handler): Logging handler to log messages.
+        logger (logging.Logger): Logger instance to log messages.
 
     Returns:
         function: Wrapped function that logs method calls.
@@ -93,15 +103,7 @@ def log_method_calls(method, handler):
         kwargs_str = ', '.join([f'{k}={repr(v)}' for k, v in kwargs.items()])
         arguments_str = ', '.join(filter(None, [args_str, kwargs_str]))
         log_message = f'Function "{method.__name__}" called with arguments: {arguments_str}'
-        handler.emit(logging.LogRecord(
-            name=method.__module__,
-            level=logging.INFO,
-            pathname=None,
-            lineno=None,
-            msg=log_message,
-            args=None,
-            exc_info=None,
-        ))
+        logger.info(log_message)
         return method(self, *args, **kwargs)
 
     return wrapper

@@ -5,6 +5,7 @@ from actions.update_action import Updates
 from config import Config
 from actions.generate_frames import GenerateFrame
 from actions.read_info_action import *
+from utils.logger import log_memory
 
 
 api_bp = Blueprint('api', __name__)
@@ -45,3 +46,7 @@ def send_frame():
         return jsonify({'status': 'Frame sent'})
     except ValueError as e:
         return jsonify({'status': 'Error', 'message': str(e)}), 400
+    
+@api_bp.route('/logs')
+def get_logs():
+    return jsonify({'logs': log_memory})
