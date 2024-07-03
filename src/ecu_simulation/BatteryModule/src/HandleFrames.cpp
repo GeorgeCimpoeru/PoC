@@ -207,8 +207,8 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
 
                     /* Call the Session Control function of uds service 0x10 */
                     diagnosticSessionControl.sessionControl(sid, sub_function);
-
-                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Current session: {}", diagnosticSessionControl.getCurrentSessionToString());
+                    /* std::cout << "Current SID : " << static_cast<int>(sid) << " current sub-function: "  << static_cast<int>(sub_function) << std::endl; */
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "ECU Current session: {}", diagnosticSessionControl.getCurrentSessionToString());
                 }
                 break;
             }
