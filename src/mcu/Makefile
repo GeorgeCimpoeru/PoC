@@ -5,7 +5,7 @@ CFLAGSTST2 = -lgtest -lgtest_main -lpthread
 LDFLAGS = -lspdlog
 CFLAGSTST += -DUNIT_TESTING_MODE
 #Sources files
-SRCS = src/main.cpp src/MCUModule.cpp ../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../utils/src/CreateInterface.cpp src/ReceiveFrames.cpp
+SRCS = src/main.cpp src/MCUModule.cpp ../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../utils/src/CreateInterface.cpp src/ReceiveFrames.cpp ../ota/request_update_status/src/request_update_status.cpp
 #Object files
 OBJS = $(patsubst ../utils/src/%.cpp src/%.cpp, obj/%.o, $(SRCS))
 OBJS:= $(OBJS) obj/Logger.o
@@ -21,7 +21,7 @@ $(FINAL): $(OBJS)
 	$(CXX) $(CFLAGS) -o $(FINAL) $(OBJS) ${LDFLAGS}
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
-$(OBJ_DIR)/main.o: src/main.cpp include/MCUModule.h include/ReceiveFrames.h include/HandleFrames.h ../utils/include/GenerateFrames.h ../utils/include/Logger.h ../utils/include/CreateInterface.h include/MCULogger.h
+$(OBJ_DIR)/main.o: src/main.cpp include/MCUModule.h include/ReceiveFrames.h include/HandleFrames.h ../utils/include/GenerateFrames.h ../utils/include/Logger.h ../utils/include/CreateInterface.h include/MCULogger.h ../uds/read_data_by_identifier/include/ReadDataByIdentifier.h ../ota/request_update_status/include/request_update_status.h
 	$(CXX) $(CFLAGS) -c src/main.cpp -o $(OBJ_DIR)/main.o
 $(OBJ_DIR)/MCUModule.o: src/MCUModule.cpp
 	$(CXX) $(CFLAGS) -c src/MCUModule.cpp -o $(OBJ_DIR)/MCUModule.o
@@ -35,7 +35,8 @@ $(OBJ_DIR)/CreateInterface.o: ../utils/src/CreateInterface.cpp
 	$(CXX) $(CFLAGS) -c ../utils/src/CreateInterface.cpp -o $(OBJ_DIR)/CreateInterface.o
 $(OBJ_DIR)/Logger.o: ../utils/src/Logger.cpp
 	$(CXX) $(CFLAGS) -c ../utils/src/Logger.cpp -o $(OBJ_DIR)/Logger.o
-
+$(OBJ_DIR)/request_update_status.o: ../ota/request_update_status/src/request_update_status.cpp
+	$(CXX) $(CFLAGS) -c ../ota/request_update_status/src/request_update_status.cpp -o $(OBJ_DIR)/request_update_status.o
 clean:
 	rm -f $(FINAL)  ${FINAL_TEST} ../utils/test/GenerateFramesTest test/HandleFrames_test test/ReceiveFramesTest ../utils/test/CreateInterface_test
 	rm -rf $(OBJ_DIR)
