@@ -19,15 +19,15 @@ class GenerateFrame:
         except can.CanError:
             print("Message not sent")
 
-    def read_frame(self, timeout=1.0):
-        try:
-            message = self.bus.recv(timeout)
-            if message is None:
-                return None
-            return message
-        except can.CanError:
-            print("Error receiving message")
-            return None
+    # def read_frame(self, timeout=15):
+    #     try:
+    #         message = self.bus.recv(timeout)
+    #         if message is None:
+    #             return None
+    #         return message
+    #     except can.CanError:
+    #         print("Error receiving message")
+    #         return None
             
     def control_frame(self, id):
         data = [0x30, 0x00, 0x00, 0x00]
