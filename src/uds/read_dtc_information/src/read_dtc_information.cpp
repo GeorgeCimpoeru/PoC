@@ -1,13 +1,11 @@
 #include "../include/read_dtc_information.h"
 
-ReadDTC::ReadDTC(std::string path_folder )
+ReadDTC::ReadDTC(int socket_, Logger logger, std::string path_folder )
 {
     this->path_folder = path_folder;
-    Logger logger;
-    this->socket_ = creat_socket();
+    this->socket_ = socket_;
+    this->logger = logger;
     this->generate = new GenerateFrames(socket_,logger);
-
-    std::cout<<"Here\n";
 }
 
 ReadDTC::~ReadDTC()
@@ -17,14 +15,15 @@ ReadDTC::~ReadDTC()
 
 void ReadDTC::read_dtc(int id, int sub_function, int dtc_status_mask)
 {
+    LOG_INFO(logger.GET_LOGGER(), "Read DTC Service");
     switch (sub_function)
     {
         case 0x01:
-            std::cout<<"Sub-function 1\n";
+            LOG_INFO(logger.GET_LOGGER(), "Sub-function 1");
             number_of_dtc(id,dtc_status_mask);
             break;
         case 0x02:
-            std::cout<<"Sub-function 2\n";
+            LOG_INFO(logger.GET_LOGGER(), "Sub-function 2");
             report_dtcs(id,dtc_status_mask);
             break;
     }
@@ -38,6 +37,7 @@ void ReadDTC::number_of_dtc(int id, int dtc_status_mask)
     int number_of_dtc = 0;
     std::string line;
     /* Read from the file all dtcs */
+    LOG_INFO(logger.GET_LOGGER(), "Reading DTCs...");
     while (std::getline (MyReadFile, line))
     {
         int status = to_int(line[9]) * 0x10 + to_int(line[10]);
@@ -52,6 +52,7 @@ void ReadDTC::number_of_dtc(int id, int dtc_status_mask)
     /* dtc format_idtf 0x01 -> ISO_14229-1_DTCFormat */
     int dtc_format_identifier = 0x01;
     /* Send a frame with number of dtc founded */
+    LOG_INFO(logger.GET_LOGGER(), "Sending response frame...");
     this->generate->readDtcInformationResponse01(id,status_availability_mask,dtc_format_identifier,number_of_dtc);
 }
 
@@ -63,6 +64,7 @@ void ReadDTC::report_dtcs(int id, int dtc_status_mask)
     std::vector<std::pair<int, int>> dtc_and_status_list;
     std::string line;
     /* Read from the file all dtcs */
+    LOG_INFO(logger.GET_LOGGER(), "Reading DTCs...");
     while (std::getline (MyReadFile, line))
     {
         int status = to_int(line[9]) * 0x10 + to_int(line[10]);
@@ -78,18 +80,21 @@ void ReadDTC::report_dtcs(int id, int dtc_status_mask)
     /* Send a frame/frames with all dtcs founded */
     if (dtc_and_status_list.size() > 1)
     {
+        LOG_INFO(logger.GET_LOGGER(), "Sending response first-frame...");
         this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,true);
         if (receive_flow_control())
         {
+            LOG_INFO(logger.GET_LOGGER(), "Sending consecutive frames...");
             this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,false);
         }
         else
         {
-            std::cout<<"Timeout. FLow control frame not received!\n";
+            LOG_WARN(logger.GET_LOGGER(), "Timeout. FLow control frame not received!");
         }
     }
     else 
     {
+        LOG_INFO(logger.GET_LOGGER(), "Sending response frame...");
         this->generate->readDtcInformationResponse02(id,status_availability_mask,dtc_and_status_list);
     }
     
@@ -118,6 +123,7 @@ bool ReadDTC::receive_flow_control()
 
     auto start = std::chrono::system_clock::now();
     auto end = std::chrono::system_clock::now();
+    LOG_INFO(logger.GET_LOGGER(), "Waiting 6 sec until recive flow control frame...");
     while (true)
     {
         /* Use poll to wait for data to be available with a timeout of 1000ms (1 second) */ 
@@ -132,7 +138,8 @@ bool ReadDTC::receive_flow_control()
             {
                 if (frame.data[0] == 0x30)
                 {
-                        return true;
+                    LOG_INFO(logger.GET_LOGGER(), "Flow controll frame recived...");
+                    return true;
                 }    
             }
         }
@@ -146,22 +153,4 @@ bool ReadDTC::receive_flow_control()
 int ReadDTC::to_int(char c)
 {
     return (c >= 'A') ? (c - 'A' + 10) : (c - '0');
-}
-
-int ReadDTC::creat_socket()
-{
-    int s;
-    struct sockaddr_can addr;
-    struct ifreq ifr;
-
-    s = socket(PF_CAN, SOCK_RAW, CAN_RAW);
-
-    strcpy(ifr.ifr_name, "vcan0" );
-    ioctl(s, SIOCGIFINDEX, &ifr);
-
-    addr.can_family = AF_CAN;
-    addr.can_ifindex = ifr.ifr_ifindex;
-
-    bind(s, (struct sockaddr *)&addr, sizeof(addr));
-    return s;
 }

@@ -30,6 +30,7 @@ class ReadDTC
         std::string path_folder;
         GenerateFrames* generate;
         int socket_;
+        Logger logger;
 
     public:
         /**
@@ -37,7 +38,7 @@ class ReadDTC
          * 
          * @param path_folder path to the file containing the dtcs
          */
-        ReadDTC(std::string path_folder = "default");
+        ReadDTC(int socket_, Logger logger, std::string path_folder = "default");
         /**
          * @brief Destroy the Read DTC object
          * 
@@ -68,7 +69,6 @@ class ReadDTC
          * @param dtc_status_mask status mask filter
          */
         void report_dtcs(int id, int dtc_status_mask);
-        int creat_socket();
         /**
          * @brief Method from char to int
          * 
