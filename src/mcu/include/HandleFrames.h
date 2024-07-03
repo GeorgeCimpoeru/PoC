@@ -18,9 +18,12 @@
 #include <iostream>
 #include <vector>
 #include "../include/MCULogger.h"
+#include "../../uds/diagnostic_session_control/include/DiagnosticSessionControl.h"
 
 class HandleFrames 
 {
+private:
+    DiagnosticSessionControl mcuDiagnosticSessionControl;
 public:
     /**
      * @brief Method used to handle a can frame received from the ReceiveFrame class.

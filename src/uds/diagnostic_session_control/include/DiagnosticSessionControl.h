@@ -16,28 +16,59 @@ const uint8_t NR_INCORRECT_MESSAGE_LENGTH = 0x13;
 const uint8_t NR_AUTHENTICATION_FAILED = 0x34;
 const uint8_t NR_RESOURCE_TEMP_UNAVAILABLE = 0x94;
 
-enum DiagnosticSession {
+enum DiagnosticSession
+{
     DEFAULT_SESSION,
     PROGRAMMING_SESSION
     /* Other sessions can be defined here */
 };
 
-class DiagnosticSessionControl {
+class DiagnosticSessionControl
+{
 public:
     DiagnosticSessionControl();
     ~DiagnosticSessionControl();
+
+    /**
+     * @brief Method to control the switch between sessions
+     * 
+     * @param id 
+     * @param sub_function 
+     */
     void sessionControl(int id, int sub_function);
-    void handleRequest(const uint8_t* request, size_t length);
+
+    /**
+     * @brief Method to handle the Request for switching the Sessions
+     * 
+     * @param request 
+     * @param length 
+     */
+    void handleRequest(const uint8_t *request, size_t length);
+
+    /**
+     * @brief Get the Current Session of object
+     * 
+     * @return DiagnosticSession 
+     */
     DiagnosticSession getCurrentSession() const;
+
+    /**
+     * @brief Get the Current Session of object, as a String
+     * 
+     * @return std::string 
+     */
     std::string getCurrentSessionToString() const;
 
 private:
-    int socket = -1;
-
-    CreateInterface* canInterface;
+    CreateInterface *canInterface;
     DiagnosticSession currentSession;
-
     void switchToDefaultSession();
+    /**
+     * @brief Method to handle the negative responses,
+     * this will have to be improved in future.
+     * 
+     * @param responseCode 
+     */
     void sendNegativeResponse(uint8_t responseCode);
 };
 

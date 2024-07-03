@@ -1,13 +1,13 @@
 #Compiler flags
-CFLAGS = -g -Wall -pthread -I./include -I./src -I../utils/include -I../utils/src
+CFLAGS = -g -Wall -pthread -I./include -I./src -I../utils/include -I../utils/src -I../uds/diagnostic_session_control/include -I../uds/diagnostic_session_control/src
 CFLAGSTST = -std=c++17 -I/include
 CFLAGSTST2 = -lgtest -lgtest_main -lpthread
 LDFLAGS = -lspdlog
 CFLAGSTST += -DUNIT_TESTING_MODE
 #Sources files
-SRCS = src/main.cpp src/MCUModule.cpp ../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../utils/src/CreateInterface.cpp src/ReceiveFrames.cpp
+SRCS = src/main.cpp src/MCUModule.cpp ../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../utils/src/CreateInterface.cpp ../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp src/ReceiveFrames.cpp
 #Object files
-OBJS = $(patsubst ../utils/src/%.cpp src/%.cpp, obj/%.o, $(SRCS))
+OBJS = $(patsubst ../utils/src/%.cpp ../uds/diagnostic_session_control/src/%.cpp src/%.cpp, obj/%.o, $(SRCS))
 OBJS:= $(OBJS) obj/Logger.o
 #Directories
 OBJ_DIR = obj
@@ -21,7 +21,7 @@ $(FINAL): $(OBJS)
 	$(CXX) $(CFLAGS) -o $(FINAL) $(OBJS) ${LDFLAGS}
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
-$(OBJ_DIR)/main.o: src/main.cpp include/MCUModule.h include/ReceiveFrames.h include/HandleFrames.h ../utils/include/GenerateFrames.h ../utils/include/Logger.h ../utils/include/CreateInterface.h include/MCULogger.h
+$(OBJ_DIR)/main.o: src/main.cpp include/MCUModule.h include/ReceiveFrames.h include/HandleFrames.h ../utils/include/GenerateFrames.h ../utils/include/Logger.h ../utils/include/CreateInterface.h ../uds/diagnostic_session_control/include/DiagnosticSessionControl.h include/MCULogger.h
 	$(CXX) $(CFLAGS) -c src/main.cpp -o $(OBJ_DIR)/main.o
 $(OBJ_DIR)/MCUModule.o: src/MCUModule.cpp
 	$(CXX) $(CFLAGS) -c src/MCUModule.cpp -o $(OBJ_DIR)/MCUModule.o
@@ -33,6 +33,8 @@ $(OBJ_DIR)/GenerateFrames.o: ../utils/src/GenerateFrames.cpp
 	$(CXX) $(CFLAGS) -c ../utils/src/GenerateFrames.cpp -o $(OBJ_DIR)/GenerateFrames.o
 $(OBJ_DIR)/CreateInterface.o: ../utils/src/CreateInterface.cpp
 	$(CXX) $(CFLAGS) -c ../utils/src/CreateInterface.cpp -o $(OBJ_DIR)/CreateInterface.o
+$(OBJ_DIR)/DiagnosticSessionControl.o: ../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp
+	$(CXX) $(CFLAGS) -c ../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp -o $(OBJ_DIR)/DiagnosticSessionControl.o
 $(OBJ_DIR)/Logger.o: ../utils/src/Logger.cpp
 	$(CXX) $(CFLAGS) -c ../utils/src/Logger.cpp -o $(OBJ_DIR)/Logger.o
 

@@ -42,7 +42,7 @@ void DiagnosticSessionControl::handleRequest(const uint8_t *request, size_t leng
 
     LOG_INFO(dscLogger.GET_LOGGER(), "Sessiom Control request, SID: 0x{:X} Sub-Function: 0x{:X}", sid, subFunction);
 
-    if (sid == SID_DIAGNOSTIC_SESSION_CONTROL)
+    if (sid == SID_DIAGNOSTIC_SESSION_CONTROL)  /* Here, will have to check the request wether it's for ECU or MCU */
     {
         switch (subFunction)
         {
@@ -96,8 +96,8 @@ void DiagnosticSessionControl::switchToDefaultSession()
     GenerateFrames generateFrames(canInterface->getSocketEcuWrite(), dscLogger);
 
     /* Send response frame */
-    generateFrames.sessionControl(0x1011, 0x01, true);
-    LOG_INFO(dscLogger.GET_LOGGER(), "Sent pozitive response frame to ECU");
+    generateFrames.sessionControl(0x1110, 0x01, true);
+    LOG_INFO(dscLogger.GET_LOGGER(), "Sent pozitive response frame to MCU");
 }
 
 /* Method for sending Negative Response */

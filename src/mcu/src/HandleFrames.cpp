@@ -136,6 +136,8 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             else 
             {    
                 LOG_INFO(MCULogger.GET_LOGGER(), "DiagnosticSessionControl called.");
+                mcuDiagnosticSessionControl.sessionControl(sid, frame_data[2]);
+                LOG_INFO(MCULogger.GET_LOGGER(), "MCU Current session: {}", mcuDiagnosticSessionControl.getCurrentSessionToString());
             }
             break;
         case 0x11:
