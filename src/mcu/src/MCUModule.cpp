@@ -1,29 +1,30 @@
 #include "../include/MCUModule.h"
 
-#ifndef TESTING
+#ifndef UNIT_TESTING_MODE
 Logger MCULogger("MCULogger", "logs/MCULogs.log");
 #else
 Logger MCULogger;
-#endif
+#endif /* UNIT_TESTING_MODE */
 
 /* Constructor */
 MCUModule::MCUModule(uint8_t interfaces_number) : 
-                create_interface(interfaces_number), 
+                create_interface(CreateInterface::getInstance(interfaces_number, MCULogger)),
                 is_running(false),
                 receive_frames(nullptr) 
                 {
-    receive_frames = new ReceiveFrames(create_interface.get_socketECU(), create_interface.get_socketAPI());
+    receive_frames = new ReceiveFrames(create_interface->getSocketEcuRead(), create_interface->getSocketApiRead());
+
 }
 
 /* Default constructor */
-MCUModule::MCUModule() : create_interface(0x01), 
+MCUModule::MCUModule() : create_interface(CreateInterface::getInstance(0x01, MCULogger)),
                                             is_running(false),
                                             receive_frames(nullptr) {}
 
 /* Destructor */
 MCUModule::~MCUModule() 
 {
-    create_interface.stop_interface();
+    create_interface->stopInterface();
     delete receive_frames;
 }
 
