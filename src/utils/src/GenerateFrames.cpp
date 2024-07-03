@@ -366,7 +366,7 @@ void GenerateFrames::readDtcInformation(int id, uint8_t sub_function, uint8_t dt
 
 void GenerateFrames::readDtcInformationResponse01(int id, uint8_t status_availability_mask, uint8_t dtc_format_identifier, uint16_t dtc_count)
 {
-    std::vector<uint8_t> data = {0x03, 0x59, 0x01, status_availability_mask, dtc_format_identifier, uint8_t(dtc_count / 0x100), uint8_t(dtc_count % 0x100)};
+    std::vector<uint8_t> data = {0x06, 0x59, 0x01, status_availability_mask, dtc_format_identifier, uint8_t(dtc_count / 0x100), uint8_t(dtc_count % 0x100)};
     this->sendFrame(id, data);
     return;
 }
@@ -387,8 +387,8 @@ void GenerateFrames::readDtcInformationResponse02(int id, uint8_t status_availab
     }
     else
     {
-        std::cout<<"The data_parameter is to long. Consider using readDtcInformationResponse02Long method\n";
-        //LOG_WARN(logger.GET_LOGGER(), "The data_parameter is to long. Consider using readDtcInformationResponse02Long method\n");
+        //std::cout<<"The data_parameter is to long. Consider using readDtcInformationResponse02Long method\n";
+        LOG_WARN(logger.GET_LOGGER(), "The data_parameter is to long. Consider using readDtcInformationResponse02Long method\n");
     }
     return;
 }
@@ -411,8 +411,8 @@ void GenerateFrames::readDtcInformationResponse02Long(int id, uint8_t status_ava
     }
      else
     {
-        std::cout<<"The data_parameter is to short. Consider using readDtcInformationResponse02 method\n";
-        //LOG_WARN(logger.GET_LOGGER(), "The data_parameter is to long. Consider using readDtcInformationResponse02 method\n");
+        //std::cout<<"The data_parameter is to short. Consider using readDtcInformationResponse02 method\n";
+        LOG_WARN(logger.GET_LOGGER(), "The data_parameter is to long. Consider using readDtcInformationResponse02 method\n");
     }
 }
 
