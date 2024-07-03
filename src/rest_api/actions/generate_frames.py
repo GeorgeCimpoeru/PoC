@@ -1,5 +1,6 @@
 import can
 from utils.logger import setup_custom_logger, log_debug_message, log_info_message, log_warning_message, log_error_message, log_critical_message
+from config import Config
 
 log_filename = 'logger.log'
 logger, logger_frame = setup_custom_logger(log_filename)
@@ -8,7 +9,7 @@ logger, logger_frame = setup_custom_logger(log_filename)
 class GenerateFrame:
     def __init__(self, bus = None):
         if bus is None:
-            self.bus = can.interface.Bus(channel="vcan0", bustype='socketcan')
+            self.bus = can.interface.Bus(channel=Config.CAN_CHANNEL, bustype='socketcan')
         else:
             self.bus = bus
 

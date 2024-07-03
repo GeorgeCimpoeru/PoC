@@ -35,7 +35,7 @@ def send_frame():
     data = request.get_json()
 
     try:
-        bus = can.interface.Bus(channel="vcan0", bustype='socketcan')
+        bus = can.interface.Bus(channel=Config.CAN_CHANNEL, bustype='socketcan')
 
         can_id = int(data.get('can_id'), 16)
         can_data = [int(byte, 16) for byte in data.get('can_data').split(',')]
