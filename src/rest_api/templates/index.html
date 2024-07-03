@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CAN Interface</title>
+</head>
+<body>
+    <h1>CAN Interface Control</h1>
+    <form id="can-form">
+        <label for="can-id">CAN ID:</label>
+        <input type="text" id="can-id" name="can-id" pattern="0x[0-9A-Fa-f]{1,4}"><br>
+        <label for="can-data">CAN Data:</label>
+        <input type="text" id="can-data" name="can-data" pattern="(0x[0-9A-Fa-f]{1,2},){0,7}0x[0-9A-Fa-f]{1,2}"><br>
+        <button type="button" onclick="sendFrame()">Send Frame</button>
+    </form>
+    <button type="button" onclick="requestIds()">Request IDs</button>
+    <button type="button" onclick="updateToVersion()">Update to Version</button>
+    <button type="button" onclick="readInfoBattery()">Read Info Battery</button>
+    <div id="response-container">
+        <h2>Response:</h2>
+        <pre id="response-output"></pre>
+    </div>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
