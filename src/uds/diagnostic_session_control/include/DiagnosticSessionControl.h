@@ -60,16 +60,17 @@ public:
     std::string getCurrentSessionToString() const;
 
 private:
-    CreateInterface *canInterface;
-    DiagnosticSession currentSession;
+    CreateInterface *can_interface;
+    DiagnosticSession current_session;
     void switchToDefaultSession();
+
     /**
      * @brief Method to handle the negative responses,
      * this will have to be improved in future.
      * 
-     * @param responseCode 
+     * @param response_code 
      */
-    void sendNegativeResponse(uint8_t responseCode);
+    void sendNegativeResponse(uint8_t response_code);
 };
 
 #endif

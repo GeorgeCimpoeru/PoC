@@ -7,8 +7,8 @@ Logger dscLogger;
 Logger dscLogger("dscLogger", "logs/dscLogger.log");
 #endif /* UNIT_TESTING_MODE */
 
-DiagnosticSessionControl::DiagnosticSessionControl() : currentSession(DEFAULT_SESSION),
-                                                       canInterface(CreateInterface::getInstance(0x00, dscLogger))
+DiagnosticSessionControl::DiagnosticSessionControl() : current_session(DEFAULT_SESSION),
+                                                       can_interface(CreateInterface::getInstance(0x00, dscLogger))
 {
     LOG_INFO(dscLogger.GET_LOGGER(), "Diagnostic Session Control (0x10) started. Current session: {}", getCurrentSessionToString());
 }
@@ -38,13 +38,13 @@ void DiagnosticSessionControl::handleRequest(const uint8_t *request, size_t leng
     }
 
     uint8_t sid = request[0];
-    uint8_t subFunction = request[1];
+    uint8_t sub_function = request[1];
 
-    LOG_INFO(dscLogger.GET_LOGGER(), "Sessiom Control request, SID: 0x{:X} Sub-Function: 0x{:X}", sid, subFunction);
+    LOG_INFO(dscLogger.GET_LOGGER(), "Sessiom Control request, SID: 0x{:X} Sub-Function: 0x{:X}", sid, sub_function);
 
     if (sid == SID_DIAGNOSTIC_SESSION_CONTROL)
     {
-        switch (subFunction)
+        switch (sub_function)
         {
         case SUB_FUNCTION_DEFAULT_SESSION:
             switchToDefaultSession();
@@ -79,8 +79,8 @@ void DiagnosticSessionControl::switchToDefaultSession()
 
     /** Simulate resource check
      * Replace with actual check */
-    bool resourceAvailable = true;
-    if (!resourceAvailable)
+    bool resource_available = true;
+    if (!resource_available)
     {
         sendNegativeResponse(NR_RESOURCE_TEMP_UNAVAILABLE);
         LOG_WARN(dscLogger.GET_LOGGER(), "Sent Negative Response with code {}", NR_RESOURCE_TEMP_UNAVAILABLE);
@@ -88,15 +88,15 @@ void DiagnosticSessionControl::switchToDefaultSession()
     }
 
     /* Switch to Default Session */
-    currentSession = DEFAULT_SESSION;
+    current_session = DEFAULT_SESSION;
     /* std::cout << "Switched to Default Session" << std::endl; */
     LOG_INFO(dscLogger.GET_LOGGER(), "Switched to Default Session. Current session: {}", getCurrentSessionToString());
 
     /* Create instance of Generate Frames to send response frame */
-    GenerateFrames generateFrames(canInterface->getSocketEcuWrite(), dscLogger);
+    GenerateFrames response_frame(can_interface->getSocketEcuWrite(), dscLogger);
 
     /* Send response frame */
-    generateFrames.sessionControl(0x1110, 0x01, true);
+    response_frame.sessionControl(0x1110, 0x01, true);
     LOG_INFO(dscLogger.GET_LOGGER(), "Sent pozitive response frame to MCU");
 }
 
@@ -111,13 +111,13 @@ void DiagnosticSessionControl::sendNegativeResponse(uint8_t responseCode)
 /* Method to get the current session of module */
 DiagnosticSession DiagnosticSessionControl::getCurrentSession() const
 {
-    return currentSession;
+    return current_session;
 }
 
 /* Method to get the current value of session as a String */
 std::string DiagnosticSessionControl::getCurrentSessionToString() const
 {
-    switch (currentSession)
+    switch (current_session)
     {
     case DEFAULT_SESSION:
         return "DEFAULT_SESSION";
