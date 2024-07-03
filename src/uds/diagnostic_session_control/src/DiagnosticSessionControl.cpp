@@ -42,7 +42,7 @@ void DiagnosticSessionControl::handleRequest(const uint8_t *request, size_t leng
 
     LOG_INFO(dscLogger.GET_LOGGER(), "Sessiom Control request, SID: 0x{:X} Sub-Function: 0x{:X}", sid, subFunction);
 
-    if (sid == SID_DIAGNOSTIC_SESSION_CONTROL)  /* Here, will have to check the request wether it's for ECU or MCU */
+    if (sid == SID_DIAGNOSTIC_SESSION_CONTROL)
     {
         switch (subFunction)
         {
@@ -114,7 +114,7 @@ DiagnosticSession DiagnosticSessionControl::getCurrentSession() const
     return currentSession;
 }
 
-/* Method to get the current value of session */
+/* Method to get the current value of session as a String */
 std::string DiagnosticSessionControl::getCurrentSessionToString() const
 {
     switch (currentSession)
