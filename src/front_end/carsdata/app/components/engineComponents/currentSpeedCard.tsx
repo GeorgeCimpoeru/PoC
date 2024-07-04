@@ -6,17 +6,17 @@ import Modal from "./Modal";
 const CurrentSpeedCard = (props: any) => {
     const [inputValue, setInputValue] = useState(props.current_speed);
 
-    const handleInputChange = (value: any) => {
-            setInputValue(value);
+    // const handleInputChange = (value: any) => {
+    //         setInputValue(value);
 
-    }
+    // }
 
-    const handleInputClick = () => {
-        setInputValue('');
-    };
+    // const handleInputClick = () => {
+    //     setInputValue('');
+    // };
 
     return (
-        <div className="card w-96 bg-green-300 text-black">
+        <div className="card h-64 w-96 bg-green-300 text-black">
             <div className="card-body">
                 <h2 className="card-title">Current speed</h2>
                 <h1>Speed: {inputValue}</h1>

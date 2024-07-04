@@ -15,7 +15,7 @@ const FuelUsedCard = (props:any) => {
         setInputValue('');
     };
     return (
-        <div className="card w-96 bg-green-300  text-black">
+        <div className="card h-64 w-96 bg-green-300  text-black">
             <div className="card-body">
                 <h2 className="card-title">Fuel used</h2>
                 <h1>Fuel used: {inputValue}</h1>

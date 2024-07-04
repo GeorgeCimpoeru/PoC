@@ -16,7 +16,7 @@ const PowerOutputCard = (props:any) => {
     };
 
     return (
-        <div className="card w-96 bg-green-300  text-black">
+        <div className="card h-64 w-96 bg-green-300  text-black">
             <div className="card-body">
                 <h2 className="card-title">Power output</h2>
                 <h1>Power output: {inputValue}</h1>
