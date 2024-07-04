@@ -42,6 +42,13 @@ private:
     ReceiveFrames* frameReceiver;
 
 public:
+    /* Variable to store ecu data */
+    std::unordered_map<uint16_t, std::vector<uint8_t>> ecu_data = {
+        {0x01A0, {0}},  /* Energy Level */
+        {0x01B0, {0}},  /* Voltage */
+        {0x01C0, {0}},  /* Percentage */
+        {0x01D0, {0}}   /* State of Charge */
+    };
     /**
      * @brief Default constructor for Battery Module object.
      */
@@ -129,5 +136,6 @@ public:
      */
     std::string getLinuxBatteryState();
 };
+extern BatteryModule battery;
 
 #endif

@@ -43,6 +43,7 @@ class GenerateFrames
          * 
          * @param socket 
          */
+        GenerateFrames();
         GenerateFrames(int socket, Logger& logger);
         int getSocket();
         /**

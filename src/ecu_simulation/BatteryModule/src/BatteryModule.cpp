@@ -5,7 +5,7 @@ Logger batteryModuleLogger;
 #else
 Logger batteryModuleLogger("batteryModuleLogger", "logs/batteryModuleLogger.log");
 #endif /* UNIT_TESTING_MODE */
-
+BatteryModule battery;
 /** Constructor - initializes the BatteryModule with default values,
  * sets up the CAN interface, and prepares the frame receiver. */
 BatteryModule::BatteryModule() : moduleId(0x11),
@@ -94,14 +94,17 @@ void BatteryModule::parseBatteryInfo(const std::string &data, float &energy, flo
         if (line.find("energy:") != std::string::npos)
         {
             energy = std::stof(line.substr(line.find(":") + 1));
+            ecu_data[0x01A0] = {static_cast<uint8_t>(energy)};
         }
         else if (line.find("voltage:") != std::string::npos)
         {
             voltage = std::stof(line.substr(line.find(":") + 1));
+            ecu_data[0x01B0] = {static_cast<uint8_t>(voltage)};
         }
         else if (line.find("percentage:") != std::string::npos)
         {
             percentage = std::stof(line.substr(line.find(":") + 1));
+            ecu_data[0x01C0] = {static_cast<uint8_t>(percentage)};
         }
         else if (line.find("state:") != std::string::npos)
         {
@@ -110,6 +113,34 @@ void BatteryModule::parseBatteryInfo(const std::string &data, float &energy, flo
             state = line.substr(pos + 1);
             /* Remove leading whitespace */
             state = state.substr(state.find_first_not_of(" \t"));
+            if(state == "unknown")
+            {
+                ecu_data[0x01D0] = {0x00};
+            }
+            else if(state == "charging")
+            {
+                ecu_data[0x01D0] = {0x01};
+            }
+            else if(state == "discharging")
+            {
+                ecu_data[0x01D0] = {0x02};
+            }
+            else if(state == "empty")
+            {
+                ecu_data[0x01D0] = {0x03};
+            }
+            else if(state == "fully-charged")
+            {
+                ecu_data[0x01D0] = {0x04};
+            }
+            else if(state == "pending-charge")
+            {
+                ecu_data[0x01D0] = {0x05};
+            }
+            else if(state == "pending-discharge")
+            {
+                ecu_data[0x01D0] = {0x06};
+            }
         }
     }
 }
