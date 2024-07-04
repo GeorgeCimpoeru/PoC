@@ -39,6 +39,11 @@ def setup_logger():
     return decorator
 
 
+import logging
+import os
+from logging.handlers import RotatingFileHandler
+from functools import wraps
+
 log_memory = []
 
 class MemoryHandler(logging.Handler):
@@ -46,45 +51,55 @@ class MemoryHandler(logging.Handler):
         log_entry = self.format(record)
         log_memory.append(log_entry)
 
-def setup_custom_logger(log_filename):
-    """
-    Set up a custom logger that logs messages to a specified log file and an in-memory list.
-    
-    Args:
-        log_filename (str): Name of the log file where the logs will be written (e.g., 'app.log').
+class SingletonLogger:
+    _instance = None
+    _logger = None
+    _logger_frame = None
 
-    Returns:
-        logger: Configured logger instance.
-        decorator: Decorator function to log method calls and arguments.
-    """
-    log_directory = os.path.join(os.path.dirname(__file__), 'log')
-    os.makedirs(log_directory, exist_ok=True)
-    log_path = os.path.join(log_directory, log_filename)
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(SingletonLogger, cls).__new__(cls)
+            cls._instance._initialize(*args, **kwargs)
+        return cls._instance
 
-    logger = logging.getLogger('custom_logger')
-    logger.setLevel(logging.DEBUG)
+    def _initialize(self, log_filename):
+        log_directory = os.path.join(os.path.dirname(__file__), 'log')
+        os.makedirs(log_directory, exist_ok=True)
+        log_path = os.path.join(log_directory, log_filename)
 
-    log_handler = RotatingFileHandler(log_path, maxBytes=10000, backupCount=3)
-    log_handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    log_handler.setFormatter(formatter)
-    logger.addHandler(log_handler)
+        self._logger = logging.getLogger('custom_logger')
+        self._logger.setLevel(logging.DEBUG)
 
-    memory_handler = MemoryHandler()
-    memory_handler.setLevel(logging.DEBUG)
-    memory_handler.setFormatter(formatter)
-    logger.addHandler(memory_handler)
+        if not self._logger.hasHandlers():
+            log_handler = RotatingFileHandler(log_path, maxBytes=10000, backupCount=3)
+            log_handler.setLevel(logging.DEBUG)
+            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+            log_handler.setFormatter(formatter)
+            self._logger.addHandler(log_handler)
 
-    logger.propagate = False
+            memory_handler = MemoryHandler()
+            memory_handler.setLevel(logging.DEBUG)
+            memory_handler.setFormatter(formatter)
+            self._logger.addHandler(memory_handler)
 
-    def logger_frame(cls):
-        for attr_name in dir(cls):
-            attr = getattr(cls, attr_name)
-            if callable(attr) and not attr_name.startswith('__'):
-                setattr(cls, attr_name, log_method_calls(attr, logger))
-        return cls
+            self._logger.propagate = False
 
-    return logger, logger_frame
+        def logger_frame(cls):
+            for attr_name in dir(cls):
+                attr = getattr(cls, attr_name)
+                if callable(attr) and not attr_name.startswith('__'):
+                    setattr(cls, attr_name, log_method_calls(attr, self._logger))
+            return cls
+
+        self._logger_frame = logger_frame
+
+    @property
+    def logger(self):
+        return self._logger
+
+    @property
+    def logger_frame(self):
+        return self._logger_frame
 
 def log_method_calls(method, logger):
     """

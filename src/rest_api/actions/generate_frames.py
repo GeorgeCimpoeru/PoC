@@ -1,8 +1,9 @@
 import can
-from utils.logger import setup_custom_logger, log_debug_message, log_info_message, log_warning_message, log_error_message, log_critical_message
+from utils.logger import SingletonLogger, log_debug_message, log_info_message, log_warning_message, log_error_message, log_critical_message
 
-log_filename = 'logger.log'
-logger, logger_frame = setup_custom_logger(log_filename)
+logger_singleton = SingletonLogger('logger.log')
+logger = logger_singleton.logger
+logger_frame = logger_singleton.logger_frame
 
 @logger_frame
 class GenerateFrame:
