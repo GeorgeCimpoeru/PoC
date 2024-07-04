@@ -82,6 +82,7 @@ import time
 from actions.generate_frames import GenerateFrame as GF
 from utils.logger import *
 from config import Config
+from configs.data_identifiers import *
 
 log_filename = 'logger_action.log'
 logger, logger_frame = setup_custom_logger(log_filename)
@@ -99,7 +100,6 @@ REQUEST_DOWNLOAD = 0X83
 TRANSFER_DATA = 0X36
 REQUEST_TRANSFER_EXIT = 0X37
 
-IDENTIFIER_VERSION_SOFTWARE_MCU = 0x1010
 
 class FrameWithData:
     """Base class for frames with data extraction methods."""
@@ -259,11 +259,17 @@ class Action:
         data_str = self._list_to_number(data)
         return data_str
 
-    def __algorithm(self, seed):
+    def __algorithm(self, seed:list):
         """
         Method to generate a key based on the seed.
         """
-        pass
+        key = []
+        bit_width = 8
+        for value in seed:
+            if value < 0:
+                value = (1 << bit_width) + value
+            key.append( value & ((1 << bit_width) - 1))
+        return key
 
     def _authentication(self,id):
         """
@@ -274,7 +280,6 @@ class Action:
         frame_response = self._passive_response(AUTHENTICATION, "Error requesting seed")
         seed = self._data_from_frame(frame_response)
         key = self.__algorithm(seed)
-        key = [0, 1, 2, 3, 4]  # Placeholder key, replace with actual key generation logic
         self.generate.authentication_key(id, key)
         self._passive_response(AUTHENTICATION, "Error sending key")
 

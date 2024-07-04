@@ -116,7 +116,7 @@ class Updates(Action):
           indicating that the latest version is already installed.
         """        
         log_info_message(logger, "Reading current version")
-        current_version = self._read_by_identifier(self.id, IDENTIFIER_VERSION_SOFTWARE_MCU)
+        current_version = self._read_by_identifier(self.id, IDENTIFIER_SYSTEM_ECU_FLASH_SOFTWARE_VERSION_NUMBER)
         
         if current_version == version:
             log_info_message(logger, "Already installed latest version")

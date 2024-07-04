@@ -71,12 +71,12 @@ class ReadInfo(Action):
             self._authentication(id)
 
             log_info_message(logger, "Reading data from battery")
-            level = self._read_by_identifier(id,0x1234)
-            voltage = self._read_by_identifier(id,0x0536)
-            state_of_charge = self._read_by_identifier(id,0x1d23)
-            temperature = self._read_by_identifier(id,0x1aaa)
-            life_cycle = self._read_by_identifier(id,0xf332)
-            serial_number = self._read_by_identifier(id,0xb55a)
+            level = self._read_by_identifier(id,IDENTIFIER_BATTERY_ENERGY_LEVEL)
+            voltage = self._read_by_identifier(id,IDENTIFIER_BATTERY_VOLTAGE)
+            state_of_charge = self._read_by_identifier(id,IDENTIFIER_BATTERY_STATE_OF_CHARGE)
+            temperature = self._read_by_identifier(id,IDENTIFIER_BATTERY_TEMPERATURE)
+            life_cycle = self._read_by_identifier(id,IDENTIFIER_BATTERY_LIFE_CYCLE)
+            serial_number = self._read_by_identifier(id,IDENTIFIER_ECU_SERIAL_NUMBER)
             data = [level, voltage, state_of_charge, temperature, life_cycle, serial_number]
             module = BatteryToJSON()
 
