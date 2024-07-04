@@ -29,24 +29,35 @@
 #include "../../../utils/include/CreateInterface.h"
 #include "../../../utils/include/GenerateFrames.h"
 
-#define REQUEST_UPDATE_STATUS_SID           0x32
-#define REQUEST_UPDATE_STATUS_SID_SUCCESS   0x72
-#define REQUEST_UPDATE_STATUS_REQUEST_SIZE      0x04
-#define REQUEST_UPDATE_STATUS_RESPONSE_SIZE	    0x01
-
-#define READ_DATA_BY_IDENTIFIER_SID 0x34
-#define READ_DATA_BY_IDENTIFIER_SID_SUCCESS 0x74
+#define REQUEST_UPDATE_STATUS_REQUEST_SIZE      0x02
+#define REQUEST_UPDATE_STATUS_RESPONSE_SUCCESS_SIZE	    0x03
+#define REQUEST_UPDATE_STATUS_RESPONSE_NEGATIVE_SIZE	0x04
 
 #define OTA_UPDATE_STATUS_DID 0x01E0
 #define OTA_UPDATE_STATUS_DID_MSB ((OTA_UPDATE_STATUS_DID & 0xFF00) >> 8)
 #define OTA_UPDATE_STATUS_DID_LSB (OTA_UPDATE_STATUS_DID & 0x00FF)
 
+#define REQUEST_UPDATE_STATUS_SID           0x32
+#define REQUEST_UPDATE_STATUS_SID_SUCCESS   0x72
+
+#define READ_DATA_BY_IDENTIFIER_SID 0x34
+#define READ_DATA_BY_IDENTIFIER_SID_SUCCESS 0x74
+
 #define PCI_L 0x03
 #define NEGATIVE_RESPONSE 0x7F
 
+/**
+ * @brief Macro used for setting byte number i from n to byte b.
+ * 	n: FFEEDDCC
+ * 	i: 3 2 1 0
+ */
 #define SET_BYTE(n, i, b) (n = ((n & ~(0xFF << (i * 8))) | ((b & 0xFF) << (i * 8))))
+/**
+ * @brief Macro used for getting the byte number i from n.
+ *  n: FFEEDDCC
+ * 	i: 3 2 1 0
+ */
 #define GET_BYTE(n, i) ((n >> (i * 8)) & 0xFF)
-
 
 /**
  * @brief Enumeration with the Ota Update possible states. 
