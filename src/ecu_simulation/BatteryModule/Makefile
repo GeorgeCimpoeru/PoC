@@ -5,7 +5,7 @@ LDFLAGS = -lspdlog
 CFLAGSTST2 = -lgtest -lgtest_main -pthread
 #Sources files
 SRCS = src/main.cpp src/BatteryModule.cpp ../../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../../utils/src/CreateInterface.cpp src/ReceiveFrames.cpp ../../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../../mcu/src/HandleFrames.cpp ../../mcu/src/ReceiveFrames.cpp ../../mcu/src/MCUModule.cpp ../../uds/read_dtc_information/src/ReadDtcInformation.cpp
-SRCSTEST = src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp ../../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../../mcu/src/HandleFrames.cpp ../../mcu/src/ReceiveFrames.cpp ../../mcu/src/MCUModule.cpp
+SRCSTEST = src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp ../../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../../mcu/src/HandleFrames.cpp ../../mcu/src/ReceiveFrames.cpp ../../mcu/src/MCUModule.cpp ../../uds/read_dtc_information/src/ReadDtcInformation.cpp
 
 #Object files
 OBJS = $(patsubst ../utils/src/%.cpp src/%.cpp, obj/%.o, $(SRCS))
