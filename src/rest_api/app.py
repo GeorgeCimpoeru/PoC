@@ -1,7 +1,4 @@
 from flask import Flask, send_from_directory, jsonify
-import os
-import logging
-from logging.handlers import RotatingFileHandler
 from config import Config
 from routes.api import api_bp
 from routes.main import main_bp

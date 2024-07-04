@@ -39,11 +39,6 @@ def setup_logger():
     return decorator
 
 
-import logging
-import os
-from logging.handlers import RotatingFileHandler
-from functools import wraps
-
 log_memory = []
 
 class MemoryHandler(logging.Handler):
