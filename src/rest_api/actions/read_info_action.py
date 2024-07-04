@@ -25,15 +25,19 @@ class ToJSON:
 class BatteryToJSON(ToJSON):
     def _to_json(self, data: list):
         response_to_frontend = {
-            "Battery level": data[0],
-            "Voltage": data[1],
-            "Battery state of charge": data[2],
-            "Temperature": data[3],
-            "Life cycle": data[4],
-            "Serial number": data[5],
-            "time_stamp": datetime.datetime.now().isoformat()
+            "battery_level": data[0],
+            "voltage": data[1],
+            "battery_state_of_charge": data[2],
+            "temperature": data[3],
+            "life_cycle": data[4],
+            "fully_charged": data[5],
+            "serial_number": data[6],
+            "range_battery": data[7],       # new item from front 
+            "charging_time": data[8],       # new item from front
+            "device_consumption": data[9],   # new item from front
+            "time_stamp": datetime.datetime.now().isoformat() # Item not existing at front
         }
-        return json.dumps(response_to_frontend)
+        return (response_to_frontend)
 
 class ElementToJSON(ToJSON):
     def _to_json(self, data: list):
@@ -76,8 +80,12 @@ class ReadInfo(Action):
             state_of_charge = self._read_by_identifier(id,IDENTIFIER_BATTERY_STATE_OF_CHARGE)
             temperature = self._read_by_identifier(id,IDENTIFIER_BATTERY_TEMPERATURE)
             life_cycle = self._read_by_identifier(id,IDENTIFIER_BATTERY_LIFE_CYCLE)
+            fully_charged = self._read_by_identifier(id,IDENTIFIER_BATTERY_FULLY_CHARGED)
             serial_number = self._read_by_identifier(id,IDENTIFIER_ECU_SERIAL_NUMBER)
-            data = [level, voltage, state_of_charge, temperature, life_cycle, serial_number]
+            range_battery = self._read_by_identifier(id,IDENTIFIER_BATTERY_RANGE)
+            charging_time = self._read_by_identifier(id,IDENTIFIER_BATTERY_CHARGING_TIME)
+            device_consumption = self._read_by_identifier(id,IDENTIFIER_DEVICE_CONSUMPTION)
+            data = [level, voltage, state_of_charge, temperature, life_cycle,fully_charged, serial_number,range_battery,charging_time,device_consumption]
             module = BatteryToJSON()
 
             response_json = self._to_json(module, data)
