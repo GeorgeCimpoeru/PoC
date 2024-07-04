@@ -67,89 +67,6 @@ namespace MCU
             /* Clear the multi_frame_data vector when receiving the first frame */
             frame_data.clear();
 
-    switch (sid) {
-        case 0x10:
-            /* DiagnosticSessionControl(sid, frame_data[2]); */
-            if(frame_data[1] == 0x7F)
-            {
-                processNrc(frame_id, sid, frame_data[3]);
-            }
-            else 
-            {    
-                LOG_INFO(MCULogger.GET_LOGGER(), "DiagnosticSessionControl called.");
-                mcuDiagnosticSessionControl.sessionControl(sid, frame_data[2]);
-                LOG_INFO(MCULogger.GET_LOGGER(), "MCU Current session: {}", mcuDiagnosticSessionControl.getCurrentSessionToString());
-            }
-            break;
-        case 0x11:
-            /* EcuReset(sid, frame_data[2]); */
-            if(frame_data[1] == 0x7F)
-            {
-                processNrc(frame_id, sid, frame_data[3]);
-            }
-            else 
-            {
-                LOG_INFO(MCULogger.GET_LOGGER(), "EcuReset called.");
-            }
-            break;
-        case 0x27:
-            /* SecurityAccess(sid, frame_data[2], key?); */
-            if(frame_data[1] == 0x7F)
-            {
-                processNrc(frame_id, sid, frame_data[3]);
-            }
-            else 
-            {
-                LOG_INFO(MCULogger.GET_LOGGER(), "SecurityAccess called.");
-            }
-            break;
-        case 0x29:
-            /* Authentication(); */
-            if(frame_data[1] == 0x7F)
-            {
-                processNrc(frame_id, sid, frame_data[3]);
-            }
-            else 
-            {
-                LOG_INFO(MCULogger.GET_LOGGER(), "Authentication called.");
-            }
-            break;
-        case 0x3E:
-            /* TesterPresent(sid, frame_data[2]); */
-            if(frame_data[1] == 0x7F)
-            {
-                processNrc(frame_id, sid, frame_data[3]);
-            }
-            else 
-            {
-                LOG_INFO(MCULogger.GET_LOGGER(), "TesterPresent called.");
-            }
-            break;
-        case 0x83:
-            /* AccessTimingParameters(sid, frame_data[2]); */
-            if(frame_data[1] == 0x7F)
-            {
-                processNrc(frame_id, sid, frame_data[3]);
-            }
-            else 
-            {
-                LOG_INFO(MCULogger.GET_LOGGER(), "AccessTimingParameters called.");
-            }
-            break;
-        case 0x22:
-            /* ReadDataByIdentifier(sid, frame_data[2] << 8) | frame_data[3]); */
-            if(frame_data[1] == 0x7F)
-            {
-                processNrc(frame_id, sid, frame_data[3]);
-            }
-            else 
-            {
-                LOG_INFO(MCULogger.GET_LOGGER(), "ReadDataByIdentifier called.");
-            }
-            break;
-        case 0x23:
-            /* ReadMemoryByAddress(frame_data[2], frame_data[3] << 8) | frame_data[4], frame_data[5] << 8) | frame_data[6]); */
-            if(frame_data[1] == 0x7F)
             /* Concatenate the data from the first frame into multi_frame_data */
             for (uint8_t data_pos = 5; data_pos < frame.can_dlc; ++data_pos) 
             {
@@ -220,6 +137,8 @@ namespace MCU
                 else 
                 {    
                     LOG_INFO(MCULogger.GET_LOGGER(), "DiagnosticSessionControl called.");
+                    mcuDiagnosticSessionControl.sessionControl(sid, frame_data[2]);
+                    LOG_INFO(MCULogger.GET_LOGGER(), "MCU Current session: {}", mcuDiagnosticSessionControl.getCurrentSessionToString());
                 }
                 break;
             case 0x11:
