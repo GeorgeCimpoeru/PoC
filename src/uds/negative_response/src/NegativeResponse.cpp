@@ -38,6 +38,15 @@ int NegativeResponseHandler::getSocket() const {
     return this->socket;
 }
 
+uint32_t invert_bytes(uint32_t can_id) {
+    uint8_t lowerbits = can_id & 0xFF;      
+    uint8_t upperbits = (can_id >> 8) & 0xFF; 
+
+    uint32_t inverted_can_id = (lowerbits << 8) | upperbits;
+    return inverted_can_id;
+}
+
 int NegativeResponseHandler::sendFrame(uint32_t can_id, std::vector<uint8_t> data, FrameType frame_type) {
-    return frameGenerator.sendFrame(can_id, data, frame_type); 
+    uint32_t inverted_can_id = invert_bytes(can_id);
+    return frameGenerator.sendFrame(inverted_can_id, data, frame_type);
 }
