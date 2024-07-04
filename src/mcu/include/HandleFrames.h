@@ -18,7 +18,7 @@
 #include <iostream>
 #include <vector>
 #include "../include/MCULogger.h"
-#include "../../ota/request_update_status/include/request_update_status.h"
+#include "../../ota/request_update_status/include/RequestUpdateStatus.h"
 
 class HandleFrames 
 {

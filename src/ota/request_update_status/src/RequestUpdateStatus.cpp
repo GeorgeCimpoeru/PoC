@@ -9,7 +9,7 @@
  * 
  */
 
-#include "../include/request_update_status.h"
+#include "../include/RequestUpdateStatus.h"
 
 RequestUpdateStatus::RequestUpdateStatus(Logger logger) : _logger{logger}
 {
