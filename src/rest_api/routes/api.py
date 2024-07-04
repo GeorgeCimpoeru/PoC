@@ -34,19 +34,38 @@ def read_info_bat():
 @api_bp.route('/send_frame', methods=['POST'])
 def send_frame():
     data = request.get_json()
+
     try:
+        bus = can.interface.Bus(channel=Config.CAN_CHANNEL, bustype='socketcan')
+
         can_id = int(data.get('can_id'), 16)
         can_data = [int(byte, 16) for byte in data.get('can_data').split(',')]
         
         if can_id > 0xFFFF or len(can_data) > 8:
             raise ValueError("CAN ID or Data out of bounds")
-
+        
         generator = GenerateFrame()
         generator.send_frame(can_id, can_data)
-        return jsonify({'status': 'Frame sent'})
+
+        received_frame = bus.recv(timeout=15)
+        
+        if received_frame is not None:
+            received_data = {
+                'can_id': hex(received_frame.arbitration_id),
+                'can_data': [hex(byte) for byte in received_frame.data]
+            }
+        else:
+            received_data = None
+
+        return jsonify({'response': received_data})
+    
     except ValueError as e:
         return jsonify({'status': 'Error', 'message': str(e)}), 400
-    
+    except Exception as e:
+        return jsonify({'status': 'Error', 'message': str(e)}), 500
+    finally:
+        bus.shutdown()
+        
 @api_bp.route('/logs')
 def get_logs():
     return jsonify({'logs': log_memory})

@@ -1,5 +1,7 @@
 import can
 from utils.logger import SingletonLogger, log_debug_message, log_info_message, log_warning_message, log_error_message, log_critical_message
+from config import Config
+
 
 logger_singleton = SingletonLogger('logger.log')
 logger = logger_singleton.logger
@@ -9,7 +11,7 @@ logger_frame = logger_singleton.logger_frame
 class GenerateFrame:
     def __init__(self, bus = None):
         if bus is None:
-            self.bus = can.interface.Bus(channel="vcan0", bustype='socketcan')
+            self.bus = can.interface.Bus(channel=Config.CAN_CHANNEL, bustype='socketcan')
         else:
             self.bus = bus
 
@@ -20,15 +22,15 @@ class GenerateFrame:
         except can.CanError:
             print("Message not sent")
 
-    def read_frame(self, timeout=1.0):
-        try:
-            message = self.bus.recv(timeout)
-            if message is None:
-                return None
-            return message
-        except can.CanError:
-            print("Error receiving message")
-            return None
+    # def read_frame(self, timeout=15):
+    #     try:
+    #         message = self.bus.recv(timeout)
+    #         if message is None:
+    #             return None
+    #         return message
+    #     except can.CanError:
+    #         print("Error receiving message")
+    #         return None
             
     def control_frame(self, id):
         data = [0x30, 0x00, 0x00, 0x00]
@@ -41,19 +43,13 @@ class GenerateFrame:
 
     def session_control(self, id, sub_funct, response = False):
         
-        if response == False:
-            data = [2, 0x10, sub_funct]
-        else:
-            data = [2, 0x50, sub_funct]
+        data = [2, 0x10, sub_funct] if response == False else [2, 0x50, sub_funct]
 
         self.send_frame(id, data)
     
     def ecu_reset(self, id, response = False):
 
-        if response == False:
-            data = [2, 0x11, 0x03]
-        else:
-            data = [2, 0x51, 0x03]
+        data = [2, 0x11, 0x03] if response == False else [2, 0x51, 0x03]
 
         self.send_frame(id, data)
 
@@ -141,18 +137,12 @@ class GenerateFrame:
         self.send_frame(id, data)
 
     def request_transfer_exit(self, id, response = False):
-        if response:
-            data = [1, 0x77]
-        else:
-             data = [1, 0x37]
+        data = [1, 0x77] if response == False else [1, 0x37]
         self.send_frame(id, data)
 
     def clear_diagnostic_information(self, id, group_of_dtc=0xFFFFFF, response=False):
         pci_l = len(group_of_dtc) + 1
-        if response:
-            data = [pci_l, 0x14] + group_of_dtc
-        else:
-            data = [1, 0x54]
+        data = [pci_l, 0x14] + group_of_dtc if response == False else [1, 0x54]
         
         self.send_frame(id, data)
 
@@ -164,45 +154,29 @@ class GenerateFrame:
 
     
     def routine_control(self, id, sub_funct, routine_id, response = False):
-        if response:
-            data = [4, 0x71, sub_funct, routine_id // 0x100, routine_id % 0x100]
-        else:
-            data = [4, 0x31, sub_funct, routine_id // 0x100, routine_id % 0x100]
+        data = [4, 0x71, sub_funct, routine_id // 0x100, routine_id % 0x100] if response == False else [4, 0x31, sub_funct, routine_id // 0x100, routine_id % 0x100]
 
         self.send_frame(id, data)
         
     def authentication_seed(self, id, seed = []):
         length_seed = len(seed)
-        if length_seed > 0:
-            data = [length_seed + 2, 0x69, 0x1] + seed
-        else:
-            data = [2, 0x29, 0x1]
-            
+        data = [length_seed + 2, 0x69, 0x1] + seed if length_seed > 0 else [2, 0x29, 0x1]
 
         self.send_frame(id, data)
 
     def authentication_key(self, id, key = []):
         length_key = len(key)
-        if length_key > 0:
-            data = [length_key + 2, 0x29, 0x2] + key
-        else:
-            data = [2, 0x69, 0x2]
+        data = [length_key + 2, 0x29, 0x2] + key if length_key > 0 else [2, 0x69, 0x2]
 
         self.send_frame(id, data)
     
     def tester_present(self, id, response = False):
-        if response:
-            data = [2, 0x7E, 0]
-        else:
-            data = [2, 0x3E, 0]
+        data = [2, 0x7E, 0] if response == False else [2, 0x3E, 0]
 
         self.send_frame(id, data)
     
     def access_timing_parameters(self, id, sub_function, response = False):
-        if response:
-            data = [2, 0x83, sub_function]
-        else:
-            data = [2, 0xC3, sub_function]
+        data = [2, 0x83, sub_function] if response == False else [2, 0xC3, sub_function]
 
         self.send_frame(id, data)
 
@@ -279,10 +253,7 @@ class GenerateFrame:
                 self.send_frame(id, data) 
 
     def __add_to_list(self, data_list, number):
-        temp_list = []
-        while number:
-            temp_list.append(number%0x100)
-            number //=0x100
+        temp_list = [(number >> (8 * i)) & 0xFF for i in range((number.bit_length() + 7) // 8)]
         data_list.extend(temp_list[::-1])
 
 
