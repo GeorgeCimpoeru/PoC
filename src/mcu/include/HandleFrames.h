@@ -25,6 +25,7 @@ class HandleFrames
 private:
     DiagnosticSessionControl mcuDiagnosticSessionControl;
 public:
+    HandleFrames() : mcuDiagnosticSessionControl(MCULogger) {};
     /**
      * @brief Method used to handle a can frame received from the ReceiveFrame class.
      * Takes a can_frame as parameter, checks if the frame is complete and then calls

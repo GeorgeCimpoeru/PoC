@@ -1,31 +1,27 @@
 #include "../include/DiagnosticSessionControl.h"
 #include <iostream>
 
-#ifdef UNIT_TESTING_MODE
-Logger dscLogger;
-#else
-Logger dscLogger("dscLogger", "logs/dscLogger.log");
-#endif /* UNIT_TESTING_MODE */
-
 /* Default constructor, used in MCU */
-DiagnosticSessionControl::DiagnosticSessionControl() : current_session(DEFAULT_SESSION),
-                                                       can_interface(CreateInterface::getInstance(0x00, dscLogger)),
-                                                       module_id(module_id)
+DiagnosticSessionControl::DiagnosticSessionControl(Logger logger) : dsc_logger(logger),
+                                                                    current_session(DEFAULT_SESSION),
+                                                                    can_interface(CreateInterface::getInstance(0x00, dsc_logger)),
+                                                                    module_id(module_id)
 {
-    LOG_INFO(dscLogger.GET_LOGGER(), "Diagnostic Session Control (0x10) started. Current session: {}", getCurrentSessionToString());
+    LOG_INFO(dsc_logger.GET_LOGGER(), "Diagnostic Session Control (0x10) started. Current session: {}", getCurrentSessionToString());
 }
 
 /* Parameterized constructor, used for ECUs */
-DiagnosticSessionControl::DiagnosticSessionControl(int module_id) : current_session(DEFAULT_SESSION),
-                                                                    can_interface(CreateInterface::getInstance(0x00, dscLogger)),
-                                                                    module_id(module_id)
+DiagnosticSessionControl::DiagnosticSessionControl(int module_id, Logger logger) : dsc_logger(logger),
+                                                                                   current_session(DEFAULT_SESSION),
+                                                                                   can_interface(CreateInterface::getInstance(0x00, dsc_logger)),
+                                                                                   module_id(module_id)
 {
-    LOG_INFO(dscLogger.GET_LOGGER(), "Diagnostic Session Control (0x10) started. Current session: {}", getCurrentSessionToString());
+    LOG_INFO(dsc_logger.GET_LOGGER(), "Diagnostic Session Control (0x10) started. Current session: {}", getCurrentSessionToString());
 }
 
 DiagnosticSessionControl::~DiagnosticSessionControl()
 {
-    LOG_INFO(dscLogger.GET_LOGGER(), "Diagnostic Session Control object out of scope");
+    LOG_INFO(dsc_logger.GET_LOGGER(), "Diagnostic Session Control object out of scope");
 }
 
 /* Method to control the sessions of service */
@@ -50,7 +46,7 @@ void DiagnosticSessionControl::handleRequest(const uint8_t *request, size_t leng
     uint8_t sid = request[0];
     uint8_t sub_function = request[1];
 
-    LOG_INFO(dscLogger.GET_LOGGER(), "Sessiom Control request, SID: 0x{:X} Sub-Function: 0x{:X}", sid, sub_function);
+    LOG_INFO(dsc_logger.GET_LOGGER(), "Sessiom Control request, SID: 0x{:X} Sub-Function: 0x{:X}", sid, sub_function);
 
     if (sid == SID_DIAGNOSTIC_SESSION_CONTROL)
     {
@@ -60,16 +56,14 @@ void DiagnosticSessionControl::handleRequest(const uint8_t *request, size_t leng
             switchToDefaultSession();
             break;
         default:
-            /* std::cerr << "Unsupported sub-function" << std::endl; */
-            LOG_ERROR(dscLogger.GET_LOGGER(), "Unsupported sub-function");
-            /* Typically, another negative response could be added here */
+            LOG_ERROR(dsc_logger.GET_LOGGER(), "Unsupported sub-function");
+            /* Other negative responses can be added here */
             break;
         }
     }
     else
     {
-        /* std::cerr << "Unsupported SID" << std::endl; */
-        LOG_ERROR(dscLogger.GET_LOGGER(), "Unsupported SID");
+        LOG_ERROR(dsc_logger.GET_LOGGER(), "Unsupported SID");
         /* Other negative responses... */
     }
 }
@@ -83,7 +77,7 @@ void DiagnosticSessionControl::switchToDefaultSession()
     if (!authenticated)
     {
         sendNegativeResponse(NR_AUTHENTICATION_FAILED);
-        LOG_WARN(dscLogger.GET_LOGGER(), "Sent Negative Response with code {}", NR_AUTHENTICATION_FAILED);
+        LOG_WARN(dsc_logger.GET_LOGGER(), "Sent Negative Response with code {}", NR_AUTHENTICATION_FAILED);
         return;
     }
 
@@ -93,17 +87,17 @@ void DiagnosticSessionControl::switchToDefaultSession()
     if (!resource_available)
     {
         sendNegativeResponse(NR_RESOURCE_TEMP_UNAVAILABLE);
-        LOG_WARN(dscLogger.GET_LOGGER(), "Sent Negative Response with code {}", NR_RESOURCE_TEMP_UNAVAILABLE);
+        LOG_WARN(dsc_logger.GET_LOGGER(), "Sent Negative Response with code {}", NR_RESOURCE_TEMP_UNAVAILABLE);
         return;
     }
 
     /* Switch to Default Session */
     current_session = DEFAULT_SESSION;
     /* std::cout << "Switched to Default Session" << std::endl; */
-    LOG_INFO(dscLogger.GET_LOGGER(), "Switched to Default Session. Current session: {}", getCurrentSessionToString());
+    LOG_INFO(dsc_logger.GET_LOGGER(), "Switched to Default Session. Current session: {}", getCurrentSessionToString());
 
     /* Create instance of Generate Frames to send response frame */
-    GenerateFrames response_frame(can_interface->getSocketEcuWrite(), dscLogger);
+    GenerateFrames response_frame(can_interface->getSocketEcuWrite(), dsc_logger);
 
     /** Check the module where the request was made from
      * More ECUs can be added here in future.
@@ -113,13 +107,13 @@ void DiagnosticSessionControl::switchToDefaultSession()
     {
         /* Send response frame to ECU */
         response_frame.sessionControl(0x1011, 0x01, true);
-        LOG_INFO(dscLogger.GET_LOGGER(), "Sent pozitive response frame to ECU");
+        LOG_INFO(dsc_logger.GET_LOGGER(), "Sent pozitive response frame to ECU");
     }
     else
     {
         /* Send response frame to MCU */
         response_frame.sessionControl(0x1110, 0x01, true);
-        LOG_INFO(dscLogger.GET_LOGGER(), "Sent pozitive response frame to MCU");
+        LOG_INFO(dsc_logger.GET_LOGGER(), "Sent pozitive response frame to MCU");
     }
 }
 
@@ -127,7 +121,7 @@ void DiagnosticSessionControl::switchToDefaultSession()
 void DiagnosticSessionControl::sendNegativeResponse(uint8_t responseCode)
 {
     /* std::cerr << "Sending Negative Response: " << static_cast<int>(responseCode) << std::endl; */
-    LOG_INFO(dscLogger.GET_LOGGER(), "Sending Negative Response: {}", static_cast<int>(responseCode));
+    LOG_INFO(dsc_logger.GET_LOGGER(), "Sending Negative Response: {}", static_cast<int>(responseCode));
     /* TO DO: Implement logic to send the negative response */
 }
 

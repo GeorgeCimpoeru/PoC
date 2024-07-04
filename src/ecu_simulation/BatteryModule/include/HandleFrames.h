@@ -65,7 +65,7 @@ public:
     /**
      * @brief Default constructor for Handle Frames object.
      */
-    HandleFrames() : expected_data_size(0), flag(0), diagnosticSessionControl(moduleId) {}
+    HandleFrames() : expected_data_size(0), flag(0), diagnosticSessionControl(moduleId, batteryModuleLogger) {}
 
     /**
      * @brief Method for checking the validity of the received CAN frame.
