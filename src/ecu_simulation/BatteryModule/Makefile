@@ -2,10 +2,10 @@
 CFLAGS = -g -Wall -pthread -I./include -I./src -I../../utils/include -I../../utils/src -I../../uds/include -I../../uds/src
 CFLAGSTST = -std=c++17 -I/include -DUNIT_TESTING_MODE
 LDFLAGS = -lspdlog
-CFLAGSTST2 = -lgtest -lgtest_main -pthread -fprofile-arcs -ftest-coverage
+CFLAGSTST2 = -lgtest -lgtest_main -pthread
 #Sources files
-SRCS = src/main.cpp src/BatteryModule.cpp ../../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../../utils/src/CreateInterface.cpp ../../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp src/ReceiveFrames.cpp
-
+SRCS = src/main.cpp src/BatteryModule.cpp ../../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../../utils/src/CreateInterface.cpp ../../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp src/ReceiveFrames.cpp ../../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../../mcu/src/HandleFrames.cpp ../../mcu/src/ReceiveFrames.cpp ../../mcu/src/MCUModule.cpp
+SRCSTEST = src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp ../../utils/src/Logger.cpp ../../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../../mcu/src/HandleFrames.cpp ../../mcu/src/ReceiveFrames.cpp ../../mcu/src/MCUModule.cpp
 #Object files
 OBJS = $(patsubst ../uds/src/%.cpp ../utils/src/%.cpp src/%.cpp, obj/%.o, $(SRCS))
 OBJS:= $(OBJS) obj/Logger.o
@@ -21,7 +21,7 @@ $(FINAL): $(OBJS)
 	$(CXX) $(CFLAGS) -o $(FINAL) $(OBJS) ${LDFLAGS}
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
-$(OBJ_DIR)/main.o: src/main.cpp include/BatteryModule.h include/ReceiveFrames.h include/HandleFrames.h include/GenerateFrames.h ../../utils/include/CreateInterface.h ../../uds/diagnostic_session_control/include/DiagnosticSessionControl.h ../../utils/include/Logger.h include/BatteryModuleLogger.h
+$(OBJ_DIR)/main.o: src/main.cpp include/BatteryModule.h include/ReceiveFrames.h include/HandleFrames.h include/GenerateFrames.h ../../utils/include/CreateInterface.h ../../uds/diagnostic_session_control/include/DiagnosticSessionControl.h ../../utils/include/Logger.h include/BatteryModuleLogger.h ../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h ../../mcu/include/HandleFrames.h ../../mcu/include/ReceiveFrames.h ../../mcu/include/MCUModule.h
 	$(CXX) $(CFLAGS) -c src/main.cpp -o $(OBJ_DIR)/main.o
 $(OBJ_DIR)/BatteryModule.o: src/BatteryModule.cpp
 	$(CXX) $(CFLAGS) -c src/BatteryModule.cpp -o $(OBJ_DIR)/BatteryModule.o
@@ -52,32 +52,32 @@ allTests: handleTest receiveTest generateTest createInterfaceTest batteryModuleT
 # BatteryModule Unit tests
 batteryModuleTest: BatteryModuleTest
 BatteryModuleTest: test/BatteryModuleTest.cpp src/BatteryModule.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -o test/BatteryModuleTest test/BatteryModuleTest.cpp src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o test/BatteryModuleTest test/BatteryModuleTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 
 # HandleFrames Unit tests
 handleTest: HandleFrames_test
 HandleFrames_test: test/HandleFrames_test.cpp src/HandleFrames.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -o test/HandleFrames_test test/HandleFrames_test.cpp src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o test/HandleFrames_test test/HandleFrames_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 
 # ReceiveFrames Unit tests
 receiveTest: ReceiveFrames_test
 ReceiveFrames_test: test/ReceiveFramesTest.cpp src/ReceiveFrames.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -o test/ReceiveFramesTest test/ReceiveFramesTest.cpp src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o test/ReceiveFramesTest test/ReceiveFramesTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 
 # GenerateFrames Unit tests
 generateTest: GenerateFrames_test
 GenerateFrames_test: ../../utils/test/GenerateFramesTest.cpp ../../utils/src/GenerateFrames.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../../utils/test/GenerateFramesTest ../../utils/test/GenerateFramesTest.cpp src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../../utils/test/GenerateFramesTest ../../utils/test/GenerateFramesTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 
 # CreateInterface Unit tests
 createInterfaceTest: CreateInterface_test
 CreateInterface_test: ../../utils/test/CreateInterface_test.cpp ../../utils/src/CreateInterface.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../../utils/test/CreateInterface_test ../../utils/test/CreateInterface_test.cpp src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../../utils/test/CreateInterface_test ../../utils/test/CreateInterface_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 
 # BatteryModule Coverage
 batteryModuleCoverage: BatteryModuleCoverage
 BatteryModuleCoverage: test/BatteryModuleTest.cpp src/BatteryModule.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o test/BatteryModuleTest test/BatteryModuleTest.cpp src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o test/BatteryModuleTest test/BatteryModuleTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 	./test/BatteryModuleTest
 	mkdir -p coverage/out_BatteryModule
 	gcov -o . src/BatteryModule.cpp
@@ -94,7 +94,7 @@ BatteryModuleCoverage: test/BatteryModuleTest.cpp src/BatteryModule.cpp
 # HandleFrames Coverage
 handleCoverage: HandleFramesCoverage
 HandleFramesCoverage: test/HandleFrames_test.cpp src/HandleFrames.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o test/HandleFrames_test test/HandleFrames_test.cpp src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o test/HandleFrames_test test/HandleFrames_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 	./test/HandleFrames_test
 	mkdir -p coverage/out_HandleFrames
 	gcov -o . src/HandleFrames.cpp
@@ -111,7 +111,7 @@ HandleFramesCoverage: test/HandleFrames_test.cpp src/HandleFrames.cpp
 # ReceiveFrames Coverage
 receiveCoverage: ReceiveFramesCoverage
 ReceiveFramesCoverage: test/ReceiveFramesTest.cpp src/ReceiveFrames.cpp
-	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o test/ReceiveFramesTest test/ReceiveFramesTest.cpp src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o test/ReceiveFramesTest test/ReceiveFramesTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 	./test/ReceiveFramesTest
 	mkdir -p coverage/out_ReceiveFrames
 	gcov -o . src/ReceiveFrames.cpp
@@ -128,7 +128,7 @@ ReceiveFramesCoverage: test/ReceiveFramesTest.cpp src/ReceiveFrames.cpp
 # generateFrames Coverage
 generateCoverage: GenerateFramesCoverage
 GenerateFramesCoverage: ../../utils/test/GenerateFramesTest.cpp ../../utils/src/GenerateFrames.cpp
-	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../../utils/test/GenerateFramesTest ../../utils/test/GenerateFramesTest.cpp src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../../utils/test/GenerateFramesTest ../../utils/test/GenerateFramesTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 	./test/GenerateFramesTest
 	mkdir -p coverage/out_GenerateFrames
 	gcov -o . ../../utils/src/GenerateFrames.cpp
@@ -145,7 +145,7 @@ GenerateFramesCoverage: ../../utils/test/GenerateFramesTest.cpp ../../utils/src/
 # CreateInterface Coverage
 createInterfaceCoverage: CreateInterfaceCoverage
 CreateInterfaceCoverage: ../../utils/test/CreateInterface_test.cpp ../../utils/src/CreateInterface.cpp
-	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../../utils/test/CreateInterface_test ../../utils/test/CreateInterface_test.cpp src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../../utils/test/CreateInterface_test ../../utils/test/CreateInterface_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 	./../../utils/test/CreateInterface_test
 	mkdir -p coverage/out_CreateInterface
 	gcov -o . ../../utils/src/CreateInterface.cpp
@@ -162,35 +162,35 @@ CreateInterfaceCoverage: ../../utils/test/CreateInterface_test.cpp ../../utils/s
 allCoverage: BatteryModule_coverage HandleFrames_coverage ReceiveFrames_coverage GenerateFrames_coverage CreateInterface_coverage
 
 BatteryModule_coverage:
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o test/BatteryModuleTest test/BatteryModuleTest.cpp src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o test/BatteryModuleTest test/BatteryModuleTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 	./test/BatteryModuleTest
 	mkdir -p coverage/out_BatteryModule
 	gcov -o . src/BatteryModule.cpp
 	mv BatteryModule.cpp.gcov coverage/out_BatteryModule
 
 HandleFrames_coverage:
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o test/HandleFrames_test test/HandleFrames_test.cpp src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o test/HandleFrames_test test/HandleFrames_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 	./test/HandleFrames_test
 	mkdir -p coverage/out_HandleFrames
 	gcov -o . src/HandleFrames.cpp
 	mv HandleFrames.cpp.gcov coverage/out_HandleFrames
 
 ReceiveFrames_coverage:
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o test/ReceiveFramesTest test/ReceiveFramesTest.cpp src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o test/ReceiveFramesTest test/ReceiveFramesTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 	./test/ReceiveFramesTest
 	mkdir -p coverage/out_ReceiveFrames
 	gcov -o . src/ReceiveFrames.cpp
 	mv ReceiveFrames.cpp.gcov coverage/out_ReceiveFrames
 
 GenerateFrames_coverage:
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../../utils/test/GenerateFrames_Test ../../utils/test/GenerateFrames_Test.cpp src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../../utils/test/GenerateFrames_Test ../../utils/test/GenerateFrames_Test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 	./test/GenerateFrames_Test
 	mkdir -p coverage/out_GenerateFrames
 	gcov -o . ../../utils/src/GenerateFrames.cpp
 	mv GenerateFrames.cpp.gcov coverage/out_GenerateFrames
 
 CreateInterface_coverage:
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../utils/test/CreateInterface_test ../utils/test/CreateInterface_test.cpp src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../utils/test/CreateInterface_test ../utils/test/CreateInterface_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 	./../utils/test/CreateInterface_test
 	mkdir -p coverage/out_CreateInterface
 	gcov -o . ../../utils/src/CreateInterface.cpp
