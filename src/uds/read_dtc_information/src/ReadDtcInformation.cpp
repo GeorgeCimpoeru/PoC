@@ -1,11 +1,10 @@
-#include "../include/read_dtc_information.h"
+#include "../include/ReadDtcInformation.h"
 
-ReadDTC::ReadDTC(int socket_, Logger logger, std::string path_folder )
+ReadDTC::ReadDTC(Logger logger, std::string path_folder )
 {
+    this->interface = this->interface->getInstance(0x00,logger);
     this->path_folder = path_folder;
-    this->socket_ = socket_;
     this->logger = logger;
-    this->generate = new GenerateFrames(socket_,logger);
 }
 
 ReadDTC::~ReadDTC()
@@ -13,25 +12,69 @@ ReadDTC::~ReadDTC()
     delete this->generate;
 }
 
-void ReadDTC::read_dtc(int id, int sub_function, int dtc_status_mask)
+void ReadDTC::read_dtc(int id, std::vector<uint8_t> data)
 {
     LOG_INFO(logger.GET_LOGGER(), "Read DTC Service");
+    SetSockets_(id);
+    this->generate = new GenerateFrames(socket_write,logger);
+    int new_id = (id % 0x100) * 0x100 + (id / 0x100);
+    if (data.size() != 4)
+    {
+        LOG_ERROR(logger.GET_LOGGER(), "Incorrect message length or invalid format");
+        this->generate->negativeResponse(new_id, 0x19, 0x13);
+        return;
+    }
+    int sub_function = data[2];
+    int dtc_status_mask = data[3];
+    
     switch (sub_function)
     {
         case 0x01:
             LOG_INFO(logger.GET_LOGGER(), "Sub-function 1");
-            number_of_dtc(id,dtc_status_mask);
+            number_of_dtc(new_id,dtc_status_mask);
             break;
         case 0x02:
             LOG_INFO(logger.GET_LOGGER(), "Sub-function 2");
-            report_dtcs(id,dtc_status_mask);
+            report_dtcs(new_id,dtc_status_mask);
             break;
+        default:
+            LOG_WARN(logger.GET_LOGGER(), "Sub-function not implemented");
+    }
+}
+
+int ReadDTC::SetSockets_(int id)
+{
+    int my_id = id % 0x100;
+    if (my_id == 0x10)
+    {
+        this->socket_read = interface->getSocketApiRead();
+        this->socket_write =interface->getSocketApiWrite();
+    }
+    if (my_id > 0x11)
+    {
+        this->socket_read = interface->getSocketEcuRead();
+        this->socket_write =interface->getSocketEcuWrite();
     }
 }
 
 void ReadDTC::number_of_dtc(int id, int dtc_status_mask)
 {
-    std::ifstream MyReadFile(this->path_folder);
+    std::ifstream MyReadFile;
+    try
+    {
+        MyReadFile.open(this->path_folder);
+        if (!MyReadFile.is_open())
+        {
+            throw std::runtime_error("Unable to open file");
+        }
+    }
+    catch(const std::exception& e)
+    {
+        LOG_ERROR(logger.GET_LOGGER(), "Unable to read DTCs");
+        /* NRC Resource temporarily unavailable */
+        this->generate->negativeResponse(id, 0x19, 0x94);
+        return;
+    }
 
     uint8_t status_availability_mask=0;
     int number_of_dtc = 0;
@@ -58,7 +101,22 @@ void ReadDTC::number_of_dtc(int id, int dtc_status_mask)
 
 void ReadDTC::report_dtcs(int id, int dtc_status_mask)
 {
-    std::ifstream MyReadFile(this->path_folder);
+    std::ifstream MyReadFile;
+    try
+    {
+        MyReadFile.open(this->path_folder);
+        if (!MyReadFile.is_open())
+        {
+            throw std::runtime_error("Unable to open file");
+        }
+    }
+    catch(const std::exception& e)
+    {
+        LOG_ERROR(logger.GET_LOGGER(), "Unable to read DTCs");
+        /* NRC Resource temporarily unavailable */
+        this->generate->negativeResponse(id, 0x19, 0x94);
+        return;
+    }
     
     uint8_t status_availability_mask=0;
     std::vector<std::pair<int, int>> dtc_and_status_list;
@@ -82,7 +140,7 @@ void ReadDTC::report_dtcs(int id, int dtc_status_mask)
     {
         LOG_INFO(logger.GET_LOGGER(), "Sending response first-frame...");
         this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,true);
-        if (receive_flow_control())
+        if (receive_flow_control(id / 0x100))
         {
             LOG_INFO(logger.GET_LOGGER(), "Sending consecutive frames...");
             this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,false);
@@ -112,12 +170,12 @@ int ReadDTC::dtc_to_hex(std::string dtc)
     return hex;
 }
 
-bool ReadDTC::receive_flow_control()
+bool ReadDTC::receive_flow_control(int id_module)
 {
     /* Define a pollfd structure to monitor the socket */ 
     struct pollfd pfd;
     /* Set the socket file descriptor */ 
-    pfd.fd = this->socket_; 
+    pfd.fd = this->socket_read; 
     /* We are interested in read events -use POLLING */ 
     pfd.events = POLLIN;
 
@@ -132,11 +190,11 @@ bool ReadDTC::receive_flow_control()
         if (poll_result > 0 && pfd.revents & POLLIN) 
         {
             struct can_frame frame ;
-            int nbytes = read(this->socket_, &frame, sizeof(frame));
+            int nbytes = read(this->socket_read, &frame, sizeof(frame));
 
             if (nbytes > 0) 
             {
-                if (frame.data[0] == 0x30)
+                if (frame.can_id % 0x100 == id_module && frame.data[0] == 0x30)
                 {
                     LOG_INFO(logger.GET_LOGGER(), "Flow controll frame recived...");
                     return true;

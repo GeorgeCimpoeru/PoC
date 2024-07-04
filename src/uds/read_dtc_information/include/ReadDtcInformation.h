@@ -12,6 +12,7 @@
 #define READ_DTC_INFROMATION_H
 
 #include "../../../utils/include/GenerateFrames.h"
+#include "../../utils/include/CreateInterface.h"
 
 #include <iostream>
 #include <fstream>
@@ -29,8 +30,10 @@ class ReadDTC
     private:
         std::string path_folder;
         GenerateFrames* generate;
-        int socket_;
+        int socket_read;
+        int socket_write;
         Logger logger;
+        CreateInterface* interface;
 
     public:
         /**
@@ -38,7 +41,7 @@ class ReadDTC
          * 
          * @param path_folder path to the file containing the dtcs
          */
-        ReadDTC(int socket_, Logger logger, std::string path_folder = "default");
+        ReadDTC(Logger logger, std::string path_folder = "default");
         /**
          * @brief Destroy the Read DTC object
          * 
@@ -48,10 +51,9 @@ class ReadDTC
          * @brief Main method to the 0x19 read DTC UDS service 
          * 
          * @param id can id
-         * @param sub_function sub-function required
-         * @param dtc_status_mask status mask filter
+         * @param data data from the frame containing sub_function and status_mask
          */
-        void read_dtc(int id, int sub_function, int dtc_status_mask);
+        void read_dtc(int id, std::vector<uint8_t> data);
 
     private:
         /**
@@ -82,7 +84,7 @@ class ReadDTC
          * @return true 
          * @return false 
          */
-        bool receive_flow_control();
+        bool receive_flow_control(int id_module);
         /**
          * @brief Transform the raw DTCs in to hex values
          * 
@@ -90,6 +92,13 @@ class ReadDTC
          * @return int 
          */
         int dtc_to_hex(std::string dtc);
+        /**
+         * @brief Set the Socket_ object
+         * 
+         * @param id 
+         * @return int 
+         */
+        int SetSockets_(int id);
 };
 
 #endif

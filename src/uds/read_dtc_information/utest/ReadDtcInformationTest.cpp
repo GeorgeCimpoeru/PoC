@@ -14,7 +14,7 @@
  *          P0B12-01 10
  * 
  */
-#include "../include/read_dtc_information.h"
+#include "../include/ReadDtcInformation.h"
 
 #include <cstring>
 #include <string>
@@ -27,7 +27,7 @@
 
 int socket_;
 /* Const */
-const int id = 0x1234;
+const int id = 0x3412;
 
 /* Class to capture the frame sin the can-bus */
 class CaptureFrame
@@ -107,9 +107,8 @@ struct ReadDtcTest : testing::Test
     Logger* logger;
     ReadDtcTest()
     {
-        int s = createSocket();
         logger = new Logger("log_test_read_dtc","./log_test_read_dtc.log");
-        r = new ReadDTC(s, *logger, "./dtcs.txt");
+        r = new ReadDTC(*logger, "./dtcs.txt");
         c1 = new CaptureFrame();
     }
     ~ReadDtcTest()
@@ -123,7 +122,7 @@ TEST_F(ReadDtcTest, SubFunction1)
 {
     struct can_frame result_frame = createFrame({0x06, 0x59, 0x01, 0x3F, 0x01, 0x00, 0x02});
 
-    r->read_dtc(0x1234, 0x01, 0x84);
+    r->read_dtc(0x1234, {0x4,0x19,0x01, 0x84});
     c1->capture();
     testFrames(result_frame, *c1);
 }
@@ -131,7 +130,7 @@ TEST_F(ReadDtcTest, SubFunction1)
 TEST_F(ReadDtcTest, SubFunction2)
 {
     struct can_frame result_frame = createFrame({0x06, 0x59, 0x02, 0x3F, 0x0B, 0x12, 0x01, 0x10});
-    r->read_dtc(0x1234, 0x02, 0x10);
+    r->read_dtc(0x1234, {0x4,0x19,0x02, 0x10});
     c1->capture();
     testFrames(result_frame, *c1);
 }
@@ -142,7 +141,7 @@ TEST_F(ReadDtcTest, SubFunction2_Test2)
     Logger logger;
     GenerateFrames g = GenerateFrames(socket_,logger);
     g.flowControlFrame(0x1234);
-    r->read_dtc(0x1234, 0x02, 0x84);
+    r->read_dtc(0x1234, {0x4,0x19,0x02, 0x84});
     c1->capture();
     
     testFrames(result_frame, *c1);
@@ -151,7 +150,7 @@ TEST_F(ReadDtcTest, SubFunction2_Test2)
 TEST_F(ReadDtcTest, SubFunction2_Test3)
 {
     testing::internal::CaptureStdout();
-    r->read_dtc(0x1234, 0x02, 0x84);
+    r->read_dtc(0x1234, {0x4,0x19,0x02, 0x84});
     c1->capture();
     std::string output = testing::internal::GetCapturedStdout();
     EXPECT_NE(output.find("Timeout. FLow control frame not received!"), std::string::npos);

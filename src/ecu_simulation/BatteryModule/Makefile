@@ -4,8 +4,9 @@ CFLAGSTST = -std=c++17 -I/include -DUNIT_TESTING_MODE
 LDFLAGS = -lspdlog
 CFLAGSTST2 = -lgtest -lgtest_main -pthread
 #Sources files
-SRCS = src/main.cpp src/BatteryModule.cpp ../../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../../utils/src/CreateInterface.cpp src/ReceiveFrames.cpp ../../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../../mcu/src/HandleFrames.cpp ../../mcu/src/ReceiveFrames.cpp ../../mcu/src/MCUModule.cpp
+SRCS = src/main.cpp src/BatteryModule.cpp ../../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../../utils/src/CreateInterface.cpp src/ReceiveFrames.cpp ../../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../../mcu/src/HandleFrames.cpp ../../mcu/src/ReceiveFrames.cpp ../../mcu/src/MCUModule.cpp ../../uds/read_dtc_information/src/ReadDtcInformation.cpp
 SRCSTEST = src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp ../../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../../mcu/src/HandleFrames.cpp ../../mcu/src/ReceiveFrames.cpp ../../mcu/src/MCUModule.cpp
+
 #Object files
 OBJS = $(patsubst ../utils/src/%.cpp src/%.cpp, obj/%.o, $(SRCS))
 OBJS:= $(OBJS) obj/Logger.o
@@ -21,7 +22,7 @@ $(FINAL): $(OBJS)
 	$(CXX) $(CFLAGS) -o $(FINAL) $(OBJS) ${LDFLAGS}
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
-$(OBJ_DIR)/main.o: src/main.cpp include/BatteryModule.h include/ReceiveFrames.h include/HandleFrames.h include/GenerateFrames.h ../../utils/include/CreateInterface.h ../../utils/include/Logger.h include/BatteryModuleLogger.h ../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h ../../mcu/include/HandleFrames.h ../../mcu/include/ReceiveFrames.h ../../mcu/include/MCUModule.h
+$(OBJ_DIR)/main.o: src/main.cpp include/BatteryModule.h include/ReceiveFrames.h include/HandleFrames.h include/GenerateFrames.h ../../utils/include/CreateInterface.h ../../utils/include/Logger.h include/BatteryModuleLogger.h ../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h ../../mcu/include/HandleFrames.h ../../mcu/include/ReceiveFrames.h ../../mcu/include/MCUModule.h ../../uds/read_dtc_information/include/ReadDtcInformation.h
 	$(CXX) $(CFLAGS) -c src/main.cpp -o $(OBJ_DIR)/main.o
 $(OBJ_DIR)/BatteryModule.o: src/BatteryModule.cpp
 	$(CXX) $(CFLAGS) -c src/BatteryModule.cpp -o $(OBJ_DIR)/BatteryModule.o
@@ -35,6 +36,8 @@ $(OBJ_DIR)/CreateInterface.o: ../../utils/src/CreateInterface.cpp
 	$(CXX) $(CFLAGS) -c ../../utils/src/CreateInterface.cpp -o $(OBJ_DIR)/CreateInterface.o
 $(OBJ_DIR)/Logger.o: ../../utils/src/Logger.cpp
 	$(CXX) $(CFLAGS) -c ../../utils/src/Logger.cpp -o $(OBJ_DIR)/Logger.o
+$(OBJ_DIR)/ReadDtcInformation.o: ../../uds/read_dtc_information/src/ReadDtcInformation.cpp
+	$(CXX) $(CFLAGS) -c ../../uds/read_dtc_information/src/ReadDtcInformation.cpp -o $(OBJ_DIR)/ReadDtcInformation.o
 
 clean:
 	rm -f $(FINAL)  ${FINAL_TEST} test/BatteryModuleTest ../../utils/test/GenerateFramesTest test/ReceiveFramesTest ../../utils/test/CreateInterface_test
@@ -71,6 +74,10 @@ GenerateFrames_test: ../../utils/test/GenerateFramesTest.cpp ../../utils/src/Gen
 createInterfaceTest: CreateInterface_test
 CreateInterface_test: ../../utils/test/CreateInterface_test.cpp ../../utils/src/CreateInterface.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../../utils/test/CreateInterface_test ../../utils/test/CreateInterface_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+
+readDtcTest: readDtc_test
+readDtc_test: ../../uds/read_dtc_information/utest/ReadDtcInformationTest.cpp ../../uds/read_dtc_information/src/ReadDtcInformation.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../../uds/read_dtc_information/utest/ReadDtcInformationTest ../../uds/read_dtc_information/utest/ReadDtcInformationTest.cpp ../../uds/read_dtc_information/src/ReadDtcInformation.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
 
 # BatteryModule Coverage
 batteryModuleCoverage: BatteryModuleCoverage
