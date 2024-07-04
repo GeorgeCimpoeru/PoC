@@ -47,7 +47,7 @@ clean:
 	find . -name '*.info' -delete
 
 # Compile all unit tests
-allTests: handleTest receiveTest generateTest createInterfaceTest
+allTests: handleTest receiveTest generateTest createInterfaceTest RDBITest
 # HandleFrames Unit tests
 handleTest: HandleFrames_test
 HandleFrames_test: test/HandleFrames_test.cpp src/HandleFrames.cpp
@@ -67,6 +67,11 @@ GenerateFrames_test: ../utils/test/GenerateFramesTest.cpp ../utils/src/GenerateF
 createInterfaceTest: CreateInterface_test
 CreateInterface_test: ../utils/test/CreateInterface_test.cpp ../utils/src/CreateInterface.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../utils/test/CreateInterface_test ../utils/test/CreateInterface_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+
+# ReadDataByIdentifier Unit tests
+RDBITest: ReadDataByIdentifier_test
+ReadDataByIdentifier_test: ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest.cpp ../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 
 # HandleFrames Coverage
 handleCoverage: HandleFramesCoverage
@@ -134,7 +139,24 @@ CreateInterfaceCoverage: ../utils/test/CreateInterface_test.cpp ../utils/src/Cre
 	find . -name '*.gcda' -delete
 	find . -name '*.gcov' -delete
 
-allCoverage: HandleFrames_coverage ReceiveFrames_coverage GenerateFrames_coverage CreateInterface_coverage
+# ReadDataByIdentifier Coverage
+RDBICoverage: ReadDataByIdentifierCoverage
+ReadDataByIdentifierCoverage: ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest.cpp ../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	./../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest
+	mkdir -p coverage/out_ReadDataByIdentifier
+	gcov -o . ../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp
+	mv ReadDataByIdentifier.cpp.gcov coverage/out_ReadDataByIdentifier
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/*' --output-file coverage_filtered.info
+	lcov --remove coverage.info '*/test/*' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_ReadDataByIdentifier
+	xdg-open coverage/out_ReadDataByIdentifier/index.html
+	find . -name '*.gcno' -delete
+	find . -name '*.gcda' -delete
+	find . -name '*.gcov' -delete
+
+allCoverage: HandleFrames_coverage ReceiveFrames_coverage GenerateFrames_coverage CreateInterface_coverage ReadDataByIdentifier_coverage
 
 HandleFrames_coverage:
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o test/HandleFrames_test test/HandleFrames_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
@@ -163,6 +185,14 @@ CreateInterface_coverage:
 	mkdir -p coverage/out_CreateInterface
 	gcov -o . ../utils/src/CreateInterface.cpp
 	mv CreateInterface.cpp.gcov coverage/out_CreateInterface
+
+
+ReadDataByIdentifier_coverage: ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest.cpp ../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	./../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest
+	mkdir -p coverage/out_ReadDataByIdentifier
+	gcov -o . ../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp
+	mv ReadDataByIdentifier.cpp.gcov coverage/out_ReadDataByIdentifier
 
 allCoveragePostProcess:
 	lcov --capture --directory . --output-file coverage.info
