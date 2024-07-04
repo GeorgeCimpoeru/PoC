@@ -159,7 +159,7 @@ class Action:
         """
         flag = False
         msg_ext = None
-        msg = self.bus.recv(3)
+        msg = self.bus.recv()
         while msg is not None:
             # First Frame
             if msg.data[0] == 0x10:

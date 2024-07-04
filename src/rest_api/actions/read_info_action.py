@@ -16,6 +16,7 @@ How to use:
 import json
 import datetime
 from actions.base_actions import *
+from flask import jsonify
 
 class ToJSON:
     """Open-Close principle. Base class for different JSON formats."""
@@ -24,16 +25,30 @@ class ToJSON:
 
 class BatteryToJSON(ToJSON):
     def _to_json(self, data: list):
+        # response_to_frontend = {
+        #     "Battery level": data[0],
+        #     "Voltage": data[1],
+        #     "Battery state of charge": data[2],
+        #     "Temperature": data[3],
+        #     "Life cycle": data[4],
+        #     "Serial number": data[5],
+        #     "time_stamp": datetime.datetime.now().isoformat() # Item not existing at front
+        # }
+    
         response_to_frontend = {
-            "Battery level": data[0],
-            "Voltage": data[1],
-            "Battery state of charge": data[2],
-            "Temperature": data[3],
-            "Life cycle": data[4],
-            "Serial number": data[5],
-            "time_stamp": datetime.datetime.now().isoformat()
+            "battery_level": data[0],
+            "voltage": data[1],
+            "battery_state_of_charge": data[2],
+            "temperature": data[3],
+            "life_cycle": data[4],
+            "fully_charged": True,
+            "serial_number": data[5],
+            "range_battery": 250,       # new item from front 
+            "charging_time": 120,       # new item from front
+            "device_consumption": 75,   # new item from front
+            "time_stamp": datetime.datetime.now().isoformat() # Item not existing at front
         }
-        return json.dumps(response_to_frontend)
+        return response_to_frontend
 
 class ElementToJSON(ToJSON):
     def _to_json(self, data: list):
@@ -81,6 +96,7 @@ class ReadInfo(Action):
             module = BatteryToJSON()
 
             response_json = self._to_json(module, data)
+            print(response_json)
             # Shutdown the CAN bus interface
             self.bus.shutdown()
 
