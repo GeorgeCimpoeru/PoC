@@ -6,20 +6,23 @@ import Modal from "./Modal";
 
 const CigaretteVoltageLighter = (props: any) => {
     const [inputValue, setInputValue] = useState(props.cigarette_lighter);
+
     const handleInputChange = (value: any, id: string) => {
         setInputValue(value);
-    };
+    }
 
     const handleInputClick = () => {
         setInputValue('');
-    };
+    }
+
     const generateRandomNumbers = () => {
         const numSamples = 2;
         const numbers: number[] = Array.from({ length: numSamples }, () => Math.random() * 10);
 
         const avg = numbers.reduce((sum, num) => sum + num, 0) / numSamples;
         setInputValue(avg); // Set the average value to cigaretteLighterVoltage
-    };
+    }
+
     return (
         <div className="card h-64 w-96 bg-green-300 text-black">
             <div className="card-body">

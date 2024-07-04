@@ -1,19 +1,18 @@
 'use client';
 import React, { useState } from "react";
 import PowerOuput from '../animations/powerOutput.js';
-import Modal from "./Modal.jsx";
+import Modal from "./Modal";
 
-const PowerOutputCard = (props:any) => {
+const PowerOutputCard = (props: any) => {
     const [inputValue, setInputValue] = useState(props.power_output);
 
     const handleInputChange = (value: any) => {
-            setInputValue(value);
-
+        setInputValue(value);
     }
 
     const handleInputClick = () => {
         setInputValue('');
-    };
+    }
 
     return (
         <div className="card w-96 bg-green-300  text-black">

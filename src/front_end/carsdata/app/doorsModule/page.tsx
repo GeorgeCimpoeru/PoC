@@ -1,5 +1,4 @@
-import Link from "next/link";
-import React from 'react'
+import React from 'react';
 import DoorPosition from "../components/doorsComponents/DoorPositionCard";
 import DoorStatus from "../components/doorsComponents/DoorStatusCard";
 import DoorState from "../components/doorsComponents/DoorStateCard";
