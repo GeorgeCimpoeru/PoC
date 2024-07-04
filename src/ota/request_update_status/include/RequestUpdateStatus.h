@@ -1,5 +1,5 @@
 /**
- * @file request_update_status.h
+ * @file RequestUpdateStatus.h
  * @author Iancu Daniel
  * @brief ***********************MCU Service. Requested from API***********************
  * 			Request format: PCI_L(1byte) | SID(1byte)
