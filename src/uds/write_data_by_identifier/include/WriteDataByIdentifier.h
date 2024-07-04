@@ -1,45 +1,64 @@
+/**
+ * @file WriteDataByIdentifier.h
+ * @author your name (you@domain.com)
+ * @brief This library represents the WriteDataByIdentifier UDS service.
+ * It writes data based on the Data Identifier (DID) received in the CAN frame.
+ * For example, if you want to update the battery voltage, 0x01B0 DID is responsible for that.
+ * The request frame received by the service will have the format: frame.data = {PCI_L(1byte), SID(1byte = 0x2E), DID(2bytes), DATA}
+ * The positive response frame sent by the service will have the format: frame.data = {PCI_L(1byte), RESPONSE_SID(1byte = 0x6E), DID(2bytes)}
+ * The negative response frame sent by the service will have the format: frame.data = {PCI_L(1byte), 0x7F, SID(1byte = 0x2E), NRC(1byte)}
+ */
+
 #include <iostream>
-#include <map>
 #include <vector>
 #include <cstdint>
-#include<stdlib.h>
-#include <cstring>
 #include <string>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <net/if.h>
 #include <unistd.h>
 #include <fcntl.h>
-
 #include<linux/can.h>
-#include "../../../mcu/include/MCULogger.h"
+#include <unordered_set>
 
-class WriteDataByIdentifierService
+#include "../../../utils/include/CreateInterface.h"
+#include "../../../utils/include/GenerateFrames.h"
+#include "../../../utils/include/Logger.h"
+
+#ifndef UDS_WDBI_SERVICE
+#define UDS_WDBI_SERVICE
+
+class WriteDataByIdentifier
 {
 private:
-    int write_socket;
+    GenerateFrames generate_frames;
+    CreateInterface* create_interface;
 
-    /* Declaring a dictionary for DIDs with example values */
-    typedef uint16_t DID;
-    typedef std::vector<uint8_t> DataParameter;
-    std::map<DID, DataParameter> ecu_memory = {
-        {0xF190, {0x11, 0x44}},
-        {0xF111, {0x11, 0x44,0x11, 0x44}},
-        {0xF113, {0x11, 0x44}},
-        {0xF124, {0x11, 0x44, 0x11, 0x44}},
-        {0xF188, {0x11, 0x44}},
-        {0xF18A, {0x11}},
-        {0xF18B, {0x11, 0x44}},
-        {0xF18C, {0x11, 0x44, 0x11, 0x44, 0x11, 0x44}},
-        {0xF18D, {0x11, 0x44}},
-        {0xF18E, {0x11, 0x44, 0xf2}}
-    };
 public:
-    WriteDataByIdentifierService(canid_t frame_id, std::vector<uint8_t> frame_data);
-    ~WriteDataByIdentifierService();
-    void WriteDataByIdentifier(canid_t frame_id, std::vector<uint8_t> frame_data);
-    void sendFrame(can_frame frame);
-    int getWriteSocket();
-    int initAndBindSocket(char interfaceName[6]); 
-
+    /**
+     * @brief Construct a new Write Data By Identifier object
+     * 
+     * @param frame_id 
+     * @param frame_data 
+     * @param WDBILogger 
+     */
+    WriteDataByIdentifier(canid_t frame_id, std::vector<uint8_t> frame_data, Logger& WDBILogger);
+    /**
+     * @brief Destroy the Write Data By Identifier object
+     * 
+     */
+    ~WriteDataByIdentifier();
+    /**
+     * @brief Execute the WriteDataByIdentifier service.
+     * 
+     * This function performs the WriteDataByIdentifier service, writing the received data to the specified
+     * Data Identifier (DID) and sending the appropriate response frame or a negative response if an error occurs.
+     * 
+     * @param frame_id 
+     * @param frame_data 
+     * @param WDBILogger 
+     */
+    void WriteDataByIdentifierService(canid_t frame_id, std::vector<uint8_t> frame_data, Logger& WDBILogger);
 };
+
+#endif

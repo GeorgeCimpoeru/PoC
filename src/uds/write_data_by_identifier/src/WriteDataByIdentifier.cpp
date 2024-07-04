@@ -1,112 +1,168 @@
 #include "../include/WriteDataByIdentifier.h"
+#include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "../../../mcu/include/MCUModule.h"
 
-WriteDataByIdentifierService::WriteDataByIdentifierService(canid_t frame_id, std::vector<uint8_t> frame_data)
+WriteDataByIdentifier::WriteDataByIdentifier(canid_t frame_id, std::vector<uint8_t> frame_data, Logger& WDBILogger)
 {   
-    char interfaceNameCANBus[6] = "vcan0";
-    this->write_socket = initAndBindSocket(interfaceNameCANBus);
-    WriteDataByIdentifier(frame_id, frame_data);
-};
+    WriteDataByIdentifierService(frame_id, frame_data, WDBILogger);
+}
 
-WriteDataByIdentifierService::~WriteDataByIdentifierService()
+WriteDataByIdentifier::~WriteDataByIdentifier()
 {
-    close(write_socket);
 };
 
-void WriteDataByIdentifierService::WriteDataByIdentifier(canid_t frame_id, std::vector<uint8_t> frame_data)
+void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::vector<uint8_t> frame_data, Logger& WDBILogger)
 {
     LOG_INFO(MCULogger.GET_LOGGER(), "Write Data By Identifier Service invoked.");
 
+    std::vector<uint8_t> response;
     /* Checks if frame_data has the required minimum length */
-    if (frame_data.size() < 4)
+    if (frame_data.size() < 3)
     {
-        LOG_ERROR(MCULogger.GET_LOGGER(),"Incorrect Message Length or Invalid Format");
+        LOG_ERROR(MCULogger.GET_LOGGER(), "Incorrect Message Length or Invalid Format");
+        response.clear();
+        /* PCI */
+        response.push_back(0x03);
+        /* Negative response */
+        response.push_back(0x7F);
+        /* WDBI sid */
+        response.push_back(0x2E);
+        /* Incorrect message length or invalid format */
+        response.push_back(0x13);
         /* call NegativeResponseService */
-
     }
-
-    /* Extract Data Identifier (DID) */
-    DID did = (frame_data[2] << 8) | frame_data[3];
-
-    // Check if the DID-ul is in ecu_memory
-    auto it = ecu_memory.find(did);
-    if (it == ecu_memory.end())
+    else
     {
-        LOG_ERROR(MCULogger.GET_LOGGER(),"Request Out Of Range: Identifier not found in ECU memory");
+        typedef uint16_t DID;
+        typedef std::vector<uint8_t> DataParameter;
+
+        /* Extract Data Identifier (DID) */
+        DID did = (frame_data[2] << 8) | frame_data[3];
+
+        /* Extract Data Parameter */
+        DataParameter data_parameter(frame_data.begin() + 4, frame_data.end());
+        uint8_t receiver_id = frame_id & 0xFF;
+        uint8_t sender_id = frame_id >> 8 & 0xFF;
+
+        /* List of valid DIDs */
+        std::unordered_set<uint16_t> valid_dids = {
+            0xF190, 0xF17F, 0xF18C, 0xF1A0, 0xF187, 0xF1A2, 0xF1A1, 0xF1A4, 
+            0xF1A5, 0xF1A8, 0xF1A9, 0xF1AA, 0xF1AB, 0xF1AC, 0xF1AD, 0x0100, 
+            0x010C, 0x0110, 0x0114, 0x011C, 0x0120, 0x0124, 0x012C, 0x0130, 
+            0x0134, 0x0140, 0x01A0, 0x01B0, 0x01C0, 0x00D0, 0x01D0, 0x02D0,
+            0x03D0, 0x04D0, 0x05D0, 0x06D0, 0x01E0, 0x01F0
+        };
+
+        auto logCollection = [&](const std::unordered_map<uint16_t, std::vector<uint8_t>>& collection, const std::string& collectionName) {
+            std::ostringstream oss;
+            oss << collectionName << " contents:\n";
+            for (const auto& [key, value] : collection)
+            {
+                oss << "DID 0x" << std::hex << key << ": ";
+                for (uint8_t byte : value)
+                {
+                    oss << std::hex << static_cast<int>(byte) << " ";
+                }
+                oss << "\n";
+            }
+            LOG_INFO(WDBILogger.GET_LOGGER(), oss.str());
+        };
+
+        /* Find where to write the dataParameter */
+        if(receiver_id == 0x10 && MCU::mcu.mcu_data.find(did) != MCU::mcu.mcu_data.end()) 
+        {
+            /* Stores the data in the memory location associated with the DID  */
+            MCU::mcu.mcu_data[did] = data_parameter;
+            LOG_INFO(WDBILogger.GET_LOGGER(), "Data written to DID 0x{:x} in MCUModule.", did);
+            logCollection(MCU::mcu.mcu_data, "MCUModule");
+
+            /* Create positive response */
+            response.clear();
+            /* PCI */
+            response.push_back(0x03);
+            /* Response sid */
+            response.push_back(0x6E);
+            /* First identifier */
+            response.push_back(frame_data[2]);
+            /* Second identifier */
+            response.push_back(frame_data[3]);
+        } 
+        else if (receiver_id == 0x11 && battery.ecu_data.find(did) != battery.ecu_data.end()) 
+        {
+            /* Stores the data in the memory location associated with the DID  */
+            battery.ecu_data[did] = data_parameter;
+            LOG_INFO(WDBILogger.GET_LOGGER(), "Data written to DID 0x{:x} in BatteryModule.", did);
+            logCollection(battery.ecu_data, "BatteryModule");
+
+            /* Create positive response */
+            response.clear();
+            /* PCI */
+            response.push_back(0x03);
+            /* Response sid */
+            response.push_back(0x6E);
+            /* First identifier */
+            response.push_back(frame_data[2]);
+            /* Second identifier */
+            response.push_back(frame_data[3]);
+        } 
+        else if (valid_dids.find(did) != valid_dids.end())
+        {
+            /* Determine the correct storage based on receiver_id */
+            if (receiver_id == 0x10)
+            {
+                MCU::mcu.mcu_data[did] = data_parameter;
+                LOG_INFO(WDBILogger.GET_LOGGER(), "Data written to new DID 0x{:x} in MCUModule.", did);
+                logCollection(MCU::mcu.mcu_data, "MCUModule");
+            }
+            else if (receiver_id == 0x11)
+            {
+                battery.ecu_data[did] = data_parameter;
+                LOG_INFO(WDBILogger.GET_LOGGER(), "Data written to new DID 0x{:x} in BatteryModule.", did);
+                logCollection(battery.ecu_data, "BatteryModule");
+            }
+
+            /* Create positive response */
+            response.clear();
+            /* PCI */
+            response.push_back(0x03);
+            /* Response sid */
+            response.push_back(0x6E);
+            /* First identifier */
+            response.push_back(frame_data[2]);
+            /* Second identifier */
+            response.push_back(frame_data[3]);
+        }
+        else 
+        {
+            LOG_ERROR(WDBILogger.GET_LOGGER(), "Request Out Of Range: Identifier not found in memory");
+            /* Construct the response data */
+            response.clear();
+            /* PCI */
+            response.push_back(0x03);
+            /** WDBI response sid*/
+            response.push_back(0x7F);
+            /* First Identifier */
+            response.push_back(frame_data[1]);
+            /* Second Identifier */
+            response.push_back(frame_data[2]);
+            response.clear();
+            /* call NegativeResponseService */
+            return;
+        }
+
+        /* Form the new id */
+        int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+
+        /* Check on which socket to send the frame */
+        if (sender_id == 0xFA) 
+        {
+            create_interface = create_interface->getInstance(0x00, WDBILogger);
+            generate_frames.sendFrame(id, response, create_interface->getSocketApiWrite(), DATA_FRAME);
+        } 
+        else 
+        {
+            create_interface = create_interface->getInstance(0x00, WDBILogger);
+            generate_frames.sendFrame(id, response, create_interface->getSocketEcuWrite(), DATA_FRAME);
+        }
     }
-
-    /* Extract Data Parameter */
-    DataParameter data_parameter(frame_data.begin() + 4, frame_data.end());
-
-    /* Writes the data to the memory location associated with the DID */
-    ecu_memory[did] = data_parameter;
-    LOG_INFO(MCULogger.GET_LOGGER(), "Data written to DID 0x{:x}.", did);
-
-    // LOG_INFO(MCULogger.GET_LOGGER(), fmt::format("ECU_MEMORY:"));
-    // for (const auto& it : ecu_memory) {
-    //     // Format the key (DID) and the value (DataParameter)
-    //     std::string data_str;
-    //     for (const auto& byte : it.second) {
-    //         data_str += fmt::format("{:02X} ", byte); // Convert each byte to hex
-    //     }
-
-    //     LOG_INFO(MCULogger.GET_LOGGER(), fmt::format("ecu_memory element: {}", data_str));
-    // }
-    // LOG_INFO(MCULogger.GET_LOGGER(), fmt::format("Data written to DID: 0x{0:x}", int(did)));
-
-    /* Create the response frame */
-    can_frame response_frame;
-    /* Invert sender and receiver ID */
-    response_frame.can_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
-    /* PCI (1 byte) + SID (1 byte) + DID (2 bytes) */
-    response_frame.can_dlc = 4;
-
-    /* Construct the response data */
-    response_frame.data[0] = 0x03;
-    response_frame.data[1] = 0x6E;
-    response_frame.data[2] = frame_data[1];
-    response_frame.data[3] = frame_data[2];
-
-    /* Send the response frame */
-    sendFrame(response_frame);
-};
-
-void WriteDataByIdentifierService::sendFrame(can_frame frame)
-{
-    int nbytes = write(getWriteSocket(), &frame, sizeof(frame));
-    if (nbytes < 0)
-    {
-        LOG_ERROR(MCULogger.GET_LOGGER(), "Error sending frame");
-    }
-    LOG_INFO(MCULogger.GET_LOGGER(), "Response frame with ID: 0x{0:x} sent on CANBus after writing data", int(frame.can_id));
-};
-
-int WriteDataByIdentifierService::getWriteSocket()
-{
-    return write_socket;
-};
-
-int WriteDataByIdentifierService::initAndBindSocket(char interfaceName[6]) 
-{
-    struct ifreq ifr;
-    struct sockaddr_can addr;
-
-    int s = socket(PF_CAN, SOCK_RAW, CAN_RAW);
-    if (s < 0) {
-        LOG_ERROR(MCULogger.GET_LOGGER(), "Error while opening socket");
-        return -1;
-    }
-
-    std::strcpy(ifr.ifr_name, interfaceName);
-    ioctl(s, SIOCGIFINDEX, &ifr);
-
-    std::memset(&addr, 0, sizeof(addr));
-    addr.can_family = AF_CAN;
-    addr.can_ifindex = ifr.ifr_ifindex;
-
-    if (bind(s, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
-        LOG_ERROR(MCULogger.GET_LOGGER(), "Error in socket bind");
-        return -2;
-    }
-
-    return s;
 }
