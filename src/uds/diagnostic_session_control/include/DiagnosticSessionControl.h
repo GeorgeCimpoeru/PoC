@@ -26,7 +26,20 @@ enum DiagnosticSession
 class DiagnosticSessionControl
 {
 public:
+    /**
+     * @brief Construct a new Diagnostic Session Control object
+     * this will be used in MCU module.
+     * 
+     */
     DiagnosticSessionControl();
+    /**
+     * @brief Construct a new Diagnostic Session Control object
+     * with a parameter given for 'module_id'. For example, battery
+     * will currently use 0x11 as 'module_id'.
+     * 
+     * @param module_id 
+     */
+    DiagnosticSessionControl(int module_id);
     ~DiagnosticSessionControl();
 
     /**
@@ -60,6 +73,7 @@ public:
     std::string getCurrentSessionToString() const;
 
 private:
+    int module_id;
     CreateInterface *can_interface;
     DiagnosticSession current_session;
     void switchToDefaultSession();

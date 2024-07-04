@@ -7,8 +7,18 @@ Logger dscLogger;
 Logger dscLogger("dscLogger", "logs/dscLogger.log");
 #endif /* UNIT_TESTING_MODE */
 
+/* Default constructor, used in MCU */
 DiagnosticSessionControl::DiagnosticSessionControl() : current_session(DEFAULT_SESSION),
-                                                       can_interface(CreateInterface::getInstance(0x00, dscLogger))
+                                                       can_interface(CreateInterface::getInstance(0x00, dscLogger)),
+                                                       module_id(module_id)
+{
+    LOG_INFO(dscLogger.GET_LOGGER(), "Diagnostic Session Control (0x10) started. Current session: {}", getCurrentSessionToString());
+}
+
+/* Parameterized constructor, used for ECUs */
+DiagnosticSessionControl::DiagnosticSessionControl(int module_id) : current_session(DEFAULT_SESSION),
+                                                                    can_interface(CreateInterface::getInstance(0x00, dscLogger)),
+                                                                    module_id(module_id)
 {
     LOG_INFO(dscLogger.GET_LOGGER(), "Diagnostic Session Control (0x10) started. Current session: {}", getCurrentSessionToString());
 }
@@ -95,9 +105,22 @@ void DiagnosticSessionControl::switchToDefaultSession()
     /* Create instance of Generate Frames to send response frame */
     GenerateFrames response_frame(can_interface->getSocketEcuWrite(), dscLogger);
 
-    /* Send response frame */
-    response_frame.sessionControl(0x1110, 0x01, true);
-    LOG_INFO(dscLogger.GET_LOGGER(), "Sent pozitive response frame to MCU");
+    /** Check the module where the request was made from
+     * More ECUs can be added here in future.
+     * If no module_id is provided, request of sessionControl was made from MCU
+     */
+    if (this->module_id == 0x11)
+    {
+        /* Send response frame to ECU */
+        response_frame.sessionControl(0x1011, 0x01, true);
+        LOG_INFO(dscLogger.GET_LOGGER(), "Sent pozitive response frame to ECU");
+    }
+    else
+    {
+        /* Send response frame to MCU */
+        response_frame.sessionControl(0x1110, 0x01, true);
+        LOG_INFO(dscLogger.GET_LOGGER(), "Sent pozitive response frame to MCU");
+    }
 }
 
 /* Method for sending Negative Response */
