@@ -194,7 +194,3 @@ bool ReadDTC::receive_flow_control(int id_module)
     return false;
 }
 
-int ReadDTC::to_int(char c)
-{
-    return (c >= 'A') ? (c - 'A' + 10) : (c - '0');
-}
