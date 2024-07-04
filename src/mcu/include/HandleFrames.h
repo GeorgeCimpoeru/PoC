@@ -19,7 +19,10 @@
 #include <vector>
 #include "../include/MCULogger.h"
 #include "../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
+#include "../../uds/ecu_reset/include/ecu_reset.h"
 namespace MCU
+
+class HandleFrames 
 {
     class HandleFrames 
     {

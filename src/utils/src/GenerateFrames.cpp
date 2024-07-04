@@ -101,17 +101,17 @@ void GenerateFrames::sessionControl(int id, uint8_t sub_function, bool response)
     return;
 }
 
-void GenerateFrames::ecuReset(int id, bool response)
+void GenerateFrames::ecuReset(int id, uint8_t sub_function, int socket, bool response)
 {
     std::vector<uint8_t> data(3);
     if (!response)
     {
-        data = {0x2,0x11,0x3};
-        this->sendFrame(id, data);
+        data = {0x2,0x11,sub_function};
+        this->sendFrame(id, data, socket, FrameType::DATA_FRAME);
         return;
     }
-    data = {0x2,0x51,0x3};
-    this->sendFrame(id, data);
+    data = {0x2,0x51,sub_function};
+    this->sendFrame(id, data, socket, FrameType::DATA_FRAME);
     return;
 }
 
