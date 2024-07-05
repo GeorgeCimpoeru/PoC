@@ -768,7 +768,9 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
                     uint8_t dtc_status_mask = stored_data[sid_position + 2];
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "mask: {}", static_cast<int>(dtc_status_mask));
-                    /* readDtcInformationRequest(id, sub_function, dtc_status_mask); */
+                    /* verify_frame() */
+                    ReadDTC readDtc(batteryModuleLogger, "../../uds/read_dtc_information/dtcs.txt");
+                    readDtc.read_dtc(id, stored_data);
                 }
                 break;
             }
