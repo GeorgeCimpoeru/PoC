@@ -4,7 +4,6 @@ from logging.handlers import RotatingFileHandler
 from flask import request
 from functools import wraps
 
-
 def setup_logger():
     """
     Sets up the logger for the Flask application and returns a decorator for logging.
@@ -37,7 +36,6 @@ def setup_logger():
         return app
 
     return decorator
-
 
 log_memory = []
 
