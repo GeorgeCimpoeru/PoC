@@ -54,6 +54,14 @@ class CreateInterface
         * @brief Method that returns an instance to the object
         */
         static CreateInterface* getInstance(uint8_t interface_name, Logger& logger);
+
+        /**
+         * @brief Get the Interface Name (used for ECU Reset)
+         * 
+         * @return Returns the interface name 
+         */
+        uint8_t getInterfaceName();
+
         /**
         * @brief Set the socket to not block in the reading operation.
         * 
@@ -104,6 +112,8 @@ class CreateInterface
         * @brief Method that returns API socket for write
         */  
         int getSocketApiWrite();
+
+        friend class EcuReset;
 };
 
 #endif
