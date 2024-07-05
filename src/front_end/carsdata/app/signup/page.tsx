@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 import EmailInput from '../components/signupComponents/EmailInput';
 import PasswordInput from '../components/signupComponents/PasswordInput';
 import ConfirmPasswordInput from '../components/signupComponents/ConfirmPasswordInput';
