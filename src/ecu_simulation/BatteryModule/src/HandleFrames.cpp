@@ -233,6 +233,8 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                  *  Expected request: pci_l + sid + sub_funct
                  *  Index              [0]    [1]     [2]   
                  */
+
+                /* Negative response case */
                 if (stored_data[1] == 0x7F)
                 {
                     processNrc(id, sid, stored_data[3]);
@@ -244,23 +246,14 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                     sub_function = stored_data[sid_position + 1];
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
-                    /* ecuResetRequest(id, sub_function); */
+
+                    /* Get interface instance so we can get the socket from it */
+                    CreateInterface* interface = CreateInterface::getInstance(0x00, batteryModuleLogger);
+
+                    /* Calls ECU Reset */
+                    EcuReset ecu_reset(id, sub_function, interface->getSocketEcuWrite(), batteryModuleLogger);
+                    ecu_reset.ecuResetRequest();
                 }
-                break;
-            }
-        case 0x51: 
-            {
-                /** EcuReset -response handle --to be implemented
-                 *  Expected response: pci_l + sid + sub_funct
-                 *  Index              [0]    [1]     [2]   
-                 */
-                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Response 0x51 for EcuReset");
-                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
-                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
-                sub_function = stored_data[sid_position + 1];
-                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
-                /* ecuResetResponse(id, sub_function); */
-                /* the request succesfully received-> store the data; */ 
                 break;
             }
         case 0x22: 

@@ -104,10 +104,11 @@ class GenerateFrames
         /**
          * @brief Frame for ECU reset Service. Default subfunction 0x01 Soft-Reset
          * @param id id of the frame(sender id and receiver id)
+         * @param sub_function the sub_function of the ECU Reset
          * @param response varaible for request or response frame
          * Response&Request
          */
-        void ecuReset(int id, bool response=false);
+        void ecuReset(int id, uint8_t sub_function, int socket, bool response=false);
         /**
          * @brief Frame for Read data by Identifier Service
          * Consider using the method readDataByIdentifierLongResponse(), if the response

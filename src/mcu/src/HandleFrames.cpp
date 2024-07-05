@@ -142,16 +142,28 @@ namespace MCU
                 }
                 break;
             case 0x11:
-                /* EcuReset(sid, frame_data[2]); */
+            {
+                /* Negative response */
                 if(frame_data[1] == 0x7F)
                 {
                     processNrc(frame_id, sid, frame_data[3]);
                 }
                 else 
                 {
-                    LOG_INFO(MCULogger.GET_LOGGER(), "EcuReset called.");
+                    LOG_INFO(MCULogger.GET_LOGGER(), "Service 0x11 EcuReset");
+                    LOG_INFO(MCULogger.GET_LOGGER(), "Data size: {}", frame_data.size());
+                    uint8_t sub_function = frame_data[2];
+                    LOG_INFO(MCULogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
+
+                    /* Get the interface so we can get the socket */
+                    CreateInterface* interface = CreateInterface::getInstance(0x00, MCULogger);  
+
+                    /* Calls ECU Reset */                
+                    EcuReset ecu_reset(frame_id, sub_function, interface->getSocketApiWrite(), MCULogger);
+                    ecu_reset.ecuResetRequest();
                 }
                 break;
+            }
             case 0x27:
                 /* SecurityAccess(sid, frame_data[2], key?); */
                 if(frame_data[1] == 0x7F)
@@ -279,9 +291,16 @@ namespace MCU
                 LOG_INFO(MCULogger.GET_LOGGER(), "Response for DiagnosticSessionControl received.");
                 break;
             case 0x51:
-                /* Response from EcuReset() service */
+            {
+                /* Response from ECU Reset service
+                   Send the response to API */
                 LOG_INFO(MCULogger.GET_LOGGER(), "Response from EcuReset received.");
+                uint8_t sub_function = frame_data[2];                    
+                CreateInterface* interface = CreateInterface::getInstance(0x00, MCULogger);
+                EcuReset ecu_reset(frame_id, sub_function, interface->getSocketApiWrite(), MCULogger);
+                ecu_reset.ecuResetResponse();
                 break;
+            }
             case 0x67:
                 /* Response from SecurityAccess() service */
                 LOG_INFO(MCULogger.GET_LOGGER(), "Response from SecurityAccess received.");
