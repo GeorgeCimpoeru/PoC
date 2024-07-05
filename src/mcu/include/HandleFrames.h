@@ -18,6 +18,8 @@
 #include <iostream>
 #include <vector>
 #include "../include/MCULogger.h"
+#include "../../ota/request_download/include/RequestDownload.h"
+#include "../../ota/request_update_status/include/RequestUpdateStatus.h"
 
 class HandleFrames 
 {
@@ -48,6 +50,9 @@ public:
      * @param[in] nrc The negative response code.
      */
     void processNrc(canid_t frame_id, uint8_t sid, uint8_t nrc);
+
+    private:
+    RequestDownloadService requestDownload;
 };
 
 #endif // HANDLE_FRAMES_H
