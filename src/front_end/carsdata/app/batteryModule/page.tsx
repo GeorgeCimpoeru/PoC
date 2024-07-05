@@ -17,7 +17,7 @@ const BatteryModule = async () => {
         'https://pocapi.pythonanywhere.com/api?service=battery_module',
         { cache: 'no-store' }
     );
-    
+   
     const jsonData = await res.json();
 
     return (
