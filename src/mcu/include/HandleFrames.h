@@ -20,11 +20,17 @@
 #include "../include/MCULogger.h"
 #include "../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
 #include "../../uds/authentication/include/SecurityAccess.h"
+#include "../../uds/diagnostic_session_control/include/DiagnosticSessionControl.h"
+#include "../../uds/read_dtc_information/include/ReadDtcInformation.h"
+
 namespace MCU
 {
     class HandleFrames 
     {
+    private:
+        DiagnosticSessionControl mcuDiagnosticSessionControl;
     public:
+        HandleFrames() : mcuDiagnosticSessionControl(MCULogger) {};
         /**
          * @brief Method used to handle a can frame received from the ReceiveFrame class.
          * Takes a can_frame as parameter, checks if the frame is complete and then calls
