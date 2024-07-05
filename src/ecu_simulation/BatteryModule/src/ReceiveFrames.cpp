@@ -1,7 +1,4 @@
 #include "../include/ReceiveFrames.h"
-#include "../include/HandleFrames.h"
-#include "../include/GenerateFrames.h"
-#include "../include/BatteryModuleLogger.h"
 
 ReceiveFrames::ReceiveFrames(int socket, int frame_id) : socket(socket), frame_id(frame_id), running(true) 
 {
@@ -152,7 +149,7 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
         {
             LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Request received from MCU");
             /* Create and instance of GenerateFrames with the CAN socket */
-            GenerateFrames frame = GenerateFrames(this->socket);
+            GenerateFrames frame = GenerateFrames(this->socket, batteryModuleLogger);
 
             /* Create a vector of uint8_t (bytes) containing the data to be sent */
             std::vector<uint8_t> data = {0x0, 0xff, 0x11, 0x3};
@@ -168,7 +165,7 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
         {
             uint8_t frame_dest_id = frame.can_id & 0xFF;
             current_module_id = frame_id & 0xFF;
-            GenerateFrames test =GenerateFrames(this->socket);
+            GenerateFrames test =GenerateFrames(this->socket, batteryModuleLogger);
             std::vector<uint8_t> data = {0x00, 0xAA};
             test.sendFrame(0x1110,data);
 
@@ -184,7 +181,7 @@ void ReceiveFrames::printFrame(const struct can_frame &frame)
 {
     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "");
     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Received CAN frame");
-    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Module ID: 0x{0:x}", int(frame.can_id));
+    LOG_INFO(batteryModuleLogger.GET_LOGGER(), fmt::format("CAN ID: 0x{:x}", frame.can_id));
     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data Length: {}", int(frame.can_dlc));
     std::ostringstream dataStream;
     dataStream << "Data:";

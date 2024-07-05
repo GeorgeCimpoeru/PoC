@@ -1,6 +1,7 @@
 #include "../include/BatteryModule.h"
 
 int main() {
+    sleep(5);
     BatteryModule batteryModule;
     batteryModule.fetchBatteryData();
     std::thread receiveFrThread([&batteryModule]()

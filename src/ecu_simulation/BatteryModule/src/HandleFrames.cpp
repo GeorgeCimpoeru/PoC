@@ -1,5 +1,4 @@
 #include "../include/HandleFrames.h"
-#include "../include/BatteryModuleLogger.h"
 /* Services to be included here */
 
 bool HandleFrames::checkReceivedFrame(int nbytes, const struct can_frame &frame)
@@ -194,10 +193,6 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
         /* UDS */
         case 0x10: 
             {
-                /** SessionControl -request method --to be implemented 
-                 *  Expected request: pci_l + sid + sub_funct
-                 *  Index              [0]    [1]     [2]   
-                 */
                 if (stored_data[1] == 0x7F)
                 {
                     processNrc(id, sid, stored_data[3]);
@@ -209,7 +204,11 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                     sub_function = stored_data[sid_position + 1];
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
-                    /* sessionControlRequest(id, sub_function); */
+
+                    /* Call the Session Control function of uds service 0x10 */
+                    diagnosticSessionControl.sessionControl(sid, sub_function);
+                    /* std::cout << "Current SID : " << static_cast<int>(sid) << " current sub-function: "  << static_cast<int>(sub_function) << std::endl; */
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "ECU Current session: {}", diagnosticSessionControl.getCurrentSessionToString());
                 }
                 break;
             }
@@ -234,6 +233,8 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                  *  Expected request: pci_l + sid + sub_funct
                  *  Index              [0]    [1]     [2]   
                  */
+
+                /* Negative response case */
                 if (stored_data[1] == 0x7F)
                 {
                     processNrc(id, sid, stored_data[3]);
@@ -245,23 +246,14 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                     sub_function = stored_data[sid_position + 1];
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
-                    /* ecuResetRequest(id, sub_function); */
+
+                    /* Get interface instance so we can get the socket from it */
+                    CreateInterface* interface = CreateInterface::getInstance(0x00, batteryModuleLogger);
+
+                    /* Calls ECU Reset */
+                    EcuReset ecu_reset(id, sub_function, interface->getSocketEcuWrite(), batteryModuleLogger);
+                    ecu_reset.ecuResetRequest();
                 }
-                break;
-            }
-        case 0x51: 
-            {
-                /** EcuReset -response handle --to be implemented
-                 *  Expected response: pci_l + sid + sub_funct
-                 *  Index              [0]    [1]     [2]   
-                 */
-                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Response 0x51 for EcuReset");
-                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
-                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
-                sub_function = stored_data[sid_position + 1];
-                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
-                /* ecuResetResponse(id, sub_function); */
-                /* the request succesfully received-> store the data; */ 
                 break;
             }
         case 0x22: 
@@ -282,7 +274,8 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     /* Combine the two bytes into a single 16-bit identifier */ 
                     uint16_t identifier = (stored_data[2] << 8) | stored_data[3];
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Stored data: {}", static_cast<int>(identifier));
-                    /* readDataByIdentifierRequest(id, identifier); */
+                    ReadDataByIdentifier read_data_by_identifier;
+                    read_data_by_identifier.readDataByIdentifier(id, stored_data, batteryModuleLogger);
                 }
                 break;
             }
@@ -702,6 +695,8 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                         }
                         LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
                         /* writeDataByIdentifier(id, identifier, rdata); */
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "WriteDataByIdentifier service called!");
+                        WriteDataByIdentifier write_data_by_identifier(id, stored_data, batteryModuleLogger);
                     } 
                     else 
                     {   
@@ -728,6 +723,8 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                         }
                         LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
                         /* writeDataByIdentifierLongRequest(id, identifier, rdata); */
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "WriteDataByIdentifier service called!");
+                        WriteDataByIdentifier write_data_by_identifier(id, stored_data, batteryModuleLogger);
                     }
                 }
                 break;
@@ -768,7 +765,9 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
                     uint8_t dtc_status_mask = stored_data[sid_position + 2];
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "mask: {}", static_cast<int>(dtc_status_mask));
-                    /* readDtcInformationRequest(id, sub_function, dtc_status_mask); */
+                    /* verify_frame() */
+                    ReadDTC readDtc(batteryModuleLogger, "../../uds/read_dtc_information/dtcs.txt");
+                    readDtc.read_dtc(id, stored_data);
                 }
                 break;
             }
