@@ -33,6 +33,31 @@ namespace MCU
     /* Start the module */
     void MCUModule::StartModule() { is_running = true; }
 
+    /* Getter for securityAccess_seed */
+    std::vector<uint8_t> MCUModule::getSecurityAccessSeed()
+    {
+        return securityAccess_seed;
+    }
+
+    /* Setter for securityAccess_seed */
+    void MCUModule::setSecurityAccessSeed(const std::vector<uint8_t>& seed)
+    {
+        securityAccess_seed = seed;
+    }
+
+    /* Getter for MCU access state */
+    bool MCUModule::getMCUState() const
+    {
+        return mcu_state;
+    }
+
+    /* Setter for MCU access state */
+    void MCUModule::setMCUState(bool state)
+    {
+        mcu_state = state;
+    }
+
+
     /* Stop the module */
     void MCUModule::StopModule() { is_running = false; }
 
