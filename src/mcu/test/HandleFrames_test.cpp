@@ -6,7 +6,7 @@ class HandleFramesTest : public ::testing::Test{
     public:
     HandleFramesTest(){}
     protected:
-    HandleFrames handler;
+    MCU::HandleFrames handler;
     struct can_frame testFrame;
 };
 
@@ -26,7 +26,6 @@ TEST_F(HandleFramesTest, DiagnosticSessionControlValTest){
     /* simulated frame_data for valid single frame response */
     std::vector<uint8_t> frame_data = {0x03, 0x10};
     bool isMultiFrame = false;
-
     /* redirect stdout to capture the output */
     testing::internal::CaptureStdout();
     handler.processFrameData(testFrame.can_id, sid, frame_data, isMultiFrame);
