@@ -27,10 +27,17 @@
 #include <thread>
 #include <sstream>
 #include "../include/BatteryModuleLogger.h"
+#include "../../../uds/diagnostic_session_control/include/DiagnosticSessionControl.h"
+#include "../../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
+#include "../../../uds/write_data_by_identifier/include/WriteDataByIdentifier.h"
+#include "../../../utils/include/CreateInterface.h"
+#include "../../../uds/ecu_reset/include/EcuReset.h"
+#include "../../uds/read_dtc_information/include/ReadDtcInformation.h"
 
 class HandleFrames 
 {
 private:
+    int moduleId = 0x11;
     /* Vector to store received data */ 
     std::vector<uint8_t> stored_data;    
     /* Vector to store sid */ 
@@ -50,13 +57,20 @@ private:
     /* Flag indicating if the first frame is received */
     bool first_frame = false;  
     /* Vector to store data subfunction */ 
-    uint8_t sub_function;   
+    uint8_t sub_function;
+
+    /**
+     * @brief Diagnostic Control Session object instance
+     * this will enable the Default Session at module start
+     * 
+     */
+    DiagnosticSessionControl diagnosticSessionControl;
                     
 public:
     /**
      * @brief Default constructor for Handle Frames object.
      */
-    HandleFrames() : expected_data_size(0), flag(0) {}
+    HandleFrames() : expected_data_size(0), flag(0), diagnosticSessionControl(moduleId, batteryModuleLogger) {}
 
     /**
      * @brief Method for checking the validity of the received CAN frame.

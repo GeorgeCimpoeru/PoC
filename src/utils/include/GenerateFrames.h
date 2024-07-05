@@ -38,6 +38,8 @@ class GenerateFrames
         Logger& logger;
         int socket = -1;
     public:
+        GenerateFrames();
+  
         /**
          * @brief Construct a new Generate Frames object
          * 
@@ -103,10 +105,11 @@ class GenerateFrames
         /**
          * @brief Frame for ECU reset Service. Default subfunction 0x01 Soft-Reset
          * @param id id of the frame(sender id and receiver id)
+         * @param sub_function the sub_function of the ECU Reset
          * @param response varaible for request or response frame
          * Response&Request
          */
-        void ecuReset(int id, bool response=false);
+        void ecuReset(int id, uint8_t sub_function, int socket, bool response=false);
         /**
          * @brief Frame for Read data by Identifier Service
          * Consider using the method readDataByIdentifierLongResponse(), if the response
@@ -206,21 +209,39 @@ class GenerateFrames
          */
         void writeDataByIdentifierLongData(int id, uint16_t identifier, std::vector<uint8_t> data_parameter, bool first_frame = true);
         /**
-         * @brief Frame for Read DTC Information
+         * @brief Frame for Read DTC Information Request
          * @param id id of the frame(sender id and receiver id)
          * @param sub_function can be use only for subfunction 'Number of DTCs'(17/6/2024)
          * @param dtc_status_mask DTC status Mask variable
          */
         void readDtcInformation(int id, uint8_t sub_function, uint8_t dtc_status_mask);
         /**
-         * @brief Response for readDTCINformation sub_function 0x01
+         * @brief Response for readDTCInformation service, sub_function 0x01
          * 
          * @param id id of the frame(sender id and receiver id)
-         * @param status_availability_mask STatus availability mask variable
+         * @param status_availability_mask Status availability mask variable
          * @param dtc_format_identifier DTC format identifier variable
          * @param dtc_count Number of dtc's found
          */
-        void readDtcInformationResponse01(int id, uint8_t status_availability_mask, uint8_t dtc_format_identifier, uint8_t dtc_count);
+        void readDtcInformationResponse01(int id, uint8_t status_availability_mask, uint8_t dtc_format_identifier, uint16_t dtc_count);
+        /**
+         * @brief Response for readDTCInformation service, sub_function 0x02
+         * 
+         * @param id id of the frame(sender id and receiver id)
+         * @param status_availability_mask Status availability mask variable
+         * @param dtc Specific Data trouble code(DTC)
+         * @param status_mask Statusm mask of the dtc
+         */
+        void readDtcInformationResponse02(int id, uint8_t status_availability_mask, std::vector<std::pair<int,int>> dtc_and_status_list);
+        /**
+         * @brief Response for readDTCInformation service, sub_function 0x02
+         * 
+         * @param id id of the frame(sender id and receiver id)
+         * @param status_availability_mask Status availability mask variable
+         * @param dtc_and_status_list list of pairs of dtc and its status mask
+         * @param first_frame set as true if it is the first frame (default) or false for the rest of the frames.
+         */
+        void readDtcInformationResponse02Long(int id, uint8_t status_availability_mask, std::vector<std::pair<int,int>> dtc_and_status_list, bool first_frame = true);
         /**
          * @brief Frame for Clear Diagnostic Information Service
          * @param id id of the frame(sender id and receiver id)
@@ -327,6 +348,14 @@ class GenerateFrames
          * @param first_frame type of frame, first frame(true) or consecutive frame(false).
          */
         void generateFrameLongData(int id, uint8_t sid, uint16_t identifier, std::vector<uint8_t> response, bool first_frame);
+        /**
+         * @brief Universal class used by long-frame-methods to generate consecutive frames
+         * 
+         * @param id id of the frame(sender id and receiver id)
+         * @param data Data to be put in to the frame
+         * @param first_frame set as true if it is the first frame (default) or false for the rest of the frames.
+         */
+        void GenerateConsecutiveFrames(int id, std::vector<uint8_t> data, bool first_frame);
 };
 
 #endif
