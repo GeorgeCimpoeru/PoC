@@ -137,6 +137,8 @@ namespace MCU
                 else 
                 {    
                     LOG_INFO(MCULogger.GET_LOGGER(), "DiagnosticSessionControl called.");
+                    mcuDiagnosticSessionControl.sessionControl(sid, frame_data[2]);
+                    LOG_INFO(MCULogger.GET_LOGGER(), "MCU Current session: {}", mcuDiagnosticSessionControl.getCurrentSessionToString());
                 }
                 break;
             case 0x11:
