@@ -156,9 +156,11 @@ namespace MCU
                 {
                     processNrc(frame_id, sid, frame_data[3]);
                 }
-                else 
+                else
                 {
                     LOG_INFO(MCULogger.GET_LOGGER(), "SecurityAccess called.");
+                    SecurityAccess security_access;
+                    security_access.securityAccess(frame_id, frame_data, MCULogger);
                 }
                 break;
             case 0x29:
