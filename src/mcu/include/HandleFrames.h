@@ -24,6 +24,8 @@
 #include "../../uds/authentication/include/SecurityAccess.h"
 #include "../../uds/diagnostic_session_control/include/DiagnosticSessionControl.h"
 #include "../../uds/read_dtc_information/include/ReadDtcInformation.h"
+#include "../../ota/request_download/include/RequestDownload.h"
+#include "../../ota/request_update_status/include/RequestUpdateStatus.h"
 
 namespace MCU
 {
@@ -59,6 +61,9 @@ namespace MCU
          * @param[in] nrc The negative response code.
          */
         void processNrc(canid_t frame_id, uint8_t sid, uint8_t nrc);
+      
+        private:
+        RequestDownloadService requestDownload;
     };
 }
 #endif /* HANDLE_FRAMES_H */

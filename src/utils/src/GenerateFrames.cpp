@@ -1,4 +1,5 @@
 #include "../include/GenerateFrames.h"
+
 GenerateFrames::GenerateFrames()
     : logger(logger)
 {}

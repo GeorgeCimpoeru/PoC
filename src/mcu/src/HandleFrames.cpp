@@ -363,7 +363,11 @@ namespace MCU
                 }
                 else 
                 {
-                    LOG_INFO(MCULogger.GET_LOGGER(), "RequestDownload called.");
+                    LOG_INFO(MCULogger.GET_LOGGER(), "Service 0x34 RequestDownload");
+                    LOG_INFO(MCULogger.GET_LOGGER(), "SID pos: {}", sid);
+                    LOG_INFO(MCULogger.GET_LOGGER(), "Data size: {}", frame_data.size());
+
+                    requestDownload.requestDownloadRequest(frame_id, frame_data, MCULogger);
                 }
                 break;
             case 0x36:
@@ -401,6 +405,8 @@ namespace MCU
                 else 
                 {
                     LOG_INFO(MCULogger.GET_LOGGER(), "RequestUpdateStatus called.");
+                    RequestUpdateStatus RUS(MCULogger);
+                    RUS.requestUpdateStatus(frame_id, frame_data);
                 }
                 break;
             /* OTA Responses */
