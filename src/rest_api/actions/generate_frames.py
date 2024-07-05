@@ -70,9 +70,7 @@ class GenerateFrame:
         self.__generate_long_response(id, 0x62, identifier, response, first_frame)
 
     def request_read_dtc_information(self, id, sub_funct, dtc_status_mask):
-        
         sub_funct = 0x01
-       
         data = [3, 0x19, sub_funct, dtc_status_mask]
 
         self.send_frame(id, data)
