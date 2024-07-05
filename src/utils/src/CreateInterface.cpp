@@ -19,6 +19,13 @@ CreateInterface* CreateInterface::getInstance(uint8_t interface_name, Logger& lo
     }
     return create_interface_instance;
 }
+
+/* Return interface name (used for ECU Reset)*/
+uint8_t CreateInterface::getInterfaceName()
+{
+    return this->interface_name;
+}
+
 /* Method that sets the socket to not block the reading operation */
 int CreateInterface::setSocketBlocking()
 {
