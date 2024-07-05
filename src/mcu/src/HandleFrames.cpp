@@ -379,6 +379,8 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             else 
             {
                 LOG_INFO(MCULogger.GET_LOGGER(), "RequestUpdateStatus called.");
+                RequestUpdateStatus RUS(MCULogger);
+                RUS.requestUpdateStatus(frame_id, frame_data);
             }
             break;
         /* OTA Responses */

@@ -19,6 +19,7 @@
 #include <vector>
 #include "../include/MCULogger.h"
 #include "../../ota/request_download/include/RequestDownload.h"
+#include "../../ota/request_update_status/include/RequestUpdateStatus.h"
 
 class HandleFrames 
 {
