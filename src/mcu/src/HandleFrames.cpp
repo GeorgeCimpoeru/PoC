@@ -224,13 +224,10 @@ namespace MCU
                 {
                     processNrc(frame_id, sid, frame_data[3]);
                 }
-                else if (is_multi_frame)
-                {
-                    LOG_INFO(MCULogger.GET_LOGGER(), "WriteDataByIdentifier called with multiple frames.");
-                }
                 else 
                 {
-                    LOG_INFO(MCULogger.GET_LOGGER(), "WriteDataByIdentifier called with one frame.");
+                    LOG_INFO(MCULogger.GET_LOGGER(), "WriteDataByIdentifier service called!");
+                    WriteDataByIdentifier write_data_by_identifier(frame_id, frame_data, MCULogger);
                 }
                 break;
             case 0x14:
