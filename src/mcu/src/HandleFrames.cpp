@@ -253,6 +253,9 @@ namespace MCU
                 else 
                 {
                     LOG_INFO(MCULogger.GET_LOGGER(), "ReadDtcInformation called.");
+                    /* verify_frame() */
+                    ReadDTC readDtc(MCULogger, "../../uds/read_dtc_information/dtcs.txt");
+                    readDtc.read_dtc(frame_id, frame_data);
                 }
                 break;
             case 0x31:
