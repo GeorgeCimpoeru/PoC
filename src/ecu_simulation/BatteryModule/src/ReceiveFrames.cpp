@@ -181,7 +181,7 @@ void ReceiveFrames::printFrame(const struct can_frame &frame)
 {
     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "");
     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Received CAN frame");
-    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Module ID: 0x{0:x}", int(frame.can_id));
+    LOG_INFO(batteryModuleLogger.GET_LOGGER(), fmt::format("CAN ID: 0x{:x}", frame.can_id));
     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data Length: {}", int(frame.can_dlc));
     std::ostringstream dataStream;
     dataStream << "Data:";
