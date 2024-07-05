@@ -29,7 +29,7 @@
 #include "../include/BatteryModuleLogger.h"
 #include "../../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
 #include "../../../utils/include/CreateInterface.h"
-#include "../../../uds/ecu_reset/include/ecu_reset.h"
+#include "../../../uds/ecu_reset/include/EcuReset.h"
 
 class HandleFrames 
 {

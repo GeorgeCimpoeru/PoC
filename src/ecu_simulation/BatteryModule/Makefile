@@ -4,8 +4,8 @@ CFLAGSTST = -std=c++17 -I/include -DUNIT_TESTING_MODE
 LDFLAGS = -lspdlog
 CFLAGSTST2 = -lgtest -lgtest_main -pthread
 #Sources files
-SRCS = src/main.cpp src/BatteryModule.cpp ../../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../../utils/src/CreateInterface.cpp src/ReceiveFrames.cpp ../../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../../uds/ecu_reset/src/ecu_reset.cpp ../../mcu/src/HandleFrames.cpp ../../mcu/src/ReceiveFrames.cpp ../../mcu/src/MCUModule.cpp
-SRCSTEST = src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp ../../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../../uds/ecu_reset/src/ecu_reset.cpp ../../mcu/src/HandleFrames.cpp ../../mcu/src/ReceiveFrames.cpp ../../mcu/src/MCUModule.cpp
+SRCS = src/main.cpp src/BatteryModule.cpp ../../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../../utils/src/CreateInterface.cpp src/ReceiveFrames.cpp ../../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../../uds/ecu_reset/src/EcuReset.cpp ../../mcu/src/HandleFrames.cpp ../../mcu/src/ReceiveFrames.cpp ../../mcu/src/MCUModule.cpp
+SRCSTEST = src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp ../../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../../uds/ecu_reset/src/EcuReset.cpp ../../mcu/src/HandleFrames.cpp ../../mcu/src/ReceiveFrames.cpp ../../mcu/src/MCUModule.cpp
 
 #Object files
 OBJS = $(patsubst ../utils/src/%.cpp src/%.cpp, obj/%.o, $(SRCS))
@@ -22,7 +22,7 @@ $(FINAL): $(OBJS)
 	$(CXX) $(CFLAGS) -o $(FINAL) $(OBJS) ${LDFLAGS}
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
-$(OBJ_DIR)/main.o: src/main.cpp include/BatteryModule.h include/ReceiveFrames.h include/HandleFrames.h include/GenerateFrames.h ../../utils/include/CreateInterface.h ../../utils/include/Logger.h include/BatteryModuleLogger.h ../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h ../../uds/ecu_reset/include/ecu_reset.h ../../mcu/include/HandleFrames.h ../../mcu/include/ReceiveFrames.h ../../mcu/include/MCUModule.h
+$(OBJ_DIR)/main.o: src/main.cpp include/BatteryModule.h include/ReceiveFrames.h include/HandleFrames.h include/GenerateFrames.h ../../utils/include/CreateInterface.h ../../utils/include/Logger.h include/BatteryModuleLogger.h ../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h ../../uds/ecu_reset/include/EcuReset.h ../../mcu/include/HandleFrames.h ../../mcu/include/ReceiveFrames.h ../../mcu/include/MCUModule.h
 	$(CXX) $(CFLAGS) -c src/main.cpp -o $(OBJ_DIR)/main.o
 $(OBJ_DIR)/BatteryModule.o: src/BatteryModule.cpp
 	$(CXX) $(CFLAGS) -c src/BatteryModule.cpp -o $(OBJ_DIR)/BatteryModule.o

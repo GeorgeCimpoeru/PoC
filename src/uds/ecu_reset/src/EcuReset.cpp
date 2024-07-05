@@ -1,4 +1,4 @@
-#include "../include/ecu_reset.h"
+#include "../include/EcuReset.h"
 
 EcuReset::EcuReset(uint32_t can_id, uint8_t sub_function, int socket, Logger &logger)
     : can_id(can_id), sub_function(sub_function), ECUResetLog(logger), generate_frames(socket, logger)
