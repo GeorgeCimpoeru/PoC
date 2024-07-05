@@ -5,7 +5,7 @@ CFLAGSTST2 = -lgtest -lgtest_main -lpthread
 LDFLAGS = -lspdlog
 CFLAGSTST += -DUNIT_TESTING_MODE
 #Sources files
-SRCS = src/main.cpp src/MCUModule.cpp ../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../utils/src/CreateInterface.cpp src/ReceiveFrames.cpp ../ota/request_update_status/src/RequestUpdateStatus.cpp ../ota/request_download/src/RequestDownload.cpp
+SRCS = src/main.cpp src/MCUModule.cpp ../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../utils/src/CreateInterface.cpp src/ReceiveFrames.cpp ../ota/request_update_status/src/RequestUpdateStatus.cpp ../ota/request_transfer_exit/src/RequestTransferExit.cpp ../ota/request_download/src/RequestDownload.cpp
 #Object files
 OBJS = $(patsubst ../utils/src/%.cpp src/%.cpp, obj/%.o, $(SRCS))
 OBJS:= $(OBJS) obj/Logger.o
@@ -21,7 +21,7 @@ $(FINAL): $(OBJS)
 	$(CXX) $(CFLAGS) -o $(FINAL) $(OBJS) ${LDFLAGS}
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
-$(OBJ_DIR)/main.o: src/main.cpp include/MCUModule.h include/ReceiveFrames.h include/HandleFrames.h ../utils/include/GenerateFrames.h ../utils/include/Logger.h ../utils/include/CreateInterface.h include/MCULogger.h ../ota/request_update_status/include/RequestUpdateStatus.h ../ota/request_download/include/RequestDownload.h
+$(OBJ_DIR)/main.o: src/main.cpp include/MCUModule.h include/ReceiveFrames.h include/HandleFrames.h ../utils/include/GenerateFrames.h ../utils/include/Logger.h ../utils/include/CreateInterface.h include/MCULogger.h ../ota/request_update_status/include/RequestUpdateStatus.h ../ota/request_transfer_exit/include/RequestTransferExit.h ../ota/request_download/include/RequestDownload.h
 	$(CXX) $(CFLAGS) -c src/main.cpp -o $(OBJ_DIR)/main.o
 $(OBJ_DIR)/MCUModule.o: src/MCUModule.cpp
 	$(CXX) $(CFLAGS) -c src/MCUModule.cpp -o $(OBJ_DIR)/MCUModule.o
@@ -35,6 +35,8 @@ $(OBJ_DIR)/CreateInterface.o: ../utils/src/CreateInterface.cpp
 	$(CXX) $(CFLAGS) -c ../utils/src/CreateInterface.cpp -o $(OBJ_DIR)/CreateInterface.o
 $(OBJ_DIR)/Logger.o: ../utils/src/Logger.cpp
 	$(CXX) $(CFLAGS) -c ../utils/src/Logger.cpp -o $(OBJ_DIR)/Logger.o
+$(OBJ_DIR)/RequestTransferExit.o: ../ota/request_transfer_exit/src/RequestTransferExit.cpp
+	$(CXX) $(CFLAGS) -c ../ota/request_transfer_exit/src/RequestTransferExit.cpp -o $(OBJ_DIR)/RequestTransferExit.o
 $(OBJ_DIR)/RequestDownload.o: ../ota/request_download/src/RequestDownload.cpp
 	$(CXX) $(CFLAGS) -c ../ota/request_download/src/RequestDownload.cpp -o $(OBJ_DIR)/RequestDownload.o
 $(OBJ_DIR)/RequestUpdateStatus.o: ../ota/request_update_status/src/RequestUpdateStatus.cpp
