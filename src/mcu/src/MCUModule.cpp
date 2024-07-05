@@ -1,59 +1,88 @@
 #include "../include/MCUModule.h"
 
-#ifndef TESTING
+#ifndef UNIT_TESTING_MODE
 Logger MCULogger("MCULogger", "logs/MCULogs.log");
 #else
 Logger MCULogger;
-#endif
-
-/* Constructor */
-MCUModule::MCUModule(uint8_t interfaces_number) : 
-                create_interface(interfaces_number), 
-                is_running(false),
-                receive_frames(nullptr) 
-                {
-    receive_frames = new ReceiveFrames(create_interface.get_socketECU(), create_interface.get_socketAPI());
-}
-
-/* Default constructor */
-MCUModule::MCUModule() : create_interface(0x01), 
-                                            is_running(false),
-                                            receive_frames(nullptr) {}
-
-/* Destructor */
-MCUModule::~MCUModule() 
+#endif /* UNIT_TESTING_MODE */
+namespace MCU
 {
-    create_interface.stop_interface();
-    delete receive_frames;
-}
+    MCUModule mcu(0x01);
+    /* Constructor */
+    MCUModule::MCUModule(uint8_t interfaces_number) : 
+                    create_interface(CreateInterface::getInstance(interfaces_number, MCULogger)),
+                    is_running(false),
+                    receive_frames(nullptr) 
+                    {
+        receive_frames = new ReceiveFrames(create_interface->getSocketEcuRead(), create_interface->getSocketApiRead());
 
-/* Start the module */
-void MCUModule::StartModule() { is_running = true; }
+    }
 
-/* Stop the module */
-void MCUModule::StopModule() { is_running = false; }
+    /* Default constructor */
+    MCUModule::MCUModule() : create_interface(CreateInterface::getInstance(0x01, MCULogger)),
+                                                is_running(false),
+                                                receive_frames(nullptr) {}
 
-/* Receive frames */
-void MCUModule::recvFrames() 
-{
-    while (is_running)
+    /* Destructor */
+    MCUModule::~MCUModule() 
     {
-        receive_frames->startListenAPI();
-        receive_frames->startListenCANBus();
-        /* Start a thread to process the queue */
-        std::thread queue_thread_process(&ReceiveFrames::processQueue, receive_frames);
+        create_interface->stopInterface();
+        delete receive_frames;
+    }
 
-        /* Start a thread to listen on API socket */
-        std::thread queue_thread_listen(&ReceiveFrames::receiveFramesFromAPI, receive_frames);
+    /* Start the module */
+    void MCUModule::StartModule() { is_running = true; }
 
-        /* Receive frames from the CAN bus */
-        receive_frames->receiveFramesFromCANBus();
+    /* Getter for securityAccess_seed */
+    std::vector<uint8_t> MCUModule::getSecurityAccessSeed()
+    {
+        return securityAccess_seed;
+    }
 
-        receive_frames->stopListenAPI();
-        receive_frames->stopListenCANBus();
+    /* Setter for securityAccess_seed */
+    void MCUModule::setSecurityAccessSeed(const std::vector<uint8_t>& seed)
+    {
+        securityAccess_seed = seed;
+    }
 
-        /* Wait for the threads to finish */
-        queue_thread_process.join();
-        queue_thread_listen.join();
+    /* Getter for MCU access state */
+    bool MCUModule::getMCUState() const
+    {
+        return mcu_state;
+    }
+
+    /* Setter for MCU access state */
+    void MCUModule::setMCUState(bool state)
+    {
+        mcu_state = state;
+    }
+
+
+    /* Stop the module */
+    void MCUModule::StopModule() { is_running = false; }
+
+    /* Receive frames */
+    void MCUModule::recvFrames() 
+    {
+        while (is_running)
+        {
+            receive_frames->startListenAPI();
+            receive_frames->startListenCANBus();
+            /* Start a thread to process the queue */
+            std::thread queue_thread_process(&ReceiveFrames::processQueue, receive_frames);
+
+            /* Start a thread to listen on API socket */
+            std::thread queue_thread_listen(&ReceiveFrames::receiveFramesFromAPI, receive_frames);
+
+            /* Receive frames from the CAN bus */
+            receive_frames->receiveFramesFromCANBus();
+
+            receive_frames->stopListenAPI();
+            receive_frames->stopListenCANBus();
+
+            /* Wait for the threads to finish */
+            queue_thread_process.join();
+            queue_thread_listen.join();
+        }
     }
 }

@@ -13,7 +13,7 @@
 #include <atomic>
 
 /* MockReceiveFrames class derived from ReceiveFrames to expose protected members for testing */
-class MockReceiveFrames : public ReceiveFrames
+class MockReceiveFrames : public MCU::ReceiveFrames
 {
 public:
     MockReceiveFrames(int socket_api, int socket_canbus) : ReceiveFrames(socket_api, socket_canbus) {}
