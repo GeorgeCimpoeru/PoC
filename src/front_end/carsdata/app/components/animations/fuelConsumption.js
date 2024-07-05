@@ -1,13 +1,13 @@
-import "./style.css"
+import "./style.css";
 
 function FuelConsumption() {
-      return (
+    return (
         <lord-icon
             src="https://cdn.lordicon.com/nohhjhod.json"
             trigger="hover"
             class="my-lordicon">
         </lord-icon>
-      );
+    );
 }
 
 export default FuelConsumption

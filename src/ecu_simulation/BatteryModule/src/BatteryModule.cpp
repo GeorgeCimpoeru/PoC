@@ -5,18 +5,18 @@ Logger batteryModuleLogger;
 #else
 Logger batteryModuleLogger("batteryModuleLogger", "logs/batteryModuleLogger.log");
 #endif /* UNIT_TESTING_MODE */
-
+BatteryModule battery;
 /** Constructor - initializes the BatteryModule with default values,
  * sets up the CAN interface, and prepares the frame receiver. */
 BatteryModule::BatteryModule() : moduleId(0x11),
                                  energy(0.0),
                                  voltage(0.0),
                                  percentage(0.0),
-                                 canInterface(0x00),
+                                 canInterface(CreateInterface::getInstance(0x00, batteryModuleLogger)),
                                  frameReceiver(nullptr)
 {
     /* Initialize the Frame Receiver */
-    frameReceiver = new ReceiveFrames(canInterface.get_socketECU(), moduleId);
+    frameReceiver = new ReceiveFrames(canInterface->getSocketEcuRead(), moduleId);
 
     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery object created successfully, ID : 0x{:X}", this->moduleId);
 
@@ -29,11 +29,11 @@ BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_mo
                                                                     energy(0.0),
                                                                     voltage(0.0),
                                                                     percentage(0.0),
-                                                                    canInterface(_interfaceNumber),
+                                                                    canInterface(CreateInterface::getInstance(_interfaceNumber, batteryModuleLogger)),
                                                                     frameReceiver(nullptr)
 {
     /* Initialize the Frame Receiver */
-    frameReceiver = new ReceiveFrames(canInterface.get_socketECU(), moduleId);
+    frameReceiver = new ReceiveFrames(canInterface->getSocketEcuRead(), moduleId);
 
     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery object created successfully using Parameterized Constructor, ID : 0x{:X}", this->moduleId);
 
@@ -52,7 +52,7 @@ BatteryModule::~BatteryModule()
 void BatteryModule::sendNotificationToMCU()
 {
     /* Create an instance of GenerateFrames with the CAN socket */
-    GenerateFrames notifyFrame = GenerateFrames(canInterface.get_socketECU());
+    GenerateFrames notifyFrame = GenerateFrames(canInterface->getSocketEcuRead(), batteryModuleLogger);
 
     /* Create a vector of uint8_t (bytes) containing the data to be sent */
     std::vector<uint8_t> data = {0x0, 0xff, 0x11, 0x3};
@@ -94,14 +94,17 @@ void BatteryModule::parseBatteryInfo(const std::string &data, float &energy, flo
         if (line.find("energy:") != std::string::npos)
         {
             energy = std::stof(line.substr(line.find(":") + 1));
+            ecu_data[0x01A0] = {static_cast<uint8_t>(energy)};
         }
         else if (line.find("voltage:") != std::string::npos)
         {
             voltage = std::stof(line.substr(line.find(":") + 1));
+            ecu_data[0x01B0] = {static_cast<uint8_t>(voltage)};
         }
         else if (line.find("percentage:") != std::string::npos)
         {
             percentage = std::stof(line.substr(line.find(":") + 1));
+            ecu_data[0x01C0] = {static_cast<uint8_t>(percentage)};
         }
         else if (line.find("state:") != std::string::npos)
         {
@@ -110,6 +113,34 @@ void BatteryModule::parseBatteryInfo(const std::string &data, float &energy, flo
             state = line.substr(pos + 1);
             /* Remove leading whitespace */
             state = state.substr(state.find_first_not_of(" \t"));
+            if(state == "unknown")
+            {
+                ecu_data[0x01D0] = {0x00};
+            }
+            else if(state == "charging")
+            {
+                ecu_data[0x01D0] = {0x01};
+            }
+            else if(state == "discharging")
+            {
+                ecu_data[0x01D0] = {0x02};
+            }
+            else if(state == "empty")
+            {
+                ecu_data[0x01D0] = {0x03};
+            }
+            else if(state == "fully-charged")
+            {
+                ecu_data[0x01D0] = {0x04};
+            }
+            else if(state == "pending-charge")
+            {
+                ecu_data[0x01D0] = {0x05};
+            }
+            else if(state == "pending-discharge")
+            {
+                ecu_data[0x01D0] = {0x06};
+            }
         }
     }
 }
