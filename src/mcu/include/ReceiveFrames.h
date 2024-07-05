@@ -98,12 +98,6 @@ namespace MCU
     void printFrames(const struct can_frame &frame);
 
     /**
-     * @brief Function to send test frame on CANBus.
-     * 
-     */
-    void sendTestFrame();
-
-    /**
      * @brief Set listenAPI member to false.
      */
     void stopListenAPI();
