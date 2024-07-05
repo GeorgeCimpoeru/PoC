@@ -695,6 +695,8 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                         }
                         LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
                         /* writeDataByIdentifier(id, identifier, rdata); */
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "WriteDataByIdentifier service called!");
+                        WriteDataByIdentifier write_data_by_identifier(id, stored_data, batteryModuleLogger);
                     } 
                     else 
                     {   
@@ -721,6 +723,8 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                         }
                         LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
                         /* writeDataByIdentifierLongRequest(id, identifier, rdata); */
+                        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "WriteDataByIdentifier service called!");
+                        WriteDataByIdentifier write_data_by_identifier(id, stored_data, batteryModuleLogger);
                     }
                 }
                 break;
