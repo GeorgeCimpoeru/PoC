@@ -83,8 +83,9 @@ from actions.generate_frames import GenerateFrame as GF
 from utils.logger import *
 from config import Config
 
-log_filename = 'logger_action.log'
-logger, logger_frame = setup_custom_logger(log_filename)
+logger_singleton = SingletonLogger('base_action.log')
+logger = logger_singleton.logger
+logger_frame = logger_singleton.logger_frame
 
 SESSION_CONTROL = 0x10
 RESET_ECU = 0x11

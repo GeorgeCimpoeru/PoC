@@ -37,52 +37,70 @@ def setup_logger():
 
     return decorator
 
+log_memory = []
 
-def setup_custom_logger(log_filename):
-    """
-    Set up a custom logger that logs messages to a specified log file and provides a decorator
-    to log method calls and arguments for a class.
+class MemoryHandler(logging.Handler):
+    def emit(self, record):
+        log_entry = self.format(record)
+        log_memory.append(log_entry)
 
-    Args:
-        log_filename (str): Name of the log file where the logs will be written (e.g., 'app.log').
+class SingletonLogger:
+    _instance = None
+    _logger = None
+    _logger_frame = None
 
-    Returns:
-        logger: Configured logger instance.
-        decorator: Decorator function to log method calls and arguments.
-    """
-    log_directory = os.path.join(os.path.dirname(__file__), 'log')
-    os.makedirs(log_directory, exist_ok=True)
-    log_path = os.path.join(log_directory, log_filename)
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(SingletonLogger, cls).__new__(cls)
+            cls._instance._initialize(*args, **kwargs)
+        return cls._instance
 
-    logger = logging.getLogger('custom_logger')
-    logger.setLevel(logging.DEBUG)
+    def _initialize(self, log_filename):
+        log_directory = os.path.join(os.path.dirname(__file__), 'log')
+        os.makedirs(log_directory, exist_ok=True)
+        log_path = os.path.join(log_directory, log_filename)
 
-    log_handler = logging.FileHandler(log_path)
-    log_handler.setLevel(logging.DEBUG)
+        self._logger = logging.getLogger('custom_logger')
+        self._logger.setLevel(logging.DEBUG)
 
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    log_handler.setFormatter(formatter)
+        if not self._logger.hasHandlers():
+            log_handler = RotatingFileHandler(log_path, maxBytes=10000, backupCount=3)
+            log_handler.setLevel(logging.DEBUG)
+            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+            log_handler.setFormatter(formatter)
+            self._logger.addHandler(log_handler)
 
-    logger.addHandler(log_handler)
+            memory_handler = MemoryHandler()
+            memory_handler.setLevel(logging.DEBUG)
+            memory_handler.setFormatter(formatter)
+            self._logger.addHandler(memory_handler)
 
-    logger.propagate = False
+            self._logger.propagate = False
 
-    def logger_frame(cls):
-        for attr_name in dir(cls):
-            attr = getattr(cls, attr_name)
-            if callable(attr) and not attr_name.startswith('__'):
-                setattr(cls, attr_name, log_method_calls(attr, log_handler))
-        return cls
+        def logger_frame(cls):
+            for attr_name in dir(cls):
+                attr = getattr(cls, attr_name)
+                if callable(attr) and not attr_name.startswith('__'):
+                    setattr(cls, attr_name, log_method_calls(attr, self._logger))
+            return cls
 
-    return logger, logger_frame
+        self._logger_frame = logger_frame
 
-def log_method_calls(method, handler):
+    @property
+    def logger(self):
+        return self._logger
+
+    @property
+    def logger_frame(self):
+        return self._logger_frame
+
+def log_method_calls(method, logger):
     """
     Wrapper function to log method calls and arguments.
 
     Args:
         method (function): Method of the class to be wrapped.
-        handler (logging.Handler): Logging handler to log messages.
+        logger (logging.Logger): Logger instance to log messages.
 
     Returns:
         function: Wrapped function that logs method calls.
@@ -93,15 +111,7 @@ def log_method_calls(method, handler):
         kwargs_str = ', '.join([f'{k}={repr(v)}' for k, v in kwargs.items()])
         arguments_str = ', '.join(filter(None, [args_str, kwargs_str]))
         log_message = f'Function "{method.__name__}" called with arguments: {arguments_str}'
-        handler.emit(logging.LogRecord(
-            name=method.__module__,
-            level=logging.INFO,
-            pathname=None,
-            lineno=None,
-            msg=log_message,
-            args=None,
-            exc_info=None,
-        ))
+        logger.info(log_message)
         return method(self, *args, **kwargs)
 
     return wrapper
