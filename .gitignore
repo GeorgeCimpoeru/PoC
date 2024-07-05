@@ -1,3 +1,17 @@
+# ignore virtual environment folder
 src/rest_api/venv
-src/rest_api/app/log
-src/rest_api/app/__pycache__
+
+# ignore logs
+src/rest_api/utils/log/logger_action.log
+src/rest_api/utils/log/logger.log
+
+# ignore local caches
+src/rest_api/__pycache__
+src/rest_api/actions/__pycache__
+src/rest_api/routes/__pycache__
+src/rest_api/database/__pycache__
+src/rest_api/utils/__pycache__
+
+# ignore local cached databases
+src/rest_api/database/can_frames.db
+src/rest_api/database/mcu_ids.db

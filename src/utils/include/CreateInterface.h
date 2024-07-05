@@ -25,21 +25,43 @@
 #include<linux/can.h>
 #include<string.h>
 #include <fcntl.h>
-#include "../../mcu/include/MCULogger.h"
-
+#include "Logger.h"
 /* class designed to manage the virtual CAN network interface (vcan) */
 class CreateInterface
-{    
+{   
+    private:
+    /* Singleton instance */
+    static CreateInterface* create_interface_instance;
+
+    /* Private constructor to prevent direct instantiation */
+    CreateInterface(uint8_t interface_name, Logger& logger);
+
+    /* Delete copy constructor and assignment operator */
+    CreateInterface(const CreateInterface&) = delete;
+    CreateInterface& operator=(const CreateInterface&) = delete;
     protected:
         uint8_t interface_name;        
         struct sockaddr_can addr;
         struct ifreq ifr;
-        int _socketECU;
-        int _socketAPI;
+        int socket_ecu_read = -1;
+        int socket_api_read = -1;
+        int socket_ecu_write = -1;
+        int socket_api_write = -1;
+        Logger& logger;
 
     public:
-        /* Constructor that takes the interface indicator number as an argument */
-        CreateInterface(uint8_t interface_name);
+        /**
+        * @brief Method that returns an instance to the object
+        */
+        static CreateInterface* getInstance(uint8_t interface_name, Logger& logger);
+
+        /**
+         * @brief Get the Interface Name (used for ECU Reset)
+         * 
+         * @return Returns the interface name 
+         */
+        uint8_t getInterfaceName();
+
         /**
         * @brief Set the socket to not block in the reading operation.
         * 
@@ -51,37 +73,47 @@ class CreateInterface
         * with ECU and one to communicate with API
         * @return Returns true if interfaces were created and false if an error was encountered.      
         */        
-        bool create_interface();
+        bool createInterface();
 
         /**
         * @brief Method to start vcan interfaces: one to communicate 
         * with ECU and one to communicate with API.  
         * @return Returns true if interfaces were started and false if an error was encountered.      
         */        
-        bool start_interface();
+        bool startInterface();
 
         /**
         * @brief Method to stop vcan interfaces: one to communicate 
         * with ECU and one to communicate with API. 
         * @return Returns true if interfaces were stopped and false if an error was encountered.      
         */    
-        bool stop_interface();
+        bool stopInterface();
 
         /**
         * @brief Method to delete vcan interfaces when no longer needed: 
         * one to communicate with ECU and one to communicate with API.
         * @return Returns true if interfaces were deleted and false if an error was encountered. 
         */    
-        bool delete_interface();
+        bool deleteInterface();
 
         /**
-        * @brief Method that returns ECU socket
+        * @brief Method that returns ECU socket for read
         */  
-        int get_socketECU();
+        int getSocketEcuRead();
         /**
-        * @brief Method that returns API socket
+        * @brief Method that returns API socket for read
         */  
-        int get_socketAPI();
+        int getSocketApiRead();
+        /**
+        * @brief Method that returns ECU socket for write
+        */  
+        int getSocketEcuWrite();
+        /**
+        * @brief Method that returns API socket for write
+        */  
+        int getSocketApiWrite();
+
+        friend class EcuReset;
 };
 
 #endif
