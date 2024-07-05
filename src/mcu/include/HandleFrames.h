@@ -20,6 +20,7 @@
 #include "../include/MCULogger.h"
 #include "../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
 #include "../../uds/diagnostic_session_control/include/DiagnosticSessionControl.h"
+#include "../../uds/read_dtc_information/include/ReadDtcInformation.h"
 
 namespace MCU
 {
