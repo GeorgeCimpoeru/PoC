@@ -1030,8 +1030,17 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Service 0x37 RequestTransferExit");
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
-                    uint8_t empty_vector = stored_data[2];
+                    /* uint8_t empty_vector = stored_data[2]; */
                     /* requestTransferExitRequest(id, empty_vector); */
+
+                    bool transferSuccess = false;
+
+                    /* Get interface instance so we can get the socket from it */
+                    CreateInterface* interface = CreateInterface::getInstance(0x00, batteryModuleLogger);
+
+                    /* Call Request Transfer Exit */
+                    RequestTransferExit request_transfer_exit(batteryModuleLogger);
+                    request_transfer_exit.requestTransferExit(id, stored_data, batteryModuleLogger, transferSuccess);
                 }
                 break;
             }
