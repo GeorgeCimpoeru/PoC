@@ -133,7 +133,7 @@ void ReadDTC::report_dtcs(int id, int dtc_status_mask)
         }
         else
         {
-            LOG_WARN(logger.GET_LOGGER(), "Timeout. FLow control frame not received!");
+            LOG_ERROR(logger.GET_LOGGER(), "Timeout. FLow control frame not received!");
         }
     }
     else 
