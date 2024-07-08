@@ -1,6 +1,6 @@
 #include "../include/GenerateFrames.h"
 
-GenerateFrames::GenerateFrames()
+GenerateFrames::GenerateFrames(Logger& logger)
     : logger(logger)
 {}
 GenerateFrames::GenerateFrames(int socket, Logger& logger)
@@ -19,6 +19,12 @@ struct can_frame GenerateFrames::createFrame(int &id,  std::vector<uint8_t> &dat
     struct can_frame frame;
     switch (frameType)
     {
+        case ERROR_FRAME:
+        /* Handle ERROR_FRAME */
+        break;
+        case OVERLOAD_FRAME:
+        /* Handle OVERLOAD_FRAME */
+        break;
         case DATA_FRAME:
             frame.can_id = (id & CAN_EFF_MASK) | CAN_EFF_FLAG;
             frame.can_dlc = data.size();

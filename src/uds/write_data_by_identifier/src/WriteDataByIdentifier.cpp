@@ -2,24 +2,26 @@
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
-WriteDataByIdentifier::WriteDataByIdentifier(canid_t frame_id, std::vector<uint8_t> frame_data, Logger& WDBILogger)
+WriteDataByIdentifier::WriteDataByIdentifier(canid_t frame_id, std::vector<uint8_t> frame_data, Logger& wdbi_logger, int socket)
+            : generate_frames(wdbi_logger), wdbi_logger(wdbi_logger)
 {   
-    WriteDataByIdentifierService(frame_id, frame_data, WDBILogger);
+    this->socket = socket;
+    WriteDataByIdentifierService(frame_id, frame_data);
 }
 
 WriteDataByIdentifier::~WriteDataByIdentifier()
 {
 };
 
-void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::vector<uint8_t> frame_data, Logger& WDBILogger)
+void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::vector<uint8_t> frame_data)
 {
-    LOG_INFO(MCULogger.GET_LOGGER(), "Write Data By Identifier Service invoked.");
+    LOG_INFO(wdbi_logger.GET_LOGGER(), "Write Data By Identifier Service invoked.");
 
     std::vector<uint8_t> response;
     /* Checks if frame_data has the required minimum length */
     if (frame_data.size() < 3)
     {
-        LOG_ERROR(MCULogger.GET_LOGGER(), "Incorrect Message Length or Invalid Format");
+        LOG_ERROR(wdbi_logger.GET_LOGGER(), "Incorrect Message Length or Invalid Format");
         response.clear();
         /* PCI */
         response.push_back(0x03);
@@ -42,7 +44,6 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         /* Extract Data Parameter */
         DataParameter data_parameter(frame_data.begin() + 4, frame_data.end());
         uint8_t receiver_id = frame_id & 0xFF;
-        uint8_t sender_id = frame_id >> 8 & 0xFF;
 
         /* List of valid DIDs */
         std::unordered_set<uint16_t> valid_dids = {
@@ -65,7 +66,7 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
                 }
                 oss << "\n";
             }
-            LOG_INFO(WDBILogger.GET_LOGGER(), oss.str());
+            LOG_INFO(wdbi_logger.GET_LOGGER(), oss.str());
         };
 
         /* Find where to write the dataParameter */
@@ -73,7 +74,7 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         {
             /* Stores the data in the memory location associated with the DID  */
             MCU::mcu.mcu_data[did] = data_parameter;
-            LOG_INFO(WDBILogger.GET_LOGGER(), "Data written to DID 0x{:x} in MCUModule.", did);
+            LOG_INFO(wdbi_logger.GET_LOGGER(), "Data written to DID 0x{:x} in MCUModule.", did);
             logCollection(MCU::mcu.mcu_data, "MCUModule");
 
             /* Create positive response */
@@ -91,7 +92,7 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         {
             /* Stores the data in the memory location associated with the DID  */
             battery.ecu_data[did] = data_parameter;
-            LOG_INFO(WDBILogger.GET_LOGGER(), "Data written to DID 0x{:x} in BatteryModule.", did);
+            LOG_INFO(wdbi_logger.GET_LOGGER(), "Data written to DID 0x{:x} in BatteryModule.", did);
             logCollection(battery.ecu_data, "BatteryModule");
 
             /* Create positive response */
@@ -111,13 +112,13 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
             if (receiver_id == 0x10)
             {
                 MCU::mcu.mcu_data[did] = data_parameter;
-                LOG_INFO(WDBILogger.GET_LOGGER(), "Data written to new DID 0x{:x} in MCUModule.", did);
+                LOG_INFO(wdbi_logger.GET_LOGGER(), "Data written to new DID 0x{:x} in MCUModule.", did);
                 logCollection(MCU::mcu.mcu_data, "MCUModule");
             }
             else if (receiver_id == 0x11)
             {
                 battery.ecu_data[did] = data_parameter;
-                LOG_INFO(WDBILogger.GET_LOGGER(), "Data written to new DID 0x{:x} in BatteryModule.", did);
+                LOG_INFO(wdbi_logger.GET_LOGGER(), "Data written to new DID 0x{:x} in BatteryModule.", did);
                 logCollection(battery.ecu_data, "BatteryModule");
             }
 
@@ -134,7 +135,7 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         }
         else 
         {
-            LOG_ERROR(WDBILogger.GET_LOGGER(), "Request Out Of Range: Identifier not found in memory");
+            LOG_ERROR(wdbi_logger.GET_LOGGER(), "Request Out Of Range: Identifier not found in memory");
             /* Construct the response data */
             response.clear();
             /* PCI */
@@ -154,15 +155,7 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
 
         /* Check on which socket to send the frame */
-        if (sender_id == 0xFA) 
-        {
-            create_interface = create_interface->getInstance(0x00, WDBILogger);
-            generate_frames.sendFrame(id, response, create_interface->getSocketApiWrite(), DATA_FRAME);
-        } 
-        else 
-        {
-            create_interface = create_interface->getInstance(0x00, WDBILogger);
-            generate_frames.sendFrame(id, response, create_interface->getSocketEcuWrite(), DATA_FRAME);
-        }
+        generate_frames.sendFrame(id, response, socket, DATA_FRAME);
+        
     }
 }

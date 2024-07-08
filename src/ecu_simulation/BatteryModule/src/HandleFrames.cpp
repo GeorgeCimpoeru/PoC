@@ -1,6 +1,13 @@
 #include "../include/HandleFrames.h"
 /* Services to be included here */
+HandleFrames::HandleFrames() : diagnosticSessionControl(batteryModuleLogger, socket)
+{
 
+}
+HandleFrames::HandleFrames(int socket) : diagnosticSessionControl(batteryModuleLogger, socket)
+{
+    this->socket = socket;
+}
 bool HandleFrames::checkReceivedFrame(int nbytes, const struct can_frame &frame)
 {
     if (nbytes < 0) 
@@ -19,7 +26,7 @@ bool HandleFrames::checkReceivedFrame(int nbytes, const struct can_frame &frame)
             return false;
         }
     } 
-    else if (nbytes < sizeof(struct can_frame)) 
+    else if ((unsigned long int)nbytes < sizeof(struct can_frame)) 
     {
         LOG_WARN(batteryModuleLogger.GET_LOGGER(), "Incomplete frame read\n");
         return false;
@@ -247,11 +254,8 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     sub_function = stored_data[sid_position + 1];
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
 
-                    /* Get interface instance so we can get the socket from it */
-                    CreateInterface* interface = CreateInterface::getInstance(0x00, batteryModuleLogger);
-
                     /* Calls ECU Reset */
-                    EcuReset ecu_reset(id, sub_function, interface->getSocketEcuWrite(), batteryModuleLogger);
+                    EcuReset ecu_reset(id, sub_function, this->socket, batteryModuleLogger);
                     ecu_reset.ecuResetRequest();
                 }
                 break;
@@ -274,8 +278,8 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     /* Combine the two bytes into a single 16-bit identifier */ 
                     uint16_t identifier = (stored_data[2] << 8) | stored_data[3];
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Stored data: {}", static_cast<int>(identifier));
-                    ReadDataByIdentifier read_data_by_identifier;
-                    read_data_by_identifier.readDataByIdentifier(id, stored_data, batteryModuleLogger);
+                    ReadDataByIdentifier read_data_by_identifier(socket, batteryModuleLogger);
+                    read_data_by_identifier.readDataByIdentifier(id, stored_data, true);
                 }
                 break;
             }
@@ -696,7 +700,7 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                         LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
                         /* writeDataByIdentifier(id, identifier, rdata); */
                         LOG_INFO(batteryModuleLogger.GET_LOGGER(), "WriteDataByIdentifier service called!");
-                        WriteDataByIdentifier write_data_by_identifier(id, stored_data, batteryModuleLogger);
+                        WriteDataByIdentifier write_data_by_identifier(id, stored_data, batteryModuleLogger, socket);
                     } 
                     else 
                     {   
@@ -724,7 +728,7 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                         LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
                         /* writeDataByIdentifierLongRequest(id, identifier, rdata); */
                         LOG_INFO(batteryModuleLogger.GET_LOGGER(), "WriteDataByIdentifier service called!");
-                        WriteDataByIdentifier write_data_by_identifier(id, stored_data, batteryModuleLogger);
+                        WriteDataByIdentifier write_data_by_identifier(id, stored_data, batteryModuleLogger, socket);
                     }
                 }
                 break;
@@ -766,7 +770,7 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     uint8_t dtc_status_mask = stored_data[sid_position + 2];
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "mask: {}", static_cast<int>(dtc_status_mask));
                     /* verify_frame() */
-                    ReadDTC readDtc(batteryModuleLogger, "../../uds/read_dtc_information/dtcs.txt");
+                    ReadDTC readDtc(batteryModuleLogger, "../../uds/read_dtc_information/dtcs.txt", this->socket);
                     readDtc.read_dtc(id, stored_data);
                 }
                 break;
@@ -887,7 +891,7 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
                     
-                    uint8_t data_format_identifier = stored_data[2];
+                    /* uint8_t data_format_identifier = stored_data[2]; */
                     /* Retrieve the address_memory_length */ 
                     uint8_t address_memory_length = stored_data[3];
                     /* Determine the length of memory address and memory size */ 
@@ -1030,7 +1034,7 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Service 0x37 RequestTransferExit");
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
-                    uint8_t empty_vector = stored_data[2];
+                    /* uint8_t empty_vector = stored_data[2]; */
                     /* requestTransferExitRequest(id, empty_vector); */
                 }
                 break;
@@ -1044,7 +1048,7 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                 LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Response 0x77 for RequestTransferExit");
                 LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
                 LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
-                uint8_t empty_vector = stored_data[2];
+                /* uint8_t empty_vector = stored_data[2]; */
                 /* the request succesfully received-> store the data; */ 
                 /* requestTransferExitResponse(id, empty_vector); */
                 break;

@@ -3,7 +3,7 @@
 EcuReset::EcuReset(uint32_t can_id, uint8_t sub_function, int socket, Logger &logger)
     : can_id(can_id), sub_function(sub_function), ECUResetLog(logger), generate_frames(socket, logger)
 {
-    interface = CreateInterface::getInstance(0x00, logger);
+    this->socket = socket;
 }
 
 EcuReset::~EcuReset()
@@ -70,5 +70,5 @@ void EcuReset::ecuResetResponse()
     can_id = (frame_sender_id << 8) | frame_dest_id;
     LOG_INFO(ECUResetLog.GET_LOGGER(), "can_id = 0x{0:x}", can_id);
 
-    generate_frames.ecuReset(can_id, sub_function, generate_frames.getSocket(), true);
+    generate_frames.ecuReset(can_id, sub_function, socket, true);
 }

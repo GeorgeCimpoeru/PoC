@@ -1,7 +1,8 @@
 #include "../include/SecurityAccess.h"
 #include "../../../mcu/include/MCUModule.h"
 
-SecurityAccess::SecurityAccess()
+SecurityAccess::SecurityAccess(int socket, Logger& security_logger)
+                :  security_logger(security_logger), socket(socket)
 {}
 
 std::vector<uint8_t> SecurityAccess::computeKey(const std::vector<uint8_t>& seed)
@@ -34,7 +35,7 @@ std::vector<uint8_t> SecurityAccess::generateRandomBytes(size_t length)
     return bytes;
 }
 
-void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& request, Logger& security_logger)
+void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& request)
 {
     std::vector<uint8_t> response;
     std::vector<uint8_t> key;
@@ -47,10 +48,7 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
     can_id = ((lowerbits << 8) | upperbits);
     if (upperbits == 0xFA) 
     {
-        create_interface = create_interface->getInstance(0x00, security_logger);
-        if (create_interface) 
-        {
-            generate_frames = new GenerateFrames(create_interface->getSocketApiWrite(), security_logger);
+            generate_frames = new GenerateFrames(socket, security_logger);
 
             /* Incorrect message length or invalid format */
             if ((request.size() < 3) ||
@@ -140,5 +138,4 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
             /* Handle the case where create_interface is null */
             LOG_ERROR(security_logger.GET_LOGGER(), "Create_interface is nullptr");
         }
-    }
-}
+} 
