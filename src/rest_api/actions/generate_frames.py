@@ -21,16 +21,6 @@ class GenerateFrame:
             self.bus.send(message)
         except can.CanError:
             print("Message not sent")
-
-    # def read_frame(self, timeout=15):
-    #     try:
-    #         message = self.bus.recv(timeout)
-    #         if message is None:
-    #             return None
-    #         return message
-    #     except can.CanError:
-    #         print("Error receiving message")
-    #         return None
             
     def control_frame(self, id):
         data = [0x30, 0x00, 0x00, 0x00]
@@ -73,7 +63,7 @@ class GenerateFrame:
 
     def request_read_dtc_information(self, id, sub_funct, dtc_status_mask):
         
-        sub_funct = 0x01
+        # sub_funct = 0x01
        
         data = [3, 0x19, sub_funct, dtc_status_mask]
 
