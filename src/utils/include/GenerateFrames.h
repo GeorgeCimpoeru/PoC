@@ -63,7 +63,7 @@ class GenerateFrames
          * @param s socket needed for sendFrame
          * @param frameType default value: DATA_FRAME. More values: REMOTE_FRAME, ERROR_FRAME
          */
-        int sendFrame(int can_id, std::vector<uint8_t> data, int s, FrameType frameType);
+        int sendFrame(int can_id, std::vector<uint8_t> data, int s, FrameType frameType = DATA_FRAME);
         /**
          * @brief Method for creation of custom frames
          * @param id id of the frame

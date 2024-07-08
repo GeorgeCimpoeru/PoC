@@ -63,7 +63,7 @@ int createSocket()
 struct can_frame createFrame(std::vector<uint8_t> test_data)
 {
     struct can_frame result_frame;
-    result_frame.can_id = id;
+    result_frame.can_id = (id & CAN_EFF_MASK) | CAN_EFF_FLAG;
     int i=0;
     for (auto d : test_data)
         result_frame.data[i++] = d;
@@ -78,16 +78,15 @@ void testFrames(struct can_frame expected_frame, CaptureFrame &c1 )
         EXPECT_EQ(expected_frame.data[i], c1.frame.data[i]);
     }
 }
+Logger logger;
 /* Create object for all tests */
 struct GenerateFramesTest : testing::Test
 {
     GenerateFrames* g1;
     CaptureFrame* c1;
-    Logger* logger;
     GenerateFramesTest()
     {
-        logger = new Logger();
-        g1 = new GenerateFrames(s1, *logger);
+        g1 = new GenerateFrames(s1, logger);
         c1 = new CaptureFrame();
     }
     ~GenerateFramesTest()
@@ -112,7 +111,7 @@ TEST_F(GenerateFramesTest, REMOTE_FRAME)
     g1->sendFrame(0x101,{0x12},REMOTE_FRAME);
     receive_thread.join();
     /* TEST */
-    EXPECT_EQ(0x40000101, c1->frame.can_id);
+    EXPECT_EQ(0xC0000101, c1->frame.can_id);
     EXPECT_EQ(1, c1->frame.can_dlc);
     EXPECT_EQ(0x12, c1->frame.data[0]);
 }
@@ -151,13 +150,13 @@ TEST_F(GenerateFramesTest, SessionControlTest2)
 TEST_F(GenerateFramesTest, EcuResetTest) 
 {
     /* Create expected frame */
-    struct can_frame result_frame = createFrame({0x02,0x11,0x03});
+    struct can_frame result_frame = createFrame({0x02,0x11,0x01});
     /* Start listening for frame in the CAN-BUS */
     std::thread receive_thread([this]() {
         c1->capture();
     });
     /* Send frame */
-    g1->ecuReset(id);
+    g1->ecuReset(id,0x01,s1);
     receive_thread.join();
     /* TEST */
     testFrames(result_frame, *c1);
@@ -172,7 +171,7 @@ TEST_F(GenerateFramesTest, EcuResetTest2)
         c1->capture();
     });
     /* Send frame */
-    g1->ecuReset(id,true);
+    g1->ecuReset(id,0x01,s1,true);
     receive_thread.join();
     /* TEST */
     testFrames(result_frame, *c1);
