@@ -15,7 +15,7 @@ const UDSpage = () => {
                                 <div className="card-body">
                                     <h2 className="card-title">Battery</h2>
                                     <Link href="/batteryModule"><img src="/battery.png" alt="" className="object-contain hover:object-scale-down h-28 w-56" /></Link>
-                                    <Link href="/engineModule"><button className="btn btn-primary">Check Battery</button></Link>
+                                    <Link href="/batteryModule"><button className="btn btn-primary">Check Battery</button></Link>
                                 </div>
                             </div>
                         </td>
@@ -33,7 +33,7 @@ const UDSpage = () => {
                                 <div className="card-body">
                                     <h2 className="card-title">Doors</h2>
                                     <Link href="/doorsModule"><img src="/doors.png" alt="" className="object-contain hover:object-scale-down h-28 w-56" /></Link>
-                                    <Link href="/engineModule"><button className="btn btn-primary">Check Doors</button></Link>
+                                    <Link href="/doorsModule"><button className="btn btn-primary">Check Doors</button></Link>
                                 </div>
                             </div>
                         </td>
