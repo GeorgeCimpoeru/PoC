@@ -37,31 +37,29 @@ void RequestUpdateStatus::requestUpdateStatus(canid_t request_id, std::vector<ui
     readDataRequest.emplace_back(OTA_UPDATE_STATUS_DID_LSB);    /* OTA_UPDATE_STATUS_LSB_DID */
 
     SET_BYTE(request_id, 1, 0x00); /* Set sender to 0x00, this will tell the readData service to not send a frame, but return the response */
-    /* ReadDataByIdentifier RIDB; */ 
-    /* std::vector<uint8_t> RIDB_response = RIDB.readDataByIdentifier(request_id, readDataRequest, _logger); */
 
-    /* Dummy data, will be replaced by data from service */
-    std::vector<uint8_t> RIDB_response = {PCI_L, REQUEST_UPDATE_STATUS_SID_SUCCESS, OTA_UPDATE_STATUS_DID_MSB, OTA_UPDATE_STATUS_DID_LSB, OtaUpdateStatesEnum::IDLE};
-    std::vector<uint8_t> RUS_response;
+    ReadDataByIdentifier RIDB;
+    std::vector<uint8_t> RIDB_response = RIDB.readDataByIdentifier(request_id, readDataRequest, _logger);
+    std::vector<uint8_t> response;
 
-    /* If we get a negative response from readDataByIdentifier service, send the same response from requestUpdateStatus, but with changed SID. */
+    /* If a negative response is sent from readDataByIdentifier service, send the same response from requestUpdateStatus, but with changed SID. */
     if(RIDB_response[1] == NEGATIVE_RESPONSE)
     {
-        RUS_response.push_back(RIDB_response[0]);           /* PCI_l*/
-        RUS_response.push_back(RIDB_response[1]);           /* Negative response */
-        RUS_response.push_back(REQUEST_UPDATE_STATUS_SID);  /* SID */
-        RUS_response.push_back(RIDB_response[3]);           /* Negative response code */
+        response.push_back(RIDB_response[0]);           /* PCI_l*/
+        response.push_back(RIDB_response[1]);           /* Negative response */
+        response.push_back(REQUEST_UPDATE_STATUS_SID);  /* SID */
+        response.push_back(RIDB_response[3]);           /* Negative response code */
     }
     else
     {   
         /* Everything ok, Ota Update Status received*/
-        RUS_response.push_back(PCI_L);                              /* PCI_l */
-        RUS_response.push_back(REQUEST_UPDATE_STATUS_SID_SUCCESS);  /* SERVICE SUCCESs = SID + 0X40 */
-        RUS_response.push_back(RIDB_response[4]);                   /* OTA UPDATE STATUS */
+        response.push_back(PCI_L);                              /* PCI_l */
+        response.push_back(REQUEST_UPDATE_STATUS_SID_SUCCESS);  /* SERVICE SUCCESs = SID + 0X40 */
+        response.push_back(RIDB_response[0]);                   /* OTA UPDATE STATUS */
     }
 
     GenerateFrames generate_frames(create_interface->getSocketApiWrite(), _logger);
-    generate_frames.sendFrame(response_id, RUS_response);
+    generate_frames.sendFrame(response_id, response);
 }
 
 
