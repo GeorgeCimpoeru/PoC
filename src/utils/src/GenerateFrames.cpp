@@ -72,7 +72,8 @@ int GenerateFrames::sendFrame(int can_id, std::vector<uint8_t> data, int s, Fram
     }
     return 0;
 }
-void GenerateFrames::apiResponse(uint32_t api_id, uint8_t sid, uint8_t battery_id, uint8_t doors_id, uint8_t engine_id){
+void GenerateFrames::apiResponse(uint32_t api_id, uint8_t sid, uint8_t battery_id, uint8_t doors_id, uint8_t engine_id)
+{
     uint32_t can_id = (0x10 << 8) | api_id;
     this->sendFrame(can_id, {0x06, sid, 0x10, battery_id, doors_id, engine_id});
 }
@@ -102,6 +103,20 @@ void GenerateFrames::sessionControl(int id, uint8_t sub_function, bool response)
     return;
 }
 
+void GenerateFrames::ecuReset(int id, uint8_t sub_function, bool response)
+{
+    std::vector<uint8_t> data(3);
+    if (!response)
+    {
+        data = {0x2,0x11,sub_function};
+        this->sendFrame(id, data);
+        return;
+    }
+    data = {0x2,0x51,sub_function};
+    this->sendFrame(id, data);
+    return;
+}
+
 void GenerateFrames::ecuReset(int id, uint8_t sub_function, int socket, bool response)
 {
     std::vector<uint8_t> data(3);
@@ -116,15 +131,15 @@ void GenerateFrames::ecuReset(int id, uint8_t sub_function, int socket, bool res
     return;
 }
 
-void GenerateFrames::authenticationRequestSeed(int id, const std::vector<uint8_t> &seed)
+void GenerateFrames::securityAccessRequestSeed(int id, const std::vector<uint8_t> &seed)
 {
     if (seed.size() == 0)
     {
-        std::vector<uint8_t> data = {0x03, 0x29, 0x1};
+        std::vector<uint8_t> data = {0x03, 0x27, 0x1};
         this->sendFrame(id, data);
         return;
     }
-    std::vector<uint8_t> data = {(uint8_t)(seed.size() + 2), 0x69, 0x1};
+    std::vector<uint8_t> data = {(uint8_t)(seed.size() + 2), 0x67, 0x1};
     for (uint8_t data_seed: seed)
     {
         data.push_back(data_seed);
@@ -133,11 +148,11 @@ void GenerateFrames::authenticationRequestSeed(int id, const std::vector<uint8_t
     return;
 }
 
-void GenerateFrames::authenticationSendKey(int id, const std::vector<uint8_t> &key)
+void GenerateFrames::securityAccessSendKey(int id, const std::vector<uint8_t> &key)
 {
     if (key.size() > 0 )
     {
-        std::vector<uint8_t> data = {(uint8_t)(key.size() + 2), 0x29, 0x2};
+        std::vector<uint8_t> data = {(uint8_t)(key.size() + 2), 0x27, 0x2};
         for (uint8_t data_key: key)
         {
             data.push_back(data_key);
@@ -145,7 +160,7 @@ void GenerateFrames::authenticationSendKey(int id, const std::vector<uint8_t> &k
         this->sendFrame(id, data);
         return;
     }
-    std::vector<uint8_t> data = {0x02,0x69,0x02};
+    std::vector<uint8_t> data = {0x02,0x67,0x02};
     this->sendFrame(id, data);
     return;
 }

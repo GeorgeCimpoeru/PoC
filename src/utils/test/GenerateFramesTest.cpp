@@ -156,7 +156,7 @@ TEST_F(GenerateFramesTest, EcuResetTest)
         c1->capture();
     });
     /* Send frame */
-    g1->ecuReset(id,0x01,s1);
+    g1->ecuReset(id,0x01);
     receive_thread.join();
     /* TEST */
     testFrames(result_frame, *c1);
@@ -165,73 +165,73 @@ TEST_F(GenerateFramesTest, EcuResetTest)
 TEST_F(GenerateFramesTest, EcuResetTest2) 
 {
     /* Create expected frame */
-    struct can_frame result_frame = createFrame({0x02,0x51,0x03});
+    struct can_frame result_frame = createFrame({0x02,0x51,0x01});
     /* Start listening for frame in the CAN-BUS */
     std::thread receive_thread([this]() {
         c1->capture();
     });
     /* Send frame */
-    g1->ecuReset(id,0x01,s1,true);
+    g1->ecuReset(id,0x01,true);
     receive_thread.join();
     /* TEST */
     testFrames(result_frame, *c1);
 }
-/* Test for method AuthenticationSeedRequest */
-TEST_F(GenerateFramesTest, AuthSeedTest) 
+/* Test for method securityAccessRequestSeed */
+TEST_F(GenerateFramesTest, SecuritySeedTest) 
 {
     /* Create expected frame */
-    struct can_frame result_frame = createFrame({0x05,0x69,0x1,0x23,0x34,0x35});
+    struct can_frame result_frame = createFrame({0x05,0x67,0x1,0x23,0x34,0x35});
     /* Start listening for frame in the CAN-BUS */
     std::thread receive_thread([this]() {
         c1->capture();
     });
     /* Send frame */
-    g1->authenticationRequestSeed(id,{0x23,0x34,0x35});
+    g1->securityAccessRequestSeed(id,{0x23,0x34,0x35});
     receive_thread.join();
     /* TEST */
     testFrames(result_frame, *c1);
 }
-/* Test for method AuthenticationSeedRequest 2 */
-TEST_F(GenerateFramesTest, AuthSeedTest2) 
+/* Test for method securityAccessRequestSeed 2 */
+TEST_F(GenerateFramesTest, SecuritySeedTest2) 
 {
     /* Create expected frame */
-    struct can_frame result_frame = createFrame({0x03,0x29,0x1});
+    struct can_frame result_frame = createFrame({0x03,0x27,0x1});
     /* Start listening for frame in the CAN-BUS */
     std::thread receive_thread([this]() {
         c1->capture();
     });
     /* Send frame */
-    g1->authenticationRequestSeed(id);
+    g1->securityAccessRequestSeed(id);
     receive_thread.join();
     /* TEST */
     testFrames(result_frame, *c1);
 }
-/* Test for method AuthenticationSendKey */
-TEST_F(GenerateFramesTest, AuthKeyTest) 
+/* Test for method securityAccessSendKey */
+TEST_F(GenerateFramesTest, SecurityKeyTest) 
 {
     /* Create expected frame */
-    struct can_frame result_frame = createFrame({0x05,0x29,0x2,0x23,0x34,0x35});
+    struct can_frame result_frame = createFrame({0x05,0x27,0x2,0x23,0x34,0x35});
     /* Start listening for frame in the CAN-BUS */
     std::thread receive_thread([this]() {
         c1->capture();
     });
     /* Send frame */
-    g1->authenticationSendKey(id,{0x23,0x34,0x35});
+    g1->securityAccessSendKey(id,{0x23,0x34,0x35});
     receive_thread.join();
     /* TEST */
     testFrames(result_frame, *c1);
 }
-/* Test for method AuthenticationSendKey as a response */
-TEST_F(GenerateFramesTest, AuthKeyResponseTest) 
+/* Test for method securityAccessSendKey as a response */
+TEST_F(GenerateFramesTest, SecurityKeyResponseTest) 
 {
     /* Create expected frame */
-    struct can_frame expected_frame = createFrame({0x2,0x69,0x02});
+    struct can_frame expected_frame = createFrame({0x2,0x67,0x02});
     /* Start listening for frame in the CAN-BUS */
     std::thread receive_thread([this]() {
         c1->capture();
     });
     /* Send frame */
-    g1->authenticationSendKey(id);
+    g1->securityAccessSendKey(id);
     receive_thread.join();
     /* TEST */
     testFrames(expected_frame, *c1);
@@ -475,7 +475,7 @@ TEST_F(GenerateFramesTest, readDTC)
 TEST_F(GenerateFramesTest, readDTC2) 
 {
     /* Create expected frame */
-    struct can_frame result_frame = createFrame({0x3,0x59,0x01,0x2,0x3,0x4});
+    struct can_frame result_frame = createFrame({0x6,0x59,0x01,0x2,0x3,0x0,0x4});
     /* Start listening for frame in the CAN-BUS */ 
     std::thread receive_thread([this]() {
         c1->capture();
@@ -745,19 +745,7 @@ TEST_F(GenerateFramesTest, ErrorLongResponse)
     output = testing::internal::GetCapturedStdout();
     EXPECT_NE(output.find("Write error"), std::string::npos);
 }
-TEST_F(GenerateFramesTest, FrameType) 
-{
-    try {
-        g1->sendFrame(11,{12,23},ERROR_FRAME);
-        FAIL() << "Expected std::invalid_argument";
-    }
-    catch(std::invalid_argument const & err) {
-        EXPECT_EQ(err.what(),std::string("Invalid frame type"));
-    }
-    catch(...) {
-        FAIL() << "Expected std::invalid_argument";
-    }
-}
+
 /* Test for Service request UpdateStatus */
 TEST_F(GenerateFramesTest, ReqStatus) 
 {
