@@ -4,6 +4,8 @@ on:
   pull_request:
     branches:
       - DEV_BE  # This workflow will run for pull requests targeting the `DEV_BE` branch
+      - feature/UDS  # This workflow will run for pull requests targeting the `feature/UDS` branch
+      - feature/OTA  # This workflow will run for pull requests targeting the `feature/OTA` branch
 
 jobs:
   build:
@@ -15,6 +17,9 @@ jobs:
 
       - name: Set up Make
         run: sudo apt-get install -y build-essential  # Install essential build tools
+
+      - name: Install spdlog
+        run: sudo apt-get install -y libspdlog-dev  # Install spdlog library from the package manager
 
       - name: Run Makefile in src/mcu
         run: |
