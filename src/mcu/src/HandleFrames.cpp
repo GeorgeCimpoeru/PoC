@@ -405,7 +405,7 @@ namespace MCU
                 else 
                 {
                     LOG_INFO(MCULogger.GET_LOGGER(), "RequestUpdateStatus called.");
-                    RequestUpdateStatus RUS(MCULogger);
+                    RequestUpdateStatus RUS;
                     RUS.requestUpdateStatus(frame_id, frame_data);
                 }
                 break;
