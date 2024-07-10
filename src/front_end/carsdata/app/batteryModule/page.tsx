@@ -9,16 +9,20 @@ import SerialNumberCard from '../components/batteryComponents/SerialNumberCard';
 import RangeBatteryCard from '../components/batteryComponents/RangeBatteryCard';
 import ChargingTimeCard from '../components/batteryComponents/Charging_time';
 import DeviceConsumptionCard from '../components/batteryComponents/DeviceConsumption';
+import { write } from 'fs';
 
 
 
 const BatteryModule = async () => {
     const res = await fetch(
-        'https://pocapi.pythonanywhere.com/api?service=battery_module',
+        'http://127.0.0.1:5000/api/read_info_battery',
         { cache: 'no-store' }
     );
    
     const jsonData = await res.json();
+    console.log(jsonData)
+
+    
 
     return (
         <div className="h-screen flex flex-col">
@@ -30,38 +34,38 @@ const BatteryModule = async () => {
                     <table>
                         <tr>
                             <td>
-                                <PercentageCard percentageBattery={jsonData.query_params.battery_level}></PercentageCard>
+                                <PercentageCard percentageBattery={jsonData.battery_level}></PercentageCard>
                             </td>
                             <td>
-                                <VoltageCard voltageCard={jsonData.query_params.voltage}></VoltageCard>
+                                <VoltageCard voltageCard={jsonData.voltage}></VoltageCard>
                             </td>
                             <td>
-                                <BatteryStateCard BatteryStateOfCharge={jsonData.query_params.battery_state_of_charge}></BatteryStateCard>
+                                <BatteryStateCard BatteryStateOfCharge={jsonData.battery_state_of_charge}></BatteryStateCard>
                             </td>
                             <td>
-                                <TemperatureCard temperature={jsonData.query_params.temperature}></TemperatureCard>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <LifeCycleCard life_cycle={jsonData.query_params.life_cycle} ></LifeCycleCard>
-                            </td>
-                            <td>
-                                <FullyChargedCard fully_charged={jsonData.query_params.fully_charged}></FullyChargedCard>
-                            </td>
-                            <td>
-                                <SerialNumberCard serialNumber={jsonData.query_params.serial_number}></SerialNumberCard>
-                            </td>
-                            <td>
-                                <RangeBatteryCard range_battery={jsonData.query_params.range_battery}></RangeBatteryCard>
+                                <TemperatureCard temperature={jsonData.temperature}></TemperatureCard>
                             </td>
                         </tr>
                         <tr>
                             <td>
-                                <ChargingTimeCard chargingTime={jsonData.query_params.charging_time}></ChargingTimeCard>
+                                <LifeCycleCard life_cycle={jsonData.life_cycle} ></LifeCycleCard>
                             </td>
                             <td>
-                                <DeviceConsumptionCard deviceConsumption={jsonData.query_params.device_consumption}></DeviceConsumptionCard>
+                                <FullyChargedCard fully_charged={jsonData.fully_charged}></FullyChargedCard>
+                            </td>
+                            <td>
+                                <SerialNumberCard serialNumber={jsonData.serial_number}></SerialNumberCard>
+                            </td>
+                            <td>
+                                <RangeBatteryCard range_battery={jsonData.range_battery}></RangeBatteryCard>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <ChargingTimeCard chargingTime={jsonData.charging_time}></ChargingTimeCard>
+                            </td>
+                            <td>
+                                <DeviceConsumptionCard deviceConsumption={jsonData.device_consumption}></DeviceConsumptionCard>
                             </td>
                         </tr>
 
