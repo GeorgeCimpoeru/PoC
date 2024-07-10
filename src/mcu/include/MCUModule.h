@@ -54,29 +54,6 @@ namespace MCU
         */
         void recvFrames();
 
-        /**
-         * @brief Getter for securityAccess_seed
-         * @return The current value of securityAccess_seed
-         */
-        std::vector<uint8_t> getSecurityAccessSeed();
-
-        /**
-         * @brief Setter for securityAccess_seed
-         * @param seed The new value to set for securityAccess_seed
-         */
-        void setSecurityAccessSeed(const std::vector<uint8_t>& seed);
-
-        /**
-         * @brief Getter for MCU state access
-         * @return The current value of MCU state
-         */
-        bool getMCUState() const;
-
-        /**
-         * @brief Setter for MCU state access
-         * @return The current value of MCU state
-         */
-        void setMCUState(bool state);
         int getMcuApiSocket() const;
         int getMcuEcuSocket() const;
 
@@ -84,8 +61,6 @@ namespace MCU
         bool is_running;
         CreateInterface* create_interface;
         ReceiveFrames* receive_frames;
-        std::vector<uint8_t> securityAccess_seed;
-        bool mcu_state = false;
         int mcu_api_socket = -1;
         int mcu_ecu_socket = -1;
     };
