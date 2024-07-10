@@ -15,7 +15,7 @@ namespace MCU
                     receive_frames(nullptr) 
                     {
         receive_frames = new ReceiveFrames(create_interface->getSocketEcuRead(), create_interface->getSocketApiRead());
-        WriteDataByIdentifier WDBI(0x1111FA10, {0x07, 0x2A, 0x01, 0xE0, 0x30}, MCULogger);
+        WriteDataByIdentifier WDBI(0x1111FA10, {PCI_L, WRITE_DATA_BY_IDENTIFIER_SID, OTA_UPDATE_STATUS_DID_MSB, OTA_UPDATE_STATUS_DID_LSB, IDLE}, MCULogger);
     }
 
     /* Default constructor */
