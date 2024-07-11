@@ -38,7 +38,7 @@ class GenerateFrames
         Logger& logger;
         int socket = -1;
     public:
-        GenerateFrames();
+        GenerateFrames(Logger& logger);
   
         /**
          * @brief Construct a new Generate Frames object

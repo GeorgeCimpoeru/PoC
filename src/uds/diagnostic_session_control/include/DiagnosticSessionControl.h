@@ -2,10 +2,8 @@
 #define DIAGNOSTICSESSIONCONTROL_H
 
 #include <cstdlib>
-#include "../../../utils/include/CreateInterface.h"
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../../utils/include/Logger.h"
-
 /* Diagnostic Control Session codes */
 const uint8_t SID_DIAGNOSTIC_SESSION_CONTROL = 0x10;
 const uint8_t SUB_FUNCTION_DEFAULT_SESSION = 1;
@@ -31,7 +29,7 @@ public:
      * this will be used in MCU module.
      * 
      */
-    DiagnosticSessionControl(Logger logger);
+    DiagnosticSessionControl(Logger logger, int socket);
     /**
      * @brief Construct a new Diagnostic Session Control object
      * with a parameter given for 'module_id'. For example, battery
@@ -39,7 +37,7 @@ public:
      * 
      * @param module_id 
      */
-    DiagnosticSessionControl(int module_id, Logger logger);
+    DiagnosticSessionControl(int module_id, Logger logger, int socket);
     ~DiagnosticSessionControl();
 
     /**
@@ -48,7 +46,7 @@ public:
      * @param id 
      * @param sub_function 
      */
-    void sessionControl(int id, int sub_function);
+    void sessionControl(uint8_t id, uint8_t sub_function);
 
     /**
      * @brief Method to handle the Request for switching the Sessions
@@ -75,9 +73,9 @@ public:
 private:
     int module_id;
     Logger dsc_logger;
-    CreateInterface *can_interface;
     DiagnosticSession current_session;
     void switchToDefaultSession();
+    int socket = -1;
 
     /**
      * @brief Method to handle the negative responses,

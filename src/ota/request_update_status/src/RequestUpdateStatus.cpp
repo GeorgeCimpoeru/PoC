@@ -11,11 +11,8 @@
 
 #include "../include/RequestUpdateStatus.h"
 
-RequestUpdateStatus::RequestUpdateStatus(Logger logger) : _logger{logger}
-{
-    /* Interface needed for sending the response. */
-    create_interface = create_interface->getInstance(0x00, _logger);
-}
+RequestUpdateStatus::RequestUpdateStatus(int socket, Logger logger) : _logger{logger}, socket(socket)
+{}
 
 void RequestUpdateStatus::requestUpdateStatus(canid_t request_id, std::vector<uint8_t> request)
 {
@@ -60,8 +57,8 @@ void RequestUpdateStatus::requestUpdateStatus(canid_t request_id, std::vector<ui
         RUS_response.push_back(RIDB_response[4]);                   /* OTA UPDATE STATUS */
     }
 
-    GenerateFrames generate_frames(create_interface->getSocketApiWrite(), _logger);
-    generate_frames.sendFrame(response_id, RUS_response);
+    // GenerateFrames generate_frames(MCU::mcu.getMcuApiSocket(), _logger);
+    // generate_frames.sendFrame(response_id, RUS_response);
 }
 
 

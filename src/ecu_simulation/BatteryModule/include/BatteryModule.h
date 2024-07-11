@@ -32,6 +32,7 @@ class BatteryModule
 {
 private:
     int moduleId;
+    int battery_socket = -1;
 
     float energy;
     float voltage;
@@ -135,6 +136,7 @@ public:
      * @return Returns Battery State - charging, discharging, fully-charged, etc.
      */
     std::string getLinuxBatteryState();
+    int getBatterySocket() const;
 };
 extern BatteryModule battery;
 

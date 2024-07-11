@@ -28,18 +28,19 @@ class ReadDataByIdentifier
     /**
     * @brief Default constructor
     */
-    ReadDataByIdentifier();
+    ReadDataByIdentifier(int socket, Logger& rdbi_logger);
     /**
     * @brief Method that retrieves some data based on a DID.
     * @param can_id The frame id.
     * @param request Data from a can frame that contains PCI, SID and DID
-    * @param RDBILogger Logger reference to log in a specific file.
+    * @param use_send_frame true if you want to send a response frame, false if you need only the return
     */
-    std::vector<uint8_t> readDataByIdentifier(canid_t can_id, const std::vector<uint8_t>& request, Logger& RDBILogger);
+    std::vector<uint8_t> readDataByIdentifier(canid_t can_id, const std::vector<uint8_t>& request, bool use_send_frame);
     
     private:
-    GenerateFrames* generate_frames;
-    CreateInterface* create_interface;
+    GenerateFrames generate_frames;
+    int socket = -1;
+    Logger& rdbi_logger;
 
 };
 
