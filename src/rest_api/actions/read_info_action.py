@@ -17,7 +17,11 @@ import json
 import datetime
 from actions.base_actions import *
 
-
+class ToJSON:
+    """Open-Close principle. Base class for different JSON formats."""
+    def _to_json(self, data):
+        pass
+    
 class BatteryToJSON():
     def _to_json(self, data: list):
         response_to_frontend = {
@@ -34,7 +38,14 @@ class BatteryToJSON():
             "time_stamp": datetime.datetime.now().isoformat()
         }
         return (response_to_frontend)
-
+    
+# class ElementToJSON(ToJSON):
+#     def _to_json(self, data: list):
+#         response_to_frontend = {}
+#         for index, element in enumerate(data, start=1):
+#             response_to_frontend[f"Element{index}"] = element
+#         return json.dumps(response_to_frontend)
+    
 class EngineToJSON():
     def _to_json(self, data: list):
         response_to_frontend = {
@@ -49,7 +60,8 @@ class EngineToJSON():
             "serial_number": data[7]
         }
         return (response_to_frontend)
-
+    
+    
 class ReadInfo(Action):
     """
     ReadInfo class to read information from different ECUs.
@@ -92,7 +104,6 @@ class ReadInfo(Action):
             data = [level, voltage, state_of_charge, temperature, life_cycle,fully_charged, serial_number,range_battery,charging_time,device_consumption]
             module = BatteryToJSON()
             
-            # response_json = self._to_json(module, data)
             response_json = module._to_json(data)
             # Shutdown the CAN bus interface
             self.bus.shutdown()
@@ -104,6 +115,39 @@ class ReadInfo(Action):
             self.bus.shutdown()
             return e.message
         
+    # def read_from_custom(self, identifiers:list):
+    #     """
+    #     Method to read information from specific identifier.
+
+    #     Returns:
+    #     - JSON response.
+    #     """
+    #     id_battery = self.id_ecu[1]
+    #     id = self.my_id * 0x100 + id_battery
+    #     try:
+    #         log_info_message(logger, "Changing session to default")
+    #         self.generate.session_control(id, 0x01)
+    #         self._passive_response(SESSION_CONTROL, "Error changing session control")
+
+    #         self._authentication(id)
+
+    #         #Read each data from identifier
+    #         log_info_message(logger, "Reading data..")         
+    #         data_collected = []
+    #         for identifier in identifiers:
+    #             data_collected.append(self._read_by_identifier(id,identifier))
+
+    #         module = ElementToJSON()
+    #         response_json = self._to_json(module, data_collected)
+    #         # Shutdown the CAN bus interface
+    #         self.bus.shutdown()
+
+    #         log_info_message(logger, "Sending JSON")
+    #         return response_json
+
+    #     except CustomError as e:
+    #         self.bus.shutdown()
+    #         return e.message
 
     def read_from_engine(self):
 
@@ -147,7 +191,6 @@ class ReadInfo(Action):
 
             data = [power_output, weight, fuel_consumption, torque, fuel_used, state_of_running, current_speed, engine_state, serial_number]
             module = EngineToJSON()
-            # response= self._to_json(module, data)
             response = module._to_json(data)
 
             # Shutdown the CAN bus interface
@@ -159,40 +202,6 @@ class ReadInfo(Action):
         except CustomError as e:
             self.bus.shutdown()
             return e.message
-    
-    # def read_from_custom(self, identifiers:list):
-    #     """
-    #     Method to read information from specific identifier.
-
-    #     Returns:
-    #     - JSON response.
-    #     """
-    #     id_battery = self.id_ecu[1]
-    #     id = self.my_id * 0x100 + id_battery
-    #     try:
-    #         log_info_message(logger, "Changing session to default")
-    #         self.generate.session_control(id, 0x01)
-    #         self._passive_response(SESSION_CONTROL, "Error changing session control")
-
-    #         self._authentication(id)
-
-    #         #Read each data from identifier
-    #         log_info_message(logger, "Reading data..")         
-    #         data_collected = []
-    #         for identifier in identifiers:
-    #             data_collected.append(self._read_by_identifier(id,identifier))
-
-    #         module = ElementToJSON()
-    #         response_json = self._to_json(module, data_collected)
-    #         # Shutdown the CAN bus interface
-    #         self.bus.shutdown()
-
-    #         log_info_message(logger, "Sending JSON")
-    #         return response_json
-
-    #     except CustomError as e:
-    #         self.bus.shutdown()
-    #         return e.message
         
     # def _to_json(self, module: ToJSON, data: list):
     #     """
