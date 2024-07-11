@@ -9,7 +9,7 @@
 namespace MCU
 {
     HandleFrames::HandleFrames(int socket_api, int socket_canbus) 
-                : mcuDiagnosticSessionControl(MCULogger, socket_api) , requestDownload(socket_api, MCULogger)
+                : mcuDiagnosticSessionControl(MCULogger, socket_api) , requestDownload(socket_api, MCULogger), testerPresent(MCULogger, socket_canbus) /* socket_api */
     {
         this->socket_api = socket_api;
         this->socket_canbus = socket_canbus;
@@ -199,6 +199,7 @@ namespace MCU
                 }
                 else 
                 {
+                    testerPresent.handleTesterPresent(frame_id, frame_data);
                     LOG_INFO(MCULogger.GET_LOGGER(), "TesterPresent called.");
                 }
                 break;

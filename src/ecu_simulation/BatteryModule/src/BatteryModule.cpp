@@ -22,7 +22,7 @@ BatteryModule::BatteryModule() : moduleId(0x11),
     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery object created successfully, ID : 0x{:X}", this->moduleId);
 
     /* Send Up-Notification to MCU */
-    sendNotificationToMCU();
+    // sendNotificationToMCU();
 }
 
 /* Parameterized Constructor - initializes the BatteryModule with provided interface number and module ID */
@@ -40,7 +40,7 @@ BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_mo
     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery object created successfully using Parameterized Constructor, ID : 0x{:X}", this->moduleId);
 
     /* Send Up-Notification to MCU */ 
-    sendNotificationToMCU();
+    // sendNotificationToMCU(); /* uncomment this line */ 
 }
 
 /* Destructor */

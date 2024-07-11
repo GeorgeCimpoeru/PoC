@@ -4,8 +4,8 @@ CFLAGSTST = -std=c++17 -I/include -DUNIT_TESTING_MODE
 LDFLAGS = -lspdlog
 CFLAGSTST2 = -lgtest -lgtest_main -pthread
 #Sources files
-SRCS = src/main.cpp src/BatteryModule.cpp ../../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../../utils/src/CreateInterface.cpp src/ReceiveFrames.cpp ../../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp ../../uds/ecu_reset/src/EcuReset.cpp ../../mcu/src/HandleFrames.cpp ../../mcu/src/ReceiveFrames.cpp ../../mcu/src/MCUModule.cpp ../../uds/read_dtc_information/src/ReadDtcInformation.cpp ../../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp ../../uds/authentication/src/SecurityAccess.cpp ../../ota/request_download/src/RequestDownload.cpp ../../ota/request_update_status/src/RequestUpdateStatus.cpp 
-SRCSTEST = src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp ../../utils/src/Logger.cpp ../../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp ../../uds/ecu_reset/src/EcuReset.cpp ../../mcu/src/HandleFrames.cpp ../../mcu/src/ReceiveFrames.cpp ../../mcu/src/MCUModule.cpp ../../uds/read_dtc_information/src/ReadDtcInformation.cpp
+SRCS = src/main.cpp src/BatteryModule.cpp ../../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../../utils/src/CreateInterface.cpp src/ReceiveFrames.cpp ../../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp ../../uds/ecu_reset/src/EcuReset.cpp ../../mcu/src/HandleFrames.cpp ../../mcu/src/ReceiveFrames.cpp ../../mcu/src/MCUModule.cpp ../../uds/read_dtc_information/src/ReadDtcInformation.cpp ../../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp ../../uds/authentication/src/SecurityAccess.cpp ../../uds/tester_present/src/TesterPresent.cpp ../../ota/request_download/src/RequestDownload.cpp ../../ota/request_update_status/src/RequestUpdateStatus.cpp 
+SRCSTEST = src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp ../../utils/src/Logger.cpp ../../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp ../../uds/ecu_reset/src/EcuReset.cpp ../../uds/tester_present/src/TesterPresent.cpp ../../mcu/src/HandleFrames.cpp ../../mcu/src/ReceiveFrames.cpp ../../mcu/src/MCUModule.cpp ../../uds/read_dtc_information/src/ReadDtcInformation.cpp
 
 #Object files
 OBJS = $(patsubst ../uds/src/%.cpp ../utils/src/%.cpp src/%.cpp, obj/%.o, $(SRCS))
@@ -22,7 +22,7 @@ $(FINAL): $(OBJS)
 	$(CXX) $(CFLAGS) -o $(FINAL) $(OBJS) ${LDFLAGS}
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
-$(OBJ_DIR)/main.o: src/main.cpp include/BatteryModule.h include/ReceiveFrames.h include/HandleFrames.h include/GenerateFrames.h ../../utils/include/CreateInterface.h ../../uds/diagnostic_session_control/include/DiagnosticSessionControl.h ../../utils/include/Logger.h include/BatteryModuleLogger.h ../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h ../../uds/write_data_by_identifier/include/WriteDataByIdentifier.h ../../uds/ecu_reset/include/EcuReset.h ../../mcu/include/HandleFrames.h ../../mcu/include/ReceiveFrames.h ../../mcu/include/MCUModule.h ../../uds/read_dtc_information/include/ReadDtcInformation.h
+$(OBJ_DIR)/main.o: src/main.cpp include/BatteryModule.h include/ReceiveFrames.h include/HandleFrames.h include/GenerateFrames.h ../../utils/include/CreateInterface.h ../../uds/tester_present/include/TesterPresent.h ../../uds/diagnostic_session_control/include/DiagnosticSessionControl.h ../../utils/include/Logger.h include/BatteryModuleLogger.h ../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h ../../uds/write_data_by_identifier/include/WriteDataByIdentifier.h ../../uds/ecu_reset/include/EcuReset.h ../../mcu/include/HandleFrames.h ../../mcu/include/ReceiveFrames.h ../../mcu/include/MCUModule.h ../../uds/read_dtc_information/include/ReadDtcInformation.h
 	$(CXX) $(CFLAGS) -c src/main.cpp -o $(OBJ_DIR)/main.o
 $(OBJ_DIR)/BatteryModule.o: src/BatteryModule.cpp
 	$(CXX) $(CFLAGS) -c src/BatteryModule.cpp -o $(OBJ_DIR)/BatteryModule.o
@@ -36,6 +36,8 @@ $(OBJ_DIR)/CreateInterface.o: ../../utils/src/CreateInterface.cpp
 	$(CXX) $(CFLAGS) -c ../../utils/src/CreateInterface.cpp -o $(OBJ_DIR)/CreateInterface.o
 $(OBJ_DIR)/DiagnosticSessionControl.o: ../../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp
 	$(CXX) $(CFLAGS) -c ../../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp -o $(OBJ_DIR)/DiagnosticSessionControl.o	
+$(OBJ_DIR)/TesterPresent.o: ../../uds/tester_present/src/TesterPresent.cpp
+	$(CXX) $(CFLAGS) -c ../../uds/tester_present/src/TesterPresent.cpp -o $(OBJ_DIR)/TesterPresent.o
 $(OBJ_DIR)/Logger.o: ../../utils/src/Logger.cpp
 	$(CXX) $(CFLAGS) -c ../../utils/src/Logger.cpp -o $(OBJ_DIR)/Logger.o
 $(OBJ_DIR)/ReadDtcInformation.o: ../../uds/read_dtc_information/src/ReadDtcInformation.cpp

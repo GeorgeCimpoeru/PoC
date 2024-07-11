@@ -11,6 +11,7 @@
 #include "../../utils/include/CreateInterface.h"
 #include "ReceiveFrames.h"
 #include "../include/MCULogger.h"
+#include "../../uds/tester_present/include/TesterPresent.h"
 
 #include <thread>
 namespace MCU
