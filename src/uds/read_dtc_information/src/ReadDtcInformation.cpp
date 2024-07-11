@@ -1,10 +1,10 @@
 #include "../include/ReadDtcInformation.h"
 
-ReadDTC::ReadDTC(Logger logger, std::string path_folder )
+ReadDTC::ReadDTC(Logger logger, std::string path_folder, int socket)
 {
-    this->interface = this->interface->getInstance(0x00,logger);
     this->path_folder = path_folder;
     this->logger = logger;
+    this->socket = socket;
 }
 
 ReadDTC::~ReadDTC()
@@ -15,9 +15,10 @@ ReadDTC::~ReadDTC()
 void ReadDTC::read_dtc(int id, std::vector<uint8_t> data)
 {
     LOG_INFO(logger.GET_LOGGER(), "Read DTC Service");
-    SetSockets_(id);
-    this->generate = new GenerateFrames(socket_write,logger);
-    int new_id = (id % 0x100) * 0x100 + (id / 0x100);
+    this->generate = new GenerateFrames(socket,logger);
+    uint8_t lowerbits = id & 0xFF;
+    uint8_t upperbits = id >> 8 & 0xFF;
+    int new_id = ((lowerbits << 8) | upperbits);
     if (data.size() != 4)
     {
         LOG_ERROR(logger.GET_LOGGER(), "Incorrect message length or invalid format");
@@ -39,21 +40,6 @@ void ReadDTC::read_dtc(int id, std::vector<uint8_t> data)
             break;
         default:
             LOG_WARN(logger.GET_LOGGER(), "Sub-function not implemented");
-    }
-}
-
-int ReadDTC::SetSockets_(int id)
-{
-    int my_id = id % 0x100;
-    if (my_id == 0x10)
-    {
-        this->socket_read = interface->getSocketApiRead();
-        this->socket_write =interface->getSocketApiWrite();
-    }
-    if (my_id > 0x11)
-    {
-        this->socket_read = interface->getSocketEcuRead();
-        this->socket_write =interface->getSocketEcuWrite();
     }
 }
 
@@ -175,7 +161,7 @@ bool ReadDTC::receive_flow_control(int id_module)
     /* Define a pollfd structure to monitor the socket */ 
     struct pollfd pfd;
     /* Set the socket file descriptor */ 
-    pfd.fd = this->socket_read; 
+    pfd.fd = this->socket; 
     /* We are interested in read events -use POLLING */ 
     pfd.events = POLLIN;
 
@@ -190,11 +176,11 @@ bool ReadDTC::receive_flow_control(int id_module)
         if (poll_result > 0 && pfd.revents & POLLIN) 
         {
             struct can_frame frame ;
-            int nbytes = read(this->socket_read, &frame, sizeof(frame));
+            int nbytes = read(this->socket, &frame, sizeof(frame));
 
             if (nbytes > 0) 
             {
-                if (frame.can_id % 0x100 == id_module && frame.data[0] == 0x30)
+                if ((int)frame.can_id % 0x100 == id_module && frame.data[0] == 0x30)
                 {
                     LOG_INFO(logger.GET_LOGGER(), "Flow controll frame recived...");
                     return true;

@@ -1,10 +1,10 @@
 #Compiler flags
-CFLAGS = -g -Wall -pthread -I./include -I./src -I../../utils/include -I../../utils/src -I../../uds/include -I../../uds/src
+CFLAGS = -std=c++17 -g -Wall -pthread -I./include -I./src -I../../utils/include -I../../utils/src -I../../uds/include -I../../uds/src
 CFLAGSTST = -std=c++17 -I/include -DUNIT_TESTING_MODE
 LDFLAGS = -lspdlog
 CFLAGSTST2 = -lgtest -lgtest_main -pthread
 #Sources files
-SRCS = src/main.cpp src/BatteryModule.cpp ../../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../../utils/src/CreateInterface.cpp src/ReceiveFrames.cpp ../../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp ../../uds/ecu_reset/src/EcuReset.cpp ../../mcu/src/HandleFrames.cpp ../../mcu/src/ReceiveFrames.cpp ../../mcu/src/MCUModule.cpp ../../uds/read_dtc_information/src/ReadDtcInformation.cpp
+SRCS = src/main.cpp src/BatteryModule.cpp ../../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../../utils/src/CreateInterface.cpp src/ReceiveFrames.cpp ../../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp ../../uds/ecu_reset/src/EcuReset.cpp ../../mcu/src/HandleFrames.cpp ../../mcu/src/ReceiveFrames.cpp ../../mcu/src/MCUModule.cpp ../../uds/read_dtc_information/src/ReadDtcInformation.cpp ../../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp ../../uds/authentication/src/SecurityAccess.cpp ../../ota/request_download/src/RequestDownload.cpp ../../ota/request_update_status/src/RequestUpdateStatus.cpp 
 SRCSTEST = src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp ../../utils/src/Logger.cpp ../../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp ../../uds/ecu_reset/src/EcuReset.cpp ../../mcu/src/HandleFrames.cpp ../../mcu/src/ReceiveFrames.cpp ../../mcu/src/MCUModule.cpp ../../uds/read_dtc_information/src/ReadDtcInformation.cpp
 
 #Object files
@@ -75,7 +75,7 @@ GenerateFrames_test: ../../utils/test/GenerateFramesTest.cpp ../../utils/src/Gen
 # CreateInterface Unit tests
 createInterfaceTest: CreateInterface_test
 CreateInterface_test: ../../utils/test/CreateInterface_test.cpp ../../utils/src/CreateInterface.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../../utils/test/CreateInterface_test ../../utils/test/CreateInterface_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../../utils/test/CreateInterface_test ../../utils/test/CreateInterface_test.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
 
 # ReadDataByIdentifier Unit tests
 RDBITest: ReadDataByIdentifier_test
@@ -158,7 +158,7 @@ GenerateFramesCoverage: ../../utils/test/GenerateFramesTest.cpp ../../utils/src/
 # CreateInterface Coverage
 createInterfaceCoverage: CreateInterfaceCoverage
 CreateInterfaceCoverage: ../../utils/test/CreateInterface_test.cpp ../../utils/src/CreateInterface.cpp
-	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../../utils/test/CreateInterface_test ../../utils/test/CreateInterface_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../../utils/test/CreateInterface_test ../../utils/test/CreateInterface_test.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
 	./../../utils/test/CreateInterface_test
 	mkdir -p coverage/out_CreateInterface
 	gcov -o . ../../utils/src/CreateInterface.cpp
@@ -220,7 +220,7 @@ GenerateFrames_coverage:
 	mv GenerateFrames.cpp.gcov coverage/out_GenerateFrames
 
 CreateInterface_coverage:
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../utils/test/CreateInterface_test ../utils/test/CreateInterface_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../utils/test/CreateInterface_test ../utils/test/CreateInterface_test.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
 	./../utils/test/CreateInterface_test
 	mkdir -p coverage/out_CreateInterface
 	gcov -o . ../../utils/src/CreateInterface.cpp

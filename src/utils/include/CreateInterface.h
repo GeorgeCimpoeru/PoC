@@ -43,10 +43,6 @@ class CreateInterface
         uint8_t interface_name;        
         struct sockaddr_can addr;
         struct ifreq ifr;
-        int socket_ecu_read = -1;
-        int socket_api_read = -1;
-        int socket_ecu_write = -1;
-        int socket_api_write = -1;
         Logger& logger;
 
     public:
@@ -62,12 +58,13 @@ class CreateInterface
          */
         uint8_t getInterfaceName();
 
+        int createSocket(uint8_t interface_number);
         /**
         * @brief Set the socket to not block in the reading operation.
-        * 
+        * @param socket socket file descriptor needed to be set as non blocking
         * @return int 
         */
-        int setSocketBlocking();
+        int setSocketBlocking(int socket);
         /**
         * @brief Method to create vcan interfaces: one to communicate 
         * with ECU and one to communicate with API
@@ -95,24 +92,6 @@ class CreateInterface
         * @return Returns true if interfaces were deleted and false if an error was encountered. 
         */    
         bool deleteInterface();
-
-        /**
-        * @brief Method that returns ECU socket for read
-        */  
-        int getSocketEcuRead();
-        /**
-        * @brief Method that returns API socket for read
-        */  
-        int getSocketApiRead();
-        /**
-        * @brief Method that returns ECU socket for write
-        */  
-        int getSocketEcuWrite();
-        /**
-        * @brief Method that returns API socket for write
-        */  
-        int getSocketApiWrite();
-
         friend class EcuReset;
 };
 
