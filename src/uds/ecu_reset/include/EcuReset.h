@@ -24,11 +24,9 @@ class EcuReset
 private:
     uint32_t can_id;
     uint8_t sub_function;
-    int socket = -1;
+    int response_socket;
     
     Logger& ECUResetLog;
-    GenerateFrames generate_frames;
-    CreateInterface* interface;
 public:
     /**
      * @brief Parameterized constructor.
