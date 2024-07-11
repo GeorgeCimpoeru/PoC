@@ -5,9 +5,7 @@ CreateInterface* CreateInterface::create_interface_instance = nullptr;
 
 /* Private constructor */
 CreateInterface::CreateInterface(uint8_t interface_name, Logger& logger)
-    : logger(logger), interface_name(interface_name),
-      socket_ecu_read(-1), socket_api_read(-1),
-      socket_ecu_write(-1), socket_api_write(-1) 
+    : interface_name(interface_name), logger(logger)
 {
     createInterface();
     startInterface();
@@ -27,19 +25,20 @@ uint8_t CreateInterface::getInterfaceName()
 }
 
 /* Method that sets the socket to not block the reading operation */
-int CreateInterface::setSocketBlocking()
+int CreateInterface::setSocketBlocking(int socket)
 {
-    int flags = fcntl(socket_ecu_read, F_GETFL, 0);
+    int flags = fcntl(socket, F_GETFL, 0);
     if (flags == -1) {
         LOG_ERROR(logger.GET_LOGGER(), "Error for obtaining flags on socket: {}", strerror(errno));
         return 1;
     }
     // Set the O_NONBLOCK flag to make the socket non-blocking
     flags |= O_NONBLOCK;
-    if (fcntl(socket_ecu_read, F_SETFL, flags) == -1) {
+    if (fcntl(socket, F_SETFL, flags) == -1) {
         LOG_ERROR(logger.GET_LOGGER(), "Error setting flags: {}", strerror(errno));
         return -1;
     }
+    return 0;
 }
 /* Method to create a vcan interface */
 bool CreateInterface::createInterface()
@@ -76,6 +75,36 @@ bool CreateInterface::createInterface()
     return command_check;
 }
 
+int CreateInterface::createSocket(uint8_t interface_number) {
+    unsigned char lowerbits = interface_number & 0X0F;
+    /* Create the read socket for the first interface */
+    int socket_fd;
+    socket_fd = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+    if (socket_fd < 0) 
+    {
+        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to create the socked file descriptor");
+        return 1;
+    }    
+
+    /* Binding read socket */  
+    std::string vcan_interface_ecu =  "vcan" + std::to_string(lowerbits);    
+    strcpy(ifr.ifr_name, vcan_interface_ecu.c_str() );    
+    ioctl(socket_fd, SIOCGIFINDEX, &ifr);   
+
+    addr.can_family = AF_CAN;
+    addr.can_ifindex = ifr.ifr_ifindex;
+
+    int bind_ecu_read = bind(socket_fd, (struct sockaddr*)&addr, sizeof(addr));
+
+    if(bind_ecu_read < 0)
+    {
+        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to bind the socket");
+        return 1;
+    }
+
+    return socket_fd;
+}
+
 /* Method to start a vcan interface */
 bool CreateInterface::startInterface()
 {
@@ -107,97 +136,6 @@ bool CreateInterface::startInterface()
         /* Set the flag to false if the second command fails */
         command_check  = false;
     }
-
-    /* Create the read socket for the first interface */
-    socket_ecu_read = socket(PF_CAN, SOCK_RAW, CAN_RAW);
-    if (socket_ecu_read < 0) 
-    {
-        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to create the ECU read socket");
-        return 1;
-    }    
-
-    /* Binding read socket */  
-    std::string vcan_interface_ecu =  "vcan" + std::to_string(first_four_bits);    
-    strcpy(ifr.ifr_name, vcan_interface_ecu.c_str() );    
-    ioctl(socket_ecu_read, SIOCGIFINDEX, &ifr);   
-
-    addr.can_family = AF_CAN;
-    addr.can_ifindex = ifr.ifr_ifindex;
-
-    int bind_ecu_read = bind(socket_ecu_read, (struct sockaddr*)&addr, sizeof(addr));
-
-    if(bind_ecu_read < 0)
-    {
-        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to bind ECU read socket");
-        return 1;
-    }    
-
-    /* Create the read socket for the second interface (API) */
-    socket_api_read = socket(PF_CAN, SOCK_RAW, CAN_RAW);
-    if (socket_api_read < 0) 
-    {       
-        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to create the API read socket");
-        return 1;
-    }
-    /* Binding read socket */      
-    std::string vcan_interface_api =  "vcan" + std::to_string(last_four_bits);
-    strcpy(ifr.ifr_name, vcan_interface_api.c_str() );
-    ioctl(socket_api_read, SIOCGIFINDEX, &ifr);
-
-    addr.can_family = AF_CAN;
-    addr.can_ifindex = ifr.ifr_ifindex;
-
-    int bind_api_read = bind(socket_api_read, (struct sockaddr*)&addr, sizeof(addr));
-
-    if(bind_api_read < 0)
-    {
-        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to API read socket");
-        return 1;
-    }
-    /* Create the write socket for the first interface */
-    socket_ecu_write = socket(PF_CAN, SOCK_RAW, CAN_RAW);
-    if (socket_ecu_write < 0) 
-    {
-        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to create the ECU write socket");
-        return 1;
-    }    
-
-    /* Binding write socket */     
-    strcpy(ifr.ifr_name, vcan_interface_ecu.c_str() );    
-    ioctl(socket_ecu_write, SIOCGIFINDEX, &ifr);   
-
-    addr.can_family = AF_CAN;
-    addr.can_ifindex = ifr.ifr_ifindex;
-
-    int bind_ecu_write = bind(socket_ecu_write, (struct sockaddr*)&addr, sizeof(addr));
-
-    if(bind_ecu_write < 0)
-    {
-        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to bind ECU write socket");
-        return 1;
-    }    
-
-    /* Create the write socket for the second interface (API) */
-    socket_api_write = socket(PF_CAN, SOCK_RAW, CAN_RAW);
-    if (socket_api_read < 0) 
-    {       
-        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to create the API write socket");
-        return 1;
-    }
-    /* Binding write socket */      
-    strcpy(ifr.ifr_name, vcan_interface_api.c_str() );
-    ioctl(socket_api_write, SIOCGIFINDEX, &ifr);
-
-    addr.can_family = AF_CAN;
-    addr.can_ifindex = ifr.ifr_ifindex;
-
-    int bind_api_write = bind(socket_api_write, (struct sockaddr*)&addr, sizeof(addr));
-
-    if(bind_api_write < 0)
-    {
-        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to bind API write socket");
-        return 1;
-    }      
     return command_check;
 }
 
@@ -273,28 +211,4 @@ bool CreateInterface::deleteInterface()
     }
 
     return command_check;
-}
-
-/* Method to get the ecu read socket descriptor */
-int CreateInterface::getSocketEcuRead()
-{
-    return socket_ecu_read;
-}
-
-/* Method to get the api read socket descriptor */
-int CreateInterface::getSocketApiRead()
-{
-    return socket_api_read;
-}
-
-/* Method to get the ecu write socket descriptor */
-int CreateInterface::getSocketEcuWrite()
-{
-    return socket_ecu_write;
-}
-
-/* Method to get the api write socket descriptor */
-int CreateInterface::getSocketApiWrite()
-{
-    return socket_api_write;
 }
