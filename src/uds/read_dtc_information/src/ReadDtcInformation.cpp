@@ -39,7 +39,8 @@ void ReadDTC::read_dtc(int id, std::vector<uint8_t> data)
             report_dtcs(new_id,dtc_status_mask);
             break;
         default:
-            LOG_WARN(logger.GET_LOGGER(), "Sub-function not implemented");
+            this->generate->negativeResponse(new_id, 0x19, 0x12);
+            LOG_ERROR(logger.GET_LOGGER(), "Sub-function not supported");
     }
 }
 
@@ -194,3 +195,7 @@ bool ReadDTC::receive_flow_control(int id_module)
     return false;
 }
 
+int ReadDTC::to_int(char c)
+{
+    return (c >= 'A') ? (c - 'A' + 10) : (c - '0');
+}
