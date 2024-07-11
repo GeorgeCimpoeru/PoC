@@ -8,7 +8,9 @@
 
 #include "../include/transfer_data.h"
 #include "../include/RequestTransferExit.h" 
-
+//#include "../../../utils/include/Logger.h"
+// #include "../../../mcu/include/MCULogger.h"
+// #include <spdlog/spdlog.h>
 #include <iostream>
 
 /* Constructor that initializes the callback_ to nullptr */
@@ -52,3 +54,5 @@ bool TransferDataRequest::transferDataRequest(bool transferSucces)
     /* If no callback is set, default to continue the transfer */
     return transferSucces;
 }
+
+
