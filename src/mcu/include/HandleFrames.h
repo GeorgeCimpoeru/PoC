@@ -23,6 +23,7 @@
 #include "../../uds/ecu_reset/include/EcuReset.h"
 #include "../../uds/authentication/include/SecurityAccess.h"
 #include "../../uds/diagnostic_session_control/include/DiagnosticSessionControl.h"
+#include "../../uds/tester_present/include/TesterPresent.h"
 #include "../../uds/read_dtc_information/include/ReadDtcInformation.h"
 #include "../../ota/request_download/include/RequestDownload.h"
 #include "../../ota/request_update_status/include/RequestUpdateStatus.h"
@@ -36,6 +37,8 @@ namespace MCU
         int socket_canbus = -1;
         DiagnosticSessionControl mcuDiagnosticSessionControl;
         RequestDownloadService requestDownload;
+        TesterPresent testerPresent;
+
     public:
         HandleFrames(int socket_api, int socket_canbus);
         /**
