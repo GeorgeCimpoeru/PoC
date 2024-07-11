@@ -15,8 +15,6 @@
 #include <functional>
 
 #include "../../utils/include/Logger.h"
-#include "../../../utils/include/CreateInterface.h"
-#include "../../../utils/include/GenerateFrames.h"
 
 /* Define the callback function type */
 using transferCompleteCallBack = std::function<bool(bool)>;
@@ -28,7 +26,7 @@ public:
    * @brief Constructor.   
    */
     /* constructor to initialize the transfer exit */
-    RequestTransferExit();
+    RequestTransferExit(Logger& RTESLogger);
 
     /**
    * @brief Destructor.
@@ -47,11 +45,13 @@ public:
     *   @param[in] transferSucces A boolean that indicates if the transfer was successfull.
     *   @return Returns true if the transfer should continue, false if it should stop.
     */
-    bool requestTransferExit(int id, Logger& RTESlogger,bool transferSuccess);
+    bool requestTransferExit(int id, bool transferSuccess);
 
 private:
     /* Member variable to store the callback function */
-    transferCompleteCallBack callback_;
+    transferCompleteCallBack callback_;  
+
+    Logger& RTESLogger;    
 };
 
 #endif /* REQUEST_TRANSFER_EXIT_H_ */

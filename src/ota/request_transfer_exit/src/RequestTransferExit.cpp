@@ -10,7 +10,7 @@
 #include <iostream>
 
 /* Constructor that initializes the callback_ to nullptr */
-RequestTransferExit::RequestTransferExit() : callback_(nullptr)
+RequestTransferExit::RequestTransferExit(Logger& RTESLogger) : callback_(nullptr), RTESLogger(RTESLogger)
 {
 }
 
@@ -26,9 +26,9 @@ void RequestTransferExit::setTransferCompleteCallBack(transferCompleteCallBack c
 }
 
 /* Method to handle the request transfer exit 0x37 and invoke the callback */
-bool RequestTransferExit::requestTransferExit(int id, Logger& RTESlogger, bool transferSuccess)
+bool RequestTransferExit::requestTransferExit(int id, bool transferSuccess)
 {
-    LOG_INFO(RTESlogger.GET_LOGGER(), "Exiting transfer with service 0x37 ");
+    LOG_INFO(RTESLogger.GET_LOGGER(), "Exiting transfer with service 0x37 ");
 
     /* check if the callback is set */
     if (callback_)
