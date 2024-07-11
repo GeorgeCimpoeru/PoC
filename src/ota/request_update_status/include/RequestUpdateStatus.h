@@ -25,8 +25,7 @@
 #include <linux/can.h>
 #include <map>
 #include "../../../utils/include/Logger.h"
-// #include "../../../uds/read_data_by_identifier/include/read_data_by_identifier.h"
-#include "../../../utils/include/CreateInterface.h"
+/* #include "../../../uds/read_data_by_identifier/include/read_data_by_identifier.h" */
 #include "../../../utils/include/GenerateFrames.h"
 
 #define REQUEST_UPDATE_STATUS_REQUEST_SIZE      0x02
@@ -86,9 +85,9 @@ class RequestUpdateStatus
 {
 private:        
 	Logger _logger;
-    CreateInterface* create_interface;
+	int socket = -1;
 public:
-	RequestUpdateStatus(Logger logger);
+	RequestUpdateStatus(int socket, Logger logger);
 	~RequestUpdateStatus();
 	/**
 	 * @brief Service method. Receive a request for reading Ota Update Status.

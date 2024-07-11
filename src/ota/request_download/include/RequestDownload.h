@@ -19,13 +19,13 @@ public:
      * @brief Construct a new Request Download Service object
      * 
      */
-    RequestDownloadService();
+    RequestDownloadService(Logger& RDSlogger);
     /**
      * @brief Construct a new Request Download Service object with Logger
      * 
      * @param RDSlogger 
      */
-    RequestDownloadService(Logger& RDSlogger);
+    RequestDownloadService(int socket, Logger& RDSlogger);
     /**
      * @brief Destroy the Request Download Service object
      * 
@@ -48,16 +48,12 @@ public:
      */
     void requestDownloadResponse(int id, uint8_t length_max_number_block, int max_number_block, Logger &RDSlogger);
 private:
+    int socket = -1;
     /**
      * @brief 
      * 
      */
     GenerateFrames generateFrames;
-    /**
-     * @brief 
-     * 
-     */
-    CreateInterface* create_interface;
     /**
      * @brief Method for checking if the MCU is in the programming session
      * 
