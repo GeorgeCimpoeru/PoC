@@ -11,7 +11,6 @@
 #include <iomanip>
 #include <random>
 
-#include "../../../utils/include/CreateInterface.h"
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../utils/include/Logger.h"
 
@@ -42,9 +41,9 @@ class SecurityAccess
     /**
     * @brief Default constructor
     */
-    SecurityAccess();
+    SecurityAccess(int socket, Logger& security_logger);
 
-    void securityAccess(canid_t can_id, const std::vector<uint8_t>& data, Logger& securityLogger);
+    void securityAccess(canid_t can_id, const std::vector<uint8_t>& data);
 
     std::vector<uint8_t> computeKey(const std::vector<uint8_t>& seed);
 
@@ -52,7 +51,8 @@ class SecurityAccess
 
     private:
     GenerateFrames* generate_frames;
-    CreateInterface* create_interface;
+    Logger& security_logger;
+    int socket = -1;
 
 };
 
