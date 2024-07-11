@@ -2,11 +2,13 @@
 #include "../include/RequestDownload.h"
 #include "../../../mcu/include/MCUModule.h"
 
-RequestDownloadService::RequestDownloadService()
+RequestDownloadService::RequestDownloadService(Logger& RDSlogger)
+                        : generateFrames(RDSlogger)
 {
    
 }
-RequestDownloadService::RequestDownloadService(Logger& RDSlogger)
+RequestDownloadService::RequestDownloadService(int socket, Logger& RDSlogger)
+                        : socket(socket), generateFrames(RDSlogger)
 {
     
 }
@@ -112,38 +114,29 @@ void RequestDownloadService::requestDownloadRequest(int id, std::vector<uint8_t>
 void RequestDownloadService::requestDownloadResponse(int id, uint8_t length_max_number_block, int max_number_block, Logger &RDSlogger)
 {
     static std::mutex create_interface_mutex;
-    uint8_t frame_sender_id= (id >> 8) & 0xFF;
+    /* uint8_t frame_sender_id= (id >> 8) & 0xFF; */
     uint8_t frame_dest_id = id & 0xFF;
     LOG_INFO(RDSlogger.GET_LOGGER(), "frame id dest: 0x{0:x}", static_cast<int>(frame_dest_id));
     if(frame_dest_id == 0x10)
     {
         std::lock_guard<std::mutex> lock(create_interface_mutex);
-        create_interface = create_interface ->getInstance(0x00, MCULogger);
-        if (create_interface)
-        {
-            int socket_fd = create_interface->getSocketEcuWrite();
-            LOG_INFO(RDSlogger.GET_LOGGER(), "log in service");
-            
-            /* Construct the response message */ 
-            int sid = 0x74;
-            /* Assuming 0x54 is the positive response SID for 0x34 service */ 
-            std::vector<uint8_t> response = {0x54}; 
-            response.push_back(sid);
-            response.push_back(length_max_number_block);
-            /* High byte of max_number_block */ 
-            response.push_back((max_number_block >> 8) & 0xFF);
-            /* Low byte of max_number_block */ 
-            response.push_back(max_number_block & 0xFF); 
-            uint8_t frame_dest_id = (id >> 8) & 0xFF;
-            uint8_t frame_sender_id = id & 0xFF;
-            id = (frame_sender_id << 8) | frame_dest_id;
-            LOG_INFO(RDSlogger.GET_LOGGER(), "frame id 0x{0:x}", static_cast<int>(id));
-            generateFrames.sendFrame(id, response, socket_fd, DATA_FRAME);
-            return;
-        }
-        else{
-            std::cerr << "Create interface is nullptr" << std::endl;
-        }
+        LOG_INFO(RDSlogger.GET_LOGGER(), "log in service");
+        /* Construct the response message */ 
+        int sid = 0x74;
+        /* Assuming 0x54 is the positive response SID for 0x34 service */ 
+        std::vector<uint8_t> response = {0x54}; 
+        response.push_back(sid);
+        response.push_back(length_max_number_block);
+        /* High byte of max_number_block */ 
+        response.push_back((max_number_block >> 8) & 0xFF);
+        /* Low byte of max_number_block */ 
+        response.push_back(max_number_block & 0xFF); 
+        uint8_t frame_dest_id = (id >> 8) & 0xFF;
+        uint8_t frame_sender_id = id & 0xFF;
+        id = (frame_sender_id << 8) | frame_dest_id;
+        LOG_INFO(RDSlogger.GET_LOGGER(), "frame id 0x{0:x}", static_cast<int>(id));
+        generateFrames.sendFrame(id, response, socket, DATA_FRAME);
+        return;
     }
 }
 bool RequestDownloadService::isInProgrammingSession()
@@ -168,7 +161,7 @@ bool RequestDownloadService::isValidMemoryRange(const std::vector<int>& memory_a
     }
 
     /* Validate the full memory address */ 
-    if (full_memory_address < 0 || full_memory_address > 0xFFFFFFFF) {
+    if (full_memory_address < 0 || static_cast<unsigned int>(full_memory_address) > 0xFFFFFFFFU) {
         LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Invalid memory address: 0x{0:x}", full_memory_address);
         return false;
     }

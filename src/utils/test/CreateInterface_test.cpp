@@ -123,30 +123,13 @@ TEST(InterfaceTestSuite, ErrorDeleteInterfaceTest)
     EXPECT_NE(output.find("Error when trying to delete the first interface"), std::string::npos);
     EXPECT_NE(output.find("Error when trying to delete the second interface"), std::string::npos);       
 }
-   
-/* test the getSocketEcuRead method */
-TEST(InterfaceTestSuite, GetSocketECU)
-{    
-    CreateInterface* interface = CreateInterface::getInstance(0x01, logger);   
-    EXPECT_TRUE(is_valid_socket(interface->getSocketEcuRead()));  
-    /* clean up any existing interface to ensure a clean test environment for the next test */ 
-    interface->deleteInterface();
-}
-
-/* test the getSocketApiRead method */
-TEST(InterfaceTestSuite, GetSocketAPI)
-{    
-    CreateInterface* interface = CreateInterface::getInstance(0x01, logger);   
-    EXPECT_TRUE(is_valid_socket(interface->getSocketApiRead()));  
-    /* clean up any existing interface to ensure a clean test environment for the next test */ 
-    interface->deleteInterface();
-}
 
 /* test the setSocketBlocking method */
 TEST(InterfaceTestSuite, setSocketBlocking)
 {    
-    CreateInterface* interface = CreateInterface::getInstance(0x01, logger);   
-    EXPECT_EQ(interface->setSocketBlocking(), 0 ); 
+    CreateInterface* interface = CreateInterface::getInstance(0x01, logger);
+    int socket = interface->createSocket(0x01);
+    EXPECT_EQ(interface->setSocketBlocking(socket),0); 
     /* clean up any existing interface to ensure a clean test environment for the next test */ 
     interface->deleteInterface(); 
 }
@@ -156,8 +139,9 @@ TEST(InterfaceTestSuite, setSocketBlockingError)
 {    
     CreateInterface* interface = CreateInterface::getInstance(0x01, logger);       
     /* Close the file descriptor associated to the socket to simulate error */
-    close(interface->getSocketEcuRead());
-    EXPECT_EQ(interface->setSocketBlocking(), 1 ); 
+    int socket = interface->createSocket(0x01);
+    close(socket);
+    EXPECT_EQ(interface->setSocketBlocking(socket), 1); 
     /* clean up any existing interface to ensure a clean test environment for the next test */ 
     interface->deleteInterface();
 }

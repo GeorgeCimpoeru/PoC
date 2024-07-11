@@ -1,11 +1,11 @@
 #Compiler flags
-CFLAGS = -g -Wall -pthread -I./include -I./src -I../utils/include -I../utils/src -I../uds/diagnostic_session_control/include -I../uds/diagnostic_session_control/src
+CFLAGS = -std=c++17 -g -Wall -pthread -I./include -I./src -I../utils/include -I../utils/src -I../uds/diagnostic_session_control/include -I../uds/diagnostic_session_control/src
 CFLAGSTST = -std=c++17 -I/include
 CFLAGSTST2 = -lgtest -lgtest_main -lpthread
 LDFLAGS = -lspdlog
 CFLAGSTST += -DUNIT_TESTING_MODE
 #Sources files
-SRCS = src/main.cpp src/MCUModule.cpp ../ecu_simulation/BatteryModule/src/BatteryModule.cpp ../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../utils/src/CreateInterface.cpp ../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp src/ReceiveFrames.cpp ../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp ../uds/ecu_reset/src/EcuReset.cpp ../uds/authentication/src/SecurityAccess.cpp  ../ecu_simulation/BatteryModule/src/HandleFrames.cpp  ../ecu_simulation/BatteryModule/src/ReceiveFrames.cpp .../uds/read_dtc_information/src/ReadDtcInformation.cpp ../ota/request_update_status/src/RequestUpdateStatus.cpp ../ota/request_transfer_exit/src/RequestTransferExit.cpp ../ota/request_download/src/RequestDownload.cpp
+SRCS = src/main.cpp src/MCUModule.cpp ../ecu_simulation/BatteryModule/src/BatteryModule.cpp ../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../utils/src/CreateInterface.cpp ../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp src/ReceiveFrames.cpp ../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp ../uds/ecu_reset/src/EcuReset.cpp ../uds/authentication/src/SecurityAccess.cpp  ../ecu_simulation/BatteryModule/src/HandleFrames.cpp  ../ecu_simulation/BatteryModule/src/ReceiveFrames.cpp ../uds/read_dtc_information/src/ReadDtcInformation.cpp ../ota/request_update_status/src/RequestUpdateStatus.cpp ../ota/request_transfer_exit/src/RequestTransferExit.cpp ../ota/request_download/src/RequestDownload.cpp
 SRCSTEST = src/HandleFrames.cpp src/MCUModule.cpp src/ReceiveFrames.cpp ../utils/src/GenerateFrames.cpp ../utils/src/CreateInterface.cpp ../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp ../utils/src/Logger.cpp  ../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp ../uds/ecu_reset/src/EcuReset.cpp ../uds/authentication/src/SecurityAccess.cpp ../ecu_simulation/BatteryModule/src/HandleFrames.cpp ../ecu_simulation/BatteryModule/src/ReceiveFrames.cpp ../ecu_simulation/BatteryModule/src/BatteryModule.cpp ../uds/read_dtc_information/src/ReadDtcInformation.cpp ../ota/request_update_status/src/RequestUpdateStatus.cpp ../ota/request_transfer_exit/src/RequestTransferExit.cpp ../ota/request_download/src/RequestDownload.cpp
 #Object files
 OBJS = $(patsubst ../utils/src/%.cpp ../uds/diagnostic_session_control/src/%.cpp src/%.cpp, obj/%.o, $(SRCS))
@@ -47,7 +47,7 @@ $(OBJ_DIR)/RequestDownload.o: ../ota/request_download/src/RequestDownload.cpp
 $(OBJ_DIR)/RequestUpdateStatus.o: ../ota/request_update_status/src/RequestUpdateStatus.cpp
 	$(CXX) $(CFLAGS) -c ../ota/request_update_status/src/RequestUpdateStatus.cpp -o $(OBJ_DIR)/RequestUpdateStatus.o
 clean:
-	rm -f $(FINAL)  ${FINAL_TEST} ../utils/test/GenerateFramesTest test/HandleFrames_test test/ReceiveFramesTest ../utils/test/CreateInterface_test ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest.cpp
+	rm -f $(FINAL)  ${FINAL_TEST} ../utils/test/GenerateFramesTest test/HandleFrames_test test/ReceiveFramesTest ../utils/test/CreateInterface_test ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest
 	rm -rf $(OBJ_DIR)
 #Delete unnecessary file from gcov compiler
 	find . -name '*.gcno' -delete
@@ -83,7 +83,7 @@ GenerateFrames_test: ../utils/test/GenerateFramesTest.cpp ../utils/src/GenerateF
 # CreateInterface Unit tests
 createInterfaceTest: CreateInterface_test
 CreateInterface_test: ../utils/test/CreateInterface_test.cpp ../utils/src/CreateInterface.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../utils/test/CreateInterface_test ../utils/test/CreateInterface_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../utils/test/CreateInterface_test ../utils/test/CreateInterface_test.cpp ../utils/src/CreateInterface.cpp ../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
 
 # ReadDataByIdentifier Unit tests
 RDBITest: ReadDataByIdentifier_test
@@ -146,7 +146,7 @@ GenerateFramesCoverage: ../utils/test/GenerateFramesTest.cpp ../utils/src/Genera
 # CreateInterface Coverage
 createInterfaceCoverage: CreateInterfaceCoverage
 CreateInterfaceCoverage: ../utils/test/CreateInterface_test.cpp ../utils/src/CreateInterface.cpp
-	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../utils/test/CreateInterface_test ../utils/test/CreateInterface_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../utils/test/CreateInterface_test ../utils/test/CreateInterface_test.cpp ../utils/src/CreateInterface.cpp ../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
 	./../utils/test/CreateInterface_test
 	mkdir -p coverage/out_CreateInterface
 	gcov -o . ../utils/src/CreateInterface.cpp
@@ -215,7 +215,7 @@ GenerateFrames_coverage:
 	mv GenerateFrames.cpp.gcov coverage/out_GenerateFrames
 
 CreateInterface_coverage:
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../utils/test/CreateInterface_test ../utils/test/CreateInterface_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../utils/test/CreateInterface_test ../utils/test/CreateInterface_test.cpp ../utils/src/CreateInterface.cpp ../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
 	./../utils/test/CreateInterface_test
 	mkdir -p coverage/out_CreateInterface
 	gcov -o . ../utils/src/CreateInterface.cpp
