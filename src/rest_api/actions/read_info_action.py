@@ -17,12 +17,8 @@ import json
 import datetime
 from actions.base_actions import *
 
-class ToJSON:
-    """Open-Close principle. Base class for different JSON formats."""
-    def _to_json(self, data):
-        pass
 
-class BatteryToJSON(ToJSON):
+class BatteryToJSON():
     def _to_json(self, data: list):
         response_to_frontend = {
             "battery_level": data[0],
@@ -32,19 +28,27 @@ class BatteryToJSON(ToJSON):
             "life_cycle": data[4],
             "fully_charged": data[5],
             "serial_number": data[6],
-            "range_battery": data[7],       # new item from front 
-            "charging_time": data[8],       # new item from front
-            "device_consumption": data[9],   # new item from front
-            "time_stamp": datetime.datetime.now().isoformat() # Item not existing at front
+            "range_battery": data[7],
+            "charging_time": data[8],
+            "device_consumption": data[9],
+            "time_stamp": datetime.datetime.now().isoformat()
         }
         return (response_to_frontend)
 
-class ElementToJSON(ToJSON):
+class EngineToJSON():
     def _to_json(self, data: list):
-        response_to_frontend = {}
-        for index, element in enumerate(data, start=1):
-            response_to_frontend[f"Element{index}"] = element
-        return json.dumps(response_to_frontend)
+        response_to_frontend = {
+            "power_output": data[0],               
+            "weight": data[1],                    
+            "fuel_consumption": data[1],           
+            "torque": data[2],                     
+            "fuel_used": data[3],                   
+            "state_of_running": data[4],
+            "current_speed": data[5],               
+            "engine_state": data[6],
+            "serial_number": data[7]
+        }
+        return (response_to_frontend)
 
 class ReadInfo(Action):
     """
@@ -87,58 +91,115 @@ class ReadInfo(Action):
             device_consumption = self._read_by_identifier(id,IDENTIFIER_DEVICE_CONSUMPTION)
             data = [level, voltage, state_of_charge, temperature, life_cycle,fully_charged, serial_number,range_battery,charging_time,device_consumption]
             module = BatteryToJSON()
-
-            response_json = self._to_json(module, data)
+            
+            # response_json = self._to_json(module, data)
+            response_json = module._to_json(data)
             # Shutdown the CAN bus interface
             self.bus.shutdown()
 
             log_info_message(logger, "Sending JSON")
             return response_json
-
-        except CustomError as e:
-            self.bus.shutdown()
-            return e.message
-    
-    def read_from_custom(self, identifiers:list):
-        """
-        Method to read information from specific identifier.
-
-        Returns:
-        - JSON response.
-        """
-        id_battery = self.id_ecu[1]
-        id = self.my_id * 0x100 + id_battery
-        try:
-            log_info_message(logger, "Changing session to default")
-            self.generate.session_control(id, 0x01)
-            self._passive_response(SESSION_CONTROL, "Error changing session control")
-
-            self._authentication(id)
-
-            #Read each data from identifier
-            log_info_message(logger, "Reading data..")         
-            data_collected = []
-            for identifier in identifiers:
-                data_collected.append(self._read_by_identifier(id,identifier))
-
-            module = ElementToJSON()
-            response_json = self._to_json(module, data_collected)
-            # Shutdown the CAN bus interface
-            self.bus.shutdown()
-
-            log_info_message(logger, "Sending JSON")
-            return response_json
-
+        
         except CustomError as e:
             self.bus.shutdown()
             return e.message
         
-    def _to_json(self, module: ToJSON, data: list):
-        """
-        Private method to create a JSON response with status and error information.
 
-        Args:
-        - module: An instance of ToJSON or its subclasses.
-        - data: Data collected from the ECU.
+    def read_from_engine(self):
+
         """
-        return module._to_json(data)
+        Method to read information from the engine module.
+
+        Returns:
+        - data response.
+        """
+
+        id_engine = self.id_ecu[1]
+        id = self.my_id * 0x100 + id_engine
+
+        try:
+            log_info_message(logger, "Changing session to default")
+            self.generate.session_control(id, 0x01)
+            self._passive_response(SESSION_CONTROL, "Error changing session control")
+            self._authentication(id)
+            log_info_message(logger, "Reading data from engine")
+
+            # dummy hex identifiers
+            IDENTIFIER_ENGINE_POWER_OUTPUT = 0x0141
+            IDENTIFIER_ENGINE_WEIGHT = 0x0142
+            IDENTIFIER_ENGINE_FUEL_CONSUMPTION = 0x0143
+            IDENTIFIER_ENGINE_TORQUE = 0x0144
+            IDENTIFIER_ENGINE_FUEL_USED = 0x0145
+            IDENTIFIER_ENGINE_STATE_OF_RUNNING = 0x0146
+            IDENTIFIER_ENGINE_CURRENT_SPEED = 0x0147
+            IDENTIFIER_ENGINE_STATE = 0x0148
+            IDENTIFIER_ENGINE_SERIAL_NUMBER = 0x0149
+
+            power_output = self._read_by_identifier(id,IDENTIFIER_ENGINE_POWER_OUTPUT)
+            weight = self._read_by_identifier(id, IDENTIFIER_ENGINE_WEIGHT)
+            fuel_consumption = self._read_by_identifier(id,IDENTIFIER_ENGINE_FUEL_CONSUMPTION)          
+            torque = self._read_by_identifier(id, IDENTIFIER_ENGINE_TORQUE)                  
+            fuel_used = self._read_by_identifier(id, IDENTIFIER_ENGINE_FUEL_USED)              
+            state_of_running = self._read_by_identifier(id, IDENTIFIER_ENGINE_STATE_OF_RUNNING)
+            current_speed = self._read_by_identifier(id, IDENTIFIER_ENGINE_CURRENT_SPEED)              
+            engine_state = self._read_by_identifier(id, IDENTIFIER_ENGINE_STATE)
+            serial_number = self._read_by_identifier(id, IDENTIFIER_ENGINE_SERIAL_NUMBER)
+
+            data = [power_output, weight, fuel_consumption, torque, fuel_used, state_of_running, current_speed, engine_state, serial_number]
+            module = EngineToJSON()
+            # response= self._to_json(module, data)
+            response = module._to_json(data)
+
+            # Shutdown the CAN bus interface
+            self.bus.shutdown()
+
+            log_info_message(logger, "Sending JSON")
+            return response
+        
+        except CustomError as e:
+            self.bus.shutdown()
+            return e.message
+    
+    # def read_from_custom(self, identifiers:list):
+    #     """
+    #     Method to read information from specific identifier.
+
+    #     Returns:
+    #     - JSON response.
+    #     """
+    #     id_battery = self.id_ecu[1]
+    #     id = self.my_id * 0x100 + id_battery
+    #     try:
+    #         log_info_message(logger, "Changing session to default")
+    #         self.generate.session_control(id, 0x01)
+    #         self._passive_response(SESSION_CONTROL, "Error changing session control")
+
+    #         self._authentication(id)
+
+    #         #Read each data from identifier
+    #         log_info_message(logger, "Reading data..")         
+    #         data_collected = []
+    #         for identifier in identifiers:
+    #             data_collected.append(self._read_by_identifier(id,identifier))
+
+    #         module = ElementToJSON()
+    #         response_json = self._to_json(module, data_collected)
+    #         # Shutdown the CAN bus interface
+    #         self.bus.shutdown()
+
+    #         log_info_message(logger, "Sending JSON")
+    #         return response_json
+
+    #     except CustomError as e:
+    #         self.bus.shutdown()
+    #         return e.message
+        
+    # def _to_json(self, module: ToJSON, data: list):
+    #     """
+    #     Private method to create a JSON response with status and error information.
+
+    #     Args:
+    #     - module: An instance of ToJSON or its subclasses.
+    #     - data: Data collected from the ECU.
+    #     """
+    #     return module._to_json(data)

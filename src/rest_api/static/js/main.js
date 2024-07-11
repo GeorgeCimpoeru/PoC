@@ -21,7 +21,7 @@ function sendFrame() {
 
 function requestIds() {
     fetch('/api/request_ids', {
-        method: 'POST',
+        method: 'GET',
     }).then(response => response.json())
       .then(data => {
           document.getElementById('response-output').textContent = JSON.stringify(data);
@@ -47,6 +47,16 @@ function updateToVersion() {
 
 function readInfoBattery() {
     fetch('/api/read_info_battery', {
+        method: 'GET',
+    }).then(response => response.json())
+      .then(data => {
+          document.getElementById('response-output').textContent = JSON.stringify(data);
+          fetchLogs(); 
+      });
+}
+
+function readInfoEngine() {
+    fetch('/api/read_info_engine', {
         method: 'GET',
     }).then(response => response.json())
       .then(data => {
