@@ -10,7 +10,7 @@ from utils.logger import log_memory
 
 api_bp = Blueprint('api', __name__)
 
-@api_bp.route('/request_ids', methods=['POST'])
+@api_bp.route('/request_ids', methods=['GET'])
 def request_ids():
     requester = RequestIdAction(my_id=0xFA)
     response = requester.run()
@@ -27,8 +27,14 @@ def update_to_version():
 
 @api_bp.route('/read_info_battery', methods=['GET'])
 def read_info_bat():
-    updater = ReadInfo(0x23, [0x11, 0x12, 0x13])
-    response = updater.read_from_battery()
+    reader = ReadInfo(0x23, [0x11, 0x12, 0x13])
+    response = reader.read_from_battery()
+    return jsonify(response)
+
+@api_bp.route('/read_info_engine', methods=['GET'])
+def read_info_eng():
+    reader = ReadInfo(0x23, [0x11, 0x12, 0x13])
+    response = reader.read_from_engine()
     return jsonify(response)
 
 @api_bp.route('/send_frame', methods=['POST'])
