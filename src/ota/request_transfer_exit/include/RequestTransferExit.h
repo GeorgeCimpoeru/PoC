@@ -17,7 +17,6 @@
 #include "../../utils/include/Logger.h"
 #include "../../../utils/include/CreateInterface.h"
 #include "../../../utils/include/GenerateFrames.h"
-#include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 
 /* Define the callback function type */
 using transferCompleteCallBack = std::function<bool(bool)>;
@@ -29,7 +28,7 @@ public:
    * @brief Constructor.   
    */
     /* constructor to initialize the transfer exit */
-    RequestTransferExit(Logger& RTESLogger);
+    RequestTransferExit();
 
     /**
    * @brief Destructor.
@@ -48,21 +47,11 @@ public:
     *   @param[in] transferSucces A boolean that indicates if the transfer was successfull.
     *   @return Returns true if the transfer should continue, false if it should stop.
     */
-    bool requestTransferExit(int id, std::vector<uint8_t>stored_data, Logger& RTESlogger,bool transferSucces);
-   
-    /**
-     * @brief Response method from Request Transfer Exit service 
-     *
-     * @param id
-     * @param RTESlogger
-     */
-    void requestTransferExitResponse(int id, Logger& RTESlogger);
+    bool requestTransferExit(int id, Logger& RTESlogger,bool transferSuccess);
 
 private:
     /* Member variable to store the callback function */
     transferCompleteCallBack callback_;
-    
-    GenerateFrames generate_frames;
 };
 
 #endif /* REQUEST_TRANSFER_EXIT_H_ */
