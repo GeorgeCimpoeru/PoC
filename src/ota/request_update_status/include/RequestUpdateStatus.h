@@ -94,7 +94,6 @@ private:
 public:
 	int socket = -1;
 	RequestUpdateStatus(int socket);
-	~RequestUpdateStatus();
 	/**
 	 * @brief Service method. Receive a request for reading Ota Update Status.
 	 * 	Sends a ReadDataByIdentifier request to MCU, with the Ota Update Status Data Identifier.

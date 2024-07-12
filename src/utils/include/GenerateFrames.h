@@ -308,7 +308,7 @@ class GenerateFrames
         /**
          * @brief NOT IMPLEMENTED!!
          */
-        bool requestUpdateStatus(int id, bool response=false);
+        bool requestUpdateStatusResponse(int id, std::vector<uint8_t> response);
     private:
         /**
          * @brief Set the socket parameter

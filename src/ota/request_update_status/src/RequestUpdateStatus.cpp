@@ -20,8 +20,8 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
 
     /* Create the response_id (swap sender with receiver)*/
     canid_t response_id = request_id;
-    uint8_t receiver_byte = GET_BYTE(response_id, 0);   /* Get the first byte - receiver */
-    uint8_t sender_byte = GET_BYTE(response_id, 1);     /* Get second byte - sender */
+    uint8_t receiver_byte = (response_id & 0xff); /* Get the first byte - receiver */
+    uint8_t sender_byte = ((response_id & 0xff00) >> 8);     /* Get second byte - sender */
 
     if(receiver_byte != MCU_ID || sender_byte != API_ID)
     {
@@ -29,8 +29,8 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
         receiver_byte = MCU_ID;
         sender_byte = API_ID;
     }
-    SET_BYTE(response_id, 0, sender_byte);              /* Replace sender with receiver */
-    SET_BYTE(response_id, 1, receiver_byte);            /* Replace receiver with sender */
+
+    response_id = (receiver_byte << 8) | sender_byte; /* Replace sender with receiver for response id */
 
     /* Create the request for ReadDataByIdentifier */
     std::vector<uint8_t> readDataRequest;
@@ -39,10 +39,8 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
     readDataRequest.emplace_back(OTA_UPDATE_STATUS_DID_MSB);    /* OTA_UPDATE_STATUS_MSB_DID */
     readDataRequest.emplace_back(OTA_UPDATE_STATUS_DID_LSB);    /* OTA_UPDATE_STATUS_LSB_DID */
 
-    SET_BYTE(request_id, 1, 0x00); /* Set sender to 0x00, this will tell the readData service to not send a frame, but return the response */
-
-    ReadDataByIdentifier RIDB;
-    std::vector<uint8_t> RIDB_response = RIDB.readDataByIdentifier(request_id, readDataRequest, MCULogger);
+    ReadDataByIdentifier RIDB(socket, MCULogger);
+    std::vector<uint8_t> RIDB_response = RIDB.readDataByIdentifier(request_id, readDataRequest, false);
     std::vector<uint8_t> response;
 
     /* If a negative response is sent from readDataByIdentifier service, send the same response from requestUpdateStatus, but with changed SID. */
@@ -73,8 +71,8 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
         }
     }
 
-    GenerateFrames generate_frames(MCU::mcu.getMcuApiSocket(), MCULogger);
-    generate_frames.sendFrame(response_id, response);
+    GenerateFrames generate_frames(socket, MCULogger);
+    generate_frames.requestUpdateStatusResponse(response_id, response);
     
     return response;
 }
@@ -82,10 +80,10 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
 bool RequestUpdateStatus::isValidStatus(uint8_t status)
 {
     std::vector<OtaUpdateStatesEnum> valid_states{IDLE,INIT,READY,PROCESSING,PROCESSING_TRANSFER_COMPLETE,PROCESSING_TRANSFER_FAILED,WAIT,WAIT_DOWNLOAD_COMPLETED,WAIT_DOWNLOAD_FAILED,VERIFY,ACTIVATE,ACTIVATE_INSTALL_COMPLETE,ACTIVATE_INSTALL_FAILED,ERROR};
-
+    /* Check if provided status from readDataByIdentifier is a valid one. */
     for(auto &state : valid_states)
     {
-        if(status ^ state == 0)
+        if(status == state)
         {
             return 1;
         }
