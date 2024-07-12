@@ -1,4 +1,4 @@
-name: Lint Code Base
+name: Python lint code base
 
 on: [push, pull_request]
 
