@@ -61,7 +61,19 @@ class EngineToJSON():
         }
         return (response_to_frontend)
     
-    
+
+class DoorsToJSON():
+    def _to_json(self,data:list):
+        response_to_frontend={
+        "Door_param":data[0],
+        "Serial_number":data[1],
+        "Cigarette_Lighter_Voltage":data[2],
+        "Light_state":data[3],
+        "BeltCard":data[4],
+        "WindowStatus":data[5]
+        }
+        return (response_to_frontend)
+     
 class ReadInfo(Action):
     """
     ReadInfo class to read information from different ECUs.
@@ -199,6 +211,49 @@ class ReadInfo(Action):
             log_info_message(logger, "Sending JSON")
             return response
         
+        except CustomError as e:
+            self.bus.shutdown()
+            return e.message
+    
+    def read_from_doors(self):
+        id_door = self.id_ecu[1]
+        id = self.my_id * 0x100 + id_door
+        log_info_message(logger, "Changing session to default")
+        self.generate.session_control(id, 0x01)
+        self._passive_response(SESSION_CONTROL, "Error changing session control")
+          
+        try:
+            log_info_message(logger, "Changing session to default")
+            self.generate.session_control(id, 0x01)
+            self._passive_response(SESSION_CONTROL, "Error changing session control")
+            self._authentication(id)
+
+            log_info_message(logger, "Reading data from doors")
+
+
+            #dummy door values param
+            DOOR=0x2001
+            DOOR_SERIALNUMBER=0x2002
+            LIGHTER_VOLTAGE=0x210D
+            LIGHT_STATE=0x221E
+            BELT_STATE=0x21C1
+            WINDOWS_CLOSED=0x230F
+
+            Door = self._read_by_identifier(id,DOOR)
+            serial_number = self._read_by_identifier(id,DOOR_SERIALNUMBER)
+            cigarette_lighter_voltage = self._read_by_identifier(id,LIGHTER_VOLTAGE)
+            light_state = self._read_by_identifier(id,LIGHT_STATE)
+            belt = self._read_by_identifier(id,BELT_STATE)
+            windows_closed=self._read_by_identifier(id,WINDOWS_CLOSED)
+            data = [Door, serial_number, cigarette_lighter_voltage, light_state, belt,windows_closed]
+         
+            module=DoorsToJSON()
+            response=module._to_json(data)
+             # Shutdown the CAN bus interface
+            self.bus.shutdown()
+
+            log_info_message(logger, "Sending JSON")
+            return response
         except CustomError as e:
             self.bus.shutdown()
             return e.message

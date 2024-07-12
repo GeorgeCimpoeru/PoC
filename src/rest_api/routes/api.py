@@ -37,6 +37,13 @@ def read_info_eng():
     response = reader.read_from_engine()
     return jsonify(response)
 
+
+@api_bp.route('/read_info_doors', methods=['GET'])
+def read_info_doors():
+    reader = ReadInfo(0x23, [0x11, 0x12, 0x13])
+    response = reader.read_from_doors()
+    return jsonify(response)
+
 @api_bp.route('/send_frame', methods=['POST'])
 def send_frame():
     data = request.get_json()

@@ -65,6 +65,16 @@ function readInfoEngine() {
       });
 }
 
+function readInfoDoors() {
+    fetch('/api/read_info_doors', {
+        method: 'GET',
+    }).then(response => response.json())
+      .then(data => {
+          document.getElementById('response-output').textContent = JSON.stringify(data);
+          fetchLogs(); 
+      });
+}
+
 function fetchLogs() {
     fetch('/api/logs')
       .then(response => response.json())
