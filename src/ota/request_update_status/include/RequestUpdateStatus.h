@@ -26,7 +26,6 @@
 #include <map>
 #include "../../../utils/include/Logger.h"
 #include "../../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
-#include "../../../utils/include/CreateInterface.h"
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../../mcu/include/MCULogger.h"
 
@@ -92,9 +91,10 @@ typedef enum OtaUpdateStatesEnum
 class RequestUpdateStatus
 {
 private:        
-    CreateInterface* create_interface;
 public:
-	RequestUpdateStatus();
+	int socket = -1;
+	RequestUpdateStatus(int socket);
+	~RequestUpdateStatus();
 	/**
 	 * @brief Service method. Receive a request for reading Ota Update Status.
 	 * 	Sends a ReadDataByIdentifier request to MCU, with the Ota Update Status Data Identifier.

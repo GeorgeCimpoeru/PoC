@@ -11,11 +11,8 @@
 
 #include "../include/RequestUpdateStatus.h"
 
-RequestUpdateStatus::RequestUpdateStatus()
-{
-    /* Interface needed for sending the response. */
-    create_interface = create_interface->getInstance(0x00, MCULogger);
-}
+RequestUpdateStatus::RequestUpdateStatus(int socket) : socket(socket)
+{}
 
 std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id, std::vector<uint8_t> request)
 {
@@ -76,7 +73,7 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
         }
     }
 
-    GenerateFrames generate_frames(create_interface->getSocketApiWrite(), MCULogger);
+    GenerateFrames generate_frames(MCU::mcu.getMcuApiSocket(), MCULogger);
     generate_frames.sendFrame(response_id, response);
     
     return response;

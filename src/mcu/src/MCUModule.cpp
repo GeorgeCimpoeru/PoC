@@ -10,18 +10,21 @@ namespace MCU
     MCUModule mcu(0x01);
     /* Constructor */
     MCUModule::MCUModule(uint8_t interfaces_number) : 
-                    create_interface(CreateInterface::getInstance(interfaces_number, MCULogger)),
                     is_running(false),
-                    receive_frames(nullptr) 
+                    create_interface(CreateInterface::getInstance(interfaces_number, MCULogger)),
+                    receive_frames(nullptr),
+                    mcu_api_socket(create_interface->createSocket(interfaces_number)),
+                    mcu_ecu_socket(create_interface->createSocket(interfaces_number >> 4))
                     {
-        receive_frames = new ReceiveFrames(create_interface->getSocketEcuRead(), create_interface->getSocketApiRead());
+                        
+        receive_frames = new ReceiveFrames(mcu_ecu_socket, mcu_api_socket);
         WriteDataByIdentifier WDBI(0x1111FA10, {PCI_L, WRITE_DATA_BY_IDENTIFIER_SID, OTA_UPDATE_STATUS_DID_MSB, OTA_UPDATE_STATUS_DID_LSB, IDLE}, MCULogger);
     }
 
     /* Default constructor */
-    MCUModule::MCUModule() : create_interface(CreateInterface::getInstance(0x01, MCULogger)),
-                                                is_running(false),
-                                                receive_frames(nullptr) {}
+    MCUModule::MCUModule() : is_running(false),
+                         create_interface(CreateInterface::getInstance(0x01, MCULogger)),
+                         receive_frames(nullptr) {}
 
     /* Destructor */
     MCUModule::~MCUModule() 
@@ -55,6 +58,14 @@ namespace MCU
     void MCUModule::setMCUState(bool state)
     {
         mcu_state = state;
+    }
+    int MCUModule::getMcuApiSocket() const 
+    {
+    return mcu_api_socket;
+    }
+    int MCUModule::getMcuEcuSocket() const 
+    {
+    return mcu_ecu_socket;
     }
 
 

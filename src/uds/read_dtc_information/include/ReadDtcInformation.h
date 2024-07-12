@@ -12,7 +12,6 @@
 #define READ_DTC_INFROMATION_H
 
 #include "../../../utils/include/GenerateFrames.h"
-#include "../../utils/include/CreateInterface.h"
 
 #include <iostream>
 #include <fstream>
@@ -30,10 +29,8 @@ class ReadDTC
     private:
         std::string path_folder;
         GenerateFrames* generate;
-        int socket_read;
-        int socket_write;
+        int socket;
         Logger logger;
-        CreateInterface* interface;
 
     public:
         /**
@@ -41,7 +38,7 @@ class ReadDTC
          * 
          * @param path_folder path to the file containing the dtcs
          */
-        ReadDTC(Logger logger, std::string path_folder = "default");
+        ReadDTC(Logger logger, std::string path_folder, int socket);
         /**
          * @brief Destroy the Read DTC object
          * 
@@ -92,13 +89,6 @@ class ReadDTC
          * @return int 
          */
         int dtc_to_hex(std::string dtc);
-        /**
-         * @brief Set the Socket_ object
-         * 
-         * @param id 
-         * @return int 
-         */
-        int SetSockets_(int id);
 };
 
 #endif

@@ -2,8 +2,10 @@
 namespace MCU
 {
     ReceiveFrames::ReceiveFrames(int socket_canbus, int socket_api)
-        : socket_canbus(socket_canbus), socket_api(socket_api), generate_frames(socket_canbus, MCULogger),
-        timeout_duration(120), running(true) 
+        : timeout_duration(120), running(true), socket_canbus(socket_canbus), 
+        socket_api(socket_api), handler(socket_api, socket_canbus),
+        generate_frames(socket_canbus, MCULogger)
+        
     {
         startTimerThread();
     }
@@ -272,7 +274,6 @@ namespace MCU
                 std::lock_guard<std::mutex> lock(queue_mutex);
                 for (auto it = ecu_timers.begin(); it != ecu_timers.end();) {
                     if (std::chrono::duration_cast<std::chrono::seconds>(now - it->second) >= timeout_duration) {
-                        uint8_t ecu_id = it->first;
                         /* Send request frame */
                         std::vector<uint8_t> data = {0x01};
                         ReceiveFrames::generate_frames.sendFrame(0x1011, data);

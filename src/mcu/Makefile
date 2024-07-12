@@ -1,5 +1,5 @@
 #Compiler flags
-CFLAGS = -g -Wall -pthread -I./include -I./src -I../utils/include -I../utils/src -I../uds/diagnostic_session_control/include -I../uds/diagnostic_session_control/src
+CFLAGS = -std=c++17 -g -Wall -pthread -I./include -I./src -I../utils/include -I../utils/src -I../uds/diagnostic_session_control/include -I../uds/diagnostic_session_control/src
 CFLAGSTST = -std=c++17 -I/include
 CFLAGSTST2 = -lgtest -lgtest_main -lpthread
 LDFLAGS = -lspdlog
@@ -48,7 +48,7 @@ $(OBJ_DIR)/RequestUpdateStatus.o: ../ota/request_update_status/src/RequestUpdate
 	$(CXX) $(CFLAGS) -c ../ota/request_update_status/src/RequestUpdateStatus.cpp -o $(OBJ_DIR)/RequestUpdateStatus.o
 
 clean:
-	rm -f $(FINAL)  ${FINAL_TEST} ../utils/test/GenerateFramesTest test/HandleFrames_test test/ReceiveFramesTest ../utils/test/CreateInterface_test ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest.cpp
+	rm -f $(FINAL)  ${FINAL_TEST} ../utils/test/GenerateFramesTest test/HandleFrames_test test/ReceiveFramesTest ../utils/test/CreateInterface_test ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest
 	rm -rf $(OBJ_DIR)
 #Delete unnecessary file from gcov compiler
 	find . -name '*.gcno' -delete
@@ -84,7 +84,7 @@ GenerateFrames_test: ../utils/test/GenerateFramesTest.cpp ../utils/src/GenerateF
 # CreateInterface Unit tests
 createInterfaceTest: CreateInterface_test
 CreateInterface_test: ../utils/test/CreateInterface_test.cpp ../utils/src/CreateInterface.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../utils/test/CreateInterface_test ../utils/test/CreateInterface_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../utils/test/CreateInterface_test ../utils/test/CreateInterface_test.cpp ../utils/src/CreateInterface.cpp ../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
 
 # ReadDataByIdentifier Unit tests
 RDBITest: ReadDataByIdentifier_test
@@ -147,7 +147,7 @@ GenerateFramesCoverage: ../utils/test/GenerateFramesTest.cpp ../utils/src/Genera
 # CreateInterface Coverage
 createInterfaceCoverage: CreateInterfaceCoverage
 CreateInterfaceCoverage: ../utils/test/CreateInterface_test.cpp ../utils/src/CreateInterface.cpp
-	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../utils/test/CreateInterface_test ../utils/test/CreateInterface_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../utils/test/CreateInterface_test ../utils/test/CreateInterface_test.cpp ../utils/src/CreateInterface.cpp ../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
 	./../utils/test/CreateInterface_test
 	mkdir -p coverage/out_CreateInterface
 	gcov -o . ../utils/src/CreateInterface.cpp
@@ -216,7 +216,7 @@ GenerateFrames_coverage:
 	mv GenerateFrames.cpp.gcov coverage/out_GenerateFrames
 
 CreateInterface_coverage:
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../utils/test/CreateInterface_test ../utils/test/CreateInterface_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../utils/test/CreateInterface_test ../utils/test/CreateInterface_test.cpp ../utils/src/CreateInterface.cpp ../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
 	./../utils/test/CreateInterface_test
 	mkdir -p coverage/out_CreateInterface
 	gcov -o . ../utils/src/CreateInterface.cpp

@@ -78,6 +78,8 @@ namespace MCU
          * @return The current value of MCU state
          */
         void setMCUState(bool state);
+        int getMcuApiSocket() const;
+        int getMcuEcuSocket() const;
 
     private:
         bool is_running;
@@ -85,6 +87,8 @@ namespace MCU
         ReceiveFrames* receive_frames;
         std::vector<uint8_t> securityAccess_seed;
         bool mcu_state = false;
+        int mcu_api_socket = -1;
+        int mcu_ecu_socket = -1;
     };
 extern MCUModule mcu;
 }
