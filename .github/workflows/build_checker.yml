@@ -3,8 +3,6 @@ name: build_checker
 on:
   pull_request:
     branches:
-      - DEV_BE  # This workflow will run for pull requests targeting the `DEV_BE` branch
-      - feature/UDS  # This workflow will run for pull requests targeting the `feature/UDS` branch
       - feature/OTA  # This workflow will run for pull requests targeting the `feature/OTA` branch
 
 jobs:
@@ -20,17 +18,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential cmake libspdlog-dev libfmt-dev  # Install essential build tools and libraries
 
-      - name: Run Makefile in src/mcu
+      - name: Run Makefile in src/mcu with Extra Flags
         run: |
           cd src/mcu
-          make LDFLAGS="-lfmt"  # Run the `make` command with fmt library linked
+          make LDFLAGS="-lspdlog -lfmt"  # Directly set LDFLAGS for this step
 
-      - name: Run Makefile in src/ecu_simulation/BatteryModule
+      - name: Run Makefile in src/ecu_simulation/BatteryModule with Extra Flags
         run: |
           cd src/ecu_simulation/BatteryModule
-          make LDFLAGS="-lfmt"  # Run the `make` command with fmt library linked
+          make LDFLAGS="-lspdlog -lfmt"  # Directly set LDFLAGS for this step
 
-      - name: Notify of Results
+      - name: Check Build Results
         run: |
           if [ $? -ne 0 ]; then
             echo "Build failed!"
