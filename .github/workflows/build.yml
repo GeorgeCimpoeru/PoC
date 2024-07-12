@@ -1,4 +1,4 @@
-name: CI
+name: build_checker
 
 on:
   pull_request:
@@ -13,25 +13,22 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3  # Fetches the code from the repository
 
-      - name: Set up Make
-        run: sudo apt-get install -y build-essential  # Install essential build tools
-
-      - name: Install spdlog
-        run: sudo apt-get install -y libspdlog-dev  # Install spdlog library from the package manager
+      - name: Set up Build Environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libspdlog-dev libfmt-dev  # Install essential build tools and libraries
 
       - name: Run Makefile in src/mcu
         run: |
           cd src/mcu
-          make  # Run the `make` command
-        continue-on-error: true  # Ensure the workflow continues even if this step fails
+          make LDFLAGS="-lfmt"  # Run the `make` command with fmt library linked
 
       - name: Run Makefile in src/ecu_simulation/BatteryModule
         run: |
           cd src/ecu_simulation/BatteryModule
-          make  # Run the `make` command
-        continue-on-error: true  # Ensure the workflow continues even if this step fails
+          make LDFLAGS="-lfmt"  # Run the `make` command with fmt library linked
 
       - name: Notify of Results
         run: |
