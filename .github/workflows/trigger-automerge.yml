@@ -1,0 +1,39 @@
+name: Trigger Automerge
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  trigger_automerge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master branch
+        uses: actions/checkout@v2
+        with:
+          ref: master
+
+      - name: Check if push is from development
+        id: check_development
+        run: |
+          git fetch origin development
+          if git merge-base --is-ancestor origin/development HEAD; then
+            echo "from_development=true" >> $GITHUB_ENV
+          else
+            echo "from_development=false" >> $GITHUB_ENV
+          fi
+        shell: bash
+
+      - name: Trigger Automerge Workflow
+        if: env.from_development == 'true'
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const response = await github.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'automerge.yml',
+              ref: 'master'
+            });
+            console.log(response);
