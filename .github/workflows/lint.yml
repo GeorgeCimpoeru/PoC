@@ -22,7 +22,7 @@ jobs:
     - name: Check Python version
       run: |
         PYTHON_VERSION=$(python --version | cut -d " " -f 2)
-        if [[ "$PYTHON_VERSION" != "3.7"* ]]; then
+        if [[ "$PYTHON_VERSION" >= "3.8"* ]]; then
           echo "Error: Python 3.8 is required. Found version $PYTHON_VERSION"
           exit 1
         fi
