@@ -96,6 +96,11 @@ readDtcTest: readDtc_test
 readDtc_test: ../uds/read_dtc_information/utest/ReadDtcInformationTest.cpp ../uds/read_dtc_information/src/ReadDtcInformation.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../uds/read_dtc_information/utest/ReadDtcInformationTest ../uds/read_dtc_information/utest/ReadDtcInformationTest.cpp ../uds/read_dtc_information/src/ReadDtcInformation.cpp ../utils/src/GenerateFrames.cpp ../utils/src/CreateInterface.cpp ../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
 
+# RequestUpdateStatus Unit tests
+RUSTest: RequestUpdateStatus_test
+RequestUpdateStatus_test: ../ota/request_update_status/utest/RequestUpdateStatusTest.cpp ../ota/request_update_status/src/RequestUpdateStatus.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../ota/request_update_status/utest/RequestUpdateStatusTest ../ota/request_update_status/utest/RequestUpdateStatusTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+
 # HandleFrames Coverage
 handleCoverage: HandleFramesCoverage
 HandleFramesCoverage: test/HandleFrames_test.cpp src/HandleFrames.cpp
@@ -192,6 +197,22 @@ WDBICoverage: ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest.cp
 	genhtml coverage_filtered.info --output-directory coverage/out_WriteDataByIdentifierTest
 	xdg-open coverage/out_WriteDataByIdentifierTest/index.html
 
+RUSCoverage: RequestUpdateStatusCoverage
+RequestUpdateStatusCoverage: ../ota/request_update_status/utest/RequestUpdateStatusTest.cpp ../ota/request_update_status/src/RequestUpdateStatus.cpp
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../ota/request_update_status/utest/RequestUpdateStatusTest ../ota/request_update_status/utest/RequestUpdateStatusTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	../ota/request_update_status/utest/RequestUpdateStatusTest
+	mkdir -p coverage/out_RequestUpdateStatus
+	gcov -o . ../ota/request_update_status/src/RequestUpdateStatus.cpp
+	mv RequestUpdateStatus.cpp.gcov coverage/out_RequestUpdateStatus
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/*' --output-file coverage_filtered.info
+	lcov --remove coverage.info '*/test/*' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_RequestUpdateStatus
+	xdg-open coverage/out_RequestUpdateStatus/index.html
+	find . -name '*.gcno' -delete
+	find . -name '*.gcda' -delete
+	find . -name '*.gcov' -delete
+
 allCoverage: HandleFrames_coverage ReceiveFrames_coverage GenerateFrames_coverage CreateInterface_coverage ReadDataByIdentifier_coverage WDBI_coverage
 
 HandleFrames_coverage:
@@ -235,6 +256,13 @@ WDBI_coverage:
 	mkdir -p coverage/out_	mkdir -p coverage/out_WriteDataByIdentifier
 	gcov -o . ../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp
 	mv WriteDataByIdentifier.cpp.gcov coverage/out_WriteDataByIdentifier
+
+RequestUpdateStatus_coverage: ../ota/request_update_status/src/RequestUpdateStatusTest.cpp ../ota/request_update_status/src/RequestUpdateStatus.cpp
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../ota/request_update_status/src/RequestUpdateStatusTest ../ota/request_update_status/src/RequestUpdateStatusTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	../ota/request_update_status/src/RequestUpdateStatus
+	mkdir -p coverage/out_RequestUpdateStatus
+	gcov -o . ../ota/request_update_status/src/RequestUpdateStatus.cpp
+	mv RequestUpdateStatus.cpp.gcov coverage/out_RequestUpdateStatus
 
 allCoveragePostProcess:
 	lcov --capture --directory . --output-file coverage.info
