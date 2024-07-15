@@ -8,18 +8,12 @@ class RequestUpdateStatusTest : public ::testing::Test {
 protected:
     int socketid = 2;
     RequestUpdateStatus RUS = RequestUpdateStatus(socketid);
-    /* Setup and teardown methods */
-    void SetUp() override
-    {
-
-    }
-
-    void TearDown() override 
-    {
-    
-    }
 };
 
+/**
+ * @brief Test for valid ota states (belongs to the valid ota states enumeration).
+ * 
+ */
 TEST_F(RequestUpdateStatusTest, StatusValidTest)
 {
     uint8_t status = IDLE; /* valid OTA status */
@@ -29,6 +23,10 @@ TEST_F(RequestUpdateStatusTest, StatusValidTest)
     EXPECT_TRUE(RUS.isValidStatus(status));
 }
 
+/**
+ * @brief Test for OTA invalid states.
+ * 
+ */
 TEST_F(RequestUpdateStatusTest, StatusInvalidTest)
 {
     uint8_t status = 0x05; /* invalid OTA status, IDLE can't have intermediary states */
@@ -38,6 +36,10 @@ TEST_F(RequestUpdateStatusTest, StatusInvalidTest)
     EXPECT_FALSE(RUS.isValidStatus(status));
 }
 
+/**
+ * @brief Test if a wrong request id is redirected to the right one (caller API, receiver MCU)
+ * 
+ */
 TEST_F(RequestUpdateStatusTest, WrongSenderReceiverCheckTest)
 {
     int request_id = 0x00001011;
@@ -54,7 +56,11 @@ TEST_F(RequestUpdateStatusTest, WrongSenderReceiverCheckTest)
 
 }
 
-TEST_F(RequestUpdateStatusTest, PositiveResponseTest)
+/**
+ * @brief Test if the initial OTA status is IDLE
+ * 
+ */
+TEST_F(RequestUpdateStatusTest, InitialOtaStatusTest)
 {
     int request_id = 0x0000fa10;
     std::vector<uint8_t> request = {PCI_L, REQUEST_UPDATE_STATUS_SID};
@@ -69,11 +75,39 @@ TEST_F(RequestUpdateStatusTest, PositiveResponseTest)
     }
 }
 
+/**
+ * @brief Test if status value is correctly read after a write data by identifier
+ * 
+ */
+TEST_F(RequestUpdateStatusTest, AfterStatusUpdateTest)
+{
+    int request_id = 0x0000fa10;
+    uint8_t new_status = WAIT;
+
+    WriteDataByIdentifier WDBI(request_id, {PCI_L, WRITE_DATA_BY_IDENTIFIER_SID, OTA_UPDATE_STATUS_DID_MSB, OTA_UPDATE_STATUS_DID_LSB, new_status}, MCULogger, 0);
+
+    std::vector<uint8_t> request = {PCI_L, REQUEST_UPDATE_STATUS_SID};
+    std::vector<uint8_t> response = RUS.requestUpdateStatus(request_id, request);
+
+    std::vector<uint8_t> expected_response = {PCI_L, REQUEST_UPDATE_STATUS_SID_SUCCESS, new_status};
+    
+    EXPECT_EQ(response.size(), expected_response.size());
+    for(uint8_t index; index <= expected_response.size() - 1; index++)
+    {
+        EXPECT_EQ(response[index], expected_response[index]);
+    }
+}
+
+/**
+ * @brief Test if a negative response is sent in case of an invalid status.
+ * 
+ */
 TEST_F(RequestUpdateStatusTest, NegativeResponseInvalidStatusTest)
 {
     int request_id = 0x0000fa10;
+    uint8_t invalid_status = 0xFF;
 
-    WriteDataByIdentifier WDBI(0x1111FA10, {PCI_L, WRITE_DATA_BY_IDENTIFIER_SID, OTA_UPDATE_STATUS_DID_MSB, OTA_UPDATE_STATUS_DID_LSB, 0xFF}, MCULogger, 0);
+    WriteDataByIdentifier WDBI(request_id, {PCI_L, WRITE_DATA_BY_IDENTIFIER_SID, OTA_UPDATE_STATUS_DID_MSB, OTA_UPDATE_STATUS_DID_LSB, invalid_status}, MCULogger, 0);
 
     std::vector<uint8_t> request = {PCI_L, REQUEST_UPDATE_STATUS_SID};
     std::vector<uint8_t> response = RUS.requestUpdateStatus(request_id, request);
