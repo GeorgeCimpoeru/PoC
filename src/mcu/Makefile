@@ -57,7 +57,7 @@ clean:
 	find . -name '*.info' -delete
 
 # Compile all unit tests
-allTests: handleTest receiveTest generateTest createInterfaceTest RDBITest wdbiTest
+allTests: handleTest receiveTest generateTest createInterfaceTest RDBITest wdbiTest RUSTest
 
 # HandleFrames Unit tests
 handleTest: HandleFrames_test
@@ -213,7 +213,7 @@ RequestUpdateStatusCoverage: ../ota/request_update_status/utest/RequestUpdateSta
 	find . -name '*.gcda' -delete
 	find . -name '*.gcov' -delete
 
-allCoverage: HandleFrames_coverage ReceiveFrames_coverage GenerateFrames_coverage CreateInterface_coverage ReadDataByIdentifier_coverage WDBI_coverage
+allCoverage: HandleFrames_coverage ReceiveFrames_coverage GenerateFrames_coverage CreateInterface_coverage ReadDataByIdentifier_coverage WDBI_coverage RUSCoverage
 
 HandleFrames_coverage:
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o test/HandleFrames_test test/HandleFrames_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
