@@ -46,6 +46,7 @@ $(OBJ_DIR)/RequestDownload.o: ../ota/request_download/src/RequestDownload.cpp
 	$(CXX) $(CFLAGS) -c ../ota/request_download/src/RequestDownload.cpp -o $(OBJ_DIR)/RequestDownload.o
 $(OBJ_DIR)/RequestUpdateStatus.o: ../ota/request_update_status/src/RequestUpdateStatus.cpp
 	$(CXX) $(CFLAGS) -c ../ota/request_update_status/src/RequestUpdateStatus.cpp -o $(OBJ_DIR)/RequestUpdateStatus.o
+
 clean:
 	rm -f $(FINAL)  ${FINAL_TEST} ../utils/test/GenerateFramesTest test/HandleFrames_test test/ReceiveFramesTest ../utils/test/CreateInterface_test ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest
 	rm -rf $(OBJ_DIR)

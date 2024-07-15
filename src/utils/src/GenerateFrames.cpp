@@ -601,10 +601,14 @@ void GenerateFrames::requestTransferExit(int id, bool response)
     return;
 }
 
-bool GenerateFrames::requestUpdateStatus(int id, bool response)
+bool GenerateFrames::requestUpdateStatusResponse(int id, std::vector<uint8_t> response)
 {
-    /* No impplementation, I don't find this service in the standart */
-    return false;
+    this->sendFrame(id, response);
+    if(response[1] == 0x7F)
+    {
+        return false;
+    }
+    return true;
 }
 
 /* Private */
