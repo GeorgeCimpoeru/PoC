@@ -4,6 +4,8 @@ on:
   pull_request:
     branches:
       - feature/OTA  # This workflow will run for pull requests targeting the `feature/OTA` branch
+      - feature/UDS  # This workflow will run for pull requests targeting the `feature/UDS` branch
+      - DEV_BE  # This workflow will run for pull requests targeting the `DEV_BE` branch
 
 jobs:
   build:
