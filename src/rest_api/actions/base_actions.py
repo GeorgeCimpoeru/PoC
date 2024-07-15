@@ -287,6 +287,7 @@ class Action:
     # Implement in the child class
     def _to_json(self, status, no_errors):
         pass
+    
     def _to_json_error(self, error, no_errors):
         response_to_frontend = {
             "ERROR": error,
@@ -294,6 +295,7 @@ class Action:
             "time_stamp": datetime.datetime.now().isoformat()
         }
         return json.dumps(response_to_frontend)
+    
     def _list_to_number(self, list: list):
         number = ""
         for item in list:
@@ -301,3 +303,4 @@ class Action:
                 number += "0"
             number += hex(item)[2:]
         return number
+    
