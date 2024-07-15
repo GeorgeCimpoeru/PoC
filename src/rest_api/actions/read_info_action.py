@@ -218,11 +218,11 @@ class ReadInfo(Action):
     def read_from_doors(self):
         id_door = self.id_ecu[1]
         id = self.my_id * 0x100 + id_door
-        log_info_message(logger, "Changing session to default")
-        self.generate.session_control(id, 0x01)
-        self._passive_response(SESSION_CONTROL, "Error changing session control")
           
         try:
+            log_info_message(logger, "Changing session to default")
+            self.generate.session_control(id, 0x01)
+            self._passive_response(SESSION_CONTROL, "Error changing session control")
             log_info_message(logger, "Changing session to default")
             self.generate.session_control(id, 0x01)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
