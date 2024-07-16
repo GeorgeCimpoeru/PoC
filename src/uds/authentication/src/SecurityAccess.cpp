@@ -1,9 +1,19 @@
 #include "../include/SecurityAccess.h"
 #include "../../../mcu/include/MCUModule.h"
 
+/* Set the default security access to false */
+bool SecurityAccess::mcu_state = false;
+
+std::vector<uint8_t> SecurityAccess::security_access_seed;
+
 SecurityAccess::SecurityAccess(int socket, Logger& security_logger)
                 :  security_logger(security_logger), socket(socket)
 {}
+
+bool SecurityAccess::getMcuState()
+{
+    return mcu_state;
+}
 
 std::vector<uint8_t> SecurityAccess::computeKey(const std::vector<uint8_t>& seed)
 {
@@ -40,7 +50,7 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
     std::vector<uint8_t> response;
     std::vector<uint8_t> key;
 
-    /**Extract the first 8 bits of can_id */
+    /* Extract the first 8 bits of can_id */
     uint8_t lowerbits = can_id & 0xFF;
     uint8_t upperbits = can_id >> 8 & 0xFF;
 
@@ -70,9 +80,11 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                 {
                     /* Adjust the seed length between 1 and 5*/
                     size_t seed_length = 2;
+
                     /* std::vector<uint8_t> seed = generateRandomBytes(seed_length); */
                     std::vector<uint8_t> seed = {0x36,0x57};
-                    /* PCI length */
+
+                    /* PCI length = seed_length + 2(0x67 and 0x01)*/
                     response.push_back(2 + seed_length);
 
                     /* SID response */
@@ -80,7 +92,6 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
 
                     /*subfunction request seed*/
                     response.push_back(0x01);
-                    bool mcu_state = MCU::mcu.getMCUState();
 
                     /* complete the seed in frame if server is locked, or with 0x00 if unlocked */
                     for (auto e : seed)
@@ -88,19 +99,19 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                         response.push_back(mcu_state ? 0x00 : e);
                     }
                     generate_frames->sendFrame(can_id,response,DATA_FRAME);
-                    MCU::mcu.setSecurityAccessSeed(seed);                  
+                    security_access_seed = seed;                  
                 }
-                else if (sf == 0x02 && !MCU::mcu.getMCUState())
+                else if (sf == 0x02 && !mcu_state)
                 {
                     /* Request sequence error, cannot receive sendKey before requestSeed */
-                    if (MCU::mcu.getSecurityAccessSeed().empty())
+                    if (security_access_seed.empty())
                     {
                         LOG_ERROR(security_logger.GET_LOGGER(), "Cannot have sendKey request before requestSeed.");
                         generate_frames->negativeResponse(can_id,SECURITY_ACCESS_SID,RSE);
                     }
                     else
                     {
-                        std::vector<uint8_t> computed_key = computeKey(MCU::mcu.getSecurityAccessSeed());
+                        std::vector<uint8_t> computed_key = computeKey(security_access_seed);
                         std::vector<uint8_t> received_key;
                         for (int i = 3; i <= pci_length; i++)
                         {
@@ -116,9 +127,10 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
 
                             /* subfunction sendkey */
                             response.push_back(0x02);
+
                             generate_frames->sendFrame(can_id,response,DATA_FRAME);
                             LOG_INFO(security_logger.GET_LOGGER(), "Security Access granted successfully");
-                            MCU::mcu.setMCUState(true);
+                            mcu_state = true;
                         }
                         else
                         {   /* Invalid key, doesnt match with server's key. */
@@ -132,7 +144,7 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                     LOG_INFO(security_logger.GET_LOGGER(), "Server is already unlocked");
                 }
             }
-        } 
+    }
         else 
         {
             /* Handle the case where create_interface is null */

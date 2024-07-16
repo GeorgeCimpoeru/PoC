@@ -178,6 +178,14 @@ namespace MCU
                     LOG_INFO(MCULogger.GET_LOGGER(), "SecurityAccess called.");
                     SecurityAccess security_access(getMcuSocket(frame_id), MCULogger);
                     security_access.securityAccess(frame_id, frame_data);
+                    if (SecurityAccess::getMcuState())
+                    {
+                        LOG_INFO(MCULogger.GET_LOGGER(), "Server is unlocked.");
+                    }
+                    else
+                    {
+                        LOG_INFO(MCULogger.GET_LOGGER(), "Server is locked.");
+                    }
                 }
                 break;
             case 0x29:
