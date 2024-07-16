@@ -15,6 +15,7 @@
 #include <bitset>
 #include <iomanip>
 #include <random>
+#include <chrono>
 
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../utils/include/Logger.h"
@@ -47,7 +48,12 @@ class SecurityAccess
     static const uint8_t RTDNE = 0x37;
 
     /**
-    * @brief Default constructor
+     * Adjust it here.
+    */
+    static const uint8_t TIMEOUT_IN_SECONDS = 5;
+
+    /**
+     * @brief Default constructor
     */
     SecurityAccess(int socket, Logger& security_logger);
 
@@ -58,8 +64,8 @@ class SecurityAccess
     std::vector<uint8_t> generateRandomBytes(size_t length);
 
     /**
-    * @brief Getter for MCU state access
-    * @return The current value of MCU state
+     * @brief Getter for MCU state access
+     * @return The current value of MCU state
     */
     static bool getMcuState();
 
@@ -67,7 +73,9 @@ class SecurityAccess
     GenerateFrames* generate_frames;
     Logger& security_logger;
     int socket = -1;
+    static uint8_t nr_of_attempts;
     static bool mcu_state;
+    static int time_left;
     static std::vector<uint8_t> security_access_seed;
 };
 

@@ -4,7 +4,20 @@
 /* Set the default security access to false */
 bool SecurityAccess::mcu_state = false;
 
+/* Adjust the default nr of attempts as needed here */
+uint8_t SecurityAccess::nr_of_attempts = 3;
+
 std::vector<uint8_t> SecurityAccess::security_access_seed;
+
+/* By default we dont have delay timer */
+int SecurityAccess::time_left = 0;
+
+/**
+ * Set end_time to a distant future point. This ensures that it is always
+ * greater than the current time unless a specific delay timer is activated.
+*/
+static std::chrono::steady_clock::time_point end_time = std::chrono::steady_clock::now() + \
+                                                        std::chrono::hours(24 * 365);
 
 SecurityAccess::SecurityAccess(int socket, Logger& security_logger)
                 :  security_logger(security_logger), socket(socket)
@@ -59,7 +72,18 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
     if (upperbits == 0xFA) 
     {
             generate_frames = new GenerateFrames(socket, security_logger);
-
+            /** 
+             * Check if the delay timer has expired
+             * Set the nr of attempts to default. Delay timer will be 0.
+            */
+           auto now = std::chrono::steady_clock::now();
+           if (now >= end_time)
+           {
+                time_left = 0;
+                nr_of_attempts = 3;
+                LOG_INFO(security_logger.GET_LOGGER(), "Delay timer expired. You can attempt to send the key again.");
+                end_time = std::chrono::steady_clock::now() + std::chrono::hours(24 * 365);
+           }
             /* Incorrect message length or invalid format */
             if ((request.size() < 3) ||
                 (request[2] == 0x02 && request[0] == 2)
@@ -109,7 +133,7 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                         LOG_ERROR(security_logger.GET_LOGGER(), "Cannot have sendKey request before requestSeed.");
                         generate_frames->negativeResponse(can_id,SECURITY_ACCESS_SID,RSE);
                     }
-                    else
+                    else if (time_left == 0)
                     {
                         std::vector<uint8_t> computed_key = computeKey(security_access_seed);
                         std::vector<uint8_t> received_key;
@@ -133,15 +157,52 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                             mcu_state = true;
                         }
                         else
-                        {   /* Invalid key, doesnt match with server's key. */
-                            LOG_ERROR(security_logger.GET_LOGGER(), "Security Access denied. Invalid Key");
-                            generate_frames->negativeResponse(can_id,SECURITY_ACCESS_SID, IK);
+                        {   
+                            if (nr_of_attempts > 0)
+                            {
+                                /* Invalid key, doesnt match with server's key. */
+                                LOG_ERROR(security_logger.GET_LOGGER(), "Security Access denied. Invalid Key");
+                                generate_frames->negativeResponse(can_id,SECURITY_ACCESS_SID, IK);
+                                nr_of_attempts--;
+                                LOG_INFO(security_logger.GET_LOGGER(), "{} attempts left", nr_of_attempts);
+                            }
+                            else
+                            {
+                                /** 
+                                 * Send if an expected ‘sendKey’ SubFunction is received, the value of the key does not 
+                                 * match the server’s internally stored/calculated key, and the delay timer is activated
+                                 * by this request(i.e. due to reaching the limit of false access attempts which activate
+                                 * the delay timer)
+                                */
+                                LOG_ERROR(security_logger.GET_LOGGER(), "Exceeded nr of attempts");
+                                generate_frames->negativeResponse(can_id,SECURITY_ACCESS_SID, ENOA);
+                                
+                                /** Start the delay timer clock
+                                 * The extra second is added to compensate for any minor delay 
+                                 * that occurs during the initial setup and computation (+1 second).
+                                */
+                                end_time = std::chrono::steady_clock::now() + std::chrono::seconds(TIMEOUT_IN_SECONDS + 1);
+                                auto now = std::chrono::steady_clock::now();
+                                time_left = static_cast<int>(std::chrono::duration_cast<std::chrono::seconds>(end_time - now).count());
+                                LOG_INFO(security_logger.GET_LOGGER(), "Delay timer activated");
+                                LOG_INFO(security_logger.GET_LOGGER(), "Please wait {} seconds before sending key again", time_left);
+                            }
                         }
+                    }
+                    else
+                    {
+                        /** Send if a ‘requestSeed’ SubFunction is received and the delay timer is active 
+                         * for the requested security level.
+                        */
+                        auto now = std::chrono::steady_clock::now();
+                        auto remaining_time = std::chrono::duration_cast<std::chrono::seconds>(end_time - now).count();
+                        LOG_INFO(security_logger.GET_LOGGER(), "Please wait {} seconds before sending key again", remaining_time);
+                        generate_frames->negativeResponse(can_id,SECURITY_ACCESS_SID,RTDNE);
                     }
                 }
                 else
                 {
-                    LOG_INFO(security_logger.GET_LOGGER(), "Server is already unlocked");
+                    LOG_ERROR(security_logger.GET_LOGGER(), "Server is already unlocked");
                 }
             }
     }
@@ -150,4 +211,4 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
             /* Handle the case where create_interface is null */
             LOG_ERROR(security_logger.GET_LOGGER(), "Create_interface is nullptr");
         }
-} 
+}
