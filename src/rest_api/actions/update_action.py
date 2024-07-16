@@ -12,17 +12,18 @@ How to use?
 
 from actions.base_actions import *  # Assuming this imports necessary actions
 
+
 class Updates(Action):
     """
     Update class for managing software updates on an Electronic Control Unit (ECU).
-    
+
     Attributes:
     - my_id: Identifier for the device initiating the update.
     - id_ecu: Identifier for the specific ECU being updated.
     - g: Instance of GenerateFrame for generating CAN bus frames.
     """
 
-    def update_to(self, ecu_id, version:str, data=[]):
+    def update_to(self, ecu_id, version: str, data=[]):
         """
         Method to update the software of the ECU to a specified version.
 
@@ -39,7 +40,7 @@ class Updates(Action):
         """
         self.data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
         self.id = self.my_id + ecu_id
-        
+
         try:
             # Verify if the current version matches the desired version
             self._verify_version(version)
@@ -114,10 +115,10 @@ class Updates(Action):
         Raises:
         - CustomError: If the current software version matches the desired version,
           indicating that the latest version is already installed.
-        """        
+        """
         log_info_message(logger, "Reading current version")
         current_version = self._read_by_identifier(self.id, IDENTIFIER_SYSTEM_ECU_FLASH_SOFTWARE_VERSION_NUMBER)
-        
+
         if current_version == version:
             log_info_message(logger, "Already installed latest version")
             response_json = self._to_json("already installed", 0)
@@ -135,7 +136,7 @@ class Updates(Action):
         """
         self.generate.request_read_dtc_information(self.id, 0x01, 0x01)
         response = self._passive_response(READ_DTC, "Error reading DTC")
-        
+
         if response is not None:
             number_of_dtc = response.data[5]
             log_info_message(logger, f"There are {number_of_dtc} errors found after download")
