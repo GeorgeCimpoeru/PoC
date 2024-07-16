@@ -28,6 +28,7 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
         LOG_WARN(MCULogger.GET_LOGGER(), "Request update status must be made from API to MCU. Request redirected from API to MCU.");
         receiver_byte = MCU_ID;
         sender_byte = API_ID;
+        request_id = (API_ID << 8) | MCU_ID;
     }
 
     response_id = (receiver_byte << 8) | sender_byte; /* Replace sender with receiver for response id */
