@@ -20,9 +20,6 @@ const BatteryModule = async () => {
     );
    
     const jsonData = await res.json();
-    console.log(jsonData)
-
-    
 
     return (
         <div className="h-screen flex flex-col">
@@ -44,7 +41,7 @@ const BatteryModule = async () => {
                             </td>
                             <td>
                                 <TemperatureCard temperature={jsonData.temperature}></TemperatureCard>
-                            </td>
+                            </td> 
                         </tr>
                         <tr>
                             <td>
@@ -64,9 +61,9 @@ const BatteryModule = async () => {
                             <td>
                                 <ChargingTimeCard chargingTime={jsonData.charging_time}></ChargingTimeCard>
                             </td>
-                            <td>
+                            {/* <td>
                                 <DeviceConsumptionCard deviceConsumption={jsonData.device_consumption}></DeviceConsumptionCard>
-                            </td>
+                            </td> */}
                         </tr>
 
                     </table>
