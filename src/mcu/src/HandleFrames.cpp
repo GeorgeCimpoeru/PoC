@@ -376,17 +376,15 @@ namespace MCU
                 }
                 break;
             case 0x36:
-                /* TransferData(sid, frame_data[2], frame_data[3], frame_data[4]); */
+                /* TransferData(sid, frame_data[2], frame_data[3], frame_data[4]); */ 
                 if(frame_data[1] == 0x7F)
                 {
                     processNrc(frame_id, sid, frame_data[3]);
                 }
-                else if(is_multi_frame)
-                {
-                    LOG_INFO(MCULogger.GET_LOGGER(), "TransferData called with multiple frames.");
-                }
                 else 
                 {
+                    TransferData transfer_data(getMcuSocket(frame_id), MCULogger);
+                    transfer_data.transferData(frame_id, frame_data);
                     LOG_INFO(MCULogger.GET_LOGGER(), "TransferData called with one frame.");
                 }
                 break;
