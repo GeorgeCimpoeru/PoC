@@ -91,6 +91,11 @@ RDBITest: ReadDataByIdentifier_test
 ReadDataByIdentifier_test: ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest.cpp ../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 
+# RequestTransferExit Unit tests
+RTESTest: RequestTransferExit_test
+RequestTransferExit_test: ../ota/request_transfer_exit/utest/RequestTransferExitTest.cpp ../ota/request_transfer_exit/src/RequestTransferExit.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../ota/request_transfer_exit/utest/RequestTransferExitTest ../ota/request_transfer_exit/utest/RequestTransferExitTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+
 # ReadDTC Unit tests
 readDtcTest: readDtc_test
 readDtc_test: ../uds/read_dtc_information/utest/ReadDtcInformationTest.cpp ../uds/read_dtc_information/src/ReadDtcInformation.cpp
@@ -209,6 +214,19 @@ RequestUpdateStatusCoverage: ../ota/request_update_status/utest/RequestUpdateSta
 	lcov --remove coverage.info '*/test/*' --output-file coverage.info
 	genhtml coverage_filtered.info --output-directory coverage/out_RequestUpdateStatus
 	xdg-open coverage/out_RequestUpdateStatus/index.html
+#  RequestTransferExit Coverage
+RTESCoverage: RequestTransferExitCoverage
+RequestTransferExitCoverage: ../ota/request_transfer_exit/utest/RequestTransferExitTest.cpp ../ota/request_transfer_exit/src/RequestTransferExit.cpp
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../ota/request_transfer_exit/utest/RequestTransferExitTest ../ota/request_transfer_exit/utest/RequestTransferExitTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	../ota/request_transfer_exit/utest/RequestTransferExitTest
+	mkdir -p coverage/out_RequestTransferExit
+	gcov -o . ../ota/request_transfer_exit/src/RequestTransferExitTest.cpp
+	mv RequestTransferExitTest.cpp.gcov coverage/out_RequestTransferExitTest
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/*' --output-file coverage_filtered.info
+	lcov --remove coverage.info '*/test/*' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_RequestTransferExit
+	xdg-open coverage/out_RequestTransferExit/index.html
 	find . -name '*.gcno' -delete
 	find . -name '*.gcda' -delete
 	find . -name '*.gcov' -delete
@@ -263,6 +281,13 @@ RequestUpdateStatus_coverage: ../ota/request_update_status/src/RequestUpdateStat
 	mkdir -p coverage/out_RequestUpdateStatus
 	gcov -o . ../ota/request_update_status/src/RequestUpdateStatus.cpp
 	mv RequestUpdateStatus.cpp.gcov coverage/out_RequestUpdateStatus
+  
+RequestTransferExit_coverage: ../ota/request_transfer_exit/utest/RequestTransferExitTest.cpp ../ota/request_transfer_exit/src/RequestTransferExitTest.cpp
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../ota/request_transfer_exit/utest/RequestTransferExitTest ../ota/request_transfer_exit/utest/RequestTransferExitTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	../../ota/request_transfer_exit/src/RequestTransferExitTest
+	mkdir -p coverage/out_RequestTransferExit
+	gcov -o . ../ota/request_transfer_exit/utest/RequestTransferExitTest.cpp
+	mv RequestTransferExitTest.cpp.gcov coverage/out_RequestTransferExitTest
 
 allCoveragePostProcess:
 	lcov --capture --directory . --output-file coverage.info
