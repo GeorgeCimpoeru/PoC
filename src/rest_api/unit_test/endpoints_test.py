@@ -47,3 +47,9 @@ def test_read_info_engine(client):
     response = client.get('/api/read_info_engine')  
     assert response.status_code == 200
     assert isinstance(response.json, dict) 
+
+
+def test_read_info_doors(client):
+    response = client.get('/api/read_info_doors')  
+    assert response.status_code == 200
+    assert isinstance(response.json, dict) 

@@ -16,3 +16,4 @@ typing-extensions==4.12.2
 werkzeug==3.0.3
 pytest==7.4.4
 pytest-cov==4.1.0
+flasgger==0.9.7b2
