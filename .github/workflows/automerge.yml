@@ -1,9 +1,7 @@
 name: Automerge (After push on master)
 
 on:
-  push:
-    branches:
-      - master
+  workflow_dispatch:
 
 env:
   # replace "github_username" with your GitHub username
