@@ -1,10 +1,12 @@
-import React from 'react'
-import Image from 'next/image'
+import React from 'react';
+import Image from 'next/image';
 
-const NavbarOta = () => {
+
+const NavbarHistory = (props: any) => {
+
     return (
         <nav className="bg-gray-300 rounded-lg m-5 p-6 shadow-xl flex justify-between items-center">
-            <div className="text-gray-800 text-2xl font-bold">Over-the-Air Update</div>
+            <div className="text-gray-800 text-2xl font-bold">Over-the-Air Update History</div>
             <div className="dropdown dropdown-click">
                 <div tabIndex={0} role="button" className="btn bg-blue-500 m-1 relative">Select device
                     <Image
@@ -17,16 +19,16 @@ const NavbarOta = () => {
                     />
                 </div>
                 <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                    <li><a>MCU 1</a></li>
-                    <li><a>MCU 2</a></li>
-                    <li><a>ECU 1</a></li>
-                    <li><a>ECU 2</a></li>
-                    <li><a>ECU 3</a></li>
+                    <li><a onClick={() => props.checkedButton(1)}>MCU 1</a></li>  
+                    <li><a onClick={() => props.checkedButton(2)}>MCU 2</a></li>
+                    <li><a onClick={() => props.checkedButton(3)}>ECU 1</a></li>
+                    <li><a onClick={() => props.checkedButton(4)}>ECU 2</a></li>
+                    <li><a onClick={() => props.checkedButton(5)}>ECU 3</a></li>
                 </ul>
             </div>
-
-        </nav>
+      </nav>
     )
 }
 
-export default NavbarOta
+export default NavbarHistory
+
