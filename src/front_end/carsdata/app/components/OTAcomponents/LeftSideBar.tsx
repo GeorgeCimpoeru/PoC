@@ -42,5 +42,3 @@ const LeftSideBar = (props: any) => {
 }
 
 export default LeftSideBar;
-
-

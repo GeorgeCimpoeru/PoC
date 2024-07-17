@@ -1,5 +1,5 @@
-import React from 'react'
-import ModalString from '../sharedComponents/ModalString'
+import React from 'react';
+import ModalString from '../sharedComponents/ModalString';
 
 const TableOta = (props: any) => {
     return (
@@ -29,7 +29,6 @@ const TableOta = (props: any) => {
                     ))}
                 </tbody>
             </table>
-
             <div className="absolute right-0 top-0 m-5">
             </div>
         </div>
