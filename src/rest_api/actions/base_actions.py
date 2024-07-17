@@ -70,7 +70,7 @@ ROUTINE_CONTROL = 0X31
 WRITE_BY_IDENTIFIER = 0X2E
 READ_DTC = 0X19
 CLEAR_DTC = 0X14
-REQUEST_DOWNLOAD = 0X83
+REQUEST_DOWNLOAD = 0X34
 TRANSFER_DATA = 0X36
 REQUEST_TRANSFER_EXIT = 0X37
 
@@ -192,8 +192,8 @@ class Action:
 
         if response is None:
             log_error_message(logger, error_str)
-            # response_json = self._to_json_error("interrupted", 1)
-            # raise CustomError(response_json)
+            response_json = self._to_json_error("interrupted", 1)
+            raise CustomError(response_json)
         return response
 
     def _data_from_frame(self, msg: can.Message):
@@ -205,13 +205,10 @@ class Action:
         Returns:
         - The extracted data if the frame type is recognized, otherwise None.
         """
-        # debugging
-        if msg is None:
-            return [1, 2, 3, 4, 5]
         handlers = {
             0x62: ReadByIdentifier(),
             0x63: ReadByAddress(),
-            0x29: AuthenticationSeed(),
+            0x69: AuthenticationSeed(),
         }
         handler = handlers.get(msg.data[1] if msg.data[0] != 0x10 else msg.data[2])
         if handler:
