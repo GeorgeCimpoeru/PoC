@@ -57,7 +57,7 @@ clean:
 	find . -name '*.info' -delete
 
 # Compile all unit tests
-allTests: handleTest receiveTest generateTest createInterfaceTest RDBITest wdbiTest
+allTests: handleTest receiveTest generateTest createInterfaceTest RDBITest wdbiTest RUSTest
 
 # HandleFrames Unit tests
 handleTest: HandleFrames_test
@@ -91,10 +91,20 @@ RDBITest: ReadDataByIdentifier_test
 ReadDataByIdentifier_test: ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest.cpp ../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 
+# RequestTransferExit Unit tests
+RTESTest: RequestTransferExit_test
+RequestTransferExit_test: ../ota/request_transfer_exit/utest/RequestTransferExitTest.cpp ../ota/request_transfer_exit/src/RequestTransferExit.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../ota/request_transfer_exit/utest/RequestTransferExitTest ../ota/request_transfer_exit/utest/RequestTransferExitTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+
 # ReadDTC Unit tests
 readDtcTest: readDtc_test
 readDtc_test: ../uds/read_dtc_information/utest/ReadDtcInformationTest.cpp ../uds/read_dtc_information/src/ReadDtcInformation.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../uds/read_dtc_information/utest/ReadDtcInformationTest ../uds/read_dtc_information/utest/ReadDtcInformationTest.cpp ../uds/read_dtc_information/src/ReadDtcInformation.cpp ../utils/src/GenerateFrames.cpp ../utils/src/CreateInterface.cpp ../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+
+# RequestUpdateStatus Unit tests
+RUSTest: RequestUpdateStatus_test
+RequestUpdateStatus_test: ../ota/request_update_status/utest/RequestUpdateStatusTest.cpp ../ota/request_update_status/src/RequestUpdateStatus.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../ota/request_update_status/utest/RequestUpdateStatusTest ../ota/request_update_status/utest/RequestUpdateStatusTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 
 # HandleFrames Coverage
 handleCoverage: HandleFramesCoverage
@@ -192,7 +202,36 @@ WDBICoverage: ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest.cp
 	genhtml coverage_filtered.info --output-directory coverage/out_WriteDataByIdentifierTest
 	xdg-open coverage/out_WriteDataByIdentifierTest/index.html
 
-allCoverage: HandleFrames_coverage ReceiveFrames_coverage GenerateFrames_coverage CreateInterface_coverage ReadDataByIdentifier_coverage WDBI_coverage
+RUSCoverage: RequestUpdateStatusCoverage
+RequestUpdateStatusCoverage: ../ota/request_update_status/utest/RequestUpdateStatusTest.cpp ../ota/request_update_status/src/RequestUpdateStatus.cpp
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../ota/request_update_status/utest/RequestUpdateStatusTest ../ota/request_update_status/utest/RequestUpdateStatusTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	../ota/request_update_status/utest/RequestUpdateStatusTest
+	mkdir -p coverage/out_RequestUpdateStatus
+	gcov -o . ../ota/request_update_status/src/RequestUpdateStatus.cpp
+	mv RequestUpdateStatus.cpp.gcov coverage/out_RequestUpdateStatus
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/*' --output-file coverage_filtered.info
+	lcov --remove coverage.info '*/test/*' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_RequestUpdateStatus
+	xdg-open coverage/out_RequestUpdateStatus/index.html
+#  RequestTransferExit Coverage
+RTESCoverage: RequestTransferExitCoverage
+RequestTransferExitCoverage: ../ota/request_transfer_exit/utest/RequestTransferExitTest.cpp ../ota/request_transfer_exit/src/RequestTransferExit.cpp
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../ota/request_transfer_exit/utest/RequestTransferExitTest ../ota/request_transfer_exit/utest/RequestTransferExitTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	../ota/request_transfer_exit/utest/RequestTransferExitTest
+	mkdir -p coverage/out_RequestTransferExit
+	gcov -o . ../ota/request_transfer_exit/src/RequestTransferExitTest.cpp
+	mv RequestTransferExitTest.cpp.gcov coverage/out_RequestTransferExitTest
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/*' --output-file coverage_filtered.info
+	lcov --remove coverage.info '*/test/*' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_RequestTransferExit
+	xdg-open coverage/out_RequestTransferExit/index.html
+	find . -name '*.gcno' -delete
+	find . -name '*.gcda' -delete
+	find . -name '*.gcov' -delete
+
+allCoverage: HandleFrames_coverage ReceiveFrames_coverage GenerateFrames_coverage CreateInterface_coverage ReadDataByIdentifier_coverage WDBI_coverage RUSCoverage
 
 HandleFrames_coverage:
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o test/HandleFrames_test test/HandleFrames_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
@@ -235,6 +274,20 @@ WDBI_coverage:
 	mkdir -p coverage/out_	mkdir -p coverage/out_WriteDataByIdentifier
 	gcov -o . ../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp
 	mv WriteDataByIdentifier.cpp.gcov coverage/out_WriteDataByIdentifier
+
+RequestUpdateStatus_coverage: ../ota/request_update_status/src/RequestUpdateStatusTest.cpp ../ota/request_update_status/src/RequestUpdateStatus.cpp
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../ota/request_update_status/src/RequestUpdateStatusTest ../ota/request_update_status/src/RequestUpdateStatusTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	../ota/request_update_status/src/RequestUpdateStatus
+	mkdir -p coverage/out_RequestUpdateStatus
+	gcov -o . ../ota/request_update_status/src/RequestUpdateStatus.cpp
+	mv RequestUpdateStatus.cpp.gcov coverage/out_RequestUpdateStatus
+  
+RequestTransferExit_coverage: ../ota/request_transfer_exit/utest/RequestTransferExitTest.cpp ../ota/request_transfer_exit/src/RequestTransferExitTest.cpp
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../ota/request_transfer_exit/utest/RequestTransferExitTest ../ota/request_transfer_exit/utest/RequestTransferExitTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	../../ota/request_transfer_exit/src/RequestTransferExitTest
+	mkdir -p coverage/out_RequestTransferExit
+	gcov -o . ../ota/request_transfer_exit/utest/RequestTransferExitTest.cpp
+	mv RequestTransferExitTest.cpp.gcov coverage/out_RequestTransferExitTest
 
 allCoveragePostProcess:
 	lcov --capture --directory . --output-file coverage.info

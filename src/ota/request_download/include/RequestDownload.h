@@ -22,13 +22,15 @@ class RequestDownloadService
 public:
     /**
      * @brief Construct a new Request Download Service object
-     *
+     * 
+     * @param RDSlogger 
      */
     RequestDownloadService(Logger &RDSlogger);
     /**
-     * @brief Construct a new Request Download Service object with Logger
-     *
-     * @param RDSlogger
+     * @brief Construct a new Request Download Service object
+     * 
+     * @param socket 
+     * @param RDSlogger 
      */
     RequestDownloadService(int socket, Logger &RDSlogger);
     /**
@@ -38,32 +40,33 @@ public:
     ~RequestDownloadService();
     /**
      * @brief Request download method to validate and prepare the system to receive data
-     *
-     * @param id
-     * @param RDSlogger
+     * 
+     * @param id 
+     * @param stored_data 
+     * @param RDSlogger 
+     * @param mcuDiagnosticSessionControl 
+     * @param software_version 
+     * @param logged_in 
      */
     void requestDownloadRequest(int id, std::vector<uint8_t> stored_data, Logger &RDSlogger, DiagnosticSessionControl mcuDiagnosticSessionControl, ReadDataByIdentifier software_version, SecurityAccess logged_in);
     /**
-     * @brief Response method from Request Download service to start the download in MCU
-     *
-     * @param id
-     * @param length_max_number_block
-     * @param max_number_block
-     * @param RDSlogger
+     * @brief Response method from manual Request Download service to start the download in MCU
+     * 
+     * @param id 
+     * @param max_number_block 
+     * @param RDSlogger 
      */
     void requestDownloadResp(int id, int max_number_block, Logger &RDSlogger);
 
 private:
     int socket = -1;
-    /**
-     * @brief
-     *
-     */
     GenerateFrames generateFrames;
     /**
      * @brief Method for checking if the MCU is in the programming session
-     *
-     * @return true
+     * 
+     * @param mcuDiagnosticSessionControl 
+     * @param RDSlogger 
+     * @return true 
      */
     bool isInProgrammingSession(DiagnosticSessionControl mcuDiagnosticSessionControl, Logger &RDSlogger);
     /**
@@ -77,12 +80,20 @@ private:
     bool isValidMemoryRange(const std::vector<int> &memory_address, const std::vector<int> &memory_size, Logger &RDSlogger);
     /**
      * @brief Method to authenticate the download request based on the provided identifiers
-     *
-     * @param id
-     * @param dataFormatIdentifier
-     * @return true
+     * 
+     * @param logged_in 
+     * @param RDSlogger 
+     * @return true 
      */
     bool isRequestAuthenticated(SecurityAccess logged_in, Logger &RDSlogger);
+    /**
+     * @brief Method to check last software version
+     * 
+     * @param software_version 
+     * @param RDSlogger 
+     * @return true 
+     * @return false 
+     */
     bool isLatestSoftwareVersion(ReadDataByIdentifier software_version, Logger &RDSlogger);
 };
 
