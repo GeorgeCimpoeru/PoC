@@ -18,6 +18,7 @@
 #include <iostream>
 #include <vector>
 #include "../include/MCULogger.h"
+#include "../../utils/include/GenerateFrames.h"
 #include "../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
 #include "../../uds/write_data_by_identifier/include/WriteDataByIdentifier.h"
 #include "../../uds/ecu_reset/include/EcuReset.h"
@@ -74,6 +75,10 @@ namespace MCU
          * @return int 
          */
         int getMcuSocket(canid_t frame_id);
+        void forwardToEcu(canid_t frame_id, uint8_t sid, std::vector<uint8_t> data);
+        void handleApiFrame(canid_t frame_id, uint8_t sid, std::vector<uint8_t> data, bool is_multi_frame);
+        void handleCanFrame(canid_t frame_id, uint8_t sid, std::vector<uint8_t> data, bool is_multi_frame);
+        bool isEcuDestination(uint8_t sid);
     };
 }
 #endif /* HANDLE_FRAMES_H */
