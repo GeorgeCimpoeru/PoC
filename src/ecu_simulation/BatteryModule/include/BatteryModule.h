@@ -137,6 +137,7 @@ public:
      */
     std::string getLinuxBatteryState();
     int getBatterySocket() const;
+    void setBatterySocket(uint8_t interface_number);
 };
 extern BatteryModule battery;
 

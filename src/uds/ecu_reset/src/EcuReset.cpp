@@ -1,4 +1,6 @@
 #include "../include/EcuReset.h"
+#include "../../../mcu/include/MCUModule.h"
+#include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 
 EcuReset::EcuReset(uint32_t can_id, uint8_t sub_function, int socket, Logger &logger)
     : can_id(can_id), sub_function(sub_function), response_socket(socket), ECUResetLog(logger)
@@ -29,15 +31,46 @@ void EcuReset::hardReset()
     LOG_INFO(ECUResetLog.GET_LOGGER(), "interface {} deleted", interface_name);
     interface->deleteInterface();
 
+    /* Close the sockets binded to the interface */
+    switch(interface_name) {
+        /* ECU Battery case */
+        case 0x00:
+            LOG_INFO(ECUResetLog.GET_LOGGER(), "ECU socket closed");
+            close(battery.getBatterySocket());
+            break;
+
+        /* MCU case */
+        case 0x01:
+        {
+            LOG_INFO(ECUResetLog.GET_LOGGER(), "MCU sockets closed");
+            close(MCU::mcu.getMcuApiSocket());
+            close(MCU::mcu.getMcuEcuSocket());
+            break;
+        }
+    }
+
     /* Recreate the interface */
     LOG_INFO(ECUResetLog.GET_LOGGER(), "interface {} created", interface_name);
     interface->createInterface();
     interface->startInterface();
 
-    /* Temporary code to set up again the canbus until the automated metod is fixed */
-    system("sudo cangw -A -s vcan0 -d vcan1 -e");
-    system("sudo cangw -A -s vcan1 -d vcan0 -e");
-    /***                        END OF TEMPORARY CODE BLOCK                        ***/
+    /* Recreate the sockets */
+    switch(interface_name) {
+        /* ECU Battery case */
+        case 0x00:
+            LOG_INFO(ECUResetLog.GET_LOGGER(), "ECU socket recreated");
+            battery.setBatterySocket(interface_name);
+            break;
+
+        /* MCU case */
+        case 0x01:
+        {
+            LOG_INFO(ECUResetLog.GET_LOGGER(), "MCU sockets recreated");
+            MCU::mcu.setMcuApiSocket(interface_name);
+            MCU::mcu.setMcuEcuSocket(interface_name);
+            break;
+        }
+    }
 
     /* Send response */
     this->ecuResetResponse();
@@ -52,9 +85,45 @@ void EcuReset::keyOffReset()
     LOG_INFO(ECUResetLog.GET_LOGGER(), "interface {} down", interface_name);
     interface->stopInterface();
 
+    /* Close the sockets binded to the interface */
+    switch(interface_name) {
+        /* ECU Battery case */
+        case 0x00:
+            LOG_INFO(ECUResetLog.GET_LOGGER(), "ECU socket closed");
+            close(battery.getBatterySocket());
+            break;
+
+        /* MCU case */
+        case 0x01:
+        {
+            LOG_INFO(ECUResetLog.GET_LOGGER(), "MCU sockets closed");
+            close(MCU::mcu.getMcuApiSocket());
+            close(MCU::mcu.getMcuEcuSocket());
+            break;
+        }
+    }
+
     /* Turns up the interface */
     LOG_INFO(ECUResetLog.GET_LOGGER(), "interface {} up", interface_name);
     interface->startInterface();
+
+    /* Recreate the sockets */
+    switch(interface_name) {
+        /* ECU Battery case */
+        case 0x00:
+            LOG_INFO(ECUResetLog.GET_LOGGER(), "ECU socket recreated");
+            battery.setBatterySocket(interface_name);
+            break;
+
+        /* MCU case */
+        case 0x01:
+        {
+            LOG_INFO(ECUResetLog.GET_LOGGER(), "MCU sockets recreated");
+            MCU::mcu.setMcuApiSocket(interface_name);
+            MCU::mcu.setMcuEcuSocket(interface_name);
+            break;
+        }
+    }
 
     /* Sens response */
     this->ecuResetResponse();

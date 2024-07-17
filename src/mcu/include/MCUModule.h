@@ -56,6 +56,8 @@ namespace MCU
 
         int getMcuApiSocket() const;
         int getMcuEcuSocket() const;
+        void setMcuApiSocket(uint8_t interface_number);
+        void setMcuEcuSocket(uint8_t interface_number);
 
     private:
         bool is_running;

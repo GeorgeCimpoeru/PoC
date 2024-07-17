@@ -44,6 +44,16 @@ namespace MCU
         return mcu_ecu_socket;
     }
 
+    void MCUModule::setMcuApiSocket(uint8_t interface_number)
+    {
+        this->mcu_api_socket = this->create_interface->createSocket(interface_number);
+    }
+    
+    void MCUModule::setMcuEcuSocket(uint8_t interface_number)
+    {
+        this->mcu_ecu_socket = this->create_interface->createSocket(interface_number >> 4);
+    }
+
     /* Stop the module */
     void MCUModule::StopModule() { is_running = false; }
 
