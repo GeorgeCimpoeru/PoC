@@ -22,21 +22,21 @@ def update_to_version():
     data = request.get_json()
     ecu_id = data.get('ecu_id')
     version = data.get('version')
-    updater = Updates(0x23, 0x12)
+    updater = Updates(0xFA, 0x12)
     response = updater.update_to(int(ecu_id), int(version))
     return jsonify(response)
 
 
 @api_bp.route('/read_info_battery', methods=['GET'])
 def read_info_bat():
-    reader = ReadInfo(0x23, [0x11, 0x12, 0x13])
+    reader = ReadInfo(0xFA, [0x11, 0x12, 0x13])
     response = reader.read_from_battery()
     return jsonify(response)
 
 
 @api_bp.route('/read_info_engine', methods=['GET'])
 def read_info_eng():
-    reader = ReadInfo(0x23, [0x11, 0x12, 0x13])
+    reader = ReadInfo(0xFA, [0x11, 0x12, 0x13])
     response = reader.read_from_engine()
     return jsonify(response)
 
