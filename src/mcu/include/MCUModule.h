@@ -54,9 +54,56 @@ namespace MCU
         */
         void recvFrames();
 
+        /**
+         * @brief Getter for securityAccess_seed
+         * @return The current value of securityAccess_seed
+         */
+        std::vector<uint8_t> getSecurityAccessSeed();
+
+        /**
+         * @brief Setter for securityAccess_seed
+         * @param seed The new value to set for securityAccess_seed
+         */
+        void setSecurityAccessSeed(const std::vector<uint8_t>& seed);
+
+        /**
+         * @brief Getter for MCU state access
+         * @return The current value of MCU state
+         */
+        bool getMCUState() const;
+
+        /**
+         * @brief Setter for MCU state access
+         * @return The current value of MCU state
+         */
+        void setMCUState(bool state);
+
+        /**
+         * @brief Get the Mcu Api Socket
+         * 
+         * @return Returns the socket id for API
+         */
         int getMcuApiSocket() const;
+
+        /**
+         * @brief Get the Mcu Ecu Socket
+         * 
+         * @return Returns the socket id for ECU
+         */
         int getMcuEcuSocket() const;
+
+        /**
+         * @brief Recreates and bind the socket of API on a given interface
+         * 
+         * @param interface_number The interface on which the API socket will be created
+         */
         void setMcuApiSocket(uint8_t interface_number);
+
+        /**
+         * @brief Recreates and bind the socket of ECU on a given interface
+         * 
+         * @param interface_number The interface on which the ECU socket will be created
+         */
         void setMcuEcuSocket(uint8_t interface_number);
 
     private:

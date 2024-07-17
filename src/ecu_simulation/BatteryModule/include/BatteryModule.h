@@ -136,7 +136,19 @@ public:
      * @return Returns Battery State - charging, discharging, fully-charged, etc.
      */
     std::string getLinuxBatteryState();
+
+    /**
+     * @brief Get the Battery Socket.
+     * 
+     * @return Returns the sid of the socket. 
+     */
     int getBatterySocket() const;
+
+    /**
+     * @brief Recreates and bind the Battery Socket on a given interface.
+     * 
+     * @param interface_number The interface on which the socket will be created.
+     */
     void setBatterySocket(uint8_t interface_number);
 };
 extern BatteryModule battery;
