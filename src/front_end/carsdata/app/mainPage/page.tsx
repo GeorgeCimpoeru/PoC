@@ -2,16 +2,15 @@
 import React from 'react';
 import LeftSideBar from '../components/mainPageComponents/LeftSideBar';
 import NavBar from '../components/mainPageComponents/NavBar';
-import Map from '../components/mainPageComponents/Map';
+import VINsearch from '../components/mainPageComponents/VINsearch';
 
 const MainPage = () => {
-    let fruits: Array<string> = ['Apple', 'Orange', 'Banana'];
     return (
         <div className="flex w-full h-screen">
             <LeftSideBar></LeftSideBar>
             <div className="w-[90%] h-full flex flex-col">
                 <NavBar></NavBar>
-                <Map></Map>
+                <VINsearch></VINsearch>
             </div>
         </div>
     )
