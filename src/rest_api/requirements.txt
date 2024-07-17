@@ -14,5 +14,6 @@ pyflakes==3.2.0
 python-can==4.4.2
 typing-extensions==4.12.2
 werkzeug==3.0.3
-wrapt==1.16.0
-zipp==3.19.2
+pytest==7.4.4
+pytest-cov==4.1.0
+flasgger==0.9.7b2

@@ -11,6 +11,9 @@ src/rest_api/routes/__pycache__
 src/rest_api/database/__pycache__
 src/rest_api/utils/__pycache__
 src/rest_api/configs/__pycache__
+src/rest_api/unit_test/__pycache__
+src/rest_api/unit_test/.pytest_cache
+rc/rest_api/.pytest_cache
 
 # ignore local cached databases
 src/rest_api/database/can_frames.db
