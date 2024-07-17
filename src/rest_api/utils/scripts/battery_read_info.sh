@@ -1,16 +1,26 @@
-cansend vcan0 023#0462101012
+cansend vcan0 2FA#025001
 sleep 1
-cansend vcan0 023#025002
+cansend vcan0 2FA#0469010102
 sleep 1
-cansend vcan0 023#0174
+cansend vcan0 2FA#026902
 sleep 1
-cansend vcan0 023#0276
+cansend vcan0 2FA#046201A001 # 
 sleep 1
-cansend vcan0 023#0277
+cansend vcan0 2FA#046201B002
 sleep 1
-cansend vcan0 023#025001
+cansend vcan0 2FA#046201D003
 sleep 1
-cansend vcan0 023#025103
+cansend vcan0 2FA#046201E004
 sleep 1
-cansend vcan0 023#055901111104
+cansend vcan0 2FA#046201F005
+sleep 1
+cansend vcan0 2FA#046202A006
+sleep 1
+cansend vcan0 2FA#0462F12F07 # Serial number
+sleep 1
+cansend vcan0 2FA#046202B008 # Battery range
+sleep 1
+cansend vcan0 2FA#046202C009 # Battery charging time
+sleep 1
+cansend vcan0 2FA#046202D00A # Consumption
 sleep 1
