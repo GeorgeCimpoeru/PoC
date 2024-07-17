@@ -13,15 +13,16 @@ How to use:
     u.read_from_custom([0x1234, 0x6543])
 """
 
-import json
 import datetime
 from actions.base_actions import *
+
 
 class ToJSON:
     """Open-Close principle. Base class for different JSON formats."""
     def _to_json(self, data):
         pass
-    
+
+
 class BatteryToJSON():
     def _to_json(self, data: list):
         response_to_frontend = {
@@ -38,30 +39,31 @@ class BatteryToJSON():
             "time_stamp": datetime.datetime.now().isoformat()
         }
         return (response_to_frontend)
-    
+
 # class ElementToJSON(ToJSON):
 #     def _to_json(self, data: list):
 #         response_to_frontend = {}
 #         for index, element in enumerate(data, start=1):
 #             response_to_frontend[f"Element{index}"] = element
 #         return json.dumps(response_to_frontend)
-    
+
+
 class EngineToJSON():
     def _to_json(self, data: list):
         response_to_frontend = {
-            "power_output": data[0],               
-            "weight": data[1],                    
-            "fuel_consumption": data[1],           
-            "torque": data[2],                     
-            "fuel_used": data[3],                   
+            "power_output": data[0],
+            "weight": data[1],
+            "fuel_consumption": data[1],
+            "torque": data[2],
+            "fuel_used": data[3],
             "state_of_running": data[4],
-            "current_speed": data[5],               
+            "current_speed": data[5],
             "engine_state": data[6],
             "serial_number": data[7]
         }
         return (response_to_frontend)
-    
-    
+
+
 class ReadInfo(Action):
     """
     ReadInfo class to read information from different ECUs.
@@ -91,30 +93,30 @@ class ReadInfo(Action):
             self._authentication(id)
 
             log_info_message(logger, "Reading data from battery")
-            level = self._read_by_identifier(id,IDENTIFIER_BATTERY_ENERGY_LEVEL)
-            voltage = self._read_by_identifier(id,IDENTIFIER_BATTERY_VOLTAGE)
-            state_of_charge = self._read_by_identifier(id,IDENTIFIER_BATTERY_STATE_OF_CHARGE)
-            temperature = self._read_by_identifier(id,IDENTIFIER_BATTERY_TEMPERATURE)
-            life_cycle = self._read_by_identifier(id,IDENTIFIER_BATTERY_LIFE_CYCLE)
-            fully_charged = self._read_by_identifier(id,IDENTIFIER_BATTERY_FULLY_CHARGED)
-            serial_number = self._read_by_identifier(id,IDENTIFIER_ECU_SERIAL_NUMBER)
-            range_battery = self._read_by_identifier(id,IDENTIFIER_BATTERY_RANGE)
-            charging_time = self._read_by_identifier(id,IDENTIFIER_BATTERY_CHARGING_TIME)
-            device_consumption = self._read_by_identifier(id,IDENTIFIER_DEVICE_CONSUMPTION)
-            data = [level, voltage, state_of_charge, temperature, life_cycle,fully_charged, serial_number,range_battery,charging_time,device_consumption]
+            level = self._read_by_identifier(id, IDENTIFIER_BATTERY_ENERGY_LEVEL)
+            voltage = self._read_by_identifier(id, IDENTIFIER_BATTERY_VOLTAGE)
+            state_of_charge = self._read_by_identifier(id, IDENTIFIER_BATTERY_STATE_OF_CHARGE)
+            temperature = self._read_by_identifier(id, IDENTIFIER_BATTERY_TEMPERATURE)
+            life_cycle = self._read_by_identifier(id, IDENTIFIER_BATTERY_LIFE_CYCLE)
+            fully_charged = self._read_by_identifier(id, IDENTIFIER_BATTERY_FULLY_CHARGED)
+            serial_number = self._read_by_identifier(id, IDENTIFIER_ECU_SERIAL_NUMBER)
+            range_battery = self._read_by_identifier(id, IDENTIFIER_BATTERY_RANGE)
+            charging_time = self._read_by_identifier(id, IDENTIFIER_BATTERY_CHARGING_TIME)
+            device_consumption = self._read_by_identifier(id, IDENTIFIER_DEVICE_CONSUMPTION)
+            data = [level, voltage, state_of_charge, temperature, life_cycle, fully_charged, serial_number, range_battery, charging_time, device_consumption]
             module = BatteryToJSON()
-            
+
             response_json = module._to_json(data)
             # Shutdown the CAN bus interface
             self.bus.shutdown()
 
             log_info_message(logger, "Sending JSON")
             return response_json
-        
+
         except CustomError as e:
             self.bus.shutdown()
             return e.message
-        
+
     # def read_from_custom(self, identifiers:list):
     #     """
     #     Method to read information from specific identifier.
@@ -132,7 +134,7 @@ class ReadInfo(Action):
     #         self._authentication(id)
 
     #         #Read each data from identifier
-    #         log_info_message(logger, "Reading data..")         
+    #         log_info_message(logger, "Reading data..")
     #         data_collected = []
     #         for identifier in identifiers:
     #             data_collected.append(self._read_by_identifier(id,identifier))
@@ -179,13 +181,13 @@ class ReadInfo(Action):
             IDENTIFIER_ENGINE_STATE = 0x0148
             IDENTIFIER_ENGINE_SERIAL_NUMBER = 0x0149
 
-            power_output = self._read_by_identifier(id,IDENTIFIER_ENGINE_POWER_OUTPUT)
+            power_output = self._read_by_identifier(id, IDENTIFIER_ENGINE_POWER_OUTPUT)
             weight = self._read_by_identifier(id, IDENTIFIER_ENGINE_WEIGHT)
-            fuel_consumption = self._read_by_identifier(id,IDENTIFIER_ENGINE_FUEL_CONSUMPTION)          
-            torque = self._read_by_identifier(id, IDENTIFIER_ENGINE_TORQUE)                  
-            fuel_used = self._read_by_identifier(id, IDENTIFIER_ENGINE_FUEL_USED)              
+            fuel_consumption = self._read_by_identifier(id, IDENTIFIER_ENGINE_FUEL_CONSUMPTION)
+            torque = self._read_by_identifier(id, IDENTIFIER_ENGINE_TORQUE)
+            fuel_used = self._read_by_identifier(id, IDENTIFIER_ENGINE_FUEL_USED)
             state_of_running = self._read_by_identifier(id, IDENTIFIER_ENGINE_STATE_OF_RUNNING)
-            current_speed = self._read_by_identifier(id, IDENTIFIER_ENGINE_CURRENT_SPEED)              
+            current_speed = self._read_by_identifier(id, IDENTIFIER_ENGINE_CURRENT_SPEED)
             engine_state = self._read_by_identifier(id, IDENTIFIER_ENGINE_STATE)
             serial_number = self._read_by_identifier(id, IDENTIFIER_ENGINE_SERIAL_NUMBER)
 
@@ -198,11 +200,11 @@ class ReadInfo(Action):
 
             log_info_message(logger, "Sending JSON")
             return response
-        
+
         except CustomError as e:
             self.bus.shutdown()
             return e.message
-        
+
     # def _to_json(self, module: ToJSON, data: list):
     #     """
     #     Private method to create a JSON response with status and error information.

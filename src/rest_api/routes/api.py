@@ -1,4 +1,4 @@
-from flask import request, jsonify, Blueprint, redirect, url_for
+from flask import request, jsonify, Blueprint
 from actions.request_id_action import RequestIdAction
 from actions.update_action import Updates
 from config import Config
@@ -75,6 +75,42 @@ def read_info_doors():
               type: string
             WindowStatus:
               type: string
+
+
+@api_bp.route('/read_info_battery', methods=['GET'])
+def read_info_bat():
+    """
+    Read information from the battery.
+    ---
+    responses:
+      200:
+        description: Information retrieved successfully
+        schema:
+          type: object
+          properties:
+            battery_level:
+              type: integer
+            voltage:
+              type: integer
+            battery_state_of_charge:
+              type: integer
+            temperature:
+              type: integer
+            life_cycle:
+              type: integer
+            fully_charged:
+              type: boolean
+            serial_number:
+              type: string
+            range_battery:
+              type: integer
+            charging_time:
+              type: integer
+            device_consumption:
+              type: integer
+            time_stamp:
+              type: string
+              format: date-time
     """
     reader = ReadInfo(0x23, [0x11, 0x12, 0x13])
     response = reader.read_from_doors()
@@ -183,15 +219,15 @@ def send_frame():
 
         can_id = int(data.get('can_id'), 16)
         can_data = [int(byte, 16) for byte in data.get('can_data').split(',')]
-        
+
         if can_id > 0xFFFF or len(can_data) > 8:
             raise ValueError("CAN ID or Data out of bounds")
-        
+
         generator = GenerateFrame()
         generator.send_frame(can_id, can_data)
 
         received_frame = bus.recv(timeout=15)
-        
+
         if received_frame is not None:
             received_data = {
                 'can_id': hex(received_frame.arbitration_id),
@@ -201,7 +237,7 @@ def send_frame():
             received_data = None
 
         return jsonify({'response': received_data})
-    
+
     except ValueError as e:
         return jsonify({'status': 'Error', 'message': str(e)}), 400
     except Exception as e:
