@@ -10,7 +10,8 @@ How to use?
     u.update_to(id_ecu, "12")
 '''
 
-from actions.base_actions import *  # Assuming this imports necessary actions
+from actions.base_actions import *
+import time
 
 
 class Updates(Action):
