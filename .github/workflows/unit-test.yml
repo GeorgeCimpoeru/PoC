@@ -23,6 +23,7 @@ jobs:
 
     - name: Set up virtual CAN interface
       run: |
+        sudo apt-get update
         sudo apt-get install -y can-utils
         sudo modprobe vcan
         sudo ip link add dev vcan0 type vcan
