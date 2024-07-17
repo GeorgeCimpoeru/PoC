@@ -76,6 +76,9 @@ def read_info_doors():
             WindowStatus:
               type: string
       """
+    reader = ReadInfo(0x23, [0x11, 0x12, 0x13])
+    response = reader.read_from_doors()
+    return jsonify(response)
 
 
 @api_bp.route('/read_info_engine', methods=['GET'])

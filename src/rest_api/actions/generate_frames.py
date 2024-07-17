@@ -17,7 +17,7 @@ class GenerateFrame:
             self.bus = bus
 
     def send_frame(self, id, data):
-        message = can.Message(arbitration_id=id, data=data, is_extended_id=False)
+        message = can.Message(arbitration_id=id, data=data, is_extended_id=True)
         try:
             self.bus.send(message)
         except can.CanError:

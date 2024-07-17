@@ -11,6 +11,7 @@ How to use?
 '''
 
 from actions.base_actions import *  # Assuming this imports necessary actions
+import time
 
 
 class Updates(Action):
@@ -39,7 +40,7 @@ class Updates(Action):
           indicating that the latest version is already installed.
         """
         self.data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-        self.id = self.my_id + ecu_id
+        self.id = (self.my_id * 0x100) + ecu_id
 
         try:
             # Verify if the current version matches the desired version
@@ -50,6 +51,8 @@ class Updates(Action):
             log_info_message(logger, "Changing session to programming")
             self.generate.session_control(self.id, 0x02)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
+
+            self._authentication(self.id)
 
             # Download the software update data
             log_info_message(logger, "Downloading... Please wait")
