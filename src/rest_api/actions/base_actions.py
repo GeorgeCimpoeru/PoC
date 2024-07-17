@@ -73,6 +73,8 @@ CLEAR_DTC = 0X14
 REQUEST_DOWNLOAD = 0X83
 TRANSFER_DATA = 0X36
 REQUEST_TRANSFER_EXIT = 0X37
+
+
 class FrameWithData:
     """Base class for frames with data extraction methods."""
     def _data_from_frame(self):
@@ -124,6 +126,7 @@ class Action:
         self.my_id = my_id
         self.id_ecu = id_ecu
         self.generate = GF(self.bus)
+
     def __collect_response(self, sid: int):
         """
         Collects the response message from the CAN bus.
@@ -153,6 +156,7 @@ class Action:
         if msg is not None and self.__verify_frame(msg, sid):
             return msg
         return None
+
     def __verify_frame(self, msg: can.Message, sid: int):
         """
         Verifies the validity of the received CAN message.
@@ -172,6 +176,7 @@ class Action:
             if msg.data[2] != sid + 0x40:
                 return False
         return True
+
     def _passive_response(self, sid, error_str="Error service"):
         """
         Collects and verifies the response, raising an error if invalid.
@@ -252,6 +257,7 @@ class Action:
         self.generate.authentication_key(id, key)
         self._passive_response(AUTHENTICATION, "Error sending key")
     # Implement in the child class
+
     def _to_json(self, status, no_errors):
         pass
 

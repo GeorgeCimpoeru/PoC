@@ -1,6 +1,5 @@
 import pytest
 from src.rest_api.app import app
-import json
 
 
 @pytest.fixture
@@ -52,4 +51,3 @@ def test_read_info_doors(client):
     response = client.get('/api/read_info_doors')
     assert response.status_code == 200
     assert isinstance(response.json, dict)
-    

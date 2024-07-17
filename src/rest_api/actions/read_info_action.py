@@ -16,6 +16,7 @@ import datetime
 from actions.base_actions import *
 from configs.data_identifiers import *
 
+
 class ToJSON:
     """Open-Close principle. Base class for different JSON formats."""
     def _to_json(self, data):
@@ -64,14 +65,14 @@ class EngineToJSON():
 
 
 class DoorsToJSON():
-    def _to_json(self,data:list):
-        response_to_frontend={
-        "Door_param":data[0],
-        "Serial_number":data[1],
-        "Cigarette_Lighter_Voltage":data[2],
-        "Light_state":data[3],
-        "BeltCard":data[4],
-        "WindowStatus":data[5]
+    def _to_json(self, data: list):
+        response_to_frontend = {
+            "Door_param": data[0],
+            "Serial_number": data[1],
+            "Cigarette_Lighter_Voltage": data[2],
+            "Light_state": data[3],
+            "BeltCard": data[4],
+            "WindowStatus": data[5]
         }
         return (response_to_frontend)
 
@@ -152,7 +153,6 @@ class ReadInfo(Action):
     #         self.bus.shutdown()
     #         return e.message
 
-    
     def read_from_engine(self):
         """
         Method to read information from the engine module.
@@ -201,7 +201,6 @@ class ReadInfo(Action):
             self.bus.shutdown()
             return e.message
 
-
     def read_from_doors(self):
         id_door = self.id_ecu[1]
         id = self.my_id * 0x100 + id_door
@@ -217,17 +216,17 @@ class ReadInfo(Action):
 
             log_info_message(logger, "Reading data from doors")
 
-            Door = self._read_by_identifier(id,IDENTIFIER_DOOR)
+            Door = self._read_by_identifier(id, IDENTIFIER_DOOR)
             serial_number = self._read_by_identifier(id, IDENTIFIER_DOOR_SERIALNUMBER)
-            cigarette_lighter_voltage = self._read_by_identifier(id,IDENTIFIER_LIGHTER_VOLTAGE)
+            cigarette_lighter_voltage = self._read_by_identifier(id, IDENTIFIER_LIGHTER_VOLTAGE)
             light_state = self._read_by_identifier(id, IDENTIFIER_LIGHT_STATE)
             belt = self._read_by_identifier(id, IDENTIFIER_BELT_STATE)
-            windows_closed=self._read_by_identifier(id, IDENTIFIER_WINDOWS_CLOSED)
-            data = [Door, serial_number, cigarette_lighter_voltage, light_state, belt,windows_closed]
+            windows_closed = self._read_by_identifier(id, IDENTIFIER_WINDOWS_CLOSED)
+            data = [Door, serial_number, cigarette_lighter_voltage, light_state, belt, windows_closed]
 
-            module=DoorsToJSON()
-            response=module._to_json(data)
-             # Shutdown the CAN bus interface
+            module = DoorsToJSON()
+            response = module._to_json(data)
+            # Shutdown the CAN bus interface
             self.bus.shutdown()
 
             log_info_message(logger, "Sending JSON")

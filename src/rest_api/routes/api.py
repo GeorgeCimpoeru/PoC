@@ -78,46 +78,6 @@ def read_info_doors():
       """
 
 
-@api_bp.route('/read_info_battery', methods=['GET'])
-def read_info_bat():
-    """
-    Read information from the battery.
-    ---
-    responses:
-      200:
-        description: Information retrieved successfully
-        schema:
-          type: object
-          properties:
-            battery_level:
-              type: integer
-            voltage:
-              type: integer
-            battery_state_of_charge:
-              type: integer
-            temperature:
-              type: integer
-            life_cycle:
-              type: integer
-            fully_charged:
-              type: boolean
-            serial_number:
-              type: string
-            range_battery:
-              type: integer
-            charging_time:
-              type: integer
-            device_consumption:
-              type: integer
-            time_stamp:
-              type: string
-              format: date-time
-    """
-    reader = ReadInfo(0x23, [0x11, 0x12, 0x13])
-    response = reader.read_from_doors()
-    return jsonify(response)
-
-
 @api_bp.route('/read_info_engine', methods=['GET'])
 def read_info_eng():
     """
