@@ -173,14 +173,21 @@ void RequestDownloadService::requestDownloadRequest(int id, std::vector<uint8_t>
     }
 
     /*Download from drive- part 3*/
-
+    std::string path = "";
     if(download_type == 0x89)
     {
         if (receiver_id == 0x10)
         {
             LOG_INFO(RDSlogger.GET_LOGGER(), "Map memory in MCU and transfer data");
             /* Map memory in MCU -Set adress vector-> send to Install for mapping data */
-            /* mapMemoryMCU(memory_address)*/
+            
+            off_t off_memory_address = 0;
+            for (uint8_t byte: memory_address)
+            {
+                off_memory_address = off_memory_address * 0x100 + byte;
+            }
+            MemoryManager* managerInstance = MemoryManager::getInstance(off_memory_address, path, &MCULogger);
+            managerInstance->getAddress();
             id = (frame_dest_id << 8) | receiver_id;
             /* routine for transfer first or second partition */
         }
@@ -188,7 +195,14 @@ void RequestDownloadService::requestDownloadRequest(int id, std::vector<uint8_t>
         {
             LOG_INFO(RDSlogger.GET_LOGGER(), "Map memory in ECU and transfer data");
             /* Map memory in ECU -Set adress vector-> send to Install for mapping data */
-            /* mapMemoryECU(memory_address)*/
+            off_t off_memory_address = 0;
+            for (uint8_t byte: memory_address)
+            {
+                off_memory_address = off_memory_address * 0x100 + byte;
+            }
+            MemoryManager* managerInstance = MemoryManager::getInstance(off_memory_address, path, &MCULogger);
+            managerInstance->getAddress();
+           
             id = (frame_dest_id << 8) | receiver_id;
             for (uint16_t block_number = 0; block_number < max_number_block; ++block_number)
             {
@@ -317,3 +331,63 @@ bool RequestDownloadService::isLatestSoftwareVersion(ReadDataByIdentifier softwa
     * }
     */
 }
+
+/** Use libraries for tar
+ * #include <archive.h>
+ * #include <archive_entry.h>
+ * Add flag -larchive to makefiles LDFLAGS
+ */
+/**Methods for decompress using TAR: To be included in .h
+ * std::vector<uint8_t> decompressTar(const std::vector<uint8_t>& tarData);
+ * std::vector<uint8_t> processPayload(const std::vector<uint8_t> &stored_data, uint8_t compression_type, uint8_t start_index, Logger& RDSlogger);
+ */
+
+/**Method implementation for decompress using TAR, To be included in .cpp
+ * std::vector<uint8_t> RequestDownloadService::decompressTar(const std::vector<uint8_t> &tarData)
+ * {
+ *  struct archive *archive;
+ *  struct archive_entry *entry;
+ *  std::vector<uint8_t> decompressedData;
+ *
+ *  archive = archive_read_new();
+ *  archive_read_support_format_tar(archive);
+ *
+ *  if (archive_read_open_memory(archive, tarData.data(), tarData.size()) != ARCHIVE_OK)
+ *  {
+ *      throw std::runtime_error("Failed to open tar archive");
+ *   }
+ *
+ *  while (archive_read_next_header(archive, &entry) == ARCHIVE_OK)
+ *  {
+ *      size_t size = archive_entry_size(entry);
+ *      std::vector<uint8_t> buffer(size);
+ *      if (archive_read_data(archive, buffer.data(), size) < 0)
+ *      {
+ *          throw std::runtime_error("Failed to read data from tar archive");
+ *      }
+ *
+ *      decompressedData.insert(decompressedData.end(), buffer.begin(), buffer.end());
+ *  }
+ *
+ *  archive_read_free(archive);
+ *  return decompressedData;
+ * }
+ *
+ * std::vector<uint8_t> RequestDownloadService::processPayload(const std::vector<uint8_t> &stored_data, uint8_t compression_type, uint8_t start_index, Logger &RDSlogger)
+ * {
+ *  LOG_INFO(RDSlogger.GET_LOGGER(), "Compression Type: 0x{0:x}", static_cast<int>(compression_type));
+ *  std::vector<uint8_t> payload(stored_data.begin() + start_index, stored_data.end());
+ *  if (compression_type == 0x1)
+ *  {
+ *      return decompressTar(payload);
+ *  }
+ *  else if (compression_type == 0x0)
+ *  {
+ *  LOG_INFO(RDSlogger.GET_LOGGER(), "No compression method used");
+ *  }
+ *  else
+ *  LOG_ERROR(RDSlogger.GET_LOGGER(), "Unknown compression method used");
+ *   sendNegativeResponse(id, 0x34, 0x31); // Request out of range -the specified dataFormatIdentifier is not valid
+ *  return payload;
+ * }
+ */

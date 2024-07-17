@@ -16,6 +16,7 @@
 #include "../../uds/diagnostic_session_control/include/DiagnosticSessionControl.h"
 #include "../../uds/authentication/include/SecurityAccess.h"
 #include "../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
+#include "../../utils/include/MemoryManager.h"
 
 class RequestDownloadService
 {

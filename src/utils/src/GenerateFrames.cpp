@@ -508,8 +508,8 @@ void GenerateFrames::negativeResponse(int id, uint8_t sid, uint8_t nrc)
 void GenerateFrames::requestDownload(int id, uint8_t data_format_identifier, int memory_address, int memory_size, uint8_t download_type)
 {
     /* Request Frame add lengths of of memory size/address to the frame */
-    uint8_t length_memory_size = countDigits(memory_size + 1) / 2;
-    uint8_t length_memory_address = countDigits(memory_address + 1) / 2;
+    uint8_t length_memory_size = (countDigits(memory_size ) + 1) / 2;
+    uint8_t length_memory_address = (countDigits(memory_address) + 1 )/ 2;
     uint8_t length_memory = length_memory_size * 0x10 + length_memory_address;
     uint8_t pci_length = length_memory_size + length_memory_address + 3;
     std::vector<uint8_t> data = {pci_length, 0x34, data_format_identifier, length_memory};
@@ -519,6 +519,24 @@ void GenerateFrames::requestDownload(int id, uint8_t data_format_identifier, int
     data.push_back(download_type);
     this->sendFrame(id, data);
     return;
+}
+
+void GenerateFrames::requestDownloadLong(int id, uint8_t data_format_identifier, int memory_address, int memory_size, uint8_t download_type, bool first_frame) 
+{
+    /* Request Frame add lengths of of memory size/address to the frame */
+    uint8_t length_memory_size = (countDigits(memory_size ) + 1) / 2;
+    uint8_t length_memory_address = (countDigits(memory_address) + 1 )/ 2;
+    uint8_t length_memory = length_memory_size * 0x10 + length_memory_address;
+    uint8_t pci_length = length_memory_size + length_memory_address + 3 + 2;
+    std::vector<uint8_t> data = {pci_length, 0x34, data_format_identifier, length_memory};
+    /* add memory address and size to the frame */
+    insertBytes(data, memory_address, length_memory_address);
+    insertBytes(data, memory_size, length_memory_size);
+    data.push_back(download_type);
+    /* Send only 3 first bytes of data */
+    this->GenerateConsecutiveFrames(id, data, first_frame);
+    return;
+    
 }
 
 void GenerateFrames::requestDownloadResponse(int id, int max_number_block)
