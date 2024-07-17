@@ -275,7 +275,7 @@ class GenerateFrames
          * @param memory_address Memory address variable
          * @param memory_size Memory size variable
          */
-        void requestDownload(int id, uint8_t data_format_identifier, int memory_address, int memory_size);
+        void requestDownload(int id, uint8_t data_format_identifier, int memory_address, int memory_size, uint8_t download_type);
         /**
          * @brief Response to requestDownload
          * @param id id of the frame(sender id and receiver id)

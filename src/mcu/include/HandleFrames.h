@@ -35,7 +35,6 @@ namespace MCU
         int socket_api = -1;
         int socket_canbus = -1;
         DiagnosticSessionControl mcuDiagnosticSessionControl;
-        RequestDownloadService requestDownload;
     public:
         HandleFrames(int socket_api, int socket_canbus);
         /**

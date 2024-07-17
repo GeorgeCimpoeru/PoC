@@ -438,7 +438,7 @@ void GenerateFrames::GenerateConsecutiveFrames(int id, std::vector<uint8_t> data
         uint8_t index = 0;
         while (data.size())
         {
-            uint8_t head = 0x20 + (index++)  % 0xFF;
+            uint8_t head = 0x20 + (++index)  % 0xFF;
             std::vector<uint8_t> data_in_frame = { head };
             if (data.size() >=8)
             {
@@ -505,7 +505,7 @@ void GenerateFrames::negativeResponse(int id, uint8_t sid, uint8_t nrc)
     return;
 }
 
-void GenerateFrames::requestDownload(int id, uint8_t data_format_identifier, int memory_address, int memory_size)
+void GenerateFrames::requestDownload(int id, uint8_t data_format_identifier, int memory_address, int memory_size, uint8_t download_type)
 {
     /* Request Frame add lengths of of memory size/address to the frame */
     uint8_t length_memory_size = countDigits(memory_size + 1) / 2;
@@ -516,6 +516,7 @@ void GenerateFrames::requestDownload(int id, uint8_t data_format_identifier, int
     /* add memory address and size to the frame */
     insertBytes(data, memory_address, length_memory_address);
     insertBytes(data, memory_size, length_memory_size);
+    data.push_back(download_type);
     this->sendFrame(id, data);
     return;
 }

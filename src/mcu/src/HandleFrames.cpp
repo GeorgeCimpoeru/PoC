@@ -9,7 +9,7 @@
 namespace MCU
 {
     HandleFrames::HandleFrames(int socket_api, int socket_canbus) 
-                : mcuDiagnosticSessionControl(MCULogger, socket_api) , requestDownload(socket_api, MCULogger)
+                : mcuDiagnosticSessionControl(MCULogger, socket_api)
     {
         this->socket_api = socket_api;
         this->socket_canbus = socket_canbus;
@@ -368,8 +368,10 @@ namespace MCU
                     LOG_INFO(MCULogger.GET_LOGGER(), "Service 0x34 RequestDownload");
                     LOG_INFO(MCULogger.GET_LOGGER(), "SID pos: {}", sid);
                     LOG_INFO(MCULogger.GET_LOGGER(), "Data size: {}", frame_data.size());
-
-                    requestDownload.requestDownloadRequest(frame_id, frame_data, MCULogger);
+                    RequestDownloadService requestDownload(getMcuSocket(frame_id), MCULogger);
+                    ReadDataByIdentifier software_version(getMcuSocket(frame_id), MCULogger);
+                    SecurityAccess logged_in(getMcuSocket(frame_id), MCULogger);
+                    requestDownload.requestDownloadRequest(frame_id, frame_data, MCULogger, mcuDiagnosticSessionControl, software_version, logged_in);
                 }
                 break;
             case 0x36:
