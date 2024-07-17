@@ -40,7 +40,7 @@ void TesterPresent::handleTesterPresent(uint32_t can_id, std::vector<uint8_t> da
     LOG_INFO(logger.GET_LOGGER(), "Tester Present Service Received");
 
     /* Send positive response */
-    this->generate->testerPresent(0x1011, true); /* replace with can_id */
+    this->generate->testerPresent(can_id, true);
 
     /* Reset the S3 timer */
     running = false;

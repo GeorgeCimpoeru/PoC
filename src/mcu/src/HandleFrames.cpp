@@ -9,7 +9,7 @@
 namespace MCU
 {
     HandleFrames::HandleFrames(int socket_api, int socket_canbus) 
-                : mcuDiagnosticSessionControl(MCULogger, socket_api) , requestDownload(socket_api, MCULogger), testerPresent(MCULogger, socket_canbus) /* socket_api */
+                : mcuDiagnosticSessionControl(MCULogger, socket_api) , requestDownload(socket_api, MCULogger), testerPresent(MCULogger, socket_api)
     {
         this->socket_api = socket_api;
         this->socket_canbus = socket_canbus;
@@ -132,7 +132,370 @@ namespace MCU
     /* Method to call the service or handle the response*/
     void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<uint8_t> frame_data, bool is_multi_frame) 
     {
+        bool is_api_frame = (frame_id >> 8) & 0xFF == 0xFA;
+        int destination_socket = getMcuSocket(frame_id);
 
+        if (is_api_frame)
+        {
+            if (isEcuDestination(sid))
+            {
+                forwardToEcu(frame_id, sid, frame_data);
+            }
+            else
+            {
+                handleApiFrame(frame_id, sid, frame_data, is_multi_frame);
+            }
+        }
+        else
+        {
+            handleCanFrame(frame_id, sid, frame_data, is_multi_frame);
+        }
+    }
+
+    void HandleFrames::forwardToEcu(canid_t frame_id, uint8_t sid, std::vector<uint8_t> frame_data)
+    {
+        /* Forward the frame to the ECU */
+        /* Send the frame to the ECU */
+        /* Send the response back to the API */
+        GenerateFrames generate(MCULogger);
+        generate.sendFrame(frame_id, frame_data, socket_canbus);
+
+        struct pollfd fds;
+        fds.fd = socket_canbus;
+        fds.events = POLLIN;
+
+        int ret = poll(&fds, 1, 1000);
+        if (ret > 0 && (fds.revents & POLLIN))
+        {
+            struct can_frame ecu_response;
+            int nbytes = read(socket_canbus, &ecu_response, sizeof(struct can_frame));
+            if (nbytes > 0)
+            {
+                std::vector<uint8_t> response_data(ecu_response.data, ecu_response.data + ecu_response.can_dlc);
+                generate.sendFrame(frame_id, response_data, socket_api);
+            }
+            else
+            {
+                LOG_ERROR(MCULogger.GET_LOGGER(), "Error reading from ECU socket");
+            }
+        }
+        else if (ret == 0)
+        {
+            LOG_ERROR(MCULogger.GET_LOGGER(), "Timeout waiting for ECU response");
+        }
+        else
+        {
+            LOG_ERROR(MCULogger.GET_LOGGER(), "Error polling ECU socket");
+        }
+    }
+
+    void HandleFrames::handleApiFrame(canid_t frame_id, uint8_t sid, std::vector<uint8_t> frame_data, bool is_multi_frame)
+    {
+        switch (sid) {
+            case 0x10:
+                /* DiagnosticSessionControl(sid, frame_data[2]); */
+                if(frame_data[1] == 0x7F)
+                {
+                    processNrc(frame_id, sid, frame_data[3]);
+                }
+                else 
+                {    
+                    LOG_INFO(MCULogger.GET_LOGGER(), "DiagnosticSessionControl called.");
+                    mcuDiagnosticSessionControl.sessionControl(sid, frame_data[2]);
+                    LOG_INFO(MCULogger.GET_LOGGER(), "MCU Current session: {}", mcuDiagnosticSessionControl.getCurrentSessionToString());
+                } 
+                break;
+            case 0x11:
+            {
+                /* Negative response */
+                if(frame_data[1] == 0x7F)
+                {
+                    processNrc(frame_id, sid, frame_data[3]);
+                }
+                else 
+                {
+                    LOG_INFO(MCULogger.GET_LOGGER(), "Service 0x11 EcuReset");
+                    LOG_INFO(MCULogger.GET_LOGGER(), "Data size: {}", frame_data.size());
+                    uint8_t sub_function = frame_data[2];
+                    LOG_INFO(MCULogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
+
+                    /* Calls ECU Reset */                
+                    EcuReset ecu_reset(frame_id, sub_function, getMcuSocket(frame_id), MCULogger);
+                    ecu_reset.ecuResetRequest();
+                }
+                break;
+            }
+            case 0x27:
+                /* SecurityAccess(sid, frame_data[2], key?); */
+                if(frame_data[1] == 0x7F)
+                {
+                    processNrc(frame_id, sid, frame_data[3]);
+                }
+                else
+                {
+                    LOG_INFO(MCULogger.GET_LOGGER(), "SecurityAccess called.");
+                    SecurityAccess security_access(getMcuSocket(frame_id), MCULogger);
+                    security_access.securityAccess(frame_id, frame_data);
+                }
+                break;
+            case 0x29:
+                /* Authentication(); */
+                if(frame_data[1] == 0x7F)
+                {
+                    processNrc(frame_id, sid, frame_data[3]);
+                }
+                else 
+                {
+                    LOG_INFO(MCULogger.GET_LOGGER(), "Authentication called.");
+                }
+                break;
+            case 0x3E:
+                /* TesterPresent(sid, frame_data[2]); */
+                if(frame_data[1] == 0x7F)
+                {
+                    processNrc(frame_id, sid, frame_data[3]);
+                }
+                else 
+                {
+                    testerPresent.handleTesterPresent(frame_id, frame_data);
+                    LOG_INFO(MCULogger.GET_LOGGER(), "TesterPresent called.");
+                }
+                break;
+            case 0x83:
+                /* AccessTimingParameters(sid, frame_data[2]); */
+                if(frame_data[1] == 0x7F)
+                {
+                    processNrc(frame_id, sid, frame_data[3]);
+                }
+                else 
+                {
+                    LOG_INFO(MCULogger.GET_LOGGER(), "AccessTimingParameters called.");
+                }
+                break;
+            case 0x22:
+                /* ReadDataByIdentifier(sid, frame_data[2] << 8) | frame_data[3]); */
+                if(frame_data[1] == 0x7F)
+                {
+                    processNrc(frame_id, sid, frame_data[3]);
+                }
+                else 
+                {
+                    LOG_INFO(MCULogger.GET_LOGGER(), "ReadDataByIdentifier called.");
+                    ReadDataByIdentifier read_data_by_identifier(getMcuSocket(frame_id), MCULogger);
+                    read_data_by_identifier.readDataByIdentifier(frame_id, frame_data, true);
+                }
+                break;
+            case 0x23:
+                /* ReadMemoryByAddress(frame_data[2], frame_data[3] << 8) | frame_data[4], frame_data[5] << 8) | frame_data[6]); */
+                if(frame_data[1] == 0x7F)
+                {
+                    processNrc(frame_id, sid, frame_data[3]);
+                }
+                else 
+                {
+                    LOG_INFO(MCULogger.GET_LOGGER(), "ReadMemoryByAddress called.");
+                }
+                break;
+            case 0x2E:
+                /* WriteDataByIdentifier(sid, frame_data[2] << 8) | frame_data[3], data_parameter?); */
+                if(frame_data[1] == 0x7F)
+                {
+                    processNrc(frame_id, sid, frame_data[3]);
+                }
+                else 
+                {
+                    LOG_INFO(MCULogger.GET_LOGGER(), "WriteDataByIdentifier service called!");
+                    WriteDataByIdentifier write_data_by_identifier(frame_id, frame_data, MCULogger, getMcuSocket(frame_id));
+                }
+                break;
+            case 0x14:
+                /* ClearDiagnosticInformation(); */
+                if(frame_data[1] == 0x7F)
+                {
+                    processNrc(frame_id, sid, frame_data[3]);
+                }
+                else 
+                {
+                    LOG_INFO(MCULogger.GET_LOGGER(), "ClearDiagnosticInformation called.");
+                }
+                break;
+            case 0x19:
+                /* ReadDtcInformation(); */
+                if(frame_data[1] == 0x7F)
+                {
+                    processNrc(frame_id, sid, frame_data[3]);
+                }
+                else 
+                {
+                    LOG_INFO(MCULogger.GET_LOGGER(), "ReadDtcInformation called.");
+                    /* verify_frame() */
+                    ReadDTC readDtc(MCULogger, "../../uds/read_dtc_information/dtcs.txt", getMcuSocket(frame_id));
+                    readDtc.read_dtc(frame_id, frame_data);
+                }
+                break;
+            case 0x31:
+                /* RoutineControl(sid, frame_data[2], frame_data[3] << 8) | frame_data[4]); */
+                if(frame_data[1] == 0x7F)
+                {
+                    processNrc(frame_id, sid, frame_data[3]);
+                }
+                else 
+                {
+                    LOG_INFO(MCULogger.GET_LOGGER(), "RoutineControl called.");
+                }
+                break;
+            /* UDS Responses */
+            case 0x50:
+                /* Response for DiagnosticSessionControl */
+                LOG_INFO(MCULogger.GET_LOGGER(), "Response for DiagnosticSessionControl received.");
+                break;
+            case 0x51:
+            {
+                /* Response from ECU Reset service
+                   Send the response to API */
+                LOG_INFO(MCULogger.GET_LOGGER(), "Response from EcuReset received.");
+                uint8_t sub_function = frame_data[2];                    
+                EcuReset ecu_reset(frame_id, sub_function, getMcuSocket(frame_id), MCULogger);
+                ecu_reset.ecuResetResponse();
+                break;
+            }
+            case 0x67:
+                /* Response from SecurityAccess() service */
+                LOG_INFO(MCULogger.GET_LOGGER(), "Response from SecurityAccess received.");
+                break;
+            case 0x69:
+                /* Response from Authentication() service */
+                LOG_INFO(MCULogger.GET_LOGGER(), "Response from Authentication received.");
+                break;
+            case 0x7E:
+                /* Response from TesterPresent() service */
+                LOG_INFO(MCULogger.GET_LOGGER(), "Response from TesterPresent received.");
+                break;
+            case 0xC3:
+                /* Response from AccessTimingParameters() service */
+                LOG_INFO(MCULogger.GET_LOGGER(), "Response from AccessTimingParameters received.");
+                break;
+            case 0x62:
+                /* Response from ReadDataByIdentifier() service */
+                if(is_multi_frame)
+                {
+                    LOG_INFO(MCULogger.GET_LOGGER(),"Response from ReadDataByIdentifier received.");
+                    LOG_INFO(MCULogger.GET_LOGGER(), "Received multiple frames containing {} {}", frame_data.size(), "bytes of data");
+                }
+                else 
+                {
+                    LOG_INFO(MCULogger.GET_LOGGER(),"Response from ReadDataByIdentifier received in one frame.");
+                }
+                break;
+            case 0x63:
+                /* Response from ReadMemoryByAddress() service */
+                if(is_multi_frame)
+                {
+                    LOG_INFO(MCULogger.GET_LOGGER(),"Response from ReadMemoryByAdress received.");
+                    LOG_INFO(MCULogger.GET_LOGGER(),"Received multiple frames containing {} {}", frame_data.size(), "bytes of data");
+                }
+                else 
+                {
+                    LOG_INFO(MCULogger.GET_LOGGER(),"Response from ReadMemoryByAdress received in one frame.");
+                }
+                break;
+            case 0x6E:
+                /* Response from WriteDataByIdentifier() service */
+                LOG_INFO(MCULogger.GET_LOGGER(), "Response from WriteDataByIdentifier received.");
+                break;
+            case 0x54:
+                /* Response from ClearDiagnosticInformation() service */
+                LOG_INFO(MCULogger.GET_LOGGER(), "Response from ClearDiagnosticInformation received.");
+                break;
+            case 0x59:
+                /* Response from ReadDtcInformation() service */
+                LOG_INFO(MCULogger.GET_LOGGER(), "Response from ReadDtcInformation received.");
+                break;
+            case 0x71:
+                /* Response from RoutineControl() service */
+                LOG_INFO(MCULogger.GET_LOGGER(), "Response from RoutineControl received.");
+                break;
+            /* OTA Requests */
+            case 0x34:
+                /* RequestDownload(sid, frame_data[2], frame_data[3], frame_data[4], frame_data[5]); */
+                if(frame_data[1] == 0x7F)
+                {
+                    processNrc(frame_id, sid, frame_data[3]);
+                }
+                else 
+                {
+                    LOG_INFO(MCULogger.GET_LOGGER(), "Service 0x34 RequestDownload");
+                    LOG_INFO(MCULogger.GET_LOGGER(), "SID pos: {}", sid);
+                    LOG_INFO(MCULogger.GET_LOGGER(), "Data size: {}", frame_data.size());
+
+                    requestDownload.requestDownloadRequest(frame_id, frame_data, MCULogger);
+                }
+                break;
+            case 0x36:
+                /* TransferData(sid, frame_data[2], frame_data[3], frame_data[4]); */
+                if(frame_data[1] == 0x7F)
+                {
+                    processNrc(frame_id, sid, frame_data[3]);
+                }
+                else if(is_multi_frame)
+                {
+                    LOG_INFO(MCULogger.GET_LOGGER(), "TransferData called with multiple frames.");
+                }
+                else 
+                {
+                    LOG_INFO(MCULogger.GET_LOGGER(), "TransferData called with one frame.");
+                }
+                break;
+            case 0x37:
+                /* RequestTransferExit(sid, frame_data[2]); */
+                if(frame_data[1] == 0x7F)
+                {
+                    processNrc(frame_id, sid, frame_data[3]);
+                }
+                else 
+                {
+                    LOG_INFO(MCULogger.GET_LOGGER(), "RequestTransferExit called.");
+                }
+                break;
+            case 0x32:
+                /* RequestUpdateStatus(); */
+                if(frame_data[1] == 0x7F)
+                {
+                    processNrc(frame_id, sid, frame_data[3]);
+                }
+                else 
+                {
+                    LOG_INFO(MCULogger.GET_LOGGER(), "RequestUpdateStatus called.");
+                    RequestUpdateStatus RUS(getMcuSocket(frame_id), MCULogger);
+                    RUS.requestUpdateStatus(frame_id, frame_data);
+                }
+                break;
+            /* OTA Responses */
+            case 0x74:
+                /* Response from RequestDownload() service */
+                LOG_INFO(MCULogger.GET_LOGGER(), "Response from RequestDownload received.");
+                break;
+            case 0x76:
+                /* Response from TransferData() service */
+                LOG_INFO(MCULogger.GET_LOGGER(), "Response from TransferData received.");
+                break;
+            case 0x77:
+                /* Response from RequestTransferExit() service */
+                LOG_INFO(MCULogger.GET_LOGGER(), "Response from RequestTransferExit received.");
+                break;
+            case 0x72:
+                /* Response from RequestUpdateStatus() service */
+                LOG_INFO(MCULogger.GET_LOGGER(), "Response from RequestUpdateStatus received.");
+                break;
+            default:
+                /* Unknown request/response */
+                LOG_INFO(MCULogger.GET_LOGGER(), "Unknown request/response received.");
+                break;
+        }
+    }
+
+    void HandleFrames::handleCanFrame(canid_t frame_id, uint8_t sid, std::vector<uint8_t> frame_data, bool is_multi_frame)
+    {
         switch (sid) {
             case 0x10:
                 /* DiagnosticSessionControl(sid, frame_data[2]); */
@@ -439,6 +802,12 @@ namespace MCU
                 break;
         }
     }
+
+    bool HandleFrames::isEcuDestination(uint8_t sid)
+    {
+        return sid == 0x10 || sid == 0x11 || sid == 0x27 || sid == 0x29 || sid == 0x3E || sid == 0x83 || sid == 0x22 || sid == 0x23 || sid == 0x2E || sid == 0x14 || sid == 0x19 || sid == 0x31;
+    }
+
     void HandleFrames::processNrc(canid_t frame_id, uint8_t sid, uint8_t nrc)
     {
         switch(nrc)
@@ -490,6 +859,7 @@ namespace MCU
                 break;
         }
     }
+    
     int HandleFrames::getMcuSocket(canid_t frame_id)
     {
         uint8_t sender_id = (frame_id >> 8) & 0xFF;

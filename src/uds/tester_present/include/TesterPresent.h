@@ -19,7 +19,6 @@ class TesterPresent
 {
 private:
     GenerateFrames* generate;
-    // ReceiveFrames* receive;
     std::thread timerThread;
     std::atomic<bool> running;
     Logger logger;
