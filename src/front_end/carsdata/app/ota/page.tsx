@@ -1,39 +1,63 @@
 'use client';
+import { useState } from "react";
 import LeftSideBar from "../components/OTAcomponents/LeftSideBar";
-import NavbarOta from "../components/OTAcomponents/NavbarOta";
+import NavbarOTA from "../components/OTAcomponents/NavbarOTA";
 import TableOta from "../components/OTAcomponents/TableOta";
-import DeploymentHistory from "../components/OTAcomponents/DeploymentHistory";
-
+import NavbarHistory from "../components/OTAcomponents/NavbarHistory";
 
 
 const OTApage = () => {
-    if (true) {
-        return (
-            <div className="flex w-full h-screen flex-col lg:flex-row">
-                <LeftSideBar></LeftSideBar>
-                <div className="w-[94%] h-screen flex flex-col">
-                    <NavbarOta></NavbarOta>
-                    {/* <button className="btn btn-ghost m-1 mt-1 mr-6 ml-6 justify-end">Deployment history</button> */}
-                    <DeploymentHistory></DeploymentHistory>
-                    <TableOta></TableOta>
-                </div>
-            </div>
-        );
+    let history1: Array<string> = ['Sofware update 1', 'Sofware update 2', 'Sofware update 3'];
+    let history2: Array<string> = ['Sofware update 1', 'Sofware update 2', 'Sofware update 3', 'Sofware update 4'];
+    let history3: Array<string> = ['Sofware update 1', 'Sofware update 2', 'Sofware update 3', 'Sofware update 4', 'Sofware update 5'];
+    let history4: Array<string> = ['Sofware update 1', 'Sofware update 2', 'Sofware update 3', 'Sofware update 4', 'Sofware update 5', 'Sofware update 6'];
+    let history5: Array<string> = ['Sofware update 1', 'Sofware update 2', 'Sofware update 3', 'Sofware update 4', 'Sofware update 5', 'Sofware update 6', 'Sofware update 7'];
+    let [history6, setHistory6] = useState(['']);
 
+    const [icon, setIcon] = useState(true);
+
+    const clickedButton = (button: number) => {
+        if (button == 1) {
+            setHistory6(history1);
+        } else if (button == 2) {
+            setHistory6(history2);
+        } else if (button == 3) {
+            setHistory6(history3);
+        } else if (button == 4) {
+            setHistory6(history4);
+        } else if (button == 5) {
+            setHistory6(history5);
+        }
     }
 
-    else {
+    const clickedIcon = (icon: number) => {
+        if (icon == 1) {
+            setIcon(true);
+        } else if (icon == 2) {
+            setIcon(false);
+        }
+    }
+
+    if (icon) {
         return (
             <div className="flex w-full h-screen flex-col lg:flex-row">
-                <LeftSideBar></LeftSideBar>
+                <LeftSideBar clickedIcon={clickedIcon}></LeftSideBar>
                 <div className="w-[94%] h-screen flex flex-col">
-                    <NavbarOta></NavbarOta>
+                    <NavbarOTA></NavbarOTA>
                 </div>
             </div>
         );
-
+    } else {
+        return (
+            <div className="flex w-full h-screen flex-col lg:flex-row">
+                <LeftSideBar clickedIcon={clickedIcon}></LeftSideBar>
+                <div className="w-[94%] h-screen flex flex-col">
+                    <NavbarHistory checkedButton={clickedButton}></NavbarHistory>
+                    <TableOta listOfUpdates={history6} ></TableOta>
+                </div>
+            </div>
+        );
     }
 }
 
 export default OTApage;
-
