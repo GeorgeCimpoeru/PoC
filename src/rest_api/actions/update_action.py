@@ -13,6 +13,7 @@ How to use?
 from actions.base_actions import *  # Assuming this imports necessary actions
 import time
 
+
 class Updates(Action):
     """
     Update class for managing software updates on an Electronic Control Unit (ECU).

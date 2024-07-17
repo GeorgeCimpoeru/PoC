@@ -235,9 +235,6 @@ class Action:
         Returns:
         - The extracted data if the frame type is recognized, otherwise None.
         """
-        # debugging
-        # if msg is None:
-            # return [1, 2, 3, 4, 5]
         handlers = {
             0x62: ReadByIdentifier(),
             0x63: ReadByAddress(),
