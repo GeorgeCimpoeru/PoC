@@ -4,6 +4,8 @@ import subprocess
 import shutil
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
+from oauth2client.service_account import ServiceAccountCredentials
+import pkg_resources
 
 path_tool =""
 def find_path():
@@ -38,19 +40,33 @@ def create_exec(version:str):
         subprocess.run(["mkdir {0}/{1}".format(path_tool,dir_name)],shell=True, check = True)
         subprocess.run(["make -C {0}/../src/mcu/".format(path_tool)],shell=True, check = True)
         subprocess.run(["mv", "{0}/../src/mcu/main".format(path_tool), "{0}/{1}/executable_mcu".format(path_tool, dir_name)], shell=True, check=True)
-        #subprocess.run(["make", "-C", "{0}/../src/ecu_simulation/BatteryModule".format(path_tool)], shell=True, check=True)
-        #subprocess.run(["mv", "{0}/../src/executable_mcu/BatteryModule/main".format(path_tool), "{0}/{1}/executable_battery".format(path_tool, dir_name)], shell=True, check=True)
+        subprocess.run(["make", "-C", "{0}/../src/ecu_simulation/BatteryModule".format(path_tool)], shell=True, check=True)
+        subprocess.run(["mv", "{0}/../src/executable_mcu/BatteryModule/main".format(path_tool), "{0}/{1}/executable_battery".format(path_tool, dir_name)], shell=True, check=True)
 
         directory_path = os.path.expanduser( path_tool +"/"+dir_name)
         output_path = os.path.expanduser(path_tool+"/release"+version)
-        #shutil.make_archive(output_path, 'zip', directory_path)
+        shutil.make_archive(output_path, 'zip', directory_path)
     except subprocess.CalledProcessError as error:
         print(error)
     except FileNotFoundError as error:
         print(error)
+    return output_path
 
-def upload():
-    pass
+def upload(output_path : str):
+    gauth = GoogleAuth() 
+  
+    # Creates local webserver and auto 
+    # handles authentication. 
+    gauth.LocalWebserverAuth()        
+    drive = GoogleDrive(gauth) 
+    
+    # replace the value of this variable 
+    # with the absolute path of the directory 
+    f = drive.CreateFile({'title': output_path.split('/')[-1]}) 
+    f.SetContentFile(os.path.join(output_path)) 
+    f.Upload() 
+    f = None
+    print("\n--------- File is Uploaded ----------")
 
 def main():
     global path_tool
@@ -63,8 +79,8 @@ def main():
         exit(-1)
     if len(sys.argv) > 2:
         path_tool = sys.argv[2]
-    create_exec(version)
-    upload()
+    output_path = create_exec(version)
+    #upload(output_path)
 
 if __name__ == "__main__":
     main()

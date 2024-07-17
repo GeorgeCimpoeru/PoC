@@ -15,3 +15,6 @@ src/rest_api/utils/__pycache__
 # ignore local cached databases
 src/rest_api/database/can_frames.db
 src/rest_api/database/mcu_ids.db
+
+# ignore credentials
+AutoScripts/client_secrets.json
