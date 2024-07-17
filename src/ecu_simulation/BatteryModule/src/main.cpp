@@ -2,11 +2,11 @@
 
 int main() {
     sleep(5);
-    BatteryModule batteryModule(0x00, 0x11); /* no arguments */
+    BatteryModule batteryModule;
     batteryModule.fetchBatteryData();
     std::thread receiveFrThread([&batteryModule]()
                                { batteryModule.receiveFrames(); });
-    sleep(300); /* sleep for 8 seconds */
+    sleep(8);
     batteryModule.stopFrames();
     receiveFrThread.join();
     return 0;
