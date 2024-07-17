@@ -75,6 +75,7 @@ def read_info_doors():
               type: string
             WindowStatus:
               type: string
+      """
 
 
 @api_bp.route('/read_info_battery', methods=['GET'])

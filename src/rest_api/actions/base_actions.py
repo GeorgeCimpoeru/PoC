@@ -45,6 +45,7 @@ How to create a new class action, example:
                 # Shutdown the CAN bus interface
                 self.bus.shutdown()
                 return response_json
+
             except CustomError as e:
                 # Handle custom errors from frames
                 self.bus.shutdown()
@@ -78,13 +79,11 @@ class FrameWithData:
         pass
 
 
-
 class ReadByIdentifier(FrameWithData):
     """Extracts data from frames read by identifier."""
     def _data_from_frame(self, msg: can.Message):
         data = msg.data[4:]
         return data
-
 
 
 class ReadByAddress(FrameWithData):
@@ -96,14 +95,11 @@ class ReadByAddress(FrameWithData):
         return data
 
 
-
-
 class AuthenticationSeed(FrameWithData):
     """Extracts seed from frame request seed."""
     def _data_from_frame(self, msg: can.Message):
         data = msg.data[3:]
         return data
-
 
 
 class CustomError(Exception):
@@ -113,17 +109,16 @@ class CustomError(Exception):
         super().__init__(self.message)
 
 
-
 class Action:
     """
     Base class for actions involving CAN bus communication.
+
     Attributes:
     - my_id: Identifier for the device initiating the action.
     - id_ecu: Identifier for the specific ECU being communicated with.
     - g: Instance of GenerateFrame for generating CAN bus frames.
     """
 
-    def __init__(self, my_id, id_ecu: list = []):
     def __init__(self, my_id, id_ecu: list = []):
         self.bus = can.interface.Bus(channel=Config.CAN_CHANNEL, interface='socketcan')
         self.my_id = my_id
@@ -132,6 +127,7 @@ class Action:
     def __collect_response(self, sid: int):
         """
         Collects the response message from the CAN bus.
+
         Args:
         - sid: Service identifier to verify the response.
         Returns:
@@ -160,6 +156,7 @@ class Action:
     def __verify_frame(self, msg: can.Message, sid: int):
         """
         Verifies the validity of the received CAN message.
+
         Args:
         - msg: The received CAN message.
         - sid: Service identifier to verify the response.
@@ -178,6 +175,7 @@ class Action:
     def _passive_response(self, sid, error_str="Error service"):
         """
         Collects and verifies the response, raising an error if invalid.
+
         Args:
         - sid: Service identifier to verify the response.
         - error_str: Error message to raise if the response is invalid.
@@ -187,10 +185,7 @@ class Action:
         log_info_message(logger, "Collecting the response")
         response = self.__collect_response(sid)
 
-
         if response is None:
-            log_error_message(logger, error_str)
-            # response_json = self._to_json_error("interrupted", 1)
             log_error_message(logger, error_str)
             # response_json = self._to_json_error("interrupted", 1)
             # raise CustomError(response_json)
@@ -199,7 +194,6 @@ class Action:
     def _data_from_frame(self, msg: can.Message):
         """
         Extracts data from the CAN message based on the frame type. Implemented for
-        Extracts data from the CAN message based on the frame type. Implemented for
         ReadByIdentifier and ReadByAddress
         Args:
         - msg: The CAN message to extract data from.
@@ -207,9 +201,7 @@ class Action:
         - The extracted data if the frame type is recognized, otherwise None.
         """
         # debugging
-        # debugging
         if msg is None:
-            return [1, 2, 3, 4, 5]
             return [1, 2, 3, 4, 5]
         handlers = {
             0x62: ReadByIdentifier(),
@@ -220,8 +212,6 @@ class Action:
         if handler:
             return handler._data_from_frame(msg)
         return None
-
-    def _read_by_identifier(self, id, identifier):
 
     def _read_by_identifier(self, id, identifier):
         """
@@ -239,7 +229,6 @@ class Action:
         return data_str
 
     def __algorithm(self, seed: list):
-    def __algorithm(self, seed: list):
         """
         Method to generate a key based on the seed.
         """
@@ -249,10 +238,8 @@ class Action:
             if value < 0:
                 value = (1 << bit_width) + value
             key.append(value & ((1 << bit_width) - 1))
-            key.append(value & ((1 << bit_width) - 1))
         return key
 
-    def _authentication(self, id):
     def _authentication(self, id):
         """
         Function to authenticate. Makes the proper request to the ECU.
@@ -268,7 +255,6 @@ class Action:
     def _to_json(self, status, no_errors):
         pass
 
-
     def _to_json_error(self, error, no_errors):
         response_to_frontend = {
             "ERROR": error,
@@ -276,7 +262,6 @@ class Action:
             "time_stamp": datetime.datetime.now().isoformat()
         }
         return json.dumps(response_to_frontend)
-
 
     def _list_to_number(self, list: list):
         number = ""
