@@ -300,12 +300,8 @@ namespace MCU
                 break;
             case 0x51:
             {
-                /* Response from ECU Reset service
-                   Send the response to API */
-                LOG_INFO(MCULogger.GET_LOGGER(), "Response from EcuReset received.");
-                uint8_t sub_function = frame_data[2];                    
-                EcuReset ecu_reset(frame_id, sub_function, getMcuSocket(frame_id), MCULogger);
-                ecu_reset.ecuResetResponse();
+                /* Response from ECU Reset service */
+                LOG_INFO(MCULogger.GET_LOGGER(), "Response for ECUReset received.");
                 break;
             }
             case 0x67:
