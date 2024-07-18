@@ -22,10 +22,13 @@ jobs:
         pip install pytest
         pip install python-can
 
-    - name: Set up virtual CAN interface
+    - name: Install Linux extra modules
       run: |
         sudo apt-get update
-        sudo apt-get install -y can-utils
+        sudo apt-get install -y linux-modules-extra-$(uname -r)
+
+    - name: Set up virtual CAN interface
+      run: |
         sudo modprobe vcan
         sudo ip link add dev vcan0 type vcan
         sudo ip link set up vcan0
