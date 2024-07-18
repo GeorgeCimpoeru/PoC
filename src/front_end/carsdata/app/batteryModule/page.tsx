@@ -40,7 +40,7 @@ const BatteryModule = async () => {
                                 <BatteryStateCard BatteryStateOfCharge={jsonData.battery_state_of_charge}></BatteryStateCard>
                             </td>
                             <td>
-                                <TemperatureCard temperature={jsonData.temperature}></TemperatureCard>
+                                <TemperatureCard temperature={jsonData.percentage}></TemperatureCard>
                             </td> 
                         </tr>
                         <tr>

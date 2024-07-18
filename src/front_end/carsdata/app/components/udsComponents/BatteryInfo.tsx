@@ -1,42 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
-const BatteryInfo = () => {
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await fetch('http://127.0.0.1:5000/api/read_info_battery', {
-                    cache: 'no-store'
-                });
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const result = await response.json();
-                console.log(result)
-                setData(result);
-            } catch (error) {
-                setError(error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, []); // Empty dependency array ensures this runs once after the initial render
-
+const BatteryInfo = ({ data, loading, error }) => {
     if (loading) {
         return <div>Loading...</div>;
     }
 
     if (error) {
         return <div>Error: {error.message}</div>;
-    }
-
-    if (data) {
-        console.log(data);
     }
 
     if (!data) {
