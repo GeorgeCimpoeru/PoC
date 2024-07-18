@@ -135,8 +135,8 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                     /* Adjust the seed length between 1 and 5.*/
                     size_t seed_length = 2;
 
-                    /* std::vector<uint8_t> seed = generateRandomBytes(seed_length); */
-                    std::vector<uint8_t> seed = {0x36,0x57};
+                    std::vector<uint8_t> seed = generateRandomBytes(seed_length);
+                    /* std::vector<uint8_t> seed = {0x36,0x57}; */
 
                     /* PCI length = seed_length + 2(0x67 and 0x01)*/
                     response.push_back(2 + seed_length);
