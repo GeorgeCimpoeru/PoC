@@ -58,6 +58,12 @@ std::string MemoryManager::getPath()
     return this->path;
 }
 
+void MemoryManager::resetInstance()
+{
+    delete instance;
+    instance = nullptr;
+}
+
 std::string MemoryManager::runCommand(char command[])
 {
     char buffer[128];
@@ -85,7 +91,7 @@ bool MemoryManager::availableAddress(off_t address)
 
     if (address == -1)
     {
-        LOG_ERROR(instance->logger->GET_LOGGER(), "Error: the address was not initialize correctly.\n");
+        LOG_ERROR(instance->logger->GET_LOGGER(), "Error: the address was not initialize correctly.");
         return false;
     }
     std::string result = runCommand(verify_address_command);
@@ -95,12 +101,12 @@ bool MemoryManager::availableAddress(off_t address)
         return true;
     }
     std::string::size_type pos = result.find(' ');
-    int start_position = to_int(result.substr(0,pos));
-    int end_position = to_int(result.substr(pos+ 1));
+    /* off_t start_position = to_int(result.substr(0,pos)); */
+    off_t end_position = to_int(result.substr(pos+ 1));
 
     constexpr size_t SECTOR_SIZE = 512;
-    size_t boot_start_byte = start_position * SECTOR_SIZE;
-    size_t boot_end_byte = (end_position + 1) * SECTOR_SIZE - 1;
+    /* off_t boot_start_byte = start_position * SECTOR_SIZE; */
+    off_t boot_end_byte = (end_position + 1) * SECTOR_SIZE - 1;
     if ( address <= boot_end_byte)
     {
         LOG_ERROR(instance->logger->GET_LOGGER(), "Error:Address in boot partition.");
@@ -117,10 +123,10 @@ bool MemoryManager::availableMemory(off_t size_of_data)
     std::string result = runCommand(verify_memory_command);
     if (result.length() < 3)
     {
-        LOG_WARN(instance->logger->GET_LOGGER(), "No boot partition found");
-        return true;
+        LOG_WARN(instance->logger->GET_LOGGER(), "No partition found");
+        return false;
     }
-    size_t last_memory_address = to_int(result) * SECTOR_SIZE;
+    off_t last_memory_address = to_int(result) * SECTOR_SIZE;
     if ( address + size_of_data >= last_memory_address)
     {
         LOG_ERROR(instance->logger->GET_LOGGER(), "Error: Not enough memory.");
@@ -131,7 +137,7 @@ bool MemoryManager::availableMemory(off_t size_of_data)
 
 bool MemoryManager::writeToAddress(std::vector<uint8_t>& data) 
 {
-    if(!availableAddress(this->address_continue_to_write) && !availableMemory(data.size()))
+    if(!availableAddress(this->address_continue_to_write) || !availableMemory(data.size()))
     {
         LOG_ERROR(instance->logger->GET_LOGGER(), "Error: Aborting.");
         return false;
