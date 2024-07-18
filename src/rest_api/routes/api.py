@@ -6,6 +6,7 @@ from actions.generate_frames import GenerateFrame
 from actions.read_info_action import *
 from utils.logger import log_memory
 
+
 api_bp = Blueprint('api', __name__)
 
 
@@ -46,73 +47,8 @@ def update_to_version():
     data = request.get_json()
     ecu_id = data.get('ecu_id')
     version = data.get('version')
-    updater = Updates(0x23, 0x12)
+    updater = Updates(0xFA, 0x12)
     response = updater.update_to(int(ecu_id), int(version))
-    return jsonify(response)
-
-
-@api_bp.route('/read_info_doors', methods=['GET'])
-def read_info_doors():
-    """
-    Read information from the doors.
-    ---
-    responses:
-      200:
-        description: Information retrieved successfully
-        schema:
-          type: object
-          properties:
-            Door_param:
-              type: integer
-            Serial_number:
-              type: string
-            Cigarette_Lighter_Voltage:
-              type: number
-              format: float
-            Light_state:
-              type: string
-            BeltCard:
-              type: string
-            WindowStatus:
-              type: string
-      """
-    reader = ReadInfo(0x23, [0x11, 0x12, 0x13])
-    response = reader.read_from_doors()
-    return jsonify(response)
-
-
-@api_bp.route('/read_info_engine', methods=['GET'])
-def read_info_eng():
-    """
-    Read information from the engine.
-    ---
-    responses:
-      200:
-        description: Information retrieved successfully
-        schema:
-          type: object
-          properties:
-            power_output:
-              type: integer
-            weight:
-              type: integer
-            fuel_consumption:
-              type: integer
-            torque:
-              type: integer
-            fuel_used:
-              type: integer
-            state_of_running:
-              type: integer
-            current_speed:
-              type: integer
-            engine_state:
-              type: integer
-            serial_number:
-              type: integer
-    """
-    reader = ReadInfo(0x23, [0x11, 0x12, 0x13])
-    response = reader.read_from_engine()
     return jsonify(response)
 
 
@@ -151,8 +87,73 @@ def read_info_bat():
               type: string
               format: date-time
     """
-    reader = ReadInfo(0x23, [0x11, 0x12, 0x13])
+    reader = ReadInfo(0xFA, [0x11, 0x12, 0x13])
     response = reader.read_from_battery()
+    return jsonify(response)
+
+
+@api_bp.route('/read_info_engine', methods=['GET'])
+def read_info_eng():
+    """
+    Read information from the engine.
+    ---
+    responses:
+      200:
+        description: Information retrieved successfully
+        schema:
+          type: object
+          properties:
+            power_output:
+              type: integer
+            weight:
+              type: integer
+            fuel_consumption:
+              type: integer
+            torque:
+              type: integer
+            fuel_used:
+              type: integer
+            state_of_running:
+              type: integer
+            current_speed:
+              type: integer
+            engine_state:
+              type: integer
+            serial_number:
+              type: integer
+    """
+    reader = ReadInfo(0xFA, [0x11, 0x12, 0x13])
+    response = reader.read_from_engine()
+    return jsonify(response)
+
+
+@api_bp.route('/read_info_doors', methods=['GET'])
+def read_info_doors():
+    """
+    Read information from the doors.
+    ---
+    responses:
+      200:
+        description: Information retrieved successfully
+        schema:
+          type: object
+          properties:
+            Door_param:
+              type: integer
+            Serial_number:
+              type: string
+            Cigarette_Lighter_Voltage:
+              type: number
+              format: float
+            Light_state:
+              type: string
+            BeltCard:
+              type: string
+            WindowStatus:
+              type: string
+      """
+    reader = ReadInfo(0xFA, [0x11, 0x12, 0x13])
+    response = reader.read_from_doors()
     return jsonify(response)
 
 
@@ -210,7 +211,7 @@ def send_frame():
         bus.shutdown()
 
 
-@api_bp.route('/logs', methods=['GET'])
+@api_bp.route('/logs')
 def get_logs():
     """
     Get application logs.
