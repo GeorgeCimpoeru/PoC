@@ -7,6 +7,7 @@ import EngineInfo from "../components/udsComponents/EngineInfo";
 import Component1 from '../components/animations/batteryFully';
 import Component2 from '../components/animations/batteryPercentage';
 import Component3 from '../components/animations/rangeBattery';
+import BatteryModule from '../batteryModule/page'; // Add import for BatteryModule
 
 const UDSpage = () => {
     const [selectedComponent, setSelectedComponent] = useState('BatteryInfo');
@@ -27,7 +28,7 @@ const UDSpage = () => {
     const handleButtonClick = async (component: string) => {
         setSelectedComponent(component);
         setActiveButton(component);
-        if (component === 'BatteryInfo') {
+        if (component === 'BatteryInfo' || component === 'BatteryModule') {
             setLoading(true);
             setError(null); // Reset error state before making a new request
             console.log("Fetching battery info...");
@@ -55,6 +56,8 @@ const UDSpage = () => {
                 return <EngineInfo />;
             case 'BatteryInfo':
                 return <BatteryInfo data={data} loading={loading} error={error} />;
+            case 'BatteryModule':
+                return <BatteryModule jsonData={data} />;
             case 'Component3':
                 return <Component3 />;
             default:

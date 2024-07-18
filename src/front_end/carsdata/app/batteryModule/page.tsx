@@ -8,19 +8,9 @@ import FullyChargedCard from '../components/batteryComponents/FullyChargedCard';
 import SerialNumberCard from '../components/batteryComponents/SerialNumberCard';
 import RangeBatteryCard from '../components/batteryComponents/RangeBatteryCard';
 import ChargingTimeCard from '../components/batteryComponents/Charging_time';
-import DeviceConsumptionCard from '../components/batteryComponents/DeviceConsumption';
-import { write } from 'fs';
+// import DeviceConsumptionCard from '../components/batteryComponents/DeviceConsumption';
 
-
-
-const BatteryModule = async () => {
-    const res = await fetch(
-        'http://127.0.0.1:5000/api/read_info_battery',
-        { cache: 'no-store' }
-    );
-   
-    const jsonData = await res.json();
-
+const BatteryModule = ({ jsonData }) => {
     return (
         <div className="h-screen flex flex-col">
             <nav className="bg-blue-900 p-8 flex justify-between items-center">
@@ -40,8 +30,8 @@ const BatteryModule = async () => {
                                 <BatteryStateCard BatteryStateOfCharge={jsonData.battery_state_of_charge}></BatteryStateCard>
                             </td>
                             <td>
-                                <TemperatureCard temperature={jsonData.percentage}></TemperatureCard>
-                            </td> 
+                                <TemperatureCard temperature={jsonData.temperature}></TemperatureCard>
+                            </td>
                         </tr>
                         <tr>
                             <td>
@@ -65,12 +55,11 @@ const BatteryModule = async () => {
                                 <DeviceConsumptionCard deviceConsumption={jsonData.device_consumption}></DeviceConsumptionCard>
                             </td> */}
                         </tr>
-
                     </table>
                 </div>
             </div >
         </div >
-    )
+    );
 }
 
-export default BatteryModule
+export default BatteryModule;
