@@ -9,7 +9,7 @@
 namespace MCU
 {
     HandleFrames::HandleFrames(int socket_api, int socket_canbus) 
-                : mcuDiagnosticSessionControl(MCULogger, socket_api) , requestDownload(socket_api, MCULogger)
+                : mcuDiagnosticSessionControl(MCULogger, socket_api)
     {
         this->socket_api = socket_api;
         this->socket_canbus = socket_canbus;
@@ -74,7 +74,7 @@ namespace MCU
             frame_data.clear();
 
             /* Concatenate the data from the first frame into multi_frame_data */
-            for (uint8_t data_pos = 5; data_pos < frame.can_dlc; ++data_pos) 
+            for (uint8_t data_pos = 1; data_pos < frame.can_dlc; ++data_pos) 
             {
                 frame_data.push_back(frame.data[data_pos]);
             }
@@ -246,7 +246,8 @@ namespace MCU
                 else 
                 {
                     LOG_INFO(MCULogger.GET_LOGGER(), "WriteDataByIdentifier service called!");
-                    WriteDataByIdentifier write_data_by_identifier(frame_id, frame_data, MCULogger, getMcuSocket(frame_id));
+                    std::vector<uint8_t> rdata(frame_data.begin() + 4, frame_data.end());
+                    WriteDataByIdentifier write_data_by_identifier(frame_id, rdata, MCULogger, getMcuSocket(frame_id));
                 }
                 break;
             case 0x14:
@@ -368,8 +369,10 @@ namespace MCU
                     LOG_INFO(MCULogger.GET_LOGGER(), "Service 0x34 RequestDownload");
                     LOG_INFO(MCULogger.GET_LOGGER(), "SID pos: {}", sid);
                     LOG_INFO(MCULogger.GET_LOGGER(), "Data size: {}", frame_data.size());
-
-                    requestDownload.requestDownloadRequest(frame_id, frame_data, MCULogger);
+                    RequestDownloadService requestDownload(getMcuSocket(frame_id), MCULogger);
+                    ReadDataByIdentifier software_version(getMcuSocket(frame_id), MCULogger);
+                    SecurityAccess logged_in(getMcuSocket(frame_id), MCULogger);
+                    requestDownload.requestDownloadRequest(frame_id, frame_data, MCULogger, mcuDiagnosticSessionControl, software_version, logged_in);
                 }
                 break;
             case 0x36:

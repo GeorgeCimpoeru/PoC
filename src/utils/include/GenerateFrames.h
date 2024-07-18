@@ -275,12 +275,13 @@ class GenerateFrames
          * @param memory_address Memory address variable
          * @param memory_size Memory size variable
          */
-        void requestDownload(int id, uint8_t data_format_identifier, int memory_address, int memory_size);
+        void requestDownload(int id, uint8_t data_format_identifier, int memory_address, int memory_size, uint8_t download_type);
         /**
          * @brief Response to requestDownload
          * @param id id of the frame(sender id and receiver id)
          * @param max_number_block Max number of blocks variable
          */
+        void requestDownloadLong(int id, uint8_t data_format_identifier, int memory_address, int memory_size, uint8_t download_type, bool first_frame = true);
         void requestDownloadResponse(int id, int max_number_block);
         /**
          * @brief Frame for Transfer Data service. Check the commentary from the readDataByIdentifier() method
