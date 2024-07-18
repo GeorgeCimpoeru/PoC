@@ -83,6 +83,12 @@ generateTest: GenerateFrames_test
 GenerateFrames_test: ../utils/test/GenerateFramesTest.cpp ../utils/src/GenerateFrames.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../utils/test/GenerateFramesTest ../utils/test/GenerateFramesTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 
+# MemoryManager Unit tests
+memoryTest: MemoryManager_test
+MemoryManager_test: ../utils/test/MemoryManagerTest.cpp ../utils/src/MemoryManager.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../utils/test/MemoryManager_test ../utils/test/MemoryManagerTest.cpp ../utils/src/MemoryManager.cpp ../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+
+
 # CreateInterface Unit tests
 createInterfaceTest: CreateInterface_test
 CreateInterface_test: ../utils/test/CreateInterface_test.cpp ../utils/src/CreateInterface.cpp
@@ -152,6 +158,23 @@ GenerateFramesCoverage: ../utils/test/GenerateFramesTest.cpp ../utils/src/Genera
 	lcov --remove coverage.info '*/test/*' --output-file coverage.info
 	genhtml coverage_filtered.info --output-directory coverage/out_GenerateFrames
 	xdg-open coverage/out_GenerateFrames/index.html
+	find . -name '*.gcno' -delete
+	find . -name '*.gcda' -delete
+	find . -name '*.gcov' -delete
+
+# MemoryManager Coverage
+memoryCoverage: MemoryManagerCoverage
+MemoryManagerCoverage: ../utils/test/MemoryManagerTest.cpp ../utils/src/MemoryManager.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST)  -fprofile-arcs -ftest-coverage -o ../utils/test/MemoryManager_test ../utils/test/MemoryManagerTest.cpp ../utils/src/MemoryManager.cpp ../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+	sudo ./../utils/test/MemoryManager_test
+	mkdir -p coverage/out_MemoryManager
+	gcov -o . ../utils/src/MemoryManager.cpp
+	mv MemoryManager.cpp.gcov coverage/out_MemoryManager
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/*' --output-file coverage_filtered.info
+	lcov --remove coverage.info '*/test/*' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_MemoryManager
+	xdg-open coverage/out_MemoryManager/index.html
 	find . -name '*.gcno' -delete
 	find . -name '*.gcda' -delete
 	find . -name '*.gcov' -delete
