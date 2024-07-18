@@ -19,8 +19,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pytest
-        pip install flask
+        pip install pytest flasgger flask
         pip install python-can
 
     - name: Install Linux extra modules
@@ -36,4 +35,4 @@ jobs:
 
     - name: Run tests
       run: |
-        pytest src/rest_api/endpoints_test.py
+        pytest PoC/src/rest_api/endpoints_test.py
