@@ -1,5 +1,5 @@
 import pytest
-from .app import app
+from src.rest_api.app import app
 
 
 @pytest.fixture
