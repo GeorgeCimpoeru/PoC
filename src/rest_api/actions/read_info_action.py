@@ -24,13 +24,30 @@ class ToJSON:
         pass
 
 
+# class BatteryToJSON():
+#     def _to_json(self, data: list):
+#         response_to_frontend = {
+#             "battery_level": data[0],
+#             "voltage": data[1],
+#             "battery_state_of_charge": data[2],
+#             "temperature": data[3],
+#             "life_cycle": data[4],
+#             "fully_charged": data[5],
+#             "serial_number": data[6],
+#             "range_battery": data[7],
+#             "charging_time": data[8],
+#             "device_consumption": data[9],
+#             "time_stamp": datetime.datetime.now().isoformat()
+#         }
+#         return (response_to_frontend)
+
 class BatteryToJSON():
     def _to_json(self, data: list):
         response_to_frontend = {
             "battery_level": data[0],
             "voltage": data[1],
             "battery_state_of_charge": data[2],
-            "temperature": data[3],
+            "percentage": data[3],
             "life_cycle": data[4],
             "fully_charged": data[5],
             "serial_number": data[6],
@@ -96,28 +113,46 @@ class ReadInfo(Action):
         - JSON response.
         """
 
-        id_battery = self.id_ecu[1]
+        id_battery = self.id_ecu[0]
         id = self.my_id * 0x100 + id_battery
 
         try:
             log_info_message(logger, "Changing session to default")
-            self.generate.session_control(id, 0x01)
-            self._passive_response(SESSION_CONTROL, "Error changing session control")
+            # self.generate.session_control(id, 0x01)
+            # self._passive_response(SESSION_CONTROL, "Error changing session control")
 
-            self._authentication(id)
+            # self._authentication(id)
 
             log_info_message(logger, "Reading data from battery")
             level = self._read_by_identifier(id, IDENTIFIER_BATTERY_ENERGY_LEVEL)
             voltage = self._read_by_identifier(id, IDENTIFIER_BATTERY_VOLTAGE)
             state_of_charge = self._read_by_identifier(id, IDENTIFIER_BATTERY_STATE_OF_CHARGE)
-            temperature = self._read_by_identifier(id, IDENTIFIER_BATTERY_TEMPERATURE)
-            life_cycle = self._read_by_identifier(id, IDENTIFIER_BATTERY_LIFE_CYCLE)
-            fully_charged = self._read_by_identifier(id, IDENTIFIER_BATTERY_FULLY_CHARGED)
-            serial_number = self._read_by_identifier(id, IDENTIFIER_ECU_SERIAL_NUMBER)
-            range_battery = self._read_by_identifier(id, IDENTIFIER_BATTERY_RANGE)
-            charging_time = self._read_by_identifier(id, IDENTIFIER_BATTERY_CHARGING_TIME)
-            device_consumption = self._read_by_identifier(id, IDENTIFIER_DEVICE_CONSUMPTION)
-            data = [level, voltage, state_of_charge, temperature, life_cycle, fully_charged, serial_number, range_battery, charging_time, device_consumption]
+            percentage = self._read_by_identifier(id, IDENTIFIER_BATTERY_PERCENTAGE)
+            # temperature = self._read_by_identifier(id, IDENTIFIER_BATTERY_TEMPERATURE) # ToDO
+            # life_cycle = self._read_by_identifier(id, IDENTIFIER_BATTERY_LIFE_CYCLE) # ToDo
+            # fully_charged = self._read_by_identifier(id, IDENTIFIER_BATTERY_FULLY_CHARGED) # ToDo
+            # serial_number = self._read_by_identifier(id, IDENTIFIER_ECU_SERIAL_NUMBER) # ToDo
+            # range_battery = self._read_by_identifier(id, IDENTIFIER_BATTERY_RANGE) # ToDo
+            # charging_time = self._read_by_identifier(id, IDENTIFIER_BATTERY_CHARGING_TIME) # ToDo
+            # device_consumption = self._read_by_identifier(id, IDENTIFIER_DEVICE_CONSUMPTION) # ToDo
+            # data = [level, voltage, state_of_charge, temperature, life_cycle, fully_charged, serial_number, range_battery, charging_time, device_consumption]
+
+            life_cycle = "NA"
+            fully_charged = "NA"
+            serial_number = "NA"
+            range_battery = "NA"
+            charging_time = "NA"
+            device_consumption = "NA"
+
+            percentage_value = ((int(percentage, 16) / 255) * 100)
+            percentage_string = f"{percentage_value:.2f}%"
+
+            voltage_value = int(voltage, 16)
+            voltage_string = f"{voltage_value:.2f}V"
+
+            battery_state_of_charge = "Charging" if state_of_charge == "01" else "Not charging"
+
+            data = [str(int(level, 16)), voltage_string, battery_state_of_charge, percentage_string, life_cycle, fully_charged, serial_number, range_battery, charging_time, device_consumption]
             module = BatteryToJSON()
 
             response_json = module._to_json(data)
