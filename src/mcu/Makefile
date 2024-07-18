@@ -47,7 +47,7 @@ $(OBJ_DIR)/RequestDownload.o: ../ota/request_download/src/RequestDownload.cpp
 $(OBJ_DIR)/RequestUpdateStatus.o: ../ota/request_update_status/src/RequestUpdateStatus.cpp
 	$(CXX) $(CFLAGS) -c ../ota/request_update_status/src/RequestUpdateStatus.cpp -o $(OBJ_DIR)/RequestUpdateStatus.o
 clean:
-	rm -f $(FINAL)  ${FINAL_TEST} ../utils/test/GenerateFramesTest test/HandleFrames_test test/ReceiveFramesTest ../utils/test/CreateInterface_test ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest
+	rm -f $(FINAL)  ${FINAL_TEST} ../utils/test/GenerateFramesTest test/HandleFrames_test test/ReceiveFramesTest ../utils/test/CreateInterface_test ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest ../uds/authentication/utest/SecurityAccessTest
 	rm -rf $(OBJ_DIR)
 #Delete unnecessary file from gcov compiler
 	find . -name '*.gcno' -delete
@@ -56,7 +56,7 @@ clean:
 	find . -name '*.info' -delete
 
 # Compile all unit tests
-allTests: handleTest receiveTest generateTest createInterfaceTest RDBITest wdbiTest
+allTests: handleTest receiveTest generateTest createInterfaceTest RDBITest wdbiTest securityTest
 
 # HandleFrames Unit tests
 handleTest: HandleFrames_test
@@ -94,6 +94,11 @@ ReadDataByIdentifier_test: ../uds/read_data_by_identifier/utest/ReadDataByIdenti
 readDtcTest: readDtc_test
 readDtc_test: ../uds/read_dtc_information/utest/ReadDtcInformationTest.cpp ../uds/read_dtc_information/src/ReadDtcInformation.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../uds/read_dtc_information/utest/ReadDtcInformationTest ../uds/read_dtc_information/utest/ReadDtcInformationTest.cpp ../uds/read_dtc_information/src/ReadDtcInformation.cpp ../utils/src/GenerateFrames.cpp ../utils/src/CreateInterface.cpp ../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+	
+# SecurityAccess Unit tests
+securityTest: Security_test
+Security_test: ../uds/authentication/utest/SecurityAccessTest.cpp ../uds/authentication/src/SecurityAccess.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../uds/authentication/utest/SecurityAccessTest ../uds/authentication/utest/SecurityAccessTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 
 # HandleFrames Coverage
 handleCoverage: HandleFramesCoverage
@@ -190,8 +195,22 @@ WDBICoverage: ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest.cp
 	lcov --remove coverage.info '/test/' --output-file coverage.info
 	genhtml coverage_filtered.info --output-directory coverage/out_WriteDataByIdentifierTest
 	xdg-open coverage/out_WriteDataByIdentifierTest/index.html
+	
+# SecurityAccess Coverage
+securityCoverage: SecurityCoverage
+SecurityCoverage: ../uds/authentication/utest/SecurityAccessTest.cpp ../uds/authentication/src/SecurityAccess.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../uds/authentication/utest/SecurityAccessTest ../uds/authentication/utest/SecurityAccessTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	../uds/authentication/utest/SecurityAccessTest
+	mkdir -p coverage/out_SecurityAccessTest
+	gcov -o . ../uds/authentication/src/SecurityAccess.cpp
+	mv SecurityAccess.cpp.gcov coverage/out_SecurityAccessTest
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
+	lcov --remove coverage.info '/test/' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_SecurityAccessTest
+	xdg-open coverage/out_SecurityAccessTest/index.html
 
-allCoverage: HandleFrames_coverage ReceiveFrames_coverage GenerateFrames_coverage CreateInterface_coverage ReadDataByIdentifier_coverage WDBI_coverage
+allCoverage: HandleFrames_coverage ReceiveFrames_coverage GenerateFrames_coverage CreateInterface_coverage ReadDataByIdentifier_coverage WDBI_coverage SecurityAccess_coverage
 
 HandleFrames_coverage:
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o test/HandleFrames_test test/HandleFrames_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
@@ -234,6 +253,13 @@ WDBI_coverage:
 	mkdir -p coverage/out_	mkdir -p coverage/out_WriteDataByIdentifier
 	gcov -o . ../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp
 	mv WriteDataByIdentifier.cpp.gcov coverage/out_WriteDataByIdentifier
+	
+SecurityAccess_coverage: ../uds/authentication/utest/SecurityAccessTest.cpp ../uds/authentication/src/SecurityAccess.cpp
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../uds/authentication/utest/SecurityAccessTest ../uds/authentication/utest/SecurityAccessTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	./../uds/authentication/utest/SecurityAccessTest
+	mkdir -p coverage/out_SecurityAccess
+	gcov -o . ../uds/authentication/src/SecurityAccess.cpp
+	mv SecurityAccess.cpp.gcov coverage/out_SecurityAccess
 
 allCoveragePostProcess:
 	lcov --capture --directory . --output-file coverage.info
