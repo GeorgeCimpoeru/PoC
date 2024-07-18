@@ -27,23 +27,21 @@ class SecurityAccess
 {
     public:
     /* SID for SecurityAccess */
-    static const uint8_t SECURITY_ACCESS_SID = 0x27;
+    static constexpr uint8_t SECURITY_ACCESS_SID = 0x27;
     /* SubFunctionNotSupported */
-    static const uint8_t SFNS = 0x12;
+    static constexpr uint8_t SFNS = 0x12;
     /* IncorrectMesssageLengthOrInvalidFormat */
-    static const uint8_t IMLOIF = 0x13;
+    static constexpr uint8_t IMLOIF = 0x13;
     /* RequestSequenceError */
-    static const uint8_t RSE = 0x24;
+    static constexpr uint8_t RSE = 0x24;
     /* Invalid key */
-    static const uint8_t IK = 0x35;
+    static constexpr uint8_t IK = 0x35;
     /* Exceeded nr of attempts */
-    static const uint8_t ENOA = 0x36;
+    static constexpr uint8_t ENOA = 0x36;
     /* Required time delay not expired */
-    static const uint8_t RTDNE = 0x37;
-    /**
-     * Adjust it here.
-    */
-    static const uint8_t TIMEOUT_IN_SECONDS = 5;
+    static constexpr uint8_t RTDNE = 0x37;
+    /* Adjust delay timer here. */
+    static constexpr uint8_t TIMEOUT_IN_SECONDS = 0x05;
 
     private:
         GenerateFrames* generate_frames;
@@ -113,7 +111,6 @@ class SecurityAccess
          * @return A vector of bytes representing the CAN frame.
         */
         std::vector<uint8_t> convertTimeToCANFrame(uint32_t timeInSeconds);
-
 };
 
 #endif

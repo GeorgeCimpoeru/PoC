@@ -153,7 +153,8 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                         response.push_back(mcu_state ? 0x00 : e);
                     }
                     generate_frames->sendFrame(can_id,response,DATA_FRAME);
-                    security_access_seed = seed;                  
+                    security_access_seed = seed;
+                    LOG_INFO(security_logger.GET_LOGGER(), "Seed was sent.");
                 }
                 else if (sf == 0x02 && !mcu_state)
                 {
@@ -207,15 +208,16 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                                 LOG_ERROR(security_logger.GET_LOGGER(), "Exceeded number of attempts.");
                                 generate_frames->negativeResponse(can_id,SECURITY_ACCESS_SID, ENOA);
                                 
-                                /** Start the delay timer clock.
-                                 * The extra second is added to compensate for any minor delay 
-                                 * that occurs during the initial setup and computation (+1 second).
-                                */
-                                end_time = std::chrono::steady_clock::now() + std::chrono::seconds(TIMEOUT_IN_SECONDS + 1);
+                                /* Start the delay timer clock. */
+                                end_time = std::chrono::steady_clock::now() + std::chrono::seconds(TIMEOUT_IN_SECONDS);
                                 now = std::chrono::steady_clock::now();
-                                time_left = static_cast<uint8_t>(std::chrono::duration_cast<std::chrono::milliseconds>(end_time - now).count());
+                                time_left = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(end_time - now).count());
                                 LOG_INFO(security_logger.GET_LOGGER(), "Delay timer activated.");
-                                LOG_INFO(security_logger.GET_LOGGER(), "Please wait {} seconds before sending key again.", time_left);
+                                uint32_t time_left_copy = time_left;
+                                uint32_t seconds = time_left_copy / 1000;
+                                uint32_t milliseconds = time_left_copy % 1000;
+                                LOG_INFO(security_logger.GET_LOGGER(), "Please wait {} seconds and {} milliseconds \
+                                        before sending key again.", seconds,milliseconds);
                             }
                         }
                     }
@@ -225,8 +227,12 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                          * for the requested security level.
                         */
                         now = std::chrono::steady_clock::now();
-                        time_left = static_cast<uint8_t>(std::chrono::duration_cast<std::chrono::milliseconds>(end_time - now).count());
-                        LOG_INFO(security_logger.GET_LOGGER(), "Please wait {} seconds before sending key again.", time_left);
+                        time_left = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(end_time - now).count());
+                        uint32_t time_left_copy = time_left;
+                        uint32_t seconds = time_left_copy / 1000;
+                        uint32_t milliseconds = time_left_copy % 1000;
+                        LOG_INFO(security_logger.GET_LOGGER(), "Please wait {} seconds and {} milliseconds \
+                                before sending key again.", seconds,milliseconds);
                         response = convertTimeToCANFrame(time_left);
                         generate_frames->sendFrame(can_id,response,DATA_FRAME);
                     }
