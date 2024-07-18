@@ -192,6 +192,11 @@ class MemoryManager
          * @return true or false
          */
         static bool writeToFile(std::vector<uint8_t> &data, std::string path_file);
+        /**
+         * @brief Reset instance
+         * 
+         */
+        void resetInstance();
 };
 
 #endif

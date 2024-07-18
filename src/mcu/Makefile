@@ -6,7 +6,7 @@ LDFLAGS = -lspdlog
 CFLAGSTST += -DUNIT_TESTING_MODE
 #Sources files
 SRCS = src/main.cpp src/MCUModule.cpp ../ecu_simulation/BatteryModule/src/BatteryModule.cpp ../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../utils/src/CreateInterface.cpp ../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp src/ReceiveFrames.cpp ../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp ../uds/ecu_reset/src/EcuReset.cpp ../uds/authentication/src/SecurityAccess.cpp  ../ecu_simulation/BatteryModule/src/HandleFrames.cpp  ../ecu_simulation/BatteryModule/src/ReceiveFrames.cpp ../uds/read_dtc_information/src/ReadDtcInformation.cpp ../ota/request_update_status/src/RequestUpdateStatus.cpp ../ota/request_transfer_exit/src/RequestTransferExit.cpp ../ota/request_download/src/RequestDownload.cpp
-SRCSTEST = src/HandleFrames.cpp src/MCUModule.cpp src/ReceiveFrames.cpp ../utils/src/GenerateFrames.cpp ../utils/src/CreateInterface.cpp ../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp ../utils/src/Logger.cpp  ../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp ../uds/ecu_reset/src/EcuReset.cpp ../uds/authentication/src/SecurityAccess.cpp ../ecu_simulation/BatteryModule/src/HandleFrames.cpp ../ecu_simulation/BatteryModule/src/ReceiveFrames.cpp ../ecu_simulation/BatteryModule/src/BatteryModule.cpp ../uds/read_dtc_information/src/ReadDtcInformation.cpp ../ota/request_update_status/src/RequestUpdateStatus.cpp ../ota/request_transfer_exit/src/RequestTransferExit.cpp ../ota/request_download/src/RequestDownload.cpp
+SRCSTEST = src/HandleFrames.cpp src/MCUModule.cpp src/ReceiveFrames.cpp ../utils/src/GenerateFrames.cpp ../utils/src/CreateInterface.cpp ../utils/src/MemoryManager.cpp ../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp ../utils/src/Logger.cpp  ../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp ../uds/ecu_reset/src/EcuReset.cpp ../uds/authentication/src/SecurityAccess.cpp ../ecu_simulation/BatteryModule/src/HandleFrames.cpp ../ecu_simulation/BatteryModule/src/ReceiveFrames.cpp ../ecu_simulation/BatteryModule/src/BatteryModule.cpp ../uds/read_dtc_information/src/ReadDtcInformation.cpp ../ota/request_update_status/src/RequestUpdateStatus.cpp ../ota/request_transfer_exit/src/RequestTransferExit.cpp ../ota/request_download/src/RequestDownload.cpp
 #Object files
 OBJS = $(patsubst ../utils/src/%.cpp ../uds/diagnostic_session_control/src/%.cpp src/%.cpp, obj/%.o, $(SRCS))
 OBJS:= $(OBJS) obj/Logger.o
@@ -80,6 +80,12 @@ ReceiveFrames_test: test/ReceiveFramesTest.cpp src/ReceiveFrames.cpp
 generateTest: GenerateFrames_test
 GenerateFrames_test: ../utils/test/GenerateFramesTest.cpp ../utils/src/GenerateFrames.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../utils/test/GenerateFramesTest ../utils/test/GenerateFramesTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+
+# MemoryManager Unit tests
+memoryTest: MemoryManager_test
+MemoryManager_test: ../utils/test/MemoryManagerTest.cpp ../utils/src/MemoryManager.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../utils/test/MemoryManager_test ../utils/test/MemoryManagerTest.cpp ../utils/src/MemoryManager.cpp ../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+
 
 # CreateInterface Unit tests
 createInterfaceTest: CreateInterface_test
