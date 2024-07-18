@@ -36,4 +36,4 @@ jobs:
 
     - name: Run tests
       run: |
-        pytest PoC/PoC/src/rest_api/endpoints_test.py
+        pytest PoC/src/rest_api/endpoints_test.py
