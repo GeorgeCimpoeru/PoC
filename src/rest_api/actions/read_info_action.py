@@ -65,6 +65,19 @@ class EngineToJSON():
         return (response_to_frontend)
 
 
+class DoorsToJSON():
+    def _to_json(self, data: list):
+        response_to_frontend = {
+            "Door_param": data[0],
+            "Serial_number": data[1],
+            "Cigarette_Lighter_Voltage": data[2],
+            "Light_state": data[3],
+            "BeltCard": data[4],
+            "WindowStatus": data[5],
+        }
+        return (response_to_frontend)
+
+
 class ReadInfo(Action):
     """
     ReadInfo class to read information from different ECUs.
@@ -194,6 +207,41 @@ class ReadInfo(Action):
         except CustomError as e:
             self.bus.shutdown()
             return e.message
+
+
+def read_from_doors(self):
+    id_door = self.id_ecu[1]
+    id = self.my_id * 0x100 + id_door
+
+    try:
+        log_info_message(logger, "Changing session to default")
+        self.generate.session_control(id, 0x01)
+        self._passive_response(SESSION_CONTROL, "Error changing session control")
+        log_info_message(logger, "Changing session to default")
+        self.generate.session_control(id, 0x01)
+        self._passive_response(SESSION_CONTROL, "Error changing session control")
+        self._authentication(id)
+
+        log_info_message(logger, "Reading data from doors")
+
+        Door = self._read_by_identifier(id, IDENTIFIER_DOOR)
+        serial_number = self._read_by_identifier(id, IDENTIFIER_DOOR_SERIALNUMBER)
+        cigarette_lighter_voltage = self._read_by_identifier(id, IDENTIFIER_LIGHTER_VOLTAGE)
+        light_state = self._read_by_identifier(id, IDENTIFIER_LIGHT_STATE)
+        belt = self._read_by_identifier(id, IDENTIFIER_BELT_STATE)
+        windows_closed = self._read_by_identifier(id, IDENTIFIER_WINDOWS_CLOSED)
+        data = [Door, serial_number, cigarette_lighter_voltage, light_state, belt, windows_closed]
+
+        module = DoorsToJSON()
+        response = module._to_json(data)
+        # Shutdown the CAN bus interface
+        self.bus.shutdown()
+
+        log_info_message(logger, "Sending JSON")
+        return response
+    except CustomError as e:
+        self.bus.shutdown()
+        return e.message
 
     # def _to_json(self, module: ToJSON, data: list):
     #     """
