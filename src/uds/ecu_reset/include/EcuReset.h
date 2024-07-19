@@ -15,7 +15,6 @@
 
 #include <linux/can.h>
 #include <iostream>
-
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 
@@ -24,10 +23,9 @@ class EcuReset
 private:
     uint32_t can_id;
     uint8_t sub_function;
+    int response_socket;
     
     Logger& ECUResetLog;
-    GenerateFrames generate_frames;
-    CreateInterface* interface;
 public:
     /**
      * @brief Parameterized constructor.
