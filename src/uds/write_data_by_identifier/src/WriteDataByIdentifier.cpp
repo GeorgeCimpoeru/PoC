@@ -3,7 +3,7 @@
 #include "../../../mcu/include/MCUModule.h"
 
 WriteDataByIdentifier::WriteDataByIdentifier(canid_t frame_id, std::vector<uint8_t> frame_data, Logger& wdbi_logger, int socket)
-            : generate_frames(wdbi_logger), wdbi_logger(wdbi_logger)
+            : generate_frames(socket, wdbi_logger), wdbi_logger(wdbi_logger)
 {   
     this->socket = socket;
     WriteDataByIdentifierService(frame_id, frame_data);
@@ -44,6 +44,7 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         /* Extract Data Parameter */
         DataParameter data_parameter(frame_data.begin() + 4, frame_data.end());
         uint8_t receiver_id = frame_id & 0xFF;
+        uint8_t sender_id = frame_id >> 8 & 0xFF;
 
         /* List of valid DIDs */
         std::unordered_set<uint16_t> valid_dids = {
@@ -53,16 +54,15 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
             0x0134, 0x0140, 0x01A0, 0x01B0, 0x01C0, 0x00D0, 0x01D0, 0x02D0,
             0x03D0, 0x04D0, 0x05D0, 0x06D0, 0x01E0, 0x01F0
         };
-
         auto logCollection = [&](const std::unordered_map<uint16_t, std::vector<uint8_t>>& collection, const std::string& collectionName) {
             std::ostringstream oss;
             oss << collectionName << " contents:\n";
             for (const auto& [key, value] : collection)
             {
-                oss << "DID 0x" << std::hex << key << ": ";
+                oss << "DID 0x" << std::hex << std::setw(4) << std::setfill('0') << key << ": ";
                 for (uint8_t byte : value)
                 {
-                    oss << std::hex << static_cast<int>(byte) << " ";
+                    oss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
                 }
                 oss << "\n";
             }
@@ -143,9 +143,9 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
             /** WDBI response sid*/
             response.push_back(0x7F);
             /* First Identifier */
-            response.push_back(frame_data[1]);
+            response.push_back(0x2E);
             /* Second Identifier */
-            response.push_back(frame_data[2]);
+            response.push_back(0x31);
             response.clear();
             /* call NegativeResponseService */
             return;
@@ -156,6 +156,5 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
 
         /* Check on which socket to send the frame */
         generate_frames.sendFrame(id, response, socket, DATA_FRAME);
-        
     }
-}
+};

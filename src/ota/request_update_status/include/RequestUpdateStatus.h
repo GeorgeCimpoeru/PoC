@@ -25,8 +25,9 @@
 #include <linux/can.h>
 #include <map>
 #include "../../../utils/include/Logger.h"
-/* #include "../../../uds/read_data_by_identifier/include/read_data_by_identifier.h" */
+#include "../../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
 #include "../../../utils/include/GenerateFrames.h"
+#include "../../../mcu/include/MCULogger.h"
 
 #define REQUEST_UPDATE_STATUS_REQUEST_SIZE      0x02
 #define REQUEST_UPDATE_STATUS_RESPONSE_SUCCESS_SIZE	    0x03
@@ -42,8 +43,14 @@
 #define READ_DATA_BY_IDENTIFIER_SID 0x34
 #define READ_DATA_BY_IDENTIFIER_SID_SUCCESS 0x74
 
+#define WRITE_DATA_BY_IDENTIFIER_SID 0x2A
+
 #define PCI_L 0x03
 #define NEGATIVE_RESPONSE 0x7F
+#define REQUEST_OUT_OF_RANGE 0x31
+
+#define MCU_ID 0x10
+#define API_ID 0xFA
 
 /**
  * @brief Macro used for setting byte number i from n to byte b.
@@ -84,11 +91,9 @@ typedef enum OtaUpdateStatesEnum
 class RequestUpdateStatus
 {
 private:        
-	Logger _logger;
-	int socket = -1;
 public:
-	RequestUpdateStatus(int socket, Logger logger);
-	~RequestUpdateStatus();
+	int socket = -1;
+	RequestUpdateStatus(int socket);
 	/**
 	 * @brief Service method. Receive a request for reading Ota Update Status.
 	 * 	Sends a ReadDataByIdentifier request to MCU, with the Ota Update Status Data Identifier.
@@ -98,7 +103,18 @@ public:
 	 * @param[i] frame_id 
 	 * @param[i] frame_data 
 	 */
-	void requestUpdateStatus(canid_t frame_id, std::vector<uint8_t> frame_data);
+	std::vector<uint8_t> requestUpdateStatus(canid_t frame_id, std::vector<uint8_t> frame_data);
+
+	/**
+	 * @brief Method used for checking if a 8 bit number represents a valid OTA status.
+	 * 
+	 * @param[i] status 
+	 * @return true 
+	 * @return false 
+	 */
+	bool isValidStatus(uint8_t status);
+
+	~RequestUpdateStatus();
 };
 
 #endif /* REQUEST_UPDATE_STATUS_H */

@@ -1,9 +1,32 @@
 #include "../include/SecurityAccess.h"
 #include "../../../mcu/include/MCUModule.h"
 
+/* Set the default security access to false. */
+bool SecurityAccess::mcu_state = false;
+
+/* Adjust the default nr of attempts as needed here. */
+uint8_t SecurityAccess::nr_of_attempts = 3;
+
+std::vector<uint8_t> SecurityAccess::security_access_seed;
+
+/* By default we dont have delay timer */
+uint32_t SecurityAccess::time_left = 0;
+
+/**
+ * Set end_time to a distant future point. This ensures that it is always
+ * greater than the current time unless a specific delay timer is activated.
+*/
+static std::chrono::steady_clock::time_point end_time = std::chrono::steady_clock::now() + \
+                                                        std::chrono::hours(24 * 365);
+
 SecurityAccess::SecurityAccess(int socket, Logger& security_logger)
                 :  security_logger(security_logger), socket(socket)
 {}
+
+bool SecurityAccess::getMcuState()
+{
+    return mcu_state;
+}
 
 std::vector<uint8_t> SecurityAccess::computeKey(const std::vector<uint8_t>& seed)
 {
@@ -35,12 +58,42 @@ std::vector<uint8_t> SecurityAccess::generateRandomBytes(size_t length)
     return bytes;
 }
 
+/* Function to convert the time value to a 5-byte representation in big-endian format */
+std::vector<uint8_t> SecurityAccess::convertTimeToCANFrame(uint32_t timeInSeconds)
+{
+    std::vector<uint8_t> frame = {0x07, 0x7F, SECURITY_ACCESS_SID, RTDNE};
+
+    /* Calculate number of non-zero bytes needed to represent timeInSeconds */
+    std::vector<uint8_t> timeBytes;
+    for (int i = 3; i >= 0; --i)
+    {
+        uint8_t byte = (timeInSeconds >> (8 * i)) & 0xFF;
+        if (!timeBytes.empty() || byte != 0)
+        {
+            timeBytes.push_back(byte);
+        }
+    }
+
+    /* Calculate how many padding bytes we need */
+    size_t numPaddingBytes = 4 - timeBytes.size();
+    
+    /* Add the padding bytes */
+    for (size_t i = 0; i < numPaddingBytes; ++i)
+    {
+        frame.push_back(0x00);
+    }
+
+    frame.insert(frame.end(), timeBytes.begin(), timeBytes.end());
+
+    return frame;
+}
+
 void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& request)
 {
     std::vector<uint8_t> response;
     std::vector<uint8_t> key;
 
-    /**Extract the first 8 bits of can_id */
+    /* Extract the first 8 bits of can_id. */
     uint8_t lowerbits = can_id & 0xFF;
     uint8_t upperbits = can_id >> 8 & 0xFF;
 
@@ -49,8 +102,19 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
     if (upperbits == 0xFA) 
     {
             generate_frames = new GenerateFrames(socket, security_logger);
-
-            /* Incorrect message length or invalid format */
+            /** 
+             * Check if the delay timer has expired.
+             * Set the nr of attempts to default. Delay timer will be 0.
+            */
+           auto now = std::chrono::steady_clock::now();
+           if (now >= end_time)
+           {
+                time_left = 0;
+                nr_of_attempts = 3;
+                LOG_INFO(security_logger.GET_LOGGER(), "Delay timer expired. You can attempt to send the key again.");
+                end_time = std::chrono::steady_clock::now() + std::chrono::hours(24 * 365);
+           }
+            /* Incorrect message length or invalid format. */
             if ((request.size() < 3) ||
                 (request[2] == 0x02 && request[0] == 2)
                 || (request.size() != static_cast<size_t>(request[0] + 1)))
@@ -61,18 +125,20 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
             {
                 uint8_t pci_length = request[0];
                 uint8_t sf = request[2];
-                /* Subfunction not supported, we use only 1st lvl of security access */
+                /* Subfunction not supported, we use only 1st lvl of security access. */
                 if (sf != 0x01 && sf != 0x02)
                 {
                     generate_frames->negativeResponse(can_id,SECURITY_ACCESS_SID, SFNS);
                 }
                 else if (sf == 0x01)
                 {
-                    /* Adjust the seed length between 1 and 5*/
+                    /* Adjust the seed length between 1 and 5.*/
                     size_t seed_length = 2;
-                    /* std::vector<uint8_t> seed = generateRandomBytes(seed_length); */
-                    std::vector<uint8_t> seed = {0x36,0x57};
-                    /* PCI length */
+
+                    std::vector<uint8_t> seed = generateRandomBytes(seed_length);
+                    /* std::vector<uint8_t> seed = {0x36,0x57}; */
+
+                    /* PCI length = seed_length + 2(0x67 and 0x01)*/
                     response.push_back(2 + seed_length);
 
                     /* SID response */
@@ -80,27 +146,27 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
 
                     /*subfunction request seed*/
                     response.push_back(0x01);
-                    bool mcu_state = MCU::mcu.getMCUState();
 
-                    /* complete the seed in frame if server is locked, or with 0x00 if unlocked */
+                    /* complete the seed in frame if server is locked, or with 0x00 if unlocked. */
                     for (auto e : seed)
                     {
                         response.push_back(mcu_state ? 0x00 : e);
                     }
                     generate_frames->sendFrame(can_id,response,DATA_FRAME);
-                    MCU::mcu.setSecurityAccessSeed(seed);                  
+                    security_access_seed = seed;
+                    LOG_INFO(security_logger.GET_LOGGER(), "Seed was sent.");
                 }
-                else if (sf == 0x02 && !MCU::mcu.getMCUState())
+                else if (sf == 0x02 && !mcu_state)
                 {
-                    /* Request sequence error, cannot receive sendKey before requestSeed */
-                    if (MCU::mcu.getSecurityAccessSeed().empty())
+                    /* Request sequence error, cannot receive sendKey before requestSeed. */
+                    if (security_access_seed.empty())
                     {
                         LOG_ERROR(security_logger.GET_LOGGER(), "Cannot have sendKey request before requestSeed.");
                         generate_frames->negativeResponse(can_id,SECURITY_ACCESS_SID,RSE);
                     }
-                    else
+                    else if (time_left == 0)
                     {
-                        std::vector<uint8_t> computed_key = computeKey(MCU::mcu.getSecurityAccessSeed());
+                        std::vector<uint8_t> computed_key = computeKey(security_access_seed);
                         std::vector<uint8_t> received_key;
                         for (int i = 3; i <= pci_length; i++)
                         {
@@ -116,26 +182,69 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
 
                             /* subfunction sendkey */
                             response.push_back(0x02);
+
                             generate_frames->sendFrame(can_id,response,DATA_FRAME);
-                            LOG_INFO(security_logger.GET_LOGGER(), "Security Access granted successfully");
-                            MCU::mcu.setMCUState(true);
+                            LOG_INFO(security_logger.GET_LOGGER(), "Security Access granted successfully.");
+                            mcu_state = true;
                         }
                         else
-                        {   /* Invalid key, doesnt match with server's key. */
-                            LOG_ERROR(security_logger.GET_LOGGER(), "Security Access denied. Invalid Key");
-                            generate_frames->negativeResponse(can_id,SECURITY_ACCESS_SID, IK);
+                        {   
+                            if (nr_of_attempts > 0)
+                            {
+                                /* Invalid key, doesnt match with server's key. */
+                                LOG_ERROR(security_logger.GET_LOGGER(), "Security Access denied. Invalid Key.");
+                                generate_frames->negativeResponse(can_id,SECURITY_ACCESS_SID, IK);
+                                nr_of_attempts--;
+                                LOG_INFO(security_logger.GET_LOGGER(), "{} attempts left.", nr_of_attempts);
+                            }
+                            else
+                            {
+                                /** 
+                                 * Send if an expected ‘sendKey’ SubFunction is received, the value of the key does not 
+                                 * match the server’s internally stored/calculated key, and the delay timer is activated
+                                 * by this request(i.e. due to reaching the limit of false access attempts which activate
+                                 * the delay timer).
+                                */
+                                LOG_ERROR(security_logger.GET_LOGGER(), "Exceeded number of attempts.");
+                                generate_frames->negativeResponse(can_id,SECURITY_ACCESS_SID, ENOA);
+                                
+                                /* Start the delay timer clock. */
+                                end_time = std::chrono::steady_clock::now() + std::chrono::seconds(TIMEOUT_IN_SECONDS);
+                                now = std::chrono::steady_clock::now();
+                                time_left = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(end_time - now).count());
+                                LOG_INFO(security_logger.GET_LOGGER(), "Delay timer activated.");
+                                uint32_t time_left_copy = time_left;
+                                uint32_t seconds = time_left_copy / 1000;
+                                uint32_t milliseconds = time_left_copy % 1000;
+                                LOG_INFO(security_logger.GET_LOGGER(), "Please wait {} seconds and {} milliseconds \
+                                        before sending key again.", seconds,milliseconds);
+                            }
                         }
+                    }
+                    else
+                    {
+                        /** Send if a ‘requestSeed’ SubFunction is received and the delay timer is active 
+                         * for the requested security level.
+                        */
+                        now = std::chrono::steady_clock::now();
+                        time_left = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(end_time - now).count());
+                        uint32_t time_left_copy = time_left;
+                        uint32_t seconds = time_left_copy / 1000;
+                        uint32_t milliseconds = time_left_copy % 1000;
+                        LOG_INFO(security_logger.GET_LOGGER(), "Please wait {} seconds and {} milliseconds \
+                                before sending key again.", seconds,milliseconds);
+                        response = convertTimeToCANFrame(time_left);
+                        generate_frames->sendFrame(can_id,response,DATA_FRAME);
                     }
                 }
                 else
                 {
-                    LOG_INFO(security_logger.GET_LOGGER(), "Server is already unlocked");
+                    LOG_ERROR(security_logger.GET_LOGGER(), "Server is already unlocked.");
                 }
             }
-        } 
-        else 
-        {
-            /* Handle the case where create_interface is null */
-            LOG_ERROR(security_logger.GET_LOGGER(), "Create_interface is nullptr");
-        }
-} 
+    }
+    else
+    {
+        LOG_ERROR(security_logger.GET_LOGGER(), "Security service can be accessed only from API.");
+    }
+}

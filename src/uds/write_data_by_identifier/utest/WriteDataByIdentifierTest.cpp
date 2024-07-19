@@ -56,7 +56,7 @@ TEST_F(WriteDataByIdentifierTest, ValidDIDInMCUModuleOnAPISocket) {
     std::string output = testing::internal::GetCapturedStdout();
 
     EXPECT_NE(output.find("Write Data By Identifier Service invoked."), std::string::npos);
-    EXPECT_NE(output.find("Data written to new DID 0x1a0 in MCUModule."), std::string::npos);
+    EXPECT_NE(output.find("Data written to new DID 0x01a0 in MCUModule."), std::string::npos);
     std::cerr << "Finished TestValidDIDInMCUModuleOnAPISocket" << std::endl;
 }
 
@@ -73,7 +73,7 @@ TEST_F(WriteDataByIdentifierTest, ValidDIDInMCUModuleOnCANBusSocket) {
     std::string output = testing::internal::GetCapturedStdout();
 
     EXPECT_NE(output.find("Write Data By Identifier Service invoked."), std::string::npos);
-    EXPECT_NE(output.find("Data written to DID 0x1a0 in MCUModule."), std::string::npos);
+    EXPECT_NE(output.find("Data written to DID 0x01a0 in MCUModule."), std::string::npos);
     std::cerr << "Finished TestValidDIDInMCUModuleOnCANBusSocket" << std::endl;
 }
 
@@ -90,7 +90,7 @@ TEST_F(WriteDataByIdentifierTest, ValidDIDInBatteryModule) {
     std::string output = testing::internal::GetCapturedStdout();
 
     EXPECT_NE(output.find("Write Data By Identifier Service invoked."), std::string::npos);
-    EXPECT_NE(output.find("Data written to DID 0x1a0 in BatteryModule."), std::string::npos);
+    EXPECT_NE(output.find("Data written to DID 0x01a0 in BatteryModule."), std::string::npos);
     std::cerr << "Finished TestValidDIDInBatteryModule" << std::endl;
 }
 
@@ -108,11 +108,11 @@ TEST_F(WriteDataByIdentifierTest, NewValidDIDInBatteryModule) {
     EXPECT_NE(output.find("Write Data By Identifier Service invoked."), std::string::npos);
     EXPECT_NE(output.find("Data written to new DID 0xf18c in BatteryModule."), std::string::npos);
     EXPECT_NE(output.find("BatteryModule contents:"), std::string::npos);
-    EXPECT_NE(output.find("DID 0x1d0: 0"), std::string::npos);
-    EXPECT_NE(output.find("DID 0x1c0: 0"), std::string::npos);
-    EXPECT_NE(output.find("DID 0x1b0: 0"), std::string::npos);
-    EXPECT_NE(output.find("DID 0xf18c: 3 4"), std::string::npos);
-    EXPECT_NE(output.find("DID 0x1a0: 3 4"), std::string::npos);
+    EXPECT_NE(output.find("DID 0x01d0: 00"), std::string::npos);
+    EXPECT_NE(output.find("DID 0x01c0: 00"), std::string::npos);
+    EXPECT_NE(output.find("DID 0x01b0: 00"), std::string::npos);
+    EXPECT_NE(output.find("DID 0xf18c: 03 04"), std::string::npos);
+    EXPECT_NE(output.find("DID 0x01a0: 03 04"), std::string::npos);
     std::cerr << "Finished TestNewValidDIDInBatteryModule" << std::endl;
 }
 

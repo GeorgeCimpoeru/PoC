@@ -6,6 +6,10 @@ function displayResponse(data) {
 function sendFrame() {
     const canId = document.getElementById('can-id').value;
     const canData = document.getElementById('can-data').value;
+    if (!canId || !canData) {
+        alert('CAN ID and CAN Data cannot be empty.');
+        return;
+    }
     fetch('/api/send_frame', {
         method: 'POST',
         headers: {
@@ -21,7 +25,7 @@ function sendFrame() {
 
 function requestIds() {
     fetch('/api/request_ids', {
-        method: 'POST',
+        method: 'GET',
     }).then(response => response.json())
       .then(data => {
           document.getElementById('response-output').textContent = JSON.stringify(data);
@@ -55,9 +59,30 @@ function readInfoBattery() {
       });
 }
 
+function readInfoEngine() {
+    fetch('/api/read_info_engine', {
+        method: 'GET',
+    }).then(response => response.json())
+      .then(data => {
+          document.getElementById('response-output').textContent = JSON.stringify(data);
+          fetchLogs(); 
+      });
+}
+
+function readInfoDoors() {
+    fetch('/api/read_info_doors', {
+        method: 'GET',
+    }).then(response => response.json())
+      .then(data => {
+          document.getElementById('response-output').textContent = JSON.stringify(data);
+          fetchLogs(); 
+      });
+}
+
 function fetchLogs() {
-    fetch('/api/logs')
-      .then(response => response.json())
+    fetch('/api/logs', {
+        method: 'GET',
+    }).then(response => response.json())
       .then(data => {
           const logBody = document.getElementById('log-body');
           logBody.innerHTML = ''; 

@@ -26,6 +26,7 @@
 #include "../../uds/read_dtc_information/include/ReadDtcInformation.h"
 #include "../../ota/request_download/include/RequestDownload.h"
 #include "../../ota/request_update_status/include/RequestUpdateStatus.h"
+#include "../../ota/transfer_data/include/TransferData.h"
 
 namespace MCU
 {
@@ -35,7 +36,6 @@ namespace MCU
         int socket_api = -1;
         int socket_canbus = -1;
         DiagnosticSessionControl mcuDiagnosticSessionControl;
-        RequestDownloadService requestDownload;
     public:
         HandleFrames(int socket_api, int socket_canbus);
         /**

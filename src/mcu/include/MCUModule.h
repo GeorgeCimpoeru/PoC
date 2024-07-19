@@ -11,6 +11,7 @@
 #include "../../utils/include/CreateInterface.h"
 #include "ReceiveFrames.h"
 #include "../include/MCULogger.h"
+#include "../../uds/write_data_by_identifier/include/WriteDataByIdentifier.h"
 
 #include <thread>
 namespace MCU
@@ -77,15 +78,39 @@ namespace MCU
          * @return The current value of MCU state
          */
         void setMCUState(bool state);
+
+        /**
+         * @brief Get the Mcu Api Socket
+         * 
+         * @return Returns the socket id for API
+         */
         int getMcuApiSocket() const;
+
+        /**
+         * @brief Get the Mcu Ecu Socket
+         * 
+         * @return Returns the socket id for ECU
+         */
         int getMcuEcuSocket() const;
+
+        /**
+         * @brief Recreates and bind the socket of API on a given interface
+         * 
+         * @param interface_number The interface on which the API socket will be created
+         */
+        void setMcuApiSocket(uint8_t interface_number);
+
+        /**
+         * @brief Recreates and bind the socket of ECU on a given interface
+         * 
+         * @param interface_number The interface on which the ECU socket will be created
+         */
+        void setMcuEcuSocket(uint8_t interface_number);
 
     private:
         bool is_running;
         CreateInterface* create_interface;
         ReceiveFrames* receive_frames;
-        std::vector<uint8_t> securityAccess_seed;
-        bool mcu_state = false;
         int mcu_api_socket = -1;
         int mcu_ecu_socket = -1;
     };
