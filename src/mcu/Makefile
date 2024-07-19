@@ -81,7 +81,7 @@ ReceiveFrames_test: test/ReceiveFramesTest.cpp src/ReceiveFrames.cpp
 # GenerateFrames Unit tests
 generateTest: GenerateFrames_test
 GenerateFrames_test: ../utils/test/GenerateFramesTest.cpp ../utils/src/GenerateFrames.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../utils/test/GenerateFramesTest ../utils/test/GenerateFramesTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../utils/test/GenerateFramesTest ../utils/test/GenerateFramesTest.cpp ../utils/src/Logger.cpp ../utils/src/GenerateFrames.cpp  $(CFLAGSTST2) $(LDFLAGS)
 
 # MemoryManager Unit tests
 memoryTest: MemoryManager_test

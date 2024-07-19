@@ -63,7 +63,7 @@ class GenerateFrames
          * @param s socket needed for sendFrame
          * @param frameType default value: DATA_FRAME. More values: REMOTE_FRAME, ERROR_FRAME
          */
-        int sendFrame(int can_id, std::vector<uint8_t> data, int s, FrameType frameType);
+        int sendFrame(int can_id, std::vector<uint8_t> data, int s, FrameType frameType = DATA_FRAME);
         /**
          * @brief Method for creation of custom frames
          * @param id id of the frame
@@ -103,11 +103,20 @@ class GenerateFrames
         */
         void sessionControl(int id, uint8_t sub_function, bool response=false);
         /**
-         * @brief Frame for ECU reset Service. Default subfunction 0x01 Soft-Reset
+         * @brief Frame for ECU reset Service
          * @param id id of the frame(sender id and receiver id)
          * @param sub_function the sub_function of the ECU Reset
          * @param response varaible for request or response frame
          * Response&Request
+         */
+        void ecuReset(int id, uint8_t sub_function, bool response=false);
+        /**
+         * @brief Frame for ECU reset Service
+         * 
+         * @param id id of the frame(sender id and receiver id)
+         * @param sub_function the sub_function of the ECU Reset
+         * @param socket socket used to send the frame through the bus
+         * @param response varaible for request or response frame
          */
         void ecuReset(int id, uint8_t sub_function, int socket, bool response=false);
         /**
@@ -152,13 +161,13 @@ class GenerateFrames
          * @param id id of the frame(sender id and receiver id)
          * @param seed the requested seed(if not set the frame is a request)
         Response&Request */
-        void authenticationRequestSeed(int id, const std::vector<uint8_t>& seed = {});
+        void securityAccessRequestSeed(int id, const std::vector<uint8_t>& seed = {});
         /**
          * @brief Frame for Authentication Service, sub-function 0x01(Request seed)
          * @param id id of the frame(sender id and receiver id)
          * @param key if not set, the frame is a response
         Response&Request */
-        void authenticationSendKey(int id, const std::vector<uint8_t>& key = {});
+        void securityAccessSendKey(int id, const std::vector<uint8_t>& key = {});
         /**
          * @brief Frame for Routine Control Service
          * @param id id of the frame(sender id and receiver id)
@@ -339,16 +348,6 @@ class GenerateFrames
          * @param numBytes 
          */
         void insertBytes(std::vector<uint8_t>& byteVector, unsigned int num, int numBytes);
-        /**
-         * @brief Generate consecutive frames. Used in ReadBy Identifier and WriteByIdentifier methods
-         * 
-         * @param id if of the frame
-         * @param sid sid of the service
-         * @param identifier identifier of the data
-         * @param response the reponse or data to be write in the identifier 
-         * @param first_frame type of frame, first frame(true) or consecutive frame(false).
-         */
-        void generateFrameLongData(int id, uint8_t sid, uint16_t identifier, std::vector<uint8_t> response, bool first_frame);
         /**
          * @brief Universal class used by long-frame-methods to generate consecutive frames
          * 
