@@ -2,8 +2,10 @@
 namespace MCU
 {
     ReceiveFrames::ReceiveFrames(int socket_canbus, int socket_api)
-        : socket_canbus(socket_canbus), socket_api(socket_api), generate_frames(socket_canbus, MCULogger),
-        timeout_duration(120), running(true) 
+        : timeout_duration(120), running(true), socket_canbus(socket_canbus), 
+        socket_api(socket_api), handler(socket_api, socket_canbus),
+        generate_frames(socket_canbus, MCULogger)
+        
     {
         startTimerThread();
     }
@@ -50,7 +52,7 @@ namespace MCU
                     if( receiver_id == hex_value_id || receiver_id == 0xFF || receiver_id == 0xFA)
                     {
                         frame_queue.push(frame);
-                        LOG_INFO(MCULogger.GET_LOGGER(), fmt::format("Pass a valid Module ID: 0x{:x} and frame added to the processing queue.", int(frame.can_id)));
+                        LOG_INFO(MCULogger.GET_LOGGER(), fmt::format("Pass a valid Module ID: 0x{:x} and frame added to the processing queue.", frame.can_id));
 
                     }
                 }
@@ -81,7 +83,7 @@ namespace MCU
                     /* Lock the queue before adding the frame to ensure thread safety */
                     std::lock_guard<std::mutex> lock(queue_mutex);
                     frame_queue.push(frame);
-                    LOG_INFO(MCULogger.GET_LOGGER(), fmt::format("Pass a valid Module ID: 0x{:x} and frame added to the processing queue.", int(frame.can_id)));
+                    LOG_INFO(MCULogger.GET_LOGGER(), fmt::format("Pass a valid Module ID: 0x{:x} and frame added to the processing queue.", frame.can_id));
                 }
                 /* Notify one waiting thread that a new frame has been added to the queue */
                 queue_cond_var.notify_one();
@@ -106,7 +108,7 @@ namespace MCU
             /* Extract the first element from the queue */
             struct can_frame frame = frame_queue.front();
             frame_queue.pop();
-            LOG_INFO(MCULogger.GET_LOGGER(), fmt::format("Frame with ID: 0x{:x} is taken from processing queue", int(frame.can_id)));
+            LOG_INFO(MCULogger.GET_LOGGER(), fmt::format("Frame with ID: 0x{:x} is taken from processing queue", frame.can_id));
             /* Unlock the queue to allow other threads to add frames */
             lock.unlock();
 
@@ -201,7 +203,7 @@ namespace MCU
     {
         LOG_INFO(MCULogger.GET_LOGGER(), "");
         LOG_INFO(MCULogger.GET_LOGGER(), "Received CAN frame");
-        LOG_INFO(MCULogger.GET_LOGGER(), "Module ID: 0x{0:x}", int(frame.can_id));
+        LOG_INFO(MCULogger.GET_LOGGER(), "Module ID: 0x{:x}", frame.can_id);
         LOG_INFO(MCULogger.GET_LOGGER(), "Data Length: {}", int(frame.can_dlc));
         std::ostringstream dataStream;
         dataStream << "Data:";
@@ -272,7 +274,6 @@ namespace MCU
                 std::lock_guard<std::mutex> lock(queue_mutex);
                 for (auto it = ecu_timers.begin(); it != ecu_timers.end();) {
                     if (std::chrono::duration_cast<std::chrono::seconds>(now - it->second) >= timeout_duration) {
-                        uint8_t ecu_id = it->first;
                         /* Send request frame */
                         std::vector<uint8_t> data = {0x01};
                         ReceiveFrames::generate_frames.sendFrame(0x1011, data);

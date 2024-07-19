@@ -10,18 +10,21 @@ namespace MCU
     MCUModule mcu(0x01);
     /* Constructor */
     MCUModule::MCUModule(uint8_t interfaces_number) : 
-                    create_interface(CreateInterface::getInstance(interfaces_number, MCULogger)),
                     is_running(false),
-                    receive_frames(nullptr) 
+                    create_interface(CreateInterface::getInstance(interfaces_number, MCULogger)),
+                    receive_frames(nullptr),
+                    mcu_api_socket(create_interface->createSocket(interfaces_number)),
+                    mcu_ecu_socket(create_interface->createSocket(interfaces_number >> 4))
                     {
-        receive_frames = new ReceiveFrames(create_interface->getSocketEcuRead(), create_interface->getSocketApiRead());
 
+        receive_frames = new ReceiveFrames(mcu_ecu_socket, mcu_api_socket);
+        WriteDataByIdentifier WDBI(0x1111FA10, {PCI_L, WRITE_DATA_BY_IDENTIFIER_SID, OTA_UPDATE_STATUS_DID_MSB, OTA_UPDATE_STATUS_DID_LSB, IDLE}, MCULogger, mcu_api_socket);
     }
 
     /* Default constructor */
-    MCUModule::MCUModule() : create_interface(CreateInterface::getInstance(0x01, MCULogger)),
-                                                is_running(false),
-                                                receive_frames(nullptr) {}
+    MCUModule::MCUModule() : is_running(false),
+                         create_interface(CreateInterface::getInstance(0x01, MCULogger)),
+                         receive_frames(nullptr) {}
 
     /* Destructor */
     MCUModule::~MCUModule() 
@@ -33,30 +36,24 @@ namespace MCU
     /* Start the module */
     void MCUModule::StartModule() { is_running = true; }
 
-    /* Getter for securityAccess_seed */
-    std::vector<uint8_t> MCUModule::getSecurityAccessSeed()
+    int MCUModule::getMcuApiSocket() const 
     {
-        return securityAccess_seed;
+        return mcu_api_socket;
+    }
+    int MCUModule::getMcuEcuSocket() const 
+    {
+        return mcu_ecu_socket;
     }
 
-    /* Setter for securityAccess_seed */
-    void MCUModule::setSecurityAccessSeed(const std::vector<uint8_t>& seed)
+    void MCUModule::setMcuApiSocket(uint8_t interface_number)
     {
-        securityAccess_seed = seed;
+        this->mcu_api_socket = this->create_interface->createSocket(interface_number);
     }
-
-    /* Getter for MCU access state */
-    bool MCUModule::getMCUState() const
+    
+    void MCUModule::setMcuEcuSocket(uint8_t interface_number)
     {
-        return mcu_state;
+        this->mcu_ecu_socket = this->create_interface->createSocket(interface_number >> 4);
     }
-
-    /* Setter for MCU access state */
-    void MCUModule::setMCUState(bool state)
-    {
-        mcu_state = state;
-    }
-
 
     /* Stop the module */
     void MCUModule::StopModule() { is_running = false; }

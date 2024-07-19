@@ -4,6 +4,7 @@ from logging.handlers import RotatingFileHandler
 from flask import request
 from functools import wraps
 
+
 def setup_logger():
     """
     Sets up the logger for the Flask application and returns a decorator for logging.
@@ -32,17 +33,20 @@ def setup_logger():
         def log_response_info(response):
             app.logger.info(f'Response: {response.status} {response.get_data()}')
             return response
-        
+
         return app
 
     return decorator
 
+
 log_memory = []
+
 
 class MemoryHandler(logging.Handler):
     def emit(self, record):
         log_entry = self.format(record)
         log_memory.append(log_entry)
+
 
 class SingletonLogger:
     _instance = None
@@ -94,6 +98,7 @@ class SingletonLogger:
     def logger_frame(self):
         return self._logger_frame
 
+
 def log_method_calls(method, logger):
     """
     Wrapper function to log method calls and arguments.
@@ -116,17 +121,22 @@ def log_method_calls(method, logger):
 
     return wrapper
 
+
 def log_debug_message(logger, msg="Debug message"):
     logger.debug(msg)
+
 
 def log_info_message(logger, msg="Info message"):
     logger.info(msg)
 
+
 def log_warning_message(logger, msg="Warning message"):
     logger.warning(msg)
 
+
 def log_error_message(logger, msg="Error message"):
     logger.error(msg)
+
 
 def log_critical_message(logger, msg="Critical message"):
     logger.critical(msg)

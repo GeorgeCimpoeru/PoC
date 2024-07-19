@@ -15,8 +15,9 @@ BatteryModule::BatteryModule() : moduleId(0x11),
                                  canInterface(CreateInterface::getInstance(0x00, batteryModuleLogger)),
                                  frameReceiver(nullptr)
 {
+    battery_socket = canInterface->createSocket(0x00);
     /* Initialize the Frame Receiver */
-    frameReceiver = new ReceiveFrames(canInterface->getSocketEcuRead(), moduleId);
+    frameReceiver = new ReceiveFrames(battery_socket, moduleId);
 
     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery object created successfully, ID : 0x{:X}", this->moduleId);
 
@@ -32,12 +33,13 @@ BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_mo
                                                                     canInterface(CreateInterface::getInstance(_interfaceNumber, batteryModuleLogger)),
                                                                     frameReceiver(nullptr)
 {
+    battery_socket = canInterface->createSocket(0x00);
     /* Initialize the Frame Receiver */
-    frameReceiver = new ReceiveFrames(canInterface->getSocketEcuRead(), moduleId);
+    frameReceiver = new ReceiveFrames(battery_socket, moduleId);
 
     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery object created successfully using Parameterized Constructor, ID : 0x{:X}", this->moduleId);
 
-    /* Send Up-Notification to MCU */
+    /* Send Up-Notification to MCU */ 
     sendNotificationToMCU();
 }
 
@@ -52,7 +54,7 @@ BatteryModule::~BatteryModule()
 void BatteryModule::sendNotificationToMCU()
 {
     /* Create an instance of GenerateFrames with the CAN socket */
-    GenerateFrames notifyFrame = GenerateFrames(canInterface->getSocketEcuRead(), batteryModuleLogger);
+    GenerateFrames notifyFrame = GenerateFrames(battery_socket, batteryModuleLogger);
 
     /* Create a vector of uint8_t (bytes) containing the data to be sent */
     std::vector<uint8_t> data = {0x0, 0xff, 0x11, 0x3};
@@ -152,7 +154,6 @@ void BatteryModule::fetchBatteryData()
     {
         /* Execute the shell command to read System Info about Battery */
         std::string data = exec("upower -i /org/freedesktop/UPower/devices/battery_BAT0");
-
         /* Call the function in order to parse the datas */
         parseBatteryInfo(data, energy, voltage, percentage, state);
 
@@ -176,7 +177,7 @@ void BatteryModule::receiveFrames()
     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery module starts the frame receiver");
 
     /* Create a HandleFrames object to process received frames */
-    HandleFrames handleFrames;
+    HandleFrames handleFrames(this->battery_socket);
 
     /* Receive a CAN frame using the frame receiver and process it with handleFrames */
     frameReceiver->receive(handleFrames);
@@ -213,4 +214,14 @@ float BatteryModule::getPercentage() const
 std::string BatteryModule::getLinuxBatteryState()
 {
     return state;
+}
+
+int BatteryModule::getBatterySocket() const
+{
+    return battery_socket;
+}
+
+void BatteryModule::setBatterySocket(uint8_t interface_number)
+{
+    this->battery_socket = this->canInterface->createSocket(interface_number);
 }

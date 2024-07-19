@@ -8,6 +8,12 @@
 #include "../include/HandleFrames.h"
 namespace MCU
 {
+    HandleFrames::HandleFrames(int socket_api, int socket_canbus) 
+                : mcuDiagnosticSessionControl(MCULogger, socket_api)
+    {
+        this->socket_api = socket_api;
+        this->socket_canbus = socket_canbus;
+    }
     /* Method to handle a can frame */
     void HandleFrames::handleFrame(const struct can_frame &frame) 
     {
@@ -68,7 +74,7 @@ namespace MCU
             frame_data.clear();
 
             /* Concatenate the data from the first frame into multi_frame_data */
-            for (uint8_t data_pos = 5; data_pos < frame.can_dlc; ++data_pos) 
+            for (uint8_t data_pos = 1; data_pos < frame.can_dlc; ++data_pos) 
             {
                 frame_data.push_back(frame.data[data_pos]);
             }
@@ -139,7 +145,7 @@ namespace MCU
                     LOG_INFO(MCULogger.GET_LOGGER(), "DiagnosticSessionControl called.");
                     mcuDiagnosticSessionControl.sessionControl(sid, frame_data[2]);
                     LOG_INFO(MCULogger.GET_LOGGER(), "MCU Current session: {}", mcuDiagnosticSessionControl.getCurrentSessionToString());
-                }
+                } 
                 break;
             case 0x11:
             {
@@ -155,11 +161,8 @@ namespace MCU
                     uint8_t sub_function = frame_data[2];
                     LOG_INFO(MCULogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
 
-                    /* Get the interface so we can get the socket */
-                    CreateInterface* interface = CreateInterface::getInstance(0x00, MCULogger);  
-
                     /* Calls ECU Reset */                
-                    EcuReset ecu_reset(frame_id, sub_function, interface->getSocketApiWrite(), MCULogger);
+                    EcuReset ecu_reset(frame_id, sub_function, getMcuSocket(frame_id), MCULogger);
                     ecu_reset.ecuResetRequest();
                 }
                 break;
@@ -173,8 +176,16 @@ namespace MCU
                 else
                 {
                     LOG_INFO(MCULogger.GET_LOGGER(), "SecurityAccess called.");
-                    SecurityAccess security_access;
-                    security_access.securityAccess(frame_id, frame_data, MCULogger);
+                    SecurityAccess security_access(getMcuSocket(frame_id), MCULogger);
+                    security_access.securityAccess(frame_id, frame_data);
+                    if (SecurityAccess::getMcuState())
+                    {
+                        LOG_INFO(MCULogger.GET_LOGGER(), "Server is unlocked.");
+                    }
+                    else
+                    {
+                        LOG_INFO(MCULogger.GET_LOGGER(), "Server is locked.");
+                    }
                 }
                 break;
             case 0x29:
@@ -219,8 +230,8 @@ namespace MCU
                 else 
                 {
                     LOG_INFO(MCULogger.GET_LOGGER(), "ReadDataByIdentifier called.");
-                    ReadDataByIdentifier read_data_by_identifier;
-                    read_data_by_identifier.readDataByIdentifier(frame_id, frame_data, MCULogger);
+                    ReadDataByIdentifier read_data_by_identifier(getMcuSocket(frame_id), MCULogger);
+                    read_data_by_identifier.readDataByIdentifier(frame_id, frame_data, true);
                 }
                 break;
             case 0x23:
@@ -243,7 +254,8 @@ namespace MCU
                 else 
                 {
                     LOG_INFO(MCULogger.GET_LOGGER(), "WriteDataByIdentifier service called!");
-                    WriteDataByIdentifier write_data_by_identifier(frame_id, frame_data, MCULogger);
+                    std::vector<uint8_t> rdata(frame_data.begin() + 4, frame_data.end());
+                    WriteDataByIdentifier write_data_by_identifier(frame_id, rdata, MCULogger, getMcuSocket(frame_id));
                 }
                 break;
             case 0x14:
@@ -267,7 +279,7 @@ namespace MCU
                 {
                     LOG_INFO(MCULogger.GET_LOGGER(), "ReadDtcInformation called.");
                     /* verify_frame() */
-                    ReadDTC readDtc(MCULogger, "../../uds/read_dtc_information/dtcs.txt");
+                    ReadDTC readDtc(MCULogger, "../../uds/read_dtc_information/dtcs.txt", getMcuSocket(frame_id));
                     readDtc.read_dtc(frame_id, frame_data);
                 }
                 break;
@@ -289,13 +301,8 @@ namespace MCU
                 break;
             case 0x51:
             {
-                /* Response from ECU Reset service
-                   Send the response to API */
-                LOG_INFO(MCULogger.GET_LOGGER(), "Response from EcuReset received.");
-                uint8_t sub_function = frame_data[2];                    
-                CreateInterface* interface = CreateInterface::getInstance(0x00, MCULogger);
-                EcuReset ecu_reset(frame_id, sub_function, interface->getSocketApiWrite(), MCULogger);
-                ecu_reset.ecuResetResponse();
+                /* Response from ECU Reset service */
+                LOG_INFO(MCULogger.GET_LOGGER(), "Response for ECUReset received.");
                 break;
             }
             case 0x67:
@@ -366,22 +373,22 @@ namespace MCU
                     LOG_INFO(MCULogger.GET_LOGGER(), "Service 0x34 RequestDownload");
                     LOG_INFO(MCULogger.GET_LOGGER(), "SID pos: {}", sid);
                     LOG_INFO(MCULogger.GET_LOGGER(), "Data size: {}", frame_data.size());
-
-                    requestDownload.requestDownloadRequest(frame_id, frame_data, MCULogger);
+                    RequestDownloadService requestDownload(getMcuSocket(frame_id), MCULogger);
+                    ReadDataByIdentifier software_version(getMcuSocket(frame_id), MCULogger);
+                    SecurityAccess logged_in(getMcuSocket(frame_id), MCULogger);
+                    requestDownload.requestDownloadRequest(frame_id, frame_data, MCULogger, mcuDiagnosticSessionControl, software_version, logged_in);
                 }
                 break;
             case 0x36:
-                /* TransferData(sid, frame_data[2], frame_data[3], frame_data[4]); */
+                /* TransferData(sid, frame_data[2], frame_data[3], frame_data[4]); */ 
                 if(frame_data[1] == 0x7F)
                 {
                     processNrc(frame_id, sid, frame_data[3]);
                 }
-                else if(is_multi_frame)
-                {
-                    LOG_INFO(MCULogger.GET_LOGGER(), "TransferData called with multiple frames.");
-                }
                 else 
                 {
+                    TransferData transfer_data(getMcuSocket(frame_id), MCULogger);
+                    transfer_data.transferData(frame_id, frame_data);
                     LOG_INFO(MCULogger.GET_LOGGER(), "TransferData called with one frame.");
                 }
                 break;
@@ -405,7 +412,7 @@ namespace MCU
                 else 
                 {
                     LOG_INFO(MCULogger.GET_LOGGER(), "RequestUpdateStatus called.");
-                    RequestUpdateStatus RUS(MCULogger);
+                    RequestUpdateStatus RUS(getMcuSocket(frame_id));
                     RUS.requestUpdateStatus(frame_id, frame_data);
                 }
                 break;
@@ -481,6 +488,18 @@ namespace MCU
                 /* GenerateFrames::negativeResponse(can_id, sid, nrc); */
                 LOG_ERROR(MCULogger.GET_LOGGER(), "Error: Unknown negative response code for service: {0:x}", (int)sid);
                 break;
+        }
+    }
+    int HandleFrames::getMcuSocket(canid_t frame_id)
+    {
+        uint8_t sender_id = (frame_id >> 8) & 0xFF;
+        if(sender_id == 0xFA)
+        {
+            return this->socket_api;
+        }
+        else
+        {
+            return this->socket_canbus;
         }
     }
 }
