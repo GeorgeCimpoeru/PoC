@@ -1,5 +1,6 @@
 import sqlite3
 
+
 class CanFrameDatabaseHandler:
     def __init__(self):
         self.conn = sqlite3.connect('database/can_frames.db')
