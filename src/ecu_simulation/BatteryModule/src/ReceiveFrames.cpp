@@ -163,7 +163,6 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
         }
         if (frame.data[1] == 0xAA)
         {
-            uint8_t frame_dest_id = frame.can_id & 0xFF;
             current_module_id = frame_id & 0xFF;
             GenerateFrames test =GenerateFrames(this->socket, batteryModuleLogger);
             std::vector<uint8_t> data = {0x00, 0xAA};

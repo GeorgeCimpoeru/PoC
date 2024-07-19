@@ -2,20 +2,19 @@
 #include <iostream>
 
 /* Default constructor, used in MCU */
-DiagnosticSessionControl::DiagnosticSessionControl(Logger logger) : dsc_logger(logger),
-                                                                    current_session(DEFAULT_SESSION),
-                                                                    can_interface(CreateInterface::getInstance(0x00, dsc_logger)),
-                                                                    module_id(module_id)
+DiagnosticSessionControl::DiagnosticSessionControl(Logger logger, int socket) : dsc_logger(logger),
+                                                                    current_session(DEFAULT_SESSION)
 {
+    this->socket = socket;
     LOG_INFO(dsc_logger.GET_LOGGER(), "Diagnostic Session Control (0x10) started. Current session: {}", getCurrentSessionToString());
 }
 
 /* Parameterized constructor, used for ECUs */
-DiagnosticSessionControl::DiagnosticSessionControl(int module_id, Logger logger) : dsc_logger(logger),
-                                                                                   current_session(DEFAULT_SESSION),
-                                                                                   can_interface(CreateInterface::getInstance(0x00, dsc_logger)),
-                                                                                   module_id(module_id)
+DiagnosticSessionControl::DiagnosticSessionControl(int module_id, Logger logger, int socket) : module_id(module_id), 
+                                                                                   dsc_logger(logger),
+                                                                                   current_session(DEFAULT_SESSION)
 {
+    this->socket = socket;
     LOG_INFO(dsc_logger.GET_LOGGER(), "Diagnostic Session Control (0x10) started. Current session: {}", getCurrentSessionToString());
 }
 
@@ -25,7 +24,7 @@ DiagnosticSessionControl::~DiagnosticSessionControl()
 }
 
 /* Method to control the sessions of service */
-void DiagnosticSessionControl::sessionControl(int id, int sub_function)
+void DiagnosticSessionControl::sessionControl(uint8_t id, uint8_t sub_function)
 {
     uint8_t request[] = {id, sub_function};
     size_t requestLength = sizeof(request) / sizeof(request[0]);
@@ -97,7 +96,7 @@ void DiagnosticSessionControl::switchToDefaultSession()
     LOG_INFO(dsc_logger.GET_LOGGER(), "Switched to Default Session. Current session: {}", getCurrentSessionToString());
 
     /* Create instance of Generate Frames to send response frame */
-    GenerateFrames response_frame(can_interface->getSocketEcuWrite(), dsc_logger);
+    GenerateFrames response_frame(socket, dsc_logger);
 
     /** Check the module where the request was made from
      * More ECUs can be added here in future.

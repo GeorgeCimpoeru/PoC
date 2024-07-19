@@ -20,8 +20,8 @@
 #include <fcntl.h>
 #include<linux/can.h>
 #include <unordered_set>
+#include<iomanip>
 
-#include "../../../utils/include/CreateInterface.h"
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../../utils/include/Logger.h"
 
@@ -32,7 +32,8 @@ class WriteDataByIdentifier
 {
 private:
     GenerateFrames generate_frames;
-    CreateInterface* create_interface;
+    int socket = -1;
+    Logger& wdbi_logger;
 
 public:
     /**
@@ -42,7 +43,7 @@ public:
      * @param frame_data 
      * @param WDBILogger 
      */
-    WriteDataByIdentifier(canid_t frame_id, std::vector<uint8_t> frame_data, Logger& WDBILogger);
+    WriteDataByIdentifier(canid_t frame_id, std::vector<uint8_t> frame_data, Logger& wdbi_logger, int socket);
     /**
      * @brief Destroy the Write Data By Identifier object
      * 
@@ -56,9 +57,8 @@ public:
      * 
      * @param frame_id 
      * @param frame_data 
-     * @param WDBILogger 
      */
-    void WriteDataByIdentifierService(canid_t frame_id, std::vector<uint8_t> frame_data, Logger& WDBILogger);
+    void WriteDataByIdentifierService(canid_t frame_id, std::vector<uint8_t> frame_data);
 };
 
 #endif
