@@ -2,11 +2,12 @@ from database.can_frame_database_handler import CanFrameDatabaseHandler
 from database.mcu_ids_database_handler import McuIdsDatabaseHandler
 from actions.base_actions import *
 
+
 class RequestIdAction(Action):
     def run(self):
         """
         Executes the ID request action and processes the response.
-        
+
         Returns:
         - JSON response containing the status and any collected data or errors.
         """
@@ -38,7 +39,7 @@ class RequestIdAction(Action):
     def _read_response_frames(self, timeout=10):
         """
         Reads and processes response frames within a specified timeout.
-        
+
         Args:
         - timeout: Time in seconds to wait for responses (default: 5.0).
 
@@ -77,7 +78,7 @@ class RequestIdAction(Action):
                 }
                 if id_eng is not None:
                     result["id_eng"] = id_eng
-                
+
                 return result
         return {"status": "No response received within timeout"}
 
@@ -100,4 +101,3 @@ class RequestIdAction(Action):
         """
         self.can_db_handler.close()
         self.mcu_db_handler.close()
-

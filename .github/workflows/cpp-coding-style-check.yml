@@ -1,0 +1,22 @@
+name: Google C++ Style Checker
+on:
+  pull_request:
+    branches:
+      -DEV_BE
+      -feature/UDS
+      -feature/OTA
+    paths: ['**.c', '**.cpp', '**.h', '**.hpp', '**.cxx', '**.hxx', '**.cc', '**.hh', '**CMakeLists.txt', 'meson.build', '**.cmake']
+  push:
+    branches:
+      -DEV_BE
+      -feature/UDS
+      -feature/OTA
+    paths: ['**.c', '**.cpp', '**.h', '**.hpp', '**.cxx', '**.hxx', '**.cc', '**.hh', '**CMakeLists.txt', 'meson.build', '**.cmake']
+jobs:
+  style-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Run Google C++ Style Analysis
+        uses: naivesystems/googlecpp-action@2023.3.3.0

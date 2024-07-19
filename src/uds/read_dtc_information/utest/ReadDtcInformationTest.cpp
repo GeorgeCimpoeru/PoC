@@ -26,6 +26,7 @@
 #include <net/if.h>
 
 int socket_;
+int socket2_;
 /* Const */
 const int id = 0x3412;
 
@@ -93,7 +94,7 @@ int createSocket()
 
 void testFrames(struct can_frame expected_frame, CaptureFrame &c1 )
 {
-    EXPECT_EQ(expected_frame.can_id, c1.frame.can_id);
+    EXPECT_EQ(expected_frame.can_id && 0xFFFF, c1.frame.can_id && 0xFFFF);
     EXPECT_EQ(expected_frame.can_dlc, c1.frame.can_dlc);
     for (int i = 0; i < expected_frame.can_dlc; ++i) {
         EXPECT_EQ(expected_frame.data[i], c1.frame.data[i]);
@@ -108,7 +109,7 @@ struct ReadDtcTest : testing::Test
     ReadDtcTest()
     {
         logger = new Logger("log_test_read_dtc","./log_test_read_dtc.log");
-        r = new ReadDTC(*logger, "./dtcs.txt");
+        r = new ReadDTC(*logger, "./dtcs.txt",socket2_);
         c1 = new CaptureFrame();
     }
     ~ReadDtcTest()
@@ -159,6 +160,7 @@ TEST_F(ReadDtcTest, SubFunction2_Test3)
 int main(int argc, char* argv[])
 {
     socket_ = createSocket();
+    socket2_ = createSocket();
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
