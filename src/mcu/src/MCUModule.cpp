@@ -16,8 +16,9 @@ namespace MCU
                     mcu_api_socket(create_interface->createSocket(interfaces_number)),
                     mcu_ecu_socket(create_interface->createSocket(interfaces_number >> 4))
                     {
-        receive_frames = new ReceiveFrames(mcu_ecu_socket, mcu_api_socket);
 
+        receive_frames = new ReceiveFrames(mcu_ecu_socket, mcu_api_socket);
+        WriteDataByIdentifier WDBI(0x1111FA10, {PCI_L, WRITE_DATA_BY_IDENTIFIER_SID, OTA_UPDATE_STATUS_DID_MSB, OTA_UPDATE_STATUS_DID_LSB, IDLE}, MCULogger, mcu_api_socket);
     }
 
     /* Default constructor */
