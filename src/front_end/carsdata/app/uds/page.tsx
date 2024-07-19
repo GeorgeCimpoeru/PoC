@@ -1,47 +1,46 @@
-import Link from 'next/link';
-import React from 'react';
+'use client';
+import { useState } from "react";
+import LeftSideBar2 from '../components/udsComponents/LeftSideBar2';
+import NavbarUds from '../components/udsComponents/NavbarUds';
+import BatteryInfo from '../components/udsComponents/BatteryInfo';
+import EngineInfo from "../components/udsComponents/EngineInfo";
+import Component1 from '../components/animations/batteryFully';
+import Component2 from '../components/animations/batteryPercentage';
+import Component3 from '../components/animations/rangeBattery';
 
 const UDSpage = () => {
+    const [selectedComponent, setSelectedComponent] = useState('BatteryInfo');
+    const [activeButton, setActiveButton] = useState('BatteryInfo');
+
+    const handleButtonClick = (component: string) => {
+        setSelectedComponent(component);
+        setActiveButton(component);
+    }
+
+    const renderComponent = () => {
+        switch (selectedComponent) {
+            case 'EngineInfo':
+                return <EngineInfo />;
+            case 'BatteryInfo':
+                return <BatteryInfo />;
+            case 'Component3':
+                return <Component3 />;
+            default:
+                return <BatteryInfo />;
+        }
+    }
+
     return (
-        <>
-            <nav className="bg-blue-900 p-8 flex justify-between items-center">
-                <div className="text-white text-2xl font-bold">Unified Diagnostic Services (UDS)</div>
-            </nav>
-            <div className="m-9 flex items-center justify-center">
-                <table>
-                    <tr>
-                        <td>
-                            <div className="card w-96 bg-green-300 text-black">
-                                <div className="card-body">
-                                    <h2 className="card-title">Battery</h2>
-                                    <Link href="/batteryModule"><img src="/battery.png" alt="" className="object-contain hover:object-scale-down h-28 w-56" /></Link>
-                                    <Link href="/engineModule"><button className="btn btn-primary">Check Battery</button></Link>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div className="card w-96 bg-green-300 text-black">
-                                <div className="card-body">
-                                    <h2 className="card-title">Engine</h2>
-                                    <Link href="/engineModule"><img src="/engine.png" alt="" className="object-contain hover:object-scale-down h-28 w-56" /></Link>
-                                    <Link href="/engineModule"><button className="btn btn-primary">Check Engine</button></Link>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div className="card w-96 bg-green-300 text-black">
-                                <div className="card-body">
-                                    <h2 className="card-title">Doors</h2>
-                                    <Link href="/doorsModule"><img src="/doors.png" alt="" className="object-contain hover:object-scale-down h-28 w-56" /></Link>
-                                    <Link href="/engineModule"><button className="btn btn-primary">Check Doors</button></Link>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
+        <div className="flex w-full h-screen flex-col lg:flex-row">
+            <LeftSideBar2 onButtonClick={handleButtonClick} activeButton={activeButton}></LeftSideBar2>
+            <div className="w-[94%] h-screen flex flex-col">
+                <NavbarUds></NavbarUds>
+                <div>
+                    {renderComponent()}
+                </div>
             </div>
-        </>
-    )
+        </div>
+    );
 }
 
-export default UDSpage
+export default UDSpage;
