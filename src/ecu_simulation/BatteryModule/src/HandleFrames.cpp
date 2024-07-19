@@ -91,7 +91,7 @@ void HandleFrames::processReceivedFrame(const struct can_frame &frame)
             stored_data.clear();
             stored_sid = data[2];
             /* Concatenate data excluding PCI byte */ 
-            stored_data.insert(stored_data.end(), data.begin() + 5, data.end()); 
+            stored_data.insert(stored_data.end(), data.begin() + 1, data.end()); 
 
             dataStream.str(""); 
             dataStream.clear();
@@ -728,7 +728,7 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                         LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
                         /* writeDataByIdentifierLongRequest(id, identifier, rdata); */
                         LOG_INFO(batteryModuleLogger.GET_LOGGER(), "WriteDataByIdentifier service called!");
-                        WriteDataByIdentifier write_data_by_identifier(id, stored_data, batteryModuleLogger, socket);
+                        WriteDataByIdentifier write_data_by_identifier(id, rdata, batteryModuleLogger, socket);
                     }
                 }
                 break;

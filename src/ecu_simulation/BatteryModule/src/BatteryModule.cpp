@@ -220,3 +220,8 @@ int BatteryModule::getBatterySocket() const
 {
     return battery_socket;
 }
+
+void BatteryModule::setBatterySocket(uint8_t interface_number)
+{
+    this->battery_socket = this->canInterface->createSocket(interface_number);
+}
