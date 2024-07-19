@@ -39,7 +39,8 @@ void ReadDTC::read_dtc(int id, std::vector<uint8_t> data)
             report_dtcs(new_id,dtc_status_mask);
             break;
         default:
-            LOG_WARN(logger.GET_LOGGER(), "Sub-function not implemented");
+            this->generate->negativeResponse(new_id, 0x19, 0x12);
+            LOG_ERROR(logger.GET_LOGGER(), "Sub-function not supported");
     }
 }
 
@@ -133,7 +134,7 @@ void ReadDTC::report_dtcs(int id, int dtc_status_mask)
         }
         else
         {
-            LOG_WARN(logger.GET_LOGGER(), "Timeout. FLow control frame not received!");
+            LOG_ERROR(logger.GET_LOGGER(), "Timeout. FLow control frame not received!");
         }
     }
     else 

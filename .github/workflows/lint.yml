@@ -1,0 +1,39 @@
+name: Python lint code base
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-20.04 
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+
+    - name: Check Ubuntu version
+      run: |
+        UBUNTU_VERSION=$(lsb_release -r | awk '{print $2}')
+        if [[ "$UBUNTU_VERSION" != "20.04" ]]; then
+          echo "Error: Ubuntu 20.04 is required. Found version $UBUNTU_VERSION"
+          exit 1
+        fi
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8
+
+    - name: Check Python version
+      run: |
+        PYTHON_VERSION=$(python --version | cut -d " " -f 2)
+        if [[ "$PYTHON_VERSION" < "3.8" ]]; then
+          echo "Error: Python 3.8 or greater is required. Found version $PYTHON_VERSION"
+          exit 1
+        fi
+
+    - name: Run Flake8
+      run: flake8 .
