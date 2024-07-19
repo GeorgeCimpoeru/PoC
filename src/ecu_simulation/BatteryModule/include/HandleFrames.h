@@ -26,7 +26,7 @@
 #include <cerrno>
 #include <thread>
 #include <sstream>
-#include "../include/BatteryModuleLogger.h"
+#include "include/BatteryModuleLogger.h"
 #include "../../../uds/diagnostic_session_control/include/DiagnosticSessionControl.h"
 #include "../../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
 #include "../../../uds/write_data_by_identifier/include/WriteDataByIdentifier.h"
