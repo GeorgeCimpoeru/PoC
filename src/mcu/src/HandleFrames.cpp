@@ -157,8 +157,8 @@ namespace MCU
         /* Forward the frame to the ECU */
         /* Send the frame to the ECU */
         /* Send the response back to the API */
-        GenerateFrames generate(MCULogger);
-        generate.sendFrame(frame_id, frame_data, socket_canbus);
+        GenerateFrames generate(getMcuSocket(frame_id), MCULogger);
+        generate.sendFrame(frame_id, frame_data);
 
         struct pollfd fds;
         fds.fd = socket_canbus;
@@ -172,7 +172,7 @@ namespace MCU
             if (nbytes > 0)
             {
                 std::vector<uint8_t> response_data(ecu_response.data, ecu_response.data + ecu_response.can_dlc);
-                generate.sendFrame(frame_id, response_data, socket_api);
+                generate.sendFrame(frame_id, response_data);
             }
             else
             {
