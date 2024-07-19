@@ -84,7 +84,10 @@ int CreateInterface::createSocket(uint8_t interface_number) {
     {
         LOG_ERROR(logger.GET_LOGGER(),"Error when trying to create the socked file descriptor");
         return 1;
-    }    
+    }
+
+    int reuse = 1;
+    setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
 
     /* Binding read socket */  
     std::string vcan_interface_ecu =  "vcan" + std::to_string(lowerbits);    

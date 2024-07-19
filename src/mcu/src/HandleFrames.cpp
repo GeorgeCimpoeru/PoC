@@ -178,6 +178,14 @@ namespace MCU
                     LOG_INFO(MCULogger.GET_LOGGER(), "SecurityAccess called.");
                     SecurityAccess security_access(getMcuSocket(frame_id), MCULogger);
                     security_access.securityAccess(frame_id, frame_data);
+                    if (SecurityAccess::getMcuState())
+                    {
+                        LOG_INFO(MCULogger.GET_LOGGER(), "Server is unlocked.");
+                    }
+                    else
+                    {
+                        LOG_INFO(MCULogger.GET_LOGGER(), "Server is locked.");
+                    }
                 }
                 break;
             case 0x29:
@@ -293,12 +301,8 @@ namespace MCU
                 break;
             case 0x51:
             {
-                /* Response from ECU Reset service
-                   Send the response to API */
-                LOG_INFO(MCULogger.GET_LOGGER(), "Response from EcuReset received.");
-                uint8_t sub_function = frame_data[2];                    
-                EcuReset ecu_reset(frame_id, sub_function, getMcuSocket(frame_id), MCULogger);
-                ecu_reset.ecuResetResponse();
+                /* Response from ECU Reset service */
+                LOG_INFO(MCULogger.GET_LOGGER(), "Response for ECUReset received.");
                 break;
             }
             case 0x67:

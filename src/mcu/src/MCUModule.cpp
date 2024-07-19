@@ -36,38 +36,24 @@ namespace MCU
     /* Start the module */
     void MCUModule::StartModule() { is_running = true; }
 
-    /* Getter for securityAccess_seed */
-    std::vector<uint8_t> MCUModule::getSecurityAccessSeed()
-    {
-        return securityAccess_seed;
-    }
-
-    /* Setter for securityAccess_seed */
-    void MCUModule::setSecurityAccessSeed(const std::vector<uint8_t>& seed)
-    {
-        securityAccess_seed = seed;
-    }
-
-    /* Getter for MCU access state */
-    bool MCUModule::getMCUState() const
-    {
-        return mcu_state;
-    }
-
-    /* Setter for MCU access state */
-    void MCUModule::setMCUState(bool state)
-    {
-        mcu_state = state;
-    }
     int MCUModule::getMcuApiSocket() const 
     {
-    return mcu_api_socket;
+        return mcu_api_socket;
     }
     int MCUModule::getMcuEcuSocket() const 
     {
-    return mcu_ecu_socket;
+        return mcu_ecu_socket;
     }
 
+    void MCUModule::setMcuApiSocket(uint8_t interface_number)
+    {
+        this->mcu_api_socket = this->create_interface->createSocket(interface_number);
+    }
+    
+    void MCUModule::setMcuEcuSocket(uint8_t interface_number)
+    {
+        this->mcu_ecu_socket = this->create_interface->createSocket(interface_number >> 4);
+    }
 
     /* Stop the module */
     void MCUModule::StopModule() { is_running = false; }
