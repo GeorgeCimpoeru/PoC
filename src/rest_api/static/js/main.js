@@ -6,6 +6,10 @@ function displayResponse(data) {
 function sendFrame() {
     const canId = document.getElementById('can-id').value;
     const canData = document.getElementById('can-data').value;
+    if (!canId || !canData) {
+        alert('CAN ID and CAN Data cannot be empty.');
+        return;
+    }
     fetch('/api/send_frame', {
         method: 'POST',
         headers: {

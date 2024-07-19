@@ -3,6 +3,7 @@ from flasgger import Swagger
 from config import Config
 from routes.api import api_bp
 from routes.main import main_bp
+from flask_cors import CORS
 
 
 app = Flask(__name__)
@@ -13,6 +14,7 @@ swagger = Swagger(app)
 
 app.register_blueprint(api_bp, url_prefix='/api')
 app.register_blueprint(main_bp)
+CORS(app)
 
 if __name__ == '__main__':
     app.run(debug=True)
