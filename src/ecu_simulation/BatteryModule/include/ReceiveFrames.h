@@ -32,7 +32,7 @@
 #include <poll.h> 
 #include "../include/HandleFrames.h"
 #include "../../../utils/include/Logger.h"
-#include "../include/BatteryModuleLogger.h"
+#include "include/BatteryModuleLogger.h"
 
 class ReceiveFrames 
 {
