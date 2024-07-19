@@ -258,6 +258,7 @@ namespace MCU
                 else 
                 {
                     testerPresent.handleTesterPresent(frame_id, frame_data);
+                    testerPresent.handleTesterPresent(frame_id, frame_data);
                     LOG_INFO(MCULogger.GET_LOGGER(), "TesterPresent called.");
                 }
                 break;
@@ -859,6 +860,7 @@ namespace MCU
                 break;
         }
     }
+    
     
     int HandleFrames::getMcuSocket(canid_t frame_id)
     {
