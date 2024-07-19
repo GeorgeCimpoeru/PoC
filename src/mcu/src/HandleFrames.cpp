@@ -132,8 +132,7 @@ namespace MCU
     /* Method to call the service or handle the response*/
     void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<uint8_t> frame_data, bool is_multi_frame) 
     {
-        bool is_api_frame = (frame_id >> 8) & 0xFF == 0xFA;
-        int destination_socket = getMcuSocket(frame_id);
+        bool is_api_frame = ((frame_id >> 8) & 0xFF) == 0xFA;
 
         if (is_api_frame)
         {

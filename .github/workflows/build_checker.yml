@@ -23,12 +23,12 @@ jobs:
       - name: Run Makefile in src/mcu with Extra Flags
         run: |
           cd src/mcu
-          make LDFLAGS="-lspdlog -lfmt"  # Directly set LDFLAGS for this step
+          make LDFLAGS="-lspdlog -lfmt" CFLAGS="-Werror"  # Directly set LDFLAGS for this step
 
       - name: Run Makefile in src/ecu_simulation/BatteryModule with Extra Flags
         run: |
           cd src/ecu_simulation/BatteryModule
-          make LDFLAGS="-lspdlog -lfmt"  # Directly set LDFLAGS for this step
+          make LDFLAGS="-lspdlog -lfmt" CFLAGS="-Werror"  # Directly set LDFLAGS for this step
 
       - name: Check Build Results
         run: |
