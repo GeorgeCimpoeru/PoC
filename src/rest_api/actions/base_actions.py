@@ -91,7 +91,12 @@ SESSION_CONTROL = 0x10
 RESET_ECU = 0x11
 READ_BY_ADDRESS = 0x23
 READ_BY_IDENTIFIER = 0x022
-AUTHENTICATION = 0x27
+AUTHENTICATION_SEND = 0x27
+AUTHENTICATION_RECV = 0x67
+# AUTHENTICATION_SEND = 0x26
+# AUTHENTICATION_RECV = 0x66
+AUTHENTICATION_SUBF_REQ_SEED = 0x1
+AUTHENTICATION_SUBF_SEND_KEY = 0x2
 ROUTINE_CONTROL = 0X31
 WRITE_BY_IDENTIFIER = 0X2E
 READ_DTC = 0X19
@@ -166,6 +171,7 @@ class Action:
         flag = False
         msg_ext = None
         msg = self.bus.recv(3)
+        print(msg)
         while msg is not None:
             # First Frame
             if msg.data[0] == 0x10:
@@ -197,6 +203,8 @@ class Action:
         """
         if msg.arbitration_id % 0x100 != self.my_id:
             return False
+        if msg.data[1] == 0x7F:
+            return True
         if msg.data[0] != 0x10:
             if msg.data[1] != sid + 0x40:
                 return False
@@ -218,11 +226,18 @@ class Action:
         """
         log_info_message(logger, "Collecting the response")
         response = self.__collect_response(sid)
+        log_info_message(logger, f"Collected response: {response}")
 
         if response is None:
             log_error_message(logger, error_str)
             response_json = self._to_json_error("interrupted", 1)
             raise CustomError(response_json)
+
+        if response.data[0] == 0x7F:
+            error_message = self.__handle_negative_response(response)
+            response_json = self._to_json_error(error_message, 1)
+            raise CustomError(response_json)
+        
         return response
 
     def _data_from_frame(self, msg: can.Message):
@@ -257,7 +272,8 @@ class Action:
         """
         log_info_message(logger, "Read from identifier {identifier}")
         self.generate.read_data_by_identifier(id, identifier)
-        frame_response = self._passive_response(READ_BY_IDENTIFIER, f"Error reading data from identifier {identifier}")
+        frame_response = self._passive_response(READ_BY_IDENTIFIER, 
+                                                f"Error reading data from identifier {identifier}")
         data = self._data_from_frame(frame_response)
         data_str = self._list_to_number(data)
         return data_str
@@ -273,33 +289,45 @@ class Action:
         #         value = (1 << bit_width) + value
         #     key.append(value & ((1 << bit_width) - 1))
         # return key
-        return [(~num + 1) & 0xFF for num in seed]
+        # return [(~num + 1) & 0xFF for num in seed]
+        return [(~num - 1) & 0xFF for num in seed] # Test case 0x35 Invalid Key
     
     def _authentication(self, id):
         """
         Function to authenticate. Makes the proper request to the ECU.
         """
         log_info_message(logger, "Authenticating")
-        
-        self.generate.authentication_seed(id)
-        frame_response = self._passive_response(AUTHENTICATION, "Error requesting seed")
-        
-        if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x01:
+        self.generate.authentication_seed(id, 
+                                          sid_send=AUTHENTICATION_SEND,
+                                          sid_recv=AUTHENTICATION_RECV,
+                                          subf=AUTHENTICATION_SUBF_REQ_SEED)
+        frame_response = self._passive_response(AUTHENTICATION_SEND, 
+                                                "Error requesting seed")
+
+        if frame_response.data[1] == AUTHENTICATION_RECV and \
+            frame_response.data[2] == AUTHENTICATION_SUBF_REQ_SEED:
             seed = self._data_from_frame(frame_response)
             if seed == bytearray([0x00, 0x00]):
                 log_info_message(logger, "Authentication successful")
                 return  # Successful authentication
             else:
                 key = self.__algorithm(seed)
-                self.generate.authentication_key(id, key)
-                frame_response = self._passive_response(AUTHENTICATION, "Error sending key")
-            
+                log_info_message(logger, f"Key: {key}")
+                self.generate.authentication_key(id,
+                                                 key=key,
+                                                 sid_send=AUTHENTICATION_RECV,
+                                                 sid_recv=AUTHENTICATION_SEND,
+                                                 subf=AUTHENTICATION_SUBF_SEND_KEY)
+                frame_response = self._passive_response(AUTHENTICATION_SEND, 
+                                                        "Error sending key")
+
+                log_info_message(logger, f"Frames: {frame_response.data[1]}")
+
                 if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x02:
                     log_info_message(logger, "Authentication successful")
                     return  # Successful authentication
                 else:
                     self.__handle_negative_response(frame_response)
-        
         else:
             self.__handle_negative_response(frame_response)
 
@@ -315,11 +343,11 @@ class Action:
             0x36: "ExceededNumberOfAttempts",
             0x37: "RequiredTimeDelayNotExpired"
         }
-        
+
         nrc = frame_response.data[3]
         error_message = negative_responses.get(nrc, "Unknown error")
         log_error_message(logger, f"Authentication failed: {error_message}")
-        
+
         response_json = self._to_json_error(error_message, 1)
         raise CustomError(response_json)
 
