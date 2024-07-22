@@ -50,7 +50,7 @@ $(OBJ_DIR)/MemoryManager.o: ../utils/src/MemoryManager.cpp
 	$(CXX) $(CFLAGS) -c ../utils/src/MemoryManager.cpp -o $(OBJ_DIR)/MemoryManager.o
 
 clean:
-	rm -f $(FINAL)  ${FINAL_TEST} ../utils/test/GenerateFramesTest test/HandleFrames_test test/ReceiveFramesTest ../utils/test/CreateInterface_test ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest
+	rm -f $(FINAL)  ${FINAL_TEST} ../utils/test/GenerateFramesTest test/HandleFrames_test test/ReceiveFramesTest ../utils/test/CreateInterface_test ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest ../uds/authentication/utest/SecurityAccessTest
 	rm -rf $(OBJ_DIR)
 #Delete unnecessary file from gcov compiler
 	find . -name '*.gcno' -delete
@@ -113,6 +113,11 @@ readDtc_test: ../uds/read_dtc_information/utest/ReadDtcInformationTest.cpp ../ud
 RUSTest: RequestUpdateStatus_test
 RequestUpdateStatus_test: ../ota/request_update_status/utest/RequestUpdateStatusTest.cpp ../ota/request_update_status/src/RequestUpdateStatus.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../ota/request_update_status/utest/RequestUpdateStatusTest ../ota/request_update_status/utest/RequestUpdateStatusTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+
+# SecurityAccess Unit tests
+securityTest: Security_test
+Security_test: ../uds/authentication/utest/SecurityAccessTest.cpp ../uds/authentication/src/SecurityAccess.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../uds/authentication/utest/SecurityAccessTest ../uds/authentication/utest/SecurityAccessTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 
 # HandleFrames Coverage
 handleCoverage: HandleFramesCoverage
@@ -256,7 +261,21 @@ RequestTransferExitCoverage: ../ota/request_transfer_exit/utest/RequestTransferE
 	find . -name '*.gcda' -delete
 	find . -name '*.gcov' -delete
 
-allCoverage: HandleFrames_coverage ReceiveFrames_coverage GenerateFrames_coverage CreateInterface_coverage ReadDataByIdentifier_coverage WDBI_coverage RUSCoverage
+# SecurityAccess Coverage
+securityCoverage: SecurityCoverage
+SecurityCoverage: ../uds/authentication/utest/SecurityAccessTest.cpp ../uds/authentication/src/SecurityAccess.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../uds/authentication/utest/SecurityAccessTest ../uds/authentication/utest/SecurityAccessTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	../uds/authentication/utest/SecurityAccessTest
+	mkdir -p coverage/out_SecurityAccessTest
+	gcov -o . ../uds/authentication/src/SecurityAccess.cpp
+	mv SecurityAccess.cpp.gcov coverage/out_SecurityAccessTest
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
+	lcov --remove coverage.info '/test/' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_SecurityAccessTest
+	xdg-open coverage/out_SecurityAccessTest/index.html
+
+allCoverage: HandleFrames_coverage ReceiveFrames_coverage GenerateFrames_coverage CreateInterface_coverage ReadDataByIdentifier_coverage WDBI_coverage RUSCoverage SecurityAccess_coverage
 
 HandleFrames_coverage:
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o test/HandleFrames_test test/HandleFrames_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
@@ -313,6 +332,13 @@ RequestTransferExit_coverage: ../ota/request_transfer_exit/utest/RequestTransfer
 	mkdir -p coverage/out_RequestTransferExit
 	gcov -o . ../ota/request_transfer_exit/utest/RequestTransferExitTest.cpp
 	mv RequestTransferExitTest.cpp.gcov coverage/out_RequestTransferExitTest
+
+SecurityAccess_coverage: ../uds/authentication/utest/SecurityAccessTest.cpp ../uds/authentication/src/SecurityAccess.cpp
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../uds/authentication/utest/SecurityAccessTest ../uds/authentication/utest/SecurityAccessTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	./../uds/authentication/utest/SecurityAccessTest
+	mkdir -p coverage/out_SecurityAccess
+	gcov -o . ../uds/authentication/src/SecurityAccess.cpp
+	mv SecurityAccess.cpp.gcov coverage/out_SecurityAccess
 
 allCoveragePostProcess:
 	lcov --capture --directory . --output-file coverage.info
