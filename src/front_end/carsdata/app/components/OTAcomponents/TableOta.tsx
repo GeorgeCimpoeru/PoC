@@ -24,7 +24,7 @@ const TableOta = (props: any) => {
                             <td align="center">Completed</td>
                             <td align="center">Failed</td>
                             <td align="center"> <label htmlFor="my_modal_1" className="w-10 btn btn-sm">Log info</label></td>
-                            <ModalString id="my_modal_1" cardTitle={'Door'} />
+                            <ModalString id="my_modal_1" cardTitle={'Log info'} />
                         </tr>
                     ))}
                 </tbody>
