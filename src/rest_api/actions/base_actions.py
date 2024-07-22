@@ -91,7 +91,7 @@ SESSION_CONTROL = 0x10
 RESET_ECU = 0x11
 READ_BY_ADDRESS = 0x23
 READ_BY_IDENTIFIER = 0x022
-AUTHENTICATION = 0x29
+AUTHENTICATION = 0x27
 ROUTINE_CONTROL = 0X31
 WRITE_BY_IDENTIFIER = 0X2E
 READ_DTC = 0X19
@@ -238,7 +238,7 @@ class Action:
         handlers = {
             0x62: ReadByIdentifier(),
             0x63: ReadByAddress(),
-            0x69: AuthenticationSeed(),
+            0x67: AuthenticationSeed(),
         }
         handler = handlers.get(msg.data[1] if msg.data[0] != 0x10 else msg.data[2])
         if handler:
@@ -266,25 +266,62 @@ class Action:
         """
         Method to generate a key based on the seed.
         """
-        key = []
-        bit_width = 8
-        for value in seed:
-            if value < 0:
-                value = (1 << bit_width) + value
-            key.append(value & ((1 << bit_width) - 1))
-        return key
-
+        # key = []
+        # # bit_width = 8
+        # for value in seed:
+        #     if value < 0:
+        #         value = (1 << bit_width) + value
+        #     key.append(value & ((1 << bit_width) - 1))
+        # return key
+        return [(~num + 1) & 0xFF for num in seed]
+    
     def _authentication(self, id):
         """
         Function to authenticate. Makes the proper request to the ECU.
         """
         log_info_message(logger, "Authenticating")
+        
         self.generate.authentication_seed(id)
         frame_response = self._passive_response(AUTHENTICATION, "Error requesting seed")
-        seed = self._data_from_frame(frame_response)
-        key = self.__algorithm(seed)
-        self.generate.authentication_key(id, key)
-        self._passive_response(AUTHENTICATION, "Error sending key")
+        
+        if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x01:
+            seed = self._data_from_frame(frame_response)
+            if seed == bytearray([0x00, 0x00]):
+                log_info_message(logger, "Authentication successful")
+                return  # Successful authentication
+            else:
+                key = self.__algorithm(seed)
+                self.generate.authentication_key(id, key)
+                frame_response = self._passive_response(AUTHENTICATION, "Error sending key")
+            
+                if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x02:
+                    log_info_message(logger, "Authentication successful")
+                    return  # Successful authentication
+                else:
+                    self.__handle_negative_response(frame_response)
+        
+        else:
+            self.__handle_negative_response(frame_response)
+
+    def __handle_negative_response(self, frame_response):
+        """
+        Handles the negative response scenarios.
+        """
+        negative_responses = {
+            0x12: "SubFunctionNotSupported",
+            0x13: "IncorrectMessageLengthOrInvalidFormat",
+            0x24: "RequestSequenceError",
+            0x35: "InvalidKey",
+            0x36: "ExceededNumberOfAttempts",
+            0x37: "RequiredTimeDelayNotExpired"
+        }
+        
+        nrc = frame_response.data[3]
+        error_message = negative_responses.get(nrc, "Unknown error")
+        log_error_message(logger, f"Authentication failed: {error_message}")
+        
+        response_json = self._to_json_error(error_message, 1)
+        raise CustomError(response_json)
 
     # Implement in the child class
     def _to_json(self, status, no_errors):

@@ -9,6 +9,7 @@ from utils.logger import log_memory
 
 api_bp = Blueprint('api', __name__)
 
+ecu_ids = [0x10, 0x11, 0x12]
 
 @api_bp.route('/request_ids', methods=['GET'])
 def request_ids():
@@ -47,7 +48,7 @@ def update_to_version():
     data = request.get_json()
     ecu_id = data.get('ecu_id')
     version = data.get('version')
-    updater = Updates(0xFA, 0x12)
+    updater = Updates(my_id=0xFA, id_ecu=0x12)
     response = updater.update_to(int(ecu_id), int(version))
     return jsonify(response)
 
@@ -87,7 +88,7 @@ def read_info_bat():
               type: string
               format: date-time
     """
-    reader = ReadInfo(0xFA, [0x11, 0x12, 0x13])
+    reader = ReadInfo(0xFA, [0x10, 0x11, 0x12])
     response = reader.read_from_battery()
     return jsonify(response)
 
@@ -122,7 +123,7 @@ def read_info_eng():
             serial_number:
               type: integer
     """
-    reader = ReadInfo(0xFA, [0x11, 0x12, 0x13])
+    reader = ReadInfo(0xFA, [0x10, 0x11, 0x12])
     response = reader.read_from_engine()
     return jsonify(response)
 
@@ -152,7 +153,7 @@ def read_info_doors():
             WindowStatus:
               type: string
       """
-    reader = ReadInfo(0xFA, [0x11, 0x12, 0x13])
+    reader = ReadInfo(0xFA, [0x10, 0x11, 0x12])
     response = reader.read_from_doors()
     return jsonify(response)
 

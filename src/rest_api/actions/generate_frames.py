@@ -124,12 +124,12 @@ class GenerateFrame:
 
     def authentication_seed(self, id, seed=[]):
         length_seed = len(seed)
-        data = [length_seed + 2, 0x69, 0x1] + seed if length_seed > 0 else [2, 0x29, 0x1]
+        data = [length_seed + 2, 0x67, 0x1] + seed if length_seed > 0 else [2, 0x27, 0x1]
         self.send_frame(id, data)
 
     def authentication_key(self, id, key=[]):
         length_key = len(key)
-        data = [length_key + 2, 0x29, 0x2] + key if length_key > 0 else [2, 0x69, 0x2]
+        data = [length_key + 2, 0x27, 0x2] + key if length_key > 0 else [2, 0x67, 0x2]
         self.send_frame(id, data)
 
     def tester_present(self, id, response=False):
