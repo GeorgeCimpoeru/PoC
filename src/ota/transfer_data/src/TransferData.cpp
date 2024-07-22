@@ -22,7 +22,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
         /* Incorrect message length or invalid format - prepare a negative response */
         response.push_back(0x03); /* PCI */
         response.push_back(0x7F); /* Negative response */
-        response.push_back(0x76); /* Service ID */
+        response.push_back(0x36); /* Service ID */
         response.push_back(0x13); /* Incorrect message length or invalid format */
         /* Send the negative response frame */ 
         generate_frames.sendFrame(can_id, response);
@@ -33,7 +33,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
         /* Wrong block sequence counter - prepare a negative response */
         response.push_back(0x03); /* PCI */
         response.push_back(0x7F); /* Negative response */
-        response.push_back(0x76); /* Service ID */
+        response.push_back(0x36); /* Service ID */
         response.push_back(0x73); /* Wrong block sequence counter */
         /* Send the negative response frame */ 
         generate_frames.sendFrame(can_id, response);
@@ -47,8 +47,8 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
         /* clear vector after writing to adress */
         response.clear();
         /* prepare positive response */
-        response.push_back(0x03); /* PCI */
-        response.push_back(0x36); /* Service ID */
+        response.push_back(0x02); /* PCI */
+        response.push_back(0x76); /* Service ID */
         response.push_back(block_sequence_counter); /* block_sequence_counter */
         /* Send the postive response frame */ 
         generate_frames.sendFrame(can_id, response);

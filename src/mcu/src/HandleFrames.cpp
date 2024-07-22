@@ -389,7 +389,7 @@ namespace MCU
                 {
                     TransferData transfer_data(getMcuSocket(frame_id), MCULogger);
                     transfer_data.transferData(frame_id, frame_data);
-                    LOG_INFO(MCULogger.GET_LOGGER(), "TransferData called with one frame.");
+                    LOG_INFO(MCULogger.GET_LOGGER(), "TransferData service called.");
                 }
                 break;
             case 0x37:

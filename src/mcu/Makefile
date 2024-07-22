@@ -50,7 +50,7 @@ $(OBJ_DIR)/MemoryManager.o: ../utils/src/MemoryManager.cpp
 	$(CXX) $(CFLAGS) -c ../utils/src/MemoryManager.cpp -o $(OBJ_DIR)/MemoryManager.o
 
 clean:
-	rm -f $(FINAL)  ${FINAL_TEST} ../utils/test/GenerateFramesTest test/HandleFrames_test test/ReceiveFramesTest ../utils/test/CreateInterface_test ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest
+	rm -f $(FINAL)  ${FINAL_TEST} ../utils/test/GenerateFramesTest test/HandleFrames_test test/ReceiveFramesTest ../utils/test/CreateInterface_test ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest ../ota/transfer_data/utest/TransferDataTest
 	rm -rf $(OBJ_DIR)
 #Delete unnecessary file from gcov compiler
 	find . -name '*.gcno' -delete
@@ -59,7 +59,7 @@ clean:
 	find . -name '*.info' -delete
 
 # Compile all unit tests
-allTests: handleTest receiveTest generateTest createInterfaceTest RDBITest wdbiTest RUSTest
+allTests: handleTest receiveTest generateTest createInterfaceTest RDBITest wdbiTest RUSTest transferDataTest
 
 # HandleFrames Unit tests
 handleTest: HandleFrames_test
@@ -113,6 +113,11 @@ readDtc_test: ../uds/read_dtc_information/utest/ReadDtcInformationTest.cpp ../ud
 RUSTest: RequestUpdateStatus_test
 RequestUpdateStatus_test: ../ota/request_update_status/utest/RequestUpdateStatusTest.cpp ../ota/request_update_status/src/RequestUpdateStatus.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../ota/request_update_status/utest/RequestUpdateStatusTest ../ota/request_update_status/utest/RequestUpdateStatusTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+
+# TransferData Unit tests
+transferDataTest: TransferData_test
+TransferData_test: ../ota/transfer_data/utest/TransferDataTest.cpp ../ota/transfer_data/src/TransferData.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../ota/transfer_data/utest/TransferDataTest ../ota/transfer_data/utest/TransferDataTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 
 # HandleFrames Coverage
 handleCoverage: HandleFramesCoverage
@@ -256,7 +261,24 @@ RequestTransferExitCoverage: ../ota/request_transfer_exit/utest/RequestTransferE
 	find . -name '*.gcda' -delete
 	find . -name '*.gcov' -delete
 
-allCoverage: HandleFrames_coverage ReceiveFrames_coverage GenerateFrames_coverage CreateInterface_coverage ReadDataByIdentifier_coverage WDBI_coverage RUSCoverage
+#  TransferData Coverage
+transferDataCoverage: TransferDataCoverage
+TransferDataCoverage: ../ota/transfer_data/utest/TransferDataTest.cpp ../ota/transfer_data/src/TransferData.cpp
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../ota/transfer_data/utest/TransferDataTest ../ota/transfer_data/utest/TransferDataTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	../ota/transfer_data/utest/TransferDataTest
+	mkdir -p coverage/out_TransferData
+	gcov -o . ../ota/transfer_data/utest/TransferDataTest.cpp
+	mv TransferDataTest.cpp.gcov coverage/out_TransferData
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/*' --output-file coverage_filtered.info
+	lcov --remove coverage.info '*/test/*' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_TransferData
+	xdg-open coverage/out_TransferData/index.html
+	find . -name '*.gcno' -delete
+	find . -name '*.gcda' -delete
+	find . -name '*.gcov' -delete
+
+allCoverage: HandleFrames_coverage ReceiveFrames_coverage GenerateFrames_coverage CreateInterface_coverage ReadDataByIdentifier_coverage WDBI_coverage RUSCoverage TransferData_coverage
 
 HandleFrames_coverage:
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o test/HandleFrames_test test/HandleFrames_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
@@ -313,6 +335,13 @@ RequestTransferExit_coverage: ../ota/request_transfer_exit/utest/RequestTransfer
 	mkdir -p coverage/out_RequestTransferExit
 	gcov -o . ../ota/request_transfer_exit/utest/RequestTransferExitTest.cpp
 	mv RequestTransferExitTest.cpp.gcov coverage/out_RequestTransferExitTest
+
+TransferData_coverage: ../ota/transfer_data/utest/TransferDataTest.cpp ../ota/transfer_data/src/TransferData.cpp
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../ota/transfer_data/utest/TransferDataTest ../ota/transfer_data/utest/TransferDataTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	../../ota/transfer_data/src/TransferDataTest
+	mkdir -p coverage/out_TransferData
+	gcov -o . ../ota/transfer_data/utest/TransferDataTest.cpp
+	mv TransferDataTest.cpp.gcov coverage/out_TransferData
 
 allCoveragePostProcess:
 	lcov --capture --directory . --output-file coverage.info
