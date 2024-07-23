@@ -24,7 +24,7 @@ public:
     /**
     * @brief Construct a new Request Download Service object
     */
-    RequestDownloadService();
+    // RequestDownloadService();
     /**
      * @brief Construct a new Request Download Service object
      * 

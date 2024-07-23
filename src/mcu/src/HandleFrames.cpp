@@ -9,7 +9,7 @@
 namespace MCU
 {
     HandleFrames::HandleFrames(int socket_api, int socket_canbus) 
-                : mcuDiagnosticSessionControl(MCULogger, socket_api)
+                : mcuDiagnosticSessionControl(MCULogger, socket_api), requestDownload(MCULogger), testerPresent(MCULogger, socket_api)
     {
         this->socket_api = socket_api;
         this->socket_canbus = socket_canbus;
