@@ -5,8 +5,8 @@ CFLAGSTST2 = -lgtest -lgtest_main -lpthread
 LDFLAGS = -lspdlog
 CFLAGSTST += -DUNIT_TESTING_MODE
 #Sources files
-SRCS = src/main.cpp src/MCUModule.cpp ../ecu_simulation/BatteryModule/src/BatteryModule.cpp ../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../utils/src/CreateInterface.cpp ../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp src/ReceiveFrames.cpp ../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp ../uds/ecu_reset/src/EcuReset.cpp ../uds/authentication/src/SecurityAccess.cpp  ../ecu_simulation/BatteryModule/src/HandleFrames.cpp  ../ecu_simulation/BatteryModule/src/ReceiveFrames.cpp ../uds/read_dtc_information/src/ReadDtcInformation.cpp ../ota/request_update_status/src/RequestUpdateStatus.cpp ../ota/request_transfer_exit/src/RequestTransferExit.cpp ../ota/request_download/src/RequestDownload.cpp ../utils/src/MemoryManager.cpp ../ota/transfer_data/src/TransferData.cpp
-SRCSTEST = src/HandleFrames.cpp src/MCUModule.cpp src/ReceiveFrames.cpp ../utils/src/GenerateFrames.cpp ../utils/src/CreateInterface.cpp ../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp ../utils/src/Logger.cpp  ../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp ../uds/ecu_reset/src/EcuReset.cpp ../uds/authentication/src/SecurityAccess.cpp ../ecu_simulation/BatteryModule/src/HandleFrames.cpp ../ecu_simulation/BatteryModule/src/ReceiveFrames.cpp ../ecu_simulation/BatteryModule/src/BatteryModule.cpp ../uds/read_dtc_information/src/ReadDtcInformation.cpp ../ota/request_update_status/src/RequestUpdateStatus.cpp ../ota/request_transfer_exit/src/RequestTransferExit.cpp ../ota/request_download/src/RequestDownload.cpp ../utils/src/MemoryManager.cpp ../ota/transfer_data/src/TransferData.cpp
+SRCS = src/main.cpp src/MCUModule.cpp ../ecu_simulation/BatteryModule/src/BatteryModule.cpp ../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../utils/src/CreateInterface.cpp ../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp src/ReceiveFrames.cpp ../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp ../uds/ecu_reset/src/EcuReset.cpp ../uds/authentication/src/SecurityAccess.cpp  ../ecu_simulation/BatteryModule/src/HandleFrames.cpp  ../ecu_simulation/BatteryModule/src/ReceiveFrames.cpp ../uds/read_dtc_information/src/ReadDtcInformation.cpp ../ota/request_update_status/src/RequestUpdateStatus.cpp ../ota/request_transfer_exit/src/RequestTransferExit.cpp ../ota/request_download/src/RequestDownload.cpp ../utils/src/MemoryManager.cpp ../ota/transfer_data/src/TransferData.cpp ../uds/clear_dtc/src/ClearDtc.cpp
+SRCSTEST = src/HandleFrames.cpp src/MCUModule.cpp src/ReceiveFrames.cpp ../utils/src/GenerateFrames.cpp ../utils/src/CreateInterface.cpp ../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp ../utils/src/Logger.cpp  ../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp ../uds/ecu_reset/src/EcuReset.cpp ../uds/authentication/src/SecurityAccess.cpp ../ecu_simulation/BatteryModule/src/HandleFrames.cpp ../ecu_simulation/BatteryModule/src/ReceiveFrames.cpp ../ecu_simulation/BatteryModule/src/BatteryModule.cpp ../uds/read_dtc_information/src/ReadDtcInformation.cpp ../ota/request_update_status/src/RequestUpdateStatus.cpp ../ota/request_transfer_exit/src/RequestTransferExit.cpp ../ota/request_download/src/RequestDownload.cpp ../utils/src/MemoryManager.cpp ../ota/transfer_data/src/TransferData.cpp ../uds/clear_dtc/src/ClearDtc.cpp
 #Object files
 OBJS = $(patsubst ../utils/src/%.cpp ../uds/diagnostic_session_control/src/%.cpp src/%.cpp, obj/%.o, $(SRCS))
 OBJS:= $(OBJS) obj/Logger.o
@@ -22,7 +22,7 @@ $(FINAL): $(OBJS)
 	$(CXX) $(CFLAGS) -o $(FINAL) $(OBJS) ${LDFLAGS}
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
-$(OBJ_DIR)/main.o: src/main.cpp include/MCUModule.h include/ReceiveFrames.h include/HandleFrames.h ../utils/include/GenerateFrames.h ../utils/include/Logger.h ../utils/include/CreateInterface.h ../uds/diagnostic_session_control/include/DiagnosticSessionControl.h include/MCULogger.h ../uds/read_data_by_identifier/include/ReadDataByIdentifier.h ../uds/write_data_by_identifier/include/WriteDataByIdentifier.h ../uds/ecu_reset/include/EcuReset.h ../uds/authentication/include/SecurityAccess.h ../ecu_simulation/BatteryModule/include/BatteryModule.h   ../ecu_simulation/BatteryModule/include/HandleFrames.h  ../ecu_simulation/BatteryModule/include/ReceiveFrames.h ../uds/read_dtc_information/include/ReadDtcInformation.h ../ota/request_update_status/include/RequestUpdateStatus.h ../ota/request_transfer_exit/include/RequestTransferExit.h ../ota/request_download/include/RequestDownload.h ../utils/include/MemoryManager.h
+$(OBJ_DIR)/main.o: src/main.cpp include/MCUModule.h include/ReceiveFrames.h include/HandleFrames.h ../utils/include/GenerateFrames.h ../utils/include/Logger.h ../utils/include/CreateInterface.h ../uds/diagnostic_session_control/include/DiagnosticSessionControl.h include/MCULogger.h ../uds/read_data_by_identifier/include/ReadDataByIdentifier.h ../uds/write_data_by_identifier/include/WriteDataByIdentifier.h ../uds/ecu_reset/include/EcuReset.h ../uds/authentication/include/SecurityAccess.h ../ecu_simulation/BatteryModule/include/BatteryModule.h   ../ecu_simulation/BatteryModule/include/HandleFrames.h  ../ecu_simulation/BatteryModule/include/ReceiveFrames.h ../uds/read_dtc_information/include/ReadDtcInformation.h ../ota/request_update_status/include/RequestUpdateStatus.h ../ota/request_transfer_exit/include/RequestTransferExit.h ../ota/request_download/include/RequestDownload.h ../utils/include/MemoryManager.h ../uds/clear_dtc/include/ClearDtc.h
 	$(CXX) $(CFLAGS) -c src/main.cpp -o $(OBJ_DIR)/main.o
 $(OBJ_DIR)/MCUModule.o: src/MCUModule.cpp
 	$(CXX) $(CFLAGS) -c src/MCUModule.cpp -o $(OBJ_DIR)/MCUModule.o
@@ -48,6 +48,8 @@ $(OBJ_DIR)/RequestUpdateStatus.o: ../ota/request_update_status/src/RequestUpdate
 	$(CXX) $(CFLAGS) -c ../ota/request_update_status/src/RequestUpdateStatus.cpp -o $(OBJ_DIR)/RequestUpdateStatus.o
 $(OBJ_DIR)/MemoryManager.o: ../utils/src/MemoryManager.cpp
 	$(CXX) $(CFLAGS) -c ../utils/src/MemoryManager.cpp -o $(OBJ_DIR)/MemoryManager.o
+$(OBJ_DIR)/ClearDtc.o: ../uds/clear_dtc/src/ClearDtc.cpp
+	$(CXX) $(CFLAGS) -c ../uds/clear_dtc/src/ClearDtc.cpp -o $(OBJ_DIR)/ClearDtc.o
 
 clean:
 	rm -f $(FINAL)  ${FINAL_TEST} ../utils/test/GenerateFramesTest test/HandleFrames_test test/ReceiveFramesTest ../utils/test/CreateInterface_test ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest ../uds/authentication/utest/SecurityAccessTest
@@ -108,6 +110,10 @@ RequestTransferExit_test: ../ota/request_transfer_exit/utest/RequestTransferExit
 readDtcTest: readDtc_test
 readDtc_test: ../uds/read_dtc_information/utest/ReadDtcInformationTest.cpp ../uds/read_dtc_information/src/ReadDtcInformation.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../uds/read_dtc_information/utest/ReadDtcInformationTest ../uds/read_dtc_information/utest/ReadDtcInformationTest.cpp ../uds/read_dtc_information/src/ReadDtcInformation.cpp ../utils/src/GenerateFrames.cpp ../utils/src/CreateInterface.cpp ../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+# ClearDTC Unit tests
+clearDtcTest: clearDtc_test
+clearDtc_test: ../uds/clear_dtc/utest/ClearDtcTest.cpp ../uds/clear_dtc/src/ClearDtc.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../uds/read_dtc_information/utest/ClearDtcTest ../uds/clear_dtc/utest/ClearDtcTest.cpp ../uds/clear_dtc/src/ClearDtc.cpp ../utils/src/GenerateFrames.cpp ../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
 
 # RequestUpdateStatus Unit tests
 RUSTest: RequestUpdateStatus_test
