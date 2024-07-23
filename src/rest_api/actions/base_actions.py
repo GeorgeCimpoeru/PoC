@@ -204,8 +204,12 @@ class Action:
         if msg.arbitration_id % 0x100 != self.my_id:
             return False
         if msg.data[1] == 0x7F:
-            return True
+            self.__handle_negative_response(msg)
+            return False
         if msg.data[0] != 0x10:
+            if msg.data[1] == 0x67 and msg.data[2] == 0x00:
+                log_info_message(logger, "Authentication successful")
+                return True  # Successful authentication frame
             if msg.data[1] != sid + 0x40:
                 return False
         else:
@@ -233,10 +237,10 @@ class Action:
             response_json = self._to_json_error("interrupted", 1)
             raise CustomError(response_json)
 
-        if response.data[0] == 0x7F:
-            error_message = self.__handle_negative_response(response)
-            response_json = self._to_json_error(error_message, 1)
-            raise CustomError(response_json)
+        # if response.data[0] == 0x7F:
+        #     error_message = self.__handle_negative_response(response)
+        #     response_json = self._to_json_error(error_message, 1)
+        #     raise CustomError(response_json)
         
         return response
 
@@ -296,6 +300,7 @@ class Action:
         """
         Function to authenticate. Makes the proper request to the ECU.
         """
+        log_info_message(logger, "-"*60)
         log_info_message(logger, "Authenticating")
         self.generate.authentication_seed(id, 
                                           sid_send=AUTHENTICATION_SEND,
@@ -303,33 +308,25 @@ class Action:
                                           subf=AUTHENTICATION_SUBF_REQ_SEED)
         frame_response = self._passive_response(AUTHENTICATION_SEND, 
                                                 "Error requesting seed")
-
-        if frame_response.data[1] == AUTHENTICATION_RECV and \
-            frame_response.data[2] == AUTHENTICATION_SUBF_REQ_SEED:
+        if frame_response.data[1] == 0x67 and \
+            frame_response.data[2] == 0x01 and \
+                frame_response.data[3] == 0x00:
+            log_info_message(logger, "Authentication successful")
+            return  # Successful authentication
+        else:
             seed = self._data_from_frame(frame_response)
-            if seed == bytearray(0x00):
+            key = self.__algorithm(seed)
+            log_info_message(logger, f"Key: {key}")
+            self.generate.authentication_key(id,
+                                             key=key,
+                                             sid_send=AUTHENTICATION_RECV,
+                                             sid_recv=AUTHENTICATION_SEND,
+                                             subf=AUTHENTICATION_SUBF_SEND_KEY)
+            frame_response = self._passive_response(AUTHENTICATION_SEND, 
+                                                    "Error sending key")
+            if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x02:
                 log_info_message(logger, "Authentication successful")
                 return  # Successful authentication
-            else:
-                key = self.__algorithm(seed)
-                log_info_message(logger, f"Key: {key}")
-                self.generate.authentication_key(id,
-                                                 key=key,
-                                                 sid_send=AUTHENTICATION_RECV,
-                                                 sid_recv=AUTHENTICATION_SEND,
-                                                 subf=AUTHENTICATION_SUBF_SEND_KEY)
-                frame_response = self._passive_response(AUTHENTICATION_SEND, 
-                                                        "Error sending key")
-
-                log_info_message(logger, f"Frames: {frame_response.data[1]}")
-
-                if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x02:
-                    log_info_message(logger, "Authentication successful")
-                    return  # Successful authentication
-                else:
-                    self.__handle_negative_response(frame_response)
-        else:
-            self.__handle_negative_response(frame_response)
 
     def __handle_negative_response(self, frame_response):
         """
