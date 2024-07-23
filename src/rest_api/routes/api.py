@@ -5,6 +5,7 @@ from config import Config
 from actions.generate_frames import GenerateFrame
 from actions.read_info_action import *
 from utils.logger import log_memory
+from actions.write_to_doors import WriteToDoors
 
 
 api_bp = Blueprint('api', __name__)
@@ -209,6 +210,51 @@ def send_frame():
         return jsonify({'status': 'Error', 'message': str(e)}), 500
     finally:
         bus.shutdown()
+
+
+@api_bp.route('/write_info_doors', methods=['POST'])
+def write_info_doors():
+    """
+    Write information to the doors.
+    ---
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            Door_param:
+              type: integer
+            Serial_number:
+              type: string
+            Cigarette_Lighter_Voltage:
+              type: number
+              format: float
+            Light_state:
+              type: string
+            BeltCard:
+              type: string
+            WindowStatus:
+              type: string
+    responses:
+      200:
+        description: Information written successfully
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+            No of errors:
+              type: integer
+            time_stamp:
+              type: string
+    """
+    data = request.get_json()
+    
+    writer = WriteToDoors(0x23, [0x11, 0x12, 0x13], data)
+    response = writer.run()
+    return jsonify(response)
 
 
 @api_bp.route('/logs')

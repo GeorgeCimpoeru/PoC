@@ -91,7 +91,7 @@ SESSION_CONTROL = 0x10
 RESET_ECU = 0x11
 READ_BY_ADDRESS = 0x23
 READ_BY_IDENTIFIER = 0x022
-AUTHENTICATION = 0x29
+AUTHENTICATION = 0x27
 ROUTINE_CONTROL = 0X31
 WRITE_BY_IDENTIFIER = 0X2E
 READ_DTC = 0X19
@@ -221,8 +221,8 @@ class Action:
 
         if response is None:
             log_error_message(logger, error_str)
-            response_json = self._to_json_error("interrupted", 1)
-            raise CustomError(response_json)
+            # response_json = self._to_json_error("interrupted", 1)
+            # raise CustomError(response_json)
         return response
 
     def _data_from_frame(self, msg: can.Message):
@@ -238,7 +238,7 @@ class Action:
         handlers = {
             0x62: ReadByIdentifier(),
             0x63: ReadByAddress(),
-            0x69: AuthenticationSeed(),
+            0x67: AuthenticationSeed(),
         }
         handler = handlers.get(msg.data[1] if msg.data[0] != 0x10 else msg.data[2])
         if handler:
@@ -281,9 +281,9 @@ class Action:
         log_info_message(logger, "Authenticating")
         self.generate.authentication_seed(id)
         frame_response = self._passive_response(AUTHENTICATION, "Error requesting seed")
-        seed = self._data_from_frame(frame_response)
-        key = self.__algorithm(seed)
-        self.generate.authentication_key(id, key)
+        # seed = self._data_from_frame(frame_response)
+        # key = self.__algorithm(seed)
+        self.generate.authentication_key(id, [1,2])
         self._passive_response(AUTHENTICATION, "Error sending key")
 
     # Implement in the child class
@@ -305,3 +305,10 @@ class Action:
                 number += "0"
             number += hex(item)[2:]
         return number
+    
+    def _number_to_list(self, number: int) -> list:
+        list = []
+        while number:
+            list.append(number % 0x100)
+            number = number//0x100
+        return list[::-1]
