@@ -8,7 +8,6 @@ TesterPresent::TesterPresent(Logger logger, int socket, int timeout_duration)
 }
 
 TesterPresent::TesterPresent()
-    : logger(Logger("log_test_tester_present", "./log_test_tester_present.log")), socket(-1), timeout_duration(5), running(true)
 {
 
 }
