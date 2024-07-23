@@ -296,7 +296,6 @@ class Action:
         """
         Function to authenticate. Makes the proper request to the ECU.
         """
-        authenticated_succesfull = None
         log_info_message(logger, "Authenticating")
         self.generate.authentication_seed(id, 
                                           sid_send=AUTHENTICATION_SEND,
@@ -309,7 +308,6 @@ class Action:
             frame_response.data[2] == AUTHENTICATION_SUBF_REQ_SEED:
             seed = self._data_from_frame(frame_response)
             if seed == bytearray(0x00):
-            # if authenticated_succesfull is True:
                 log_info_message(logger, "Authentication successful")
                 return  # Successful authentication
             else:
@@ -327,10 +325,8 @@ class Action:
 
                 if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x02:
                     log_info_message(logger, "Authentication successful")
-                    # authenticated_succesfull = True
                     return  # Successful authentication
                 else:
-                    # authenticated_succesfull = False
                     self.__handle_negative_response(frame_response)
         else:
             self.__handle_negative_response(frame_response)

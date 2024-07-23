@@ -17,6 +17,9 @@ import datetime
 from actions.base_actions import *
 from configs.data_identifiers import *
 
+ECU_BATTERY = 1
+ECU_ENGINE = 2
+ECU_DOORS = 3
 
 class ToJSON:
     """Open-Close principle. Base class for different JSON formats."""
@@ -113,7 +116,7 @@ class ReadInfo(Action):
         - JSON response.
         """
 
-        id_battery = self.id_ecu[1]
+        id_battery = self.id_ecu[ECU_BATTERY]
         id = self.my_id * 0x100 + id_battery
 
         try:
@@ -122,8 +125,9 @@ class ReadInfo(Action):
             # self._passive_response(SESSION_CONTROL, "Error changing session control")
 
             self._authentication(id)
-
             log_info_message(logger, "Reading data from battery")
+        
+
             level = self._read_by_identifier(id, IDENTIFIER_BATTERY_ENERGY_LEVEL)
             voltage = self._read_by_identifier(id, IDENTIFIER_BATTERY_VOLTAGE)
             state_of_charge = self._read_by_identifier(id, IDENTIFIER_BATTERY_STATE_OF_CHARGE)
