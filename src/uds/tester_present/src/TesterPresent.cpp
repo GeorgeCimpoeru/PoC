@@ -1,7 +1,7 @@
 #include "../include/TesterPresent.h"
 
 TesterPresent::TesterPresent(Logger logger, int socket, int timeout_duration)
-    : logger(logger), socket(socket), timeout_duration(timeout_duration), running(true)
+    : logger(logger), socket(socket), timeout_duration(timeout_duration)
 {
     this->generate = new GenerateFrames(socket, logger);
     startTimerThread();

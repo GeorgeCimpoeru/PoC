@@ -23,7 +23,7 @@ private:
     std::atomic<bool> running;
     Logger logger;
     int socket;
-    int timeout_duration;
+    int timeout_duration = 5;
 
 public:
     /**
