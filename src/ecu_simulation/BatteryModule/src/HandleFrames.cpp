@@ -470,6 +470,14 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                 /** Expected request: pci_l + sid + sub_funct = 0x00 
                  *  Index              [0]    [1]     [2]     
                  */
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Service 0x3E TesterPresent");
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "SID pos: {}", sid_position);
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Data size: {}", stored_data.size());
+                sub_function = stored_data[sid_position + 1];
+                LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
+                TesterPresent tester_present(batteryModuleLogger, socket);
+                tester_present.handleTesterPresent(id, stored_data);
+
                 if (stored_data[1] == 0x7F)
                 {
                     processNrc(id, sid, stored_data[3]);
