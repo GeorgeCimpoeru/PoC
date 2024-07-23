@@ -289,13 +289,14 @@ class Action:
         #         value = (1 << bit_width) + value
         #     key.append(value & ((1 << bit_width) - 1))
         # return key
-        # return [(~num + 1) & 0xFF for num in seed]
-        return [(~num - 1) & 0xFF for num in seed] # Test case 0x35 Invalid Key
+        return [(~num + 1) & 0xFF for num in seed]
+        # return [(~num - 1) & 0xFF for num in seed] # Test case 0x35 Invalid Key
     
     def _authentication(self, id):
         """
         Function to authenticate. Makes the proper request to the ECU.
         """
+        authenticated_succesfull = None
         log_info_message(logger, "Authenticating")
         self.generate.authentication_seed(id, 
                                           sid_send=AUTHENTICATION_SEND,
@@ -307,7 +308,8 @@ class Action:
         if frame_response.data[1] == AUTHENTICATION_RECV and \
             frame_response.data[2] == AUTHENTICATION_SUBF_REQ_SEED:
             seed = self._data_from_frame(frame_response)
-            if seed == bytearray([0x00, 0x00]):
+            if seed == bytearray(0x00):
+            # if authenticated_succesfull is True:
                 log_info_message(logger, "Authentication successful")
                 return  # Successful authentication
             else:
@@ -325,8 +327,10 @@ class Action:
 
                 if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x02:
                     log_info_message(logger, "Authentication successful")
+                    # authenticated_succesfull = True
                     return  # Successful authentication
                 else:
+                    # authenticated_succesfull = False
                     self.__handle_negative_response(frame_response)
         else:
             self.__handle_negative_response(frame_response)

@@ -113,7 +113,7 @@ class ReadInfo(Action):
         - JSON response.
         """
 
-        id_battery = self.id_ecu[0]
+        id_battery = self.id_ecu[1]
         id = self.my_id * 0x100 + id_battery
 
         try:
@@ -121,7 +121,7 @@ class ReadInfo(Action):
             # self.generate.session_control(id, 0x01)
             # self._passive_response(SESSION_CONTROL, "Error changing session control")
 
-            # self._authentication(id)
+            self._authentication(id)
 
             log_info_message(logger, "Reading data from battery")
             level = self._read_by_identifier(id, IDENTIFIER_BATTERY_ENERGY_LEVEL)
