@@ -21,12 +21,28 @@ def manual_send_frame():
         received_frame = bus.recv(timeout=15)
 
         if received_frame is not None:
-            if received_frame.data[1] == 0x7F:  # Diagnostic negative response
-                handle_negative_response(received_frame.data)
             received_data = {
                 'can_id': hex(received_frame.arbitration_id),
                 'can_data': [hex(byte) for byte in received_frame.data]
             }
+
+            if received_frame.data[1] == 0x67 and \
+                received_frame.data[2] == 0x01 and \
+                    received_frame.data[3] == 0x00 or \
+                        received_frame.data[1] == 0x67 and received_frame.data[2] == 0x02:
+                    log_info_message(logger, "Authentication successful")
+                    received_data['auth_status'] = 'success'
+
+            if received_frame.data[1] == 0x7F:  # Diagnostic negative response
+                nrc = received_frame.data[3]
+                if nrc == 0x37:
+                    time_delay_ms = int.from_bytes(received_frame.data[4:8], byteorder='big')
+                    time_delay_s = time_delay_ms / 1000
+                    log_info_message(logger, f"Retries exceeded. Try again in : {time_delay_s} s")
+                    received_data['time_delay_ms'] = time_delay_ms
+                else:
+                    handle_negative_response(received_frame.data)
+                    received_data['auth_status'] = 'failed'
         else:
             received_data = None
 
