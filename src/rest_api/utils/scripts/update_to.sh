@@ -1,22 +1,24 @@
 #!/bin/bash
 
-cansend vcan0 2FA#0462101012
+cansend vcan1 000001FA#0462101012
 sleep 1
-cansend vcan0 2FA#025002
+cansend vcan1 000001FA#025002
 sleep 1
-cansend vcan0 2FA#0469010102
+cansend vcan1 000001FA#0467010202
 sleep 1
-cansend vcan0 2FA#026902
+cansend vcan1 000001FA#026702
 sleep 1
-cansend vcan0 2FA#0174
+cansend vcan1 000001FA#027401
 sleep 1
-cansend vcan0 2FA#0276
+cansend vcan1 000001FA#027601
 sleep 1
-cansend vcan0 2FA#0277
+cansend vcan1 000001FA#027701
 sleep 1
-cansend vcan0 2FA#025001
+cansend vcan1 000001FA#025002
 sleep 1
-cansend vcan0 2FA#025103
+cansend vcan1 000001FA#025102
 sleep 1
-cansend vcan0 2FA#055901111104
+# cansend vcan1 000001FA#055901111104 # 4 errors
+# sleep 1
+cansend vcan1 000001FA#055901111100 # no errors
 sleep 1

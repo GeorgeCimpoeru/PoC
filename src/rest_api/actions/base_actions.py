@@ -236,11 +236,6 @@ class Action:
             log_error_message(logger, error_str)
             response_json = self._to_json_error("interrupted", 1)
             raise CustomError(response_json)
-
-        # if response.data[0] == 0x7F:
-        #     error_message = self.__handle_negative_response(response)
-        #     response_json = self._to_json_error(error_message, 1)
-        #     raise CustomError(response_json)
         
         return response
 
@@ -286,13 +281,6 @@ class Action:
         """
         Method to generate a key based on the seed.
         """
-        # key = []
-        # # bit_width = 8
-        # for value in seed:
-        #     if value < 0:
-        #         value = (1 << bit_width) + value
-        #     key.append(value & ((1 << bit_width) - 1))
-        # return key
         return [(~num + 1) & 0xFF for num in seed]
         # return [(~num - 1) & 0xFF for num in seed] # Test case 0x35 Invalid Key
     

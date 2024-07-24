@@ -49,14 +49,14 @@ class Updates(Action):
 
             # Change session to initiate download process
             log_info_message(logger, "Changing session to programming")
-            self.generate.session_control(self.id, 0x02)
+            self.generate.session_control(self.id, sub_funct=0x02)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
 
             self._authentication(self.id)
 
             # Download the software update data
             log_info_message(logger, "Downloading... Please wait")
-            self._download_data(data)
+            self._download_data(self.data)
 
             # Change session back and reset the ECU to apply the update
             log_info_message(logger, "Download finished, restarting ECU...")
@@ -161,4 +161,4 @@ class Updates(Action):
             "errors": no_errors,
             "time_stamp": datetime.datetime.now().isoformat()
         }
-        return json.dumps(response_to_frontend)
+        return response_to_frontend
