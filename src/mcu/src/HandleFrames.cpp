@@ -143,8 +143,8 @@ namespace MCU
                 else 
                 {    
                     LOG_INFO(MCULogger.GET_LOGGER(), "DiagnosticSessionControl called.");
-                    mcuDiagnosticSessionControl.sessionControl(sid, frame_data[2]);
-                    LOG_INFO(MCULogger.GET_LOGGER(), "MCU Current session: {}", mcuDiagnosticSessionControl.getCurrentSessionToString());
+                    mcuDiagnosticSessionControl.sessionControl(frame_id, frame_data[2]);
+                    LOG_INFO(MCULogger.GET_LOGGER(), "MCU Current session: {}", DiagnosticSessionControl::getCurrentSessionToString());
                 } 
                 break;
             case 0x11:
@@ -254,8 +254,7 @@ namespace MCU
                 else 
                 {
                     LOG_INFO(MCULogger.GET_LOGGER(), "WriteDataByIdentifier service called!");
-                    std::vector<uint8_t> rdata(frame_data.begin() + 4, frame_data.end());
-                    WriteDataByIdentifier write_data_by_identifier(frame_id, rdata, MCULogger, getMcuSocket(frame_id));
+                    WriteDataByIdentifier write_data_by_identifier(frame_id, frame_data, MCULogger, getMcuSocket(frame_id));
                 }
                 break;
             case 0x14:
