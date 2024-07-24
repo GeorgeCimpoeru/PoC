@@ -134,7 +134,7 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
             else if (sf == 0x01)
             {
                 /* Adjust the seed length between 1 and 5.*/
-                std::srand(static_cast<unsigned>(std::time(nullptr)));
+                std::srand(static_cast<uint8_t>(std::time(nullptr)));
                 size_t seed_length = std::rand() % 5 + 1;
 
                 std::vector<uint8_t> seed = generateRandomBytes(seed_length);
