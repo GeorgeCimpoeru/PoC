@@ -55,7 +55,7 @@ def send_frame():
     data = request.get_json()
     can_id = data.get('can_id')
     can_data = data.get('can_data')
-    return manual_send_frame(can_id, can_data)
+    return jsonify(manual_send_frame(can_id, can_data))
 
 @api_bp.route('/logs')
 def get_logs():

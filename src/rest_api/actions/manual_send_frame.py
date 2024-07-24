@@ -47,12 +47,12 @@ def manual_send_frame(can_id, can_data):
         else:
             received_data = None
 
-        return jsonify({'response': received_data})
+        return {'response': received_data}
 
     except ValueError as e:
-        return jsonify({'status': 'Error', 'message': str(e)}), 400
+        return {'status': 'Error', 'message': str(e)}, 400
     except Exception as e:
-        return jsonify({'status': 'Error', 'message': str(e)}), 500
+        return {'status': 'Error', 'message': str(e)}, 500
     finally:
         bus.shutdown()
 
