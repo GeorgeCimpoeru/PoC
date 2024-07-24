@@ -79,7 +79,7 @@ public:
      * @param cmd Shell command to be executed.
      * @return Output returned by the shell command. 
      */
-    virtual std::string exec(const char *cmd);
+    virtual std::string exec(char *cmd);
 
     /**
      * @brief This function will parse the data from the system about battery,
