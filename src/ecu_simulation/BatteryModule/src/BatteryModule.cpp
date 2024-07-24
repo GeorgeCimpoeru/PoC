@@ -12,7 +12,7 @@ BatteryModule::BatteryModule() : moduleId(0x11),
                                  energy(0.0),
                                  voltage(0.0),
                                  percentage(0.0),
-                                 canInterface(CreateInterface::getInstance(0x00, batteryModuleLogger)),
+                                 canInterface(nullptr),
                                  frameReceiver(nullptr)
 {
     battery_socket = canInterface->createSocket(0x00);
