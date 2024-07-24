@@ -113,7 +113,7 @@ readDtc_test: ../uds/read_dtc_information/utest/ReadDtcInformationTest.cpp ../ud
 # ClearDTC Unit tests
 clearDtcTest: clearDtc_test
 clearDtc_test: ../uds/clear_dtc/utest/ClearDtcTest.cpp ../uds/clear_dtc/src/ClearDtc.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../uds/read_dtc_information/utest/ClearDtcTest ../uds/clear_dtc/utest/ClearDtcTest.cpp ../uds/clear_dtc/src/ClearDtc.cpp ../utils/src/GenerateFrames.cpp ../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../uds/clear_dtc/utest/ClearDtcTest ../uds/clear_dtc/utest/ClearDtcTest.cpp ../uds/clear_dtc/src/ClearDtc.cpp ../utils/src/GenerateFrames.cpp ../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
 
 # RequestUpdateStatus Unit tests
 RUSTest: RequestUpdateStatus_test
