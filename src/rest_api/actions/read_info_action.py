@@ -17,29 +17,17 @@ import datetime
 from actions.base_actions import *
 from configs.data_identifiers import *
 
+MCU = 0
+ECU_BATTERY = 1
+ECU_ENGINE = 2
+ECU_DOORS = 3
+
 
 class ToJSON:
     """Open-Close principle. Base class for different JSON formats."""
     def _to_json(self, data):
         pass
 
-
-# class BatteryToJSON():
-#     def _to_json(self, data: list):
-#         response_to_frontend = {
-#             "battery_level": data[0],
-#             "voltage": data[1],
-#             "battery_state_of_charge": data[2],
-#             "temperature": data[3],
-#             "life_cycle": data[4],
-#             "fully_charged": data[5],
-#             "serial_number": data[6],
-#             "range_battery": data[7],
-#             "charging_time": data[8],
-#             "device_consumption": data[9],
-#             "time_stamp": datetime.datetime.now().isoformat()
-#         }
-#         return (response_to_frontend)
 
 class BatteryToJSON():
     def _to_json(self, data: list):
@@ -57,13 +45,6 @@ class BatteryToJSON():
             "time_stamp": datetime.datetime.now().isoformat()
         }
         return (response_to_frontend)
-
-# class ElementToJSON(ToJSON):
-#     def _to_json(self, data: list):
-#         response_to_frontend = {}
-#         for index, element in enumerate(data, start=1):
-#             response_to_frontend[f"Element{index}"] = element
-#         return json.dumps(response_to_frontend)
 
 
 class EngineToJSON():
@@ -104,7 +85,21 @@ class ReadInfo(Action):
     - id_ecu: Identifier for the specific ECU being updated.
     - g: Instance of GenerateFrame for generating CAN bus frames.
     """
+    def _auth_mcu(self):
 
+        id_mcu = self.id_ecu[MCU]
+        id = self.my_id * 0x100 + id_mcu
+
+        try:
+            log_info_message(logger, "Changing session to default")
+            # self.generate.session_control(id, 0x01)
+            # self._passive_response(SESSION_CONTROL, "Error changing session control")
+            self._authentication(id)
+
+        except CustomError as e:
+            self.bus.shutdown()
+            return e.message
+        
     def read_from_battery(self):
         """
         Method to read information from the battery module.
@@ -112,17 +107,16 @@ class ReadInfo(Action):
         Returns:
         - JSON response.
         """
-
+        self._auth_mcu()
+        id_battery = self.id_ecu[ECU_BATTERY]
         id_battery = self.id_ecu[0]
         id = self.my_id * 0x100 + id_battery
 
         try:
             log_info_message(logger, "Changing session to default")
-            # self.generate.session_control(id, 0x01)
-            # self._passive_response(SESSION_CONTROL, "Error changing session control")
-
-            # self._authentication(id)
-
+            id_battery = self.id_ecu[ECU_BATTERY]
+            id = self.my_id * 0x100 + id_battery
+        
             log_info_message(logger, "Reading data from battery")
             level = self._read_by_identifier(id, IDENTIFIER_BATTERY_ENERGY_LEVEL)
             voltage = self._read_by_identifier(id, IDENTIFIER_BATTERY_VOLTAGE)
@@ -166,40 +160,7 @@ class ReadInfo(Action):
             self.bus.shutdown()
             return e.message
 
-    # def read_from_custom(self, identifiers:list):
-    #     """
-    #     Method to read information from specific identifier.
-
-    #     Returns:
-    #     - JSON response.
-    #     """
-    #     id_battery = self.id_ecu[1]
-    #     id = self.my_id * 0x100 + id_battery
-    #     try:
-    #         log_info_message(logger, "Changing session to default")
-    #         self.generate.session_control(id, 0x01)
-    #         self._passive_response(SESSION_CONTROL, "Error changing session control")
-
-    #         self._authentication(id)
-
-    #         #Read each data from identifier
-    #         log_info_message(logger, "Reading data..")
-    #         data_collected = []
-    #         for identifier in identifiers:
-    #             data_collected.append(self._read_by_identifier(id,identifier))
-
-    #         module = ElementToJSON()
-    #         response_json = self._to_json(module, data_collected)
-    #         # Shutdown the CAN bus interface
-    #         self.bus.shutdown()
-
-    #         log_info_message(logger, "Sending JSON")
-    #         return response_json
-
-    #     except CustomError as e:
-    #         self.bus.shutdown()
-    #         return e.message
-
+   
     def read_from_engine(self):
 
         """
@@ -208,7 +169,8 @@ class ReadInfo(Action):
         Returns:
         - data response.
         """
-
+        self._auth_mcu()
+        id_engine = self.id_ecu[ECU_ENGINE]
         id_engine = self.id_ecu[1]
         id = self.my_id * 0x100 + id_engine
 
@@ -277,13 +239,3 @@ class ReadInfo(Action):
         except CustomError as e:
             self.bus.shutdown()
             return e.message
-
-    # def _to_json(self, module: ToJSON, data: list):
-    #     """
-    #     Private method to create a JSON response with status and error information.
-
-    #     Args:
-    #     - module: An instance of ToJSON or its subclasses.
-    #     - data: Data collected from the ECU.
-    #     """
-    #     return module._to_json(data)

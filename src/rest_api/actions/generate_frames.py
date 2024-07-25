@@ -122,14 +122,14 @@ class GenerateFrame:
             if response is False else [4, 0x31, sub_funct, routine_id // 0x100, routine_id % 0x100]
         self.send_frame(id, data)
 
-    def authentication_seed(self, id, seed=[]):
+    def authentication_seed(self, id, sid_send, sid_recv, subf, seed=[]):
         length_seed = len(seed)
-        data = [length_seed + 2, 0x67, 0x1] + seed if length_seed > 0 else [2, 0x27, 0x1]
+        data = [length_seed + 2, sid_recv, subf] + seed if length_seed > 0 else [2, sid_send, subf]
         self.send_frame(id, data)
 
-    def authentication_key(self, id, key=[]):
+    def authentication_key(self, id, sid_send, sid_recv, subf, key=[]):
         length_key = len(key)
-        data = [length_key + 2, 0x27, 0x2] + key if length_key > 0 else [2, 0x67, 0x2]
+        data = [length_key + 2, sid_recv, subf] + key if length_key > 0 else [2, sid_send, subf]
         self.send_frame(id, data)
 
     def tester_present(self, id, response=False):

@@ -203,7 +203,13 @@ class Action:
         """
         if msg.arbitration_id % 0x100 != self.my_id:
             return False
+        if msg.data[1] == 0x7F:
+            self.__handle_negative_response(msg)
+            return False
         if msg.data[0] != 0x10:
+            if msg.data[1] == 0x67 and msg.data[2] == 0x00:
+                log_info_message(logger, "Authentication successful")
+                return True  # Successful authentication frame
             if msg.data[1] != sid + 0x40:
                 return False
         else:
@@ -224,6 +230,7 @@ class Action:
         """
         log_info_message(logger, "Collecting the response")
         response = self.__collect_response(sid)
+        log_info_message(logger, f"Collected response: {response}")
 
         if response is None:
             log_error_message(logger, error_str)
@@ -272,25 +279,60 @@ class Action:
         """
         Method to generate a key based on the seed.
         """
-        key = []
-        bit_width = 8
-        for value in seed:
-            if value < 0:
-                value = (1 << bit_width) + value
-            key.append(value & ((1 << bit_width) - 1))
-        return key
+        return [(~num + 1) & 0xFF for num in seed]
+        # return [(~num - 1) & 0xFF for num in seed] # Test case 0x35 Invalid Key
 
     def _authentication(self, id):
         """
         Function to authenticate. Makes the proper request to the ECU.
         """
+        log_info_message(logger, "-"*60)
         log_info_message(logger, "Authenticating")
-        self.generate.authentication_seed(id)
-        frame_response = self._passive_response(AUTHENTICATION, "Error requesting seed")
-        # seed = self._data_from_frame(frame_response)
-        # key = self.__algorithm(seed)
-        self.generate.authentication_key(id, [1,2])
-        self._passive_response(AUTHENTICATION, "Error sending key")
+        self.generate.authentication_seed(id, 
+                                          sid_send=AUTHENTICATION_SEND,
+                                          sid_recv=AUTHENTICATION_RECV,
+                                          subf=AUTHENTICATION_SUBF_REQ_SEED)
+        frame_response = self._passive_response(AUTHENTICATION_SEND, 
+                                                "Error requesting seed")
+        if frame_response.data[1] == 0x67 and \
+            frame_response.data[2] == 0x01 and \
+                frame_response.data[3] == 0x00:
+            log_info_message(logger, "Authentication successful")
+            return  # Successful authentication
+        else:
+            seed = self._data_from_frame(frame_response)
+            key = self.__algorithm(seed)
+            log_info_message(logger, f"Key: {key}")
+            self.generate.authentication_key(id,
+                                             key=key,
+                                             sid_send=AUTHENTICATION_RECV,
+                                             sid_recv=AUTHENTICATION_SEND,
+                                             subf=AUTHENTICATION_SUBF_SEND_KEY)
+            frame_response = self._passive_response(AUTHENTICATION_SEND, 
+                                                    "Error sending key")
+            if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x02:
+                log_info_message(logger, "Authentication successful")
+                return  # Successful authentication
+
+    def __handle_negative_response(self, frame_response):
+        """
+        Handles the negative response scenarios.
+        """
+        negative_responses = {
+            0x12: "SubFunctionNotSupported",
+            0x13: "IncorrectMessageLengthOrInvalidFormat",
+            0x24: "RequestSequenceError",
+            0x35: "InvalidKey",
+            0x36: "ExceededNumberOfAttempts",
+            0x37: "RequiredTimeDelayNotExpired"
+        }
+
+        nrc = frame_response.data[3]
+        error_message = negative_responses.get(nrc, "Unknown error")
+        log_error_message(logger, f"Authentication failed: {error_message}")
+
+        response_json = self._to_json_error(error_message, 1)
+        raise CustomError(response_json)
 
     # Implement in the child class
     def _to_json(self, status, no_errors):
