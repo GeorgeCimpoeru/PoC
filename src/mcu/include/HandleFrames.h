@@ -27,6 +27,7 @@
 #include "../../ota/request_download/include/RequestDownload.h"
 #include "../../ota/request_update_status/include/RequestUpdateStatus.h"
 #include "../../ota/transfer_data/include/TransferData.h"
+#include "../../uds/clear_dtc/include/ClearDtc.h"
 
 namespace MCU
 {

@@ -819,7 +819,8 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                         dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
                     }
                     LOG_INFO(batteryModuleLogger.GET_LOGGER(), "{}", dataStream.str());
-                    /* clearDiagnosticInformationRequest(id, empty_vector); */
+                    ClearDtc clear_dtc("../../uds/read_dtc_information/dtcs.txt", batteryModuleLogger, this->socket);
+                    clear_dtc.clearDtc(id, stored_data);
                 }
                 break;
             }
