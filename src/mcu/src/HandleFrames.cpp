@@ -374,9 +374,7 @@ namespace MCU
                     LOG_INFO(MCULogger.GET_LOGGER(), "SID pos: {}", sid);
                     LOG_INFO(MCULogger.GET_LOGGER(), "Data size: {}", frame_data.size());
                     RequestDownloadService requestDownload(getMcuSocket(frame_id), MCULogger);
-                    ReadDataByIdentifier software_version(getMcuSocket(frame_id), MCULogger);
-                    SecurityAccess logged_in(getMcuSocket(frame_id), MCULogger);
-                    requestDownload.requestDownloadRequest(frame_id, frame_data, MCULogger, mcuDiagnosticSessionControl, software_version, logged_in);
+                    requestDownload.requestDownloadRequest(frame_id, frame_data);
                 }
                 break;
             case 0x36:

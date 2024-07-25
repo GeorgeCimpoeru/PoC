@@ -4,12 +4,16 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
-#include <linux/can.h>
-#include <net/if.h>
+#include <mutex>
 #include <cstring>
 #include <string>
+#include <utility>
+#include <chrono>
+
 #include <sys/ioctl.h>
-#include <mutex>
+#include <linux/can.h>
+#include <net/if.h>
+
 #include "../../../utils/include/CreateInterface.h"
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../utils/include/Logger.h"
@@ -21,6 +25,7 @@
 class RequestDownloadService
 {
 public:
+    Logger RDSlogger;
     /**
      * @brief Construct a new Request Download Service object
      * 
@@ -44,20 +49,15 @@ public:
      * 
      * @param id 
      * @param stored_data 
-     * @param RDSlogger 
-     * @param mcuDiagnosticSessionControl 
-     * @param software_version 
-     * @param logged_in 
      */
-    void requestDownloadRequest(int id, std::vector<uint8_t> stored_data, Logger &RDSlogger, DiagnosticSessionControl mcuDiagnosticSessionControl, ReadDataByIdentifier software_version, SecurityAccess logged_in);
+    void requestDownloadRequest(int id, std::vector<uint8_t> stored_data);
     /**
      * @brief Response method from manual Request Download service to start the download in MCU
      * 
      * @param id 
      * @param max_number_block 
-     * @param RDSlogger 
      */
-    void requestDownloadResp(int id, int max_number_block, Logger &RDSlogger);
+    void requestDownloadResp(int id, int memory_address, int max_number_block);
 
 private:
     int socket = -1;
@@ -65,37 +65,77 @@ private:
     /**
      * @brief Method for checking if the MCU is in the programming session
      * 
-     * @param mcuDiagnosticSessionControl 
-     * @param RDSlogger 
      * @return true 
      */
-    bool isInProgrammingSession(DiagnosticSessionControl mcuDiagnosticSessionControl, Logger &RDSlogger);
+    bool isInProgrammingSession();
     /**
      * @brief Method for validation of the provided memory address and size, ensuring they are within acceptable bounds and logical ranges.
      *
      * @param memory_address
      * @param memory_size
-     * @param RDSlogger
      * @return true
      */
-    bool isValidMemoryRange(const std::vector<int> &memory_address, const std::vector<int> &memory_size, Logger &RDSlogger);
+    bool isValidMemoryRange(const int &memory_address, const int &memory_size);
     /**
      * @brief Method to authenticate the download request based on the provided identifiers
      * 
-     * @param logged_in 
-     * @param RDSlogger 
      * @return true 
      */
-    bool isRequestAuthenticated(SecurityAccess logged_in, Logger &RDSlogger);
+    bool isRequestAuthenticated();
     /**
      * @brief Method to check last software version
      * 
-     * @param software_version 
-     * @param RDSlogger 
      * @return true 
      * @return false 
      */
-    bool isLatestSoftwareVersion(ReadDataByIdentifier software_version, Logger &RDSlogger);
+    bool isLatestSoftwareVersion();
+    /**
+     * @brief Extract size and address
+     * 
+     * @param stored_data 
+     * @param length_memory_address 
+     * @param length_memory_size 
+     * @return std::pair<int,int> 
+     */
+    std::pair<int,int> extractSizeAndAddress( std::vector<uint8_t> stored_data, uint8_t length_memory_address, uint8_t length_memory_size );
+    /**
+     * @brief Extract size and address length
+     * 
+     * @param stored_data 
+     * @return std::pair<int,int> 
+     */
+    std::pair<int,int> extractSizeAndAddressLength( std::vector<uint8_t> stored_data);
+    void download();
+    /**
+     * @brief Response to request download
+     * 
+     * @param receiver_id 
+     * @param memory_address 
+     * @param max_number_block 
+     */
+    void requestDownloadResp89(int receiver_id, int memory_address, int max_number_block);
+    /**
+     * @brief Method to calculate max_number_block
+     * 
+     * @return int 
+     */
+    int calculate_max_number_block();
+    /**
+     * @brief Method to read frame from can bus
+     * 
+     * @param id 
+     * @param sid 
+     * @return can_frame* 
+     */
+    can_frame* read_frame(int id, uint8_t sid);
+    /**
+     * @brief Method to download data in ECU
+     * 
+     * @param id 
+     * @param memory_address 
+     * @return true 
+     */
+    bool downloadInEcu(int id, int memory_address);
 };
 
 #endif /* REQUEST_DOWNLOAD_SERVICE_H */
