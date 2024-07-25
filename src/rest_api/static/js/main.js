@@ -59,56 +59,6 @@ function readInfoBattery() {
       });
 }
 
-function readInfoEngine() {
-    fetch('/api/read_info_engine', {
-        method: 'GET',
-    }).then(response => response.json())
-      .then(data => {
-          document.getElementById('response-output').textContent = JSON.stringify(data);
-          fetchLogs(); 
-      });
-}
-
-function readInfoDoors() {
-    fetch('/api/read_info_doors', {
-        method: 'GET',
-    }).then(response => response.json())
-      .then(data => {
-          document.getElementById('response-output').textContent = JSON.stringify(data);
-          fetchLogs(); 
-      });
-}
-
-function writeInfoDoors() {
-    const doorParam = prompt('Enter Door Parameter:');
-    const serialNumber = prompt('Enter Serial Number:');
-    const cigaretteLighterVoltage = prompt('Enter Cigarette Lighter Voltage:');
-    const lightState = prompt('Enter Light State:');
-    const beltCard = prompt('Enter Belt Card State:');
-    const windowStatus = prompt('Enter Window Status:');
-
-
-    const data = {
-        Door_param: doorParam ? parseInt(doorParam) : null,
-        Serial_number: serialNumber || null,
-        Cigarette_Lighter_Voltage: cigaretteLighterVoltage ? parseFloat(cigaretteLighterVoltage) : null,
-        Light_state: lightState || null,
-        BeltCard: beltCard || null,
-        WindowStatus: windowStatus || null,
-    };
-
-    fetch('/api/write_info_doors', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-    }).then(response => response.json())
-      .then(data => {
-          displayResponse(data);
-          fetchLogs(); 
-      });
-}
 
 function fetchLogs() {
     fetch('/api/logs', {
@@ -128,4 +78,47 @@ function fetchLogs() {
       .catch(error => {
           console.error('Error fetching logs:', error);
       });
+    }
+
+
+
+    function readInfoDoors() {
+        fetch('/api/read_info_doors', {
+            method: 'GET',
+        }).then(response => response.json())
+          .then(data => {
+              document.getElementById('response-output').textContent = JSON.stringify(data);
+              fetchLogs(); 
+          });
+    }
+    
+    function writeInfoDoors() {
+        const doorParam = prompt('Enter Door Parameter:');
+        const serialNumber = prompt('Enter Serial Number:');
+        const cigaretteLighterVoltage = prompt('Enter Cigarette Lighter Voltage:');
+        const lightState = prompt('Enter Light State:');
+        const beltCard = prompt('Enter Belt Card State:');
+        const windowStatus = prompt('Enter Window Status:');
+    
+    
+        const data = {
+            Door_param: doorParam ? parseInt(doorParam) : null,
+            Serial_number: serialNumber || null,
+            Cigarette_Lighter_Voltage: cigaretteLighterVoltage ? parseFloat(cigaretteLighterVoltage) : null,
+            Light_state: lightState || null,
+            BeltCard: beltCard || null,
+            WindowStatus: windowStatus || null,
+        };
+    
+        fetch('/api/write_info_doors', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        }).then(response => response.json())
+          .then(data => {
+              displayResponse(data);
+              fetchLogs(); 
+          });
     }

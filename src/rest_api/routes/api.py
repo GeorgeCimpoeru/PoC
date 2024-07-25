@@ -5,7 +5,8 @@ from config import Config
 from actions.generate_frames import GenerateFrame
 from actions.read_info_action import *
 from utils.logger import log_memory
-from actions.write_to_doors import WriteToDoors
+from actions.write_info_action import WriteInfo
+from actions.manual_send_frame import manual_send_fram
 
 
 api_bp = Blueprint('api', __name__)
@@ -252,7 +253,7 @@ def write_info_doors():
     """
     data = request.get_json()
     
-    writer = WriteToDoors(0x23, [0x11, 0x12, 0x13], data)
+    writer = WriteInfo(0xFA, [0x11, 0x12, 0x13], data)
     response = writer.run()
     return jsonify(response)
 
@@ -274,3 +275,4 @@ def get_logs():
                 type: string
     """
     return jsonify({'logs': log_memory})
+

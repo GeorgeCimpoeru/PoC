@@ -91,7 +91,12 @@ SESSION_CONTROL = 0x10
 RESET_ECU = 0x11
 READ_BY_ADDRESS = 0x23
 READ_BY_IDENTIFIER = 0x022
-AUTHENTICATION = 0x27
+AUTHENTICATION_SEND = 0x27
+AUTHENTICATION_RECV = 0x67
+# AUTHENTICATION_SEND = 0x26
+# AUTHENTICATION_RECV = 0x66
+AUTHENTICATION_SUBF_REQ_SEED = 0x1
+AUTHENTICATION_SUBF_SEND_KEY = 0x2
 ROUTINE_CONTROL = 0X31
 WRITE_BY_IDENTIFIER = 0X2E
 READ_DTC = 0X19
@@ -166,6 +171,7 @@ class Action:
         flag = False
         msg_ext = None
         msg = self.bus.recv(3)
+        print(msg)
         while msg is not None:
             # First Frame
             if msg.data[0] == 0x10:
@@ -221,8 +227,8 @@ class Action:
 
         if response is None:
             log_error_message(logger, error_str)
-            # response_json = self._to_json_error("interrupted", 1)
-            # raise CustomError(response_json)
+            response_json = self._to_json_error("interrupted", 1)
+            raise CustomError(response_json)
         return response
 
     def _data_from_frame(self, msg: can.Message):
