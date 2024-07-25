@@ -24,6 +24,7 @@
 #include "../../uds/authentication/include/SecurityAccess.h"
 #include "../../uds/diagnostic_session_control/include/DiagnosticSessionControl.h"
 #include "../../uds/read_dtc_information/include/ReadDtcInformation.h"
+#include "../../uds/routine_control/include/RoutineControl.h"
 #include "../../ota/request_download/include/RequestDownload.h"
 #include "../../ota/request_update_status/include/RequestUpdateStatus.h"
 #include "../../ota/transfer_data/include/TransferData.h"
