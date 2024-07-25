@@ -44,7 +44,7 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         /* Extract Data Parameter */
         DataParameter data_parameter(frame_data.begin() + 4, frame_data.end());
         uint8_t receiver_id = frame_id & 0xFF;
-        uint8_t sender_id = frame_id >> 8 & 0xFF;
+        /* uint8_t sender_id = frame_id >> 8 & 0xFF; */
 
         /* List of valid DIDs */
         std::unordered_set<uint16_t> valid_dids = {
