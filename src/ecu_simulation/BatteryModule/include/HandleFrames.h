@@ -33,7 +33,9 @@
 #include "../../../utils/include/CreateInterface.h"
 #include "../../../uds/ecu_reset/include/EcuReset.h"
 #include "../../uds/read_dtc_information/include/ReadDtcInformation.h"
+#include "../../uds/routine_control/include/RoutineControl.h"
 #include "../../ota/request_transfer_exit/include/RequestTransferExit.h"
+#include "../../uds/clear_dtc/include/ClearDtc.h"
 
 class HandleFrames 
 {

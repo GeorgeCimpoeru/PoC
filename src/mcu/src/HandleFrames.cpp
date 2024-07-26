@@ -266,6 +266,8 @@ namespace MCU
                 else 
                 {
                     LOG_INFO(MCULogger.GET_LOGGER(), "ClearDiagnosticInformation called.");
+                    ClearDtc clear_dtc("../uds/read_dtc_information/dtcs.txt", MCULogger, getMcuSocket(frame_id));
+                    clear_dtc.clearDtc(frame_id, frame_data);
                 }
                 break;
             case 0x19:
@@ -278,7 +280,7 @@ namespace MCU
                 {
                     LOG_INFO(MCULogger.GET_LOGGER(), "ReadDtcInformation called.");
                     /* verify_frame() */
-                    ReadDTC readDtc(MCULogger, "../../uds/read_dtc_information/dtcs.txt", getMcuSocket(frame_id));
+                    ReadDTC readDtc(MCULogger, "../uds/read_dtc_information/dtcs.txt", getMcuSocket(frame_id));
                     readDtc.read_dtc(frame_id, frame_data);
                 }
                 break;
@@ -290,6 +292,8 @@ namespace MCU
                 }
                 else 
                 {
+                    RoutineControl routine_control(getMcuSocket(frame_id), MCULogger);
+                    routine_control.routineControl(frame_id, frame_data);
                     LOG_INFO(MCULogger.GET_LOGGER(), "RoutineControl called.");
                 }
                 break;
