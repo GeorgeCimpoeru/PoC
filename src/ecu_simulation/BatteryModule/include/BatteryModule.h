@@ -23,9 +23,9 @@
 #include <cstdlib>
 #include <chrono>
 #include <iostream>
-#include "../../../utils/include/CreateInterface.h"
+#include "src/utils/include/CreateInterface.h"
 #include "ReceiveFrames.h"
-#include "../../../utils/include/GenerateFrames.h"
+#include "src/utils/include/GenerateFrames.h"
 #include "BatteryModuleLogger.h"
 
 class BatteryModule

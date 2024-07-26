@@ -17,8 +17,8 @@
 #define DIAGNOSTICSESSIONCONTROL_H
 
 #include <cstdlib>
-#include "../../../utils/include/GenerateFrames.h"
-#include "../../../utils/include/Logger.h"
+#include "src/utils/include/GenerateFrames.h"
+#include "src/utils/include/Logger.h"
 /* Diagnostic Control Session codes */
 const uint8_t SID_DIAGNOSTIC_SESSION_CONTROL = 0x10;
 const uint8_t SUB_FUNCTION_DEFAULT_SESSION = 1;

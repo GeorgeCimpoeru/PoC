@@ -8,10 +8,10 @@
 #define POC_MCU_MODULE_H
 
 #include "HandleFrames.h"
-#include "../../utils/include/CreateInterface.h"
+#include "MCULogger.h"
 #include "ReceiveFrames.h"
-#include "../include/MCULogger.h"
-#include "../../uds/write_data_by_identifier/include/WriteDataByIdentifier.h"
+#include "src/uds/write_data_by_identifier/include/WriteDataByIdentifier.h"
+#include "src/utils/include/CreateInterface.h"
 
 #include <thread>
 namespace MCU

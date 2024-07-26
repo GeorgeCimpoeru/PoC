@@ -19,9 +19,9 @@
 #include <random>
 #include <chrono>
 
-#include "../../../utils/include/GenerateFrames.h"
-#include "../../../utils/include/Logger.h"
-#include "../../../utils/include/NegativeResponse.h"
+#include "src/utils/include/GenerateFrames.h"
+#include "src/utils/include/Logger.h"
+#include "src/utils/include/NegativeResponse.h"
 
 class SecurityAccess
 {

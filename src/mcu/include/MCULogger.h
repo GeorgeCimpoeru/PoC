@@ -1,7 +1,7 @@
 #ifndef MCULOGGER_H
 #define MCULOGGER
 
-#include "../../utils/include/Logger.h"
+#include "src/utils/include/Logger.h"
 
 /* Global logger for the MCU Module */
 

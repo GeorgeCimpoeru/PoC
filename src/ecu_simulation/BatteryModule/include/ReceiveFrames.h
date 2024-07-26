@@ -30,9 +30,9 @@
 #include <condition_variable>
 #include <atomic>
 #include <poll.h> 
-#include "../include/HandleFrames.h"
-#include "../include/GenerateFrames.h"
-#include "../include/BatteryModuleLogger.h"
+#include "src/ecu_simulation/BatteryModule/include/HandleFrames.h"
+#include "src/ecu_simulation/BatteryModule/include/BatteryModuleLogger.h"
+#include "src/utils/include/GenerateFrames.h"
 
 class ReceiveFrames 
 {
