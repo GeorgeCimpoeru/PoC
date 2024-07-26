@@ -4,8 +4,8 @@ CFLAGSTST = -std=c++17 -I/include -DUNIT_TESTING_MODE
 LDFLAGS = -lspdlog
 CFLAGSTST2 = -lgtest -lgtest_main -pthread
 #Sources files
-SRCS = src/main.cpp src/BatteryModule.cpp ../../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../../utils/src/CreateInterface.cpp src/ReceiveFrames.cpp ../../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp ../../uds/ecu_reset/src/EcuReset.cpp ../../mcu/src/HandleFrames.cpp ../../mcu/src/ReceiveFrames.cpp ../../mcu/src/MCUModule.cpp ../../uds/read_dtc_information/src/ReadDtcInformation.cpp ../../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp ../../uds/authentication/src/SecurityAccess.cpp ../../uds/tester_present/src/TesterPresent.cpp ../../ota/request_download/src/RequestDownload.cpp ../../ota/request_update_status/src/RequestUpdateStatus.cpp ../../ota/request_transfer_exit/src/RequestTransferExit.cpp ../../utils/src/MemoryManager.cpp ../../ota/transfer_data/src/TransferData.cpp
-SRCSTEST = src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp ../../utils/src/Logger.cpp ../../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp ../../uds/ecu_reset/src/EcuReset.cpp ../../uds/tester_present/src/TesterPresent.cpp ../../mcu/src/HandleFrames.cpp ../../mcu/src/ReceiveFrames.cpp ../../mcu/src/MCUModule.cpp ../../uds/read_dtc_information/src/ReadDtcInformation.cpp ../../uds/authentication/src/SecurityAccess.cpp ../../ota/request_download/src/RequestDownload.cpp ../../ota/request_update_status/src/RequestUpdateStatus.cpp ../../ota/request_transfer_exit/src/RequestTransferExit.cpp ../../utils/src/MemoryManager.cpp ../../ota/transfer_data/src/TransferData.cpp
+SRCS = src/main.cpp src/BatteryModule.cpp ../../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../../utils/src/CreateInterface.cpp src/ReceiveFrames.cpp ../../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp ../../uds/ecu_reset/src/EcuReset.cpp ../../mcu/src/HandleFrames.cpp ../../mcu/src/ReceiveFrames.cpp ../../mcu/src/MCUModule.cpp ../../uds/read_dtc_information/src/ReadDtcInformation.cpp ../../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp ../../uds/authentication/src/SecurityAccess.cpp ../../uds/tester_present/src/TesterPresent.cpp ../../ota/request_download/src/RequestDownload.cpp ../../ota/request_update_status/src/RequestUpdateStatus.cpp ../../ota/request_transfer_exit/src/RequestTransferExit.cpp ../../utils/src/MemoryManager.cpp ../../ota/transfer_data/src/TransferData.cpp ../../uds/clear_dtc/src/ClearDtc.cpp ../../uds/routine_control/src/RoutineControl.cpp
+SRCSTEST = src/HandleFrames.cpp src/BatteryModule.cpp src/ReceiveFrames.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp ../../utils/src/Logger.cpp ../../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp ../../uds/ecu_reset/src/EcuReset.cpp ../../uds/tester_present/src/TesterPresent.cpp ../../mcu/src/HandleFrames.cpp ../../mcu/src/ReceiveFrames.cpp ../../mcu/src/MCUModule.cpp ../../uds/read_dtc_information/src/ReadDtcInformation.cpp ../../uds/authentication/src/SecurityAccess.cpp ../../ota/request_download/src/RequestDownload.cpp ../../ota/request_update_status/src/RequestUpdateStatus.cpp ../../ota/request_transfer_exit/src/RequestTransferExit.cpp ../../utils/src/MemoryManager.cpp ../../ota/transfer_data/src/TransferData.cpp ../../uds/clear_dtc/src/ClearDtc.cpp ../../uds/routine_control/src/RoutineControl.cpp
 
 #Object files
 OBJS = $(patsubst ../uds/src/%.cpp ../utils/src/%.cpp src/%.cpp, obj/%.o, $(SRCS))
@@ -22,7 +22,7 @@ $(FINAL): $(OBJS)
 	$(CXX) $(CFLAGS) -o $(FINAL) $(OBJS) ${LDFLAGS}
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
-$(OBJ_DIR)/main.o: src/main.cpp include/BatteryModule.h include/ReceiveFrames.h include/HandleFrames.h include/GenerateFrames.h ../../utils/include/CreateInterface.h ../../uds/tester_present/include/TesterPresent.h ../../uds/diagnostic_session_control/include/DiagnosticSessionControl.h ../../utils/include/Logger.h include/BatteryModuleLogger.h ../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h ../../uds/write_data_by_identifier/include/WriteDataByIdentifier.h ../../uds/ecu_reset/include/EcuReset.h ../../mcu/include/HandleFrames.h ../../mcu/include/ReceiveFrames.h ../../mcu/include/MCUModule.h ../../uds/read_dtc_information/include/ReadDtcInformation.h ../../uds/authentication/include/SecurityAccess.h ../../ota/request_download/include/RequestDownload.h ../../ota/request_update_status/include/RequestUpdateStatus.h ../../ota/request_transfer_exit/src/RequestTransferExit.h ../../utils/include/MemoryManager.h
+$(OBJ_DIR)/main.o: src/main.cpp include/BatteryModule.h include/ReceiveFrames.h include/HandleFrames.h include/GenerateFrames.h ../../utils/include/CreateInterface.h ../../uds/tester_present/include/TesterPresent.h ../../uds/diagnostic_session_control/include/DiagnosticSessionControl.h ../../utils/include/Logger.h include/BatteryModuleLogger.h ../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h ../../uds/write_data_by_identifier/include/WriteDataByIdentifier.h ../../uds/ecu_reset/include/EcuReset.h ../../mcu/include/HandleFrames.h ../../mcu/include/ReceiveFrames.h ../../mcu/include/MCUModule.h ../../uds/read_dtc_information/include/ReadDtcInformation.h ../../uds/authentication/include/SecurityAccess.h ../../ota/request_download/include/RequestDownload.h ../../ota/request_update_status/include/RequestUpdateStatus.h ../../ota/request_transfer_exit/src/RequestTransferExit.h ../../utils/include/MemoryManager.h ../../uds/clear_dtc/include/ClearDtc.h
 	$(CXX) $(CFLAGS) -c src/main.cpp -o $(OBJ_DIR)/main.o
 $(OBJ_DIR)/BatteryModule.o: src/BatteryModule.cpp
 	$(CXX) $(CFLAGS) -c src/BatteryModule.cpp -o $(OBJ_DIR)/BatteryModule.o
@@ -44,6 +44,8 @@ $(OBJ_DIR)/ReadDtcInformation.o: ../../uds/read_dtc_information/src/ReadDtcInfor
 	$(CXX) $(CFLAGS) -c ../../uds/read_dtc_information/src/ReadDtcInformation.cpp -o $(OBJ_DIR)/ReadDtcInformation.o
 $(OBJ_DIR)/MemoryManager.o: ../../utils/src/MemoryManager.cpp
 	$(CXX) $(CFLAGS) -c ../../utils/src/MemoryManager.cpp -o $(OBJ_DIR)/MemoryManager.o
+$(OBJ_DIR)/ClearDtc.o: ../../uds/clear_dtc/src/ClearDtc.cpp
+	$(CXX) $(CFLAGS) -c ../../uds/clear_dtc/src/ClearDtc.cpp -o $(OBJ_DIR)/ClearDtc.o
 
 clean:
 	rm -f $(FINAL)  ${FINAL_TEST} test/BatteryModuleTest ../../utils/test/GenerateFramesTest test/ReceiveFramesTest ../../utils/test/CreateInterface_test
@@ -95,6 +97,11 @@ RequestTransferExit_test: ../../ota/request_transfer_exit/utest/RequestTransferE
 readDtcTest: readDtc_test
 readDtc_test: ../../uds/read_dtc_information/utest/ReadDtcInformationTest.cpp ../../uds/read_dtc_information/src/ReadDtcInformation.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../../uds/read_dtc_information/utest/ReadDtcInformationTest ../../uds/read_dtc_information/utest/ReadDtcInformationTest.cpp ../../uds/read_dtc_information/src/ReadDtcInformation.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
+
+# RoutineControl Unit tests
+routineControlTest: routineControlTest_test
+routineControlTest_test: ../../uds/routine_control/utest/RoutineControlTest.cpp ../../uds/routine_control/src/RoutineControl.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../../uds/routine_control/utest/RoutineControlTest ../../uds/routine_control/utest/RoutineControlTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 
 # BatteryModule Coverage
 batteryModuleCoverage: BatteryModuleCoverage
@@ -215,6 +222,20 @@ RequestTransferExitCoverage: ../../ota/request_transfer_exit/utest/RequestTransf
 	find . -name '*.gcda' -delete
 	find . -name '*.gcov' -delete
 
+# RoutineControl Coverage
+routineControlCoverage: RoutineControlCoverage
+RoutineControlCoverage: ../../uds/routine_control/utest/RoutineControlTest.cpp ../../uds/routine_control/src/RoutineControl.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../../uds/routine_control/utest/RoutineControlTest ../../uds/routine_control/utest/RoutineControlTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	../../uds/routine_control/utest/RoutineControlTest
+	mkdir -p coverage/out_RoutineControlTest
+	gcov -o . ../../uds/routine_control/src/RoutineControl.cpp
+	mv RoutineControl.cpp.gcov coverage/out_RoutineControlTest
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
+	lcov --remove coverage.info '/test/' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_RoutineControlTest
+	xdg-open coverage/out_RoutineControlTest/index.html
+
 allCoverage: BatteryModule_coverage HandleFrames_coverage ReceiveFrames_coverage GenerateFrames_coverage CreateInterface_coverage ReadDataByIdentifier_coverage RequestTransferExit_coverage
 
 BatteryModule_coverage:
@@ -265,6 +286,13 @@ RequestTransferExit_coverage: ../../ota/request_transfer_exit/utest/RequestTrans
 	mkdir -p coverage/out_RequestTransferExit
 	gcov -o . ../../ota/request_transfer_exit/utest/RequestTransferExitTest.cpp
 	mv RequestTransferExitTest.cpp.gcov coverage/out_RequestTransferExitTest
+
+RoutineControl_coverage: ../../uds/routine_control/utest/RoutineControlTest.cpp ../../uds/routine_control/src/RoutineControl.cpp
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../../uds/routine_control/utest/RoutineControlTest ../../uds/routine_control/utest/RoutineControlTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	./../../uds/routine_control/utest/RoutineControlTest
+	mkdir -p coverage/out_RoutineControl
+	gcov -o . ../../uds/routine_control/src/RoutineControl.cpp
+	mv RoutineControl.cpp.gcov coverage/out_RoutineControl
 
 allCoveragePostProcess:
 	lcov --capture --directory . --output-file coverage.info
