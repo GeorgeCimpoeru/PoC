@@ -9,9 +9,9 @@
 #ifndef ECU_RESET_H
 #define ECU_RESET_H
 
-#include "../../../utils/include/GenerateFrames.h"
-#include "../../../utils/include/CreateInterface.h"
-#include "../../../utils/include/Logger.h"
+#include "src/utils/include/GenerateFrames.h"
+#include "src/utils/include/CreateInterface.h"
+#include "src/utils/include/Logger.h"
 
 #include <linux/can.h>
 #include <iostream>

@@ -52,8 +52,8 @@
 #include<thread>
 
 #include "HandleFrames.h"
-#include "../../utils/include/GenerateFrames.h"
-#include "../include/MCULogger.h"
+#include "MCULogger.h"
+#include "src/utils/include/GenerateFrames.h"
 namespace MCU
 {
   class ReceiveFrames

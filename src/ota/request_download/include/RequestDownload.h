@@ -10,13 +10,13 @@
 #include <string>
 #include <sys/ioctl.h>
 #include <mutex>
-#include "../../../utils/include/CreateInterface.h"
-#include "../../../utils/include/GenerateFrames.h"
-#include "../../utils/include/Logger.h"
-#include "../../uds/diagnostic_session_control/include/DiagnosticSessionControl.h"
-#include "../../uds/authentication/include/SecurityAccess.h"
-#include "../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
-#include "../../utils/include/MemoryManager.h"
+#include "src/utils/include/CreateInterface.h"
+#include "src/utils/include/GenerateFrames.h"
+#include "src/utils/include/Logger.h"
+#include "src/utils/include/MemoryManager.h"
+#include "src/uds/diagnostic_session_control/include/DiagnosticSessionControl.h"
+#include "src/uds/authentication/include/SecurityAccess.h"
+#include "src/uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
 
 class RequestDownloadService
 {

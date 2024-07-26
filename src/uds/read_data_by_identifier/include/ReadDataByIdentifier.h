@@ -15,9 +15,9 @@
 #include <unordered_map>
 #include <bitset>
 
-#include "../../../utils/include/CreateInterface.h"
-#include "../../../utils/include/GenerateFrames.h"
-#include "../../utils/include/Logger.h"
+#include "src/utils/include/CreateInterface.h"
+#include "src/utils/include/GenerateFrames.h"
+#include "src/utils/include/Logger.h"
 
 #ifndef UDS_READ_DATA_BY_IDENTIFIER_H
 #define UDS_READ_DATA_BY_IDENTIFIER_H

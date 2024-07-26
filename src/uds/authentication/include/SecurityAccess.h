@@ -17,8 +17,8 @@
 #include <random>
 #include <chrono>
 
-#include "../../../utils/include/GenerateFrames.h"
-#include "../../utils/include/Logger.h"
+#include "src/utils/include/GenerateFrames.h"
+#include "src/utils/include/Logger.h"
 
 #ifndef UDS_SECURITY_ACCESS_H
 #define UDS_SECURITY_ACCESS_H
