@@ -141,12 +141,12 @@ namespace MCU
      */
     const uint8_t* getECUsUp() const;
 
-  std::map<uint8_t, std::chrono::steady_clock::time_point> ecu_timers;
-  std::chrono::seconds timeout_duration;
-  std::thread timer_thread;
-  bool running;
-  std::queue<struct can_frame> frame_queue;
-  std::mutex queue_mutex;
+    std::map<uint8_t, std::chrono::steady_clock::time_point> ecu_timers;
+    std::chrono::seconds timeout_duration;
+    std::thread timer_thread;
+    bool running;
+    std::queue<struct can_frame> frame_queue;
+    std::mutex queue_mutex;
   
  protected:
   /* The socket from where we read the frames */
