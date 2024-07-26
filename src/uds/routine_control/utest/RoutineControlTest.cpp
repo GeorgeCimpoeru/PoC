@@ -130,7 +130,7 @@ TEST_F(RoutineControlTest, RequestOutOfRange)
 TEST_F(RoutineControlTest, PositiveResponseCase1)
 {
     std::vector<uint8_t> invalid_frame_data = {0x03, 0x31, 0x01, 0x01, 0x01, 0x03};
-    std::vector<uint8_t> expected_frame_data = {0x03, 0x71, 0x01, 0x01, 0x01};
+    std::vector<uint8_t> expected_frame_data = {0x04, 0x71, 0x01, 0x01, 0x01};
     routine_control->routineControl(0x1110, invalid_frame_data);
     capture_frame->capture();
     for (int i = 0; i < capture_frame->frame.can_dlc; ++i) {
@@ -141,7 +141,7 @@ TEST_F(RoutineControlTest, PositiveResponseCase1)
 TEST_F(RoutineControlTest, PositiveResponseCase2)
 {
     std::vector<uint8_t> invalid_frame_data = {0x03, 0x31, 0x01, 0x02, 0x01, 0x03};
-    std::vector<uint8_t> expected_frame_data = {0x03, 0x71, 0x01, 0x02, 0x01};
+    std::vector<uint8_t> expected_frame_data = {0x04, 0x71, 0x01, 0x02, 0x01};
     routine_control->routineControl(0x1110, invalid_frame_data);
     capture_frame->capture();
     for (int i = 0; i < capture_frame->frame.can_dlc; ++i) {
@@ -152,7 +152,7 @@ TEST_F(RoutineControlTest, PositiveResponseCase2)
 TEST_F(RoutineControlTest, PositiveResponseDefaultCase)
 {
     std::vector<uint8_t> invalid_frame_data = {0x03, 0x31, 0x01, 0x03, 0x01, 0x03};
-    std::vector<uint8_t> expected_frame_data = {0x03, 0x71, 0x01, 0x03, 0x01};
+    std::vector<uint8_t> expected_frame_data = {0x04, 0x71, 0x01, 0x03, 0x01};
     routine_control->routineControl(0x1110, invalid_frame_data);
     capture_frame->capture();
     for (int i = 0; i < capture_frame->frame.can_dlc; ++i) {
