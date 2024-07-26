@@ -18,7 +18,7 @@ const TableOta = (props: any) => {
                 <tbody>
                     {props.listOfUpdates.map((item: any, index: any) => (
                         <tr key={index}>
-                            <td align="center">{item}</td>
+                            <td align="center">{item.artifact}</td>
                             <td align="center">Failed</td>
                             <td align="center">Incomplete</td>
                             <td align="center">Completed</td>

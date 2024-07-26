@@ -1,5 +1,3 @@
-'use client';
-import { useState } from "react";
 import LeftSideBar2 from '../components/udsComponents/LeftSideBar2';
 import NavbarUds from '../components/udsComponents/NavbarUds';
 import BatteryInfo from '../components/udsComponents/BatteryInfo';
@@ -9,35 +7,54 @@ import Component2 from '../components/animations/batteryPercentage';
 import Component3 from '../components/animations/rangeBattery';
 
 const UDSpage = () => {
-    const [selectedComponent, setSelectedComponent] = useState('BatteryInfo');
-    const [activeButton, setActiveButton] = useState('BatteryInfo');
+    let whichIcon: string = "1";
 
-    const handleButtonClick = (component: string) => {
-        setSelectedComponent(component);
-        setActiveButton(component);
-    }
+    // if (whichIcon == 1) {
+    //     return (
+    //         <div className="flex w-full h-screen">
+    //             <LeftSideBar2 selectedModule={whichIcon}></LeftSideBar2>
+    //             <div className="w-[94%] h-screen flex flex-col">
+    //                 <NavbarUds></NavbarUds>
+    //                 <BatteryInfo></BatteryInfo>
+    //             </div>
+    //         </div>
+    //     );
+    // } else if (whichIcon == 2) {
+    //     return (
+    //         <div className="flex w-full h-screen">
+    //             <LeftSideBar2 selectedModule={whichIcon}></LeftSideBar2>
+    //             <div className="w-[94%] h-screen flex flex-col">
+    //                 <NavbarUds></NavbarUds>
+    //                 <EngineInfo></EngineInfo>
+    //             </div>
+    //         </div>
+    //     );
+    // } else if (whichIcon == 3) {
+    //     return (
+    //         <div className="flex w-full h-screen">
+    //             <LeftSideBar2 selectedModule={whichIcon}></LeftSideBar2>
+    //             <div className="w-[94%] h-screen flex flex-col">
+    //                 <NavbarUds></NavbarUds>
 
-    const renderComponent = () => {
-        switch (selectedComponent) {
-            case 'EngineInfo':
-                return <EngineInfo />;
-            case 'BatteryInfo':
-                return <BatteryInfo />;
-            case 'Component3':
-                return <Component3 />;
-            default:
-                return <BatteryInfo />;
-        }
-    }
-
+    //             </div>
+    //         </div>
+    //     );
+    // }
+    console.log
     return (
-        <div className="flex w-full h-screen flex-col lg:flex-row">
-            <LeftSideBar2 onButtonClick={handleButtonClick} activeButton={activeButton}></LeftSideBar2>
+        <div className="flex w-full h-screen">
+            <LeftSideBar2 selectedModule={whichIcon}></LeftSideBar2>
             <div className="w-[94%] h-screen flex flex-col">
                 <NavbarUds></NavbarUds>
-                <div>
-                    {renderComponent()}
-                </div>
+                {whichIcon === "1" && (
+                    <BatteryInfo></BatteryInfo>
+                )}
+                {whichIcon === "2" && (
+                    <EngineInfo></EngineInfo>
+                )}
+                {whichIcon === "3" && (
+                    <EngineInfo></EngineInfo>
+                )}
             </div>
         </div>
     );
