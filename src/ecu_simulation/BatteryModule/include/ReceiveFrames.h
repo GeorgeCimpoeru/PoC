@@ -31,7 +31,7 @@
 #include <atomic>
 #include <poll.h> 
 #include "HandleFrames.h"
-#include "../../../utils/include/Logger.h"
+#include "../../../utils/include/GenerateFrames.h"
 #include "BatteryModuleLogger.h"
 
 class ReceiveFrames 
