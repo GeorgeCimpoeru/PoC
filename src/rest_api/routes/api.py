@@ -1,13 +1,10 @@
 from flask import request, jsonify, Blueprint
 from actions.request_id_action import RequestIdAction
 from actions.update_action import Updates
-from config import Config
-from actions.generate_frames import GenerateFrame
 from actions.read_info_action import *
 from utils.logger import log_memory
 from actions.manual_send_frame import manual_send_frame
 from actions.write_info_action import WriteInfo
-
 
 
 api_bp = Blueprint('api', __name__)
@@ -54,8 +51,7 @@ def update_to_version():
     ecu_id = data.get('ecu_id')
     version = data.get('version')
     updater = Updates(my_id=0xFA, id_ecu=ecu_id)
-    response = updater.update_to(ecu_id=int(ecu_id), 
-                                 version=int(version))
+    response = updater.update_to(ecu_id=int(ecu_id), version=int(version))
     return jsonify(response)
 
 
@@ -229,7 +225,7 @@ def write_info_doors():
               type: string
     """
     data = request.get_json()
-    
+
     writer = WriteInfo(0xFA, [0x10, 0x11, 0x12], data)
     response = writer.run()
     return jsonify(response)
@@ -252,4 +248,3 @@ def get_logs():
                 type: string
     """
     return jsonify({'logs': log_memory})
-

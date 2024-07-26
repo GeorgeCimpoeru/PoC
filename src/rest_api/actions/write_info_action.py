@@ -1,5 +1,4 @@
 import datetime
-import time
 from actions.base_actions import *
 from configs.data_identifiers import *
 
@@ -7,6 +6,7 @@ MCU = 0
 ECU_BATTERY = 1
 ECU_ENGINE = 2
 ECU_DOORS = 3
+
 
 class WriteInfo(Action):
     def __init__(self, my_id, id_ecu_list, data):
@@ -35,7 +35,7 @@ class WriteInfo(Action):
         """
         log_info_message(logger, f"Write by identifier {identifier}")
         value_list = self._number_to_list(value)
-       
+         
         if isinstance(value_list, list) and len(value_list) > 4:
             self.generate.write_data_by_identifier_long(id, identifier, value_list)
         else:
@@ -50,11 +50,11 @@ class WriteInfo(Action):
 
         data_params = [
             (IDENTIFIER_DOOR, int(self.data.get('Door_param'))),
-            (IDENTIFIER_DOOR_SERIALNUMBER, int(self.data.get('Serial_number'))),
-            (IDENTIFIER_LIGHTER_VOLTAGE, int(self.data.get('Cigarette_Lighter_Voltage'))),
-            (IDENTIFIER_LIGHT_STATE, int(self.data.get('Light_state'))),
-            (IDENTIFIER_BELT_STATE, int(self.data.get('BeltCard'))),
-            (IDENTIFIER_WINDOWS_CLOSED, int(self.data.get('WindowStatus')))
+            # (IDENTIFIER_DOOR_SERIALNUMBER, int(self.data.get('Serial_number'))),
+            # (IDENTIFIER_LIGHTER_VOLTAGE, int(self.data.get('Cigarette_Lighter_Voltage'))),
+            # (IDENTIFIER_LIGHT_STATE, int(self.data.get('Light_state'))),
+            # (IDENTIFIER_BELT_STATE, int(self.data.get('BeltCard'))),
+            # (IDENTIFIER_WINDOWS_CLOSED, int(self.data.get('WindowStatus')))
         ]
 
         for identifier, data_param in data_params:

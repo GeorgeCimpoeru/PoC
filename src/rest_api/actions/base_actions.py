@@ -274,7 +274,7 @@ class Action:
         data = self._data_from_frame(frame_response)
         data_str = self._list_to_number(data)
         return data_str
-    
+      
     def _write_by_identifier(self, id, identifier, value):
         """
         Function to read data from a specific identifier. The function requests, reads the data, and processes it.
@@ -287,18 +287,15 @@ class Action:
         """
         log_info_message(logger, "Write by identifier {identifier}")
         value_list = self._number_to_list(value)
-       
-        
+            
         if isinstance(value_list, list) and len(value_list) > 4:
             self.generate.write_data_by_identifier_long(id, identifier, value_list)
         else:
-            self.generate.write_data_by_identifier(id, identifier,value_list)
+            self.generate.write_data_by_identifier(id, identifier, value_list)
             self._passive_response(WRITE_BY_IDENTIFIER, f"Error writing {identifier}")
 
-       
         self.generate.write_data_by_identifier(id, identifier, value_list)
         self._passive_response(WRITE_BY_IDENTIFIER, f"Error reading data from identifier {identifier}")
-
         
         return True
 
@@ -315,12 +312,8 @@ class Action:
         """
         log_info_message(logger, "-"*60)
         log_info_message(logger, "Authenticating")
-        self.generate.authentication_seed(id, 
-                                          sid_send=AUTHENTICATION_SEND,
-                                          sid_recv=AUTHENTICATION_RECV,
-                                          subf=AUTHENTICATION_SUBF_REQ_SEED)
-        frame_response = self._passive_response(AUTHENTICATION_SEND, 
-                                                "Error requesting seed")
+        self.generate.authentication_seed(id, sid_send=AUTHENTICATION_SEND, sid_recv=AUTHENTICATION_RECV, subf=AUTHENTICATION_SUBF_REQ_SEED)
+        frame_response = self._passive_response(AUTHENTICATION_SEND, "Error requesting seed")
         if frame_response.data[1] == 0x67 and \
             frame_response.data[2] == 0x01 and \
                 frame_response.data[3] == 0x00:
@@ -335,8 +328,7 @@ class Action:
                                              sid_send=AUTHENTICATION_RECV,
                                              sid_recv=AUTHENTICATION_SEND,
                                              subf=AUTHENTICATION_SUBF_SEND_KEY)
-            frame_response = self._passive_response(AUTHENTICATION_SEND, 
-                                                    "Error sending key")
+            frame_response = self._passive_response(AUTHENTICATION_SEND, "Error sending key")
             if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x02:
                 log_info_message(logger, "Authentication successful")
                 return  # Successful authentication
@@ -380,7 +372,7 @@ class Action:
                 number += "0"
             number += hex(item)[2:]
         return number
-    
+        
     def _number_to_list(self, number: int) -> list:
         list = []
         while number:
