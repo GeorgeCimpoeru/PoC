@@ -77,10 +77,6 @@ namespace MCU
          * @return int 
          */
         int getMcuSocket(canid_t frame_id);
-        void forwardToEcu(canid_t frame_id, uint8_t sid, std::vector<uint8_t> data);
-        void handleApiFrame(canid_t frame_id, uint8_t sid, std::vector<uint8_t> data, bool is_multi_frame);
-        void handleCanFrame(canid_t frame_id, uint8_t sid, std::vector<uint8_t> data, bool is_multi_frame);
-        bool isEcuDestination(uint8_t sid);
     };
 }
 #endif /* HANDLE_FRAMES_H */
