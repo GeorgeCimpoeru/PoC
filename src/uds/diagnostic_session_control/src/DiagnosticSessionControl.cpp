@@ -1,9 +1,11 @@
 #include "../include/DiagnosticSessionControl.h"
 #include <iostream>
 
+// Initialize current_session
+DiagnosticSession DiagnosticSessionControl::current_session = DEFAULT_SESSION;
+
 /* Default constructor, used in MCU */
-DiagnosticSessionControl::DiagnosticSessionControl(Logger logger, int socket) : dsc_logger(logger),
-                                                                    current_session(DEFAULT_SESSION)
+DiagnosticSessionControl::DiagnosticSessionControl(Logger logger, int socket) : dsc_logger(logger)
 {
     this->socket = socket;
     LOG_INFO(dsc_logger.GET_LOGGER(), "Diagnostic Session Control (0x10) started. Current session: {}", getCurrentSessionToString());
@@ -11,8 +13,7 @@ DiagnosticSessionControl::DiagnosticSessionControl(Logger logger, int socket) : 
 
 /* Parameterized constructor, used for ECUs */
 DiagnosticSessionControl::DiagnosticSessionControl(int module_id, Logger logger, int socket) : module_id(module_id), 
-                                                                                   dsc_logger(logger),
-                                                                                   current_session(DEFAULT_SESSION)
+                                                                                   dsc_logger(logger)
 {
     this->socket = socket;
     LOG_INFO(dsc_logger.GET_LOGGER(), "Diagnostic Session Control (0x10) started. Current session: {}", getCurrentSessionToString());
@@ -24,51 +25,28 @@ DiagnosticSessionControl::~DiagnosticSessionControl()
 }
 
 /* Method to control the sessions of service */
-void DiagnosticSessionControl::sessionControl(uint8_t id, uint8_t sub_function)
+void DiagnosticSessionControl::sessionControl(canid_t frame_id, uint8_t sub_function)
 {
-    uint8_t request[] = {id, sub_function};
-    size_t requestLength = sizeof(request) / sizeof(request[0]);
+    LOG_INFO(dsc_logger.GET_LOGGER(), "Sessiom Control request, SID: 0x{:X} Sub-Function: 0x{:X}", 0x10, sub_function);
 
-    handleRequest(request, requestLength);
-}
-
-/* Method to handle the Request for switching the Sessions */
-void DiagnosticSessionControl::handleRequest(const uint8_t *request, size_t length)
-{
-    /* Expecting exactly 2 bytes: SID + Sub-function */
-    if (length != 2)
+    switch (sub_function)
     {
-        sendNegativeResponse(NR_INCORRECT_MESSAGE_LENGTH);
+    case SUB_FUNCTION_DEFAULT_SESSION:
+        switchToDefaultSession(frame_id);
+        break;
+    case SUB_FUNCTION_PROGRAMMING_SESSION:
+        switchToProgrammingSession(frame_id);
+        break;
+    default:
+        LOG_ERROR(dsc_logger.GET_LOGGER(), "Unsupported sub-function");
+        sendNegativeResponse(NR_SUBFUNCION_NOT_SUPPORTED);
         return;
-    }
-
-    uint8_t sid = request[0];
-    uint8_t sub_function = request[1];
-
-    LOG_INFO(dsc_logger.GET_LOGGER(), "Sessiom Control request, SID: 0x{:X} Sub-Function: 0x{:X}", sid, sub_function);
-
-    if (sid == SID_DIAGNOSTIC_SESSION_CONTROL)
-    {
-        switch (sub_function)
-        {
-        case SUB_FUNCTION_DEFAULT_SESSION:
-            switchToDefaultSession();
-            break;
-        default:
-            LOG_ERROR(dsc_logger.GET_LOGGER(), "Unsupported sub-function");
-            /* Other negative responses can be added here */
-            break;
-        }
-    }
-    else
-    {
-        LOG_ERROR(dsc_logger.GET_LOGGER(), "Unsupported SID");
-        /* Other negative responses... */
+        break;
     }
 }
 
 /* Method to switch current session to Default Session */
-void DiagnosticSessionControl::switchToDefaultSession()
+void DiagnosticSessionControl::switchToDefaultSession(canid_t frame_id)
 {
     /** Simulate an authentication check (for demonstration)
      * Replace with actual check */
@@ -80,19 +58,9 @@ void DiagnosticSessionControl::switchToDefaultSession()
         return;
     }
 
-    /** Simulate resource check
-     * Replace with actual check */
-    bool resource_available = true;
-    if (!resource_available)
-    {
-        sendNegativeResponse(NR_RESOURCE_TEMP_UNAVAILABLE);
-        LOG_WARN(dsc_logger.GET_LOGGER(), "Sent Negative Response with code {}", NR_RESOURCE_TEMP_UNAVAILABLE);
-        return;
-    }
-
     /* Switch to Default Session */
     current_session = DEFAULT_SESSION;
-    /* std::cout << "Switched to Default Session" << std::endl; */
+
     LOG_INFO(dsc_logger.GET_LOGGER(), "Switched to Default Session. Current session: {}", getCurrentSessionToString());
 
     /* Create instance of Generate Frames to send response frame */
@@ -104,14 +72,65 @@ void DiagnosticSessionControl::switchToDefaultSession()
      */
     if (this->module_id == 0x11)
     {
+        /* Form the new id */
+        int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+
         /* Send response frame to ECU */
-        response_frame.sessionControl(0x1011, 0x01, true);
+        response_frame.sessionControl(id, 0x01, true);
         LOG_INFO(dsc_logger.GET_LOGGER(), "Sent pozitive response frame to ECU");
     }
     else
     {
+        /* Form the new id */
+        int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+
         /* Send response frame to MCU */
-        response_frame.sessionControl(0x1110, 0x01, true);
+        response_frame.sessionControl(id, 0x01, true);
+        LOG_INFO(dsc_logger.GET_LOGGER(), "Sent pozitive response frame to MCU");
+    }
+}
+
+/* Method to switch current session to Programming Session */
+void DiagnosticSessionControl::switchToProgrammingSession(canid_t frame_id)
+{
+    /** Simulate an authentication check (for demonstration)
+     * Replace with actual check */
+    bool authenticated = true;
+    if (!authenticated)
+    {
+        sendNegativeResponse(NR_AUTHENTICATION_FAILED);
+        LOG_WARN(dsc_logger.GET_LOGGER(), "Sent Negative Response with code {}", NR_AUTHENTICATION_FAILED);
+        return;
+    }
+
+    /* Switch to Programming Session */
+    current_session = PROGRAMMING_SESSION;
+
+    LOG_INFO(dsc_logger.GET_LOGGER(), "Switched to Programming Session. Current session: {}", getCurrentSessionToString());
+
+    /* Create instance of Generate Frames to send response frame */
+    GenerateFrames response_frame(socket, dsc_logger);
+
+    /** Check the module where the request was made from
+     * More ECUs can be added here in future.
+     * If no module_id is provided, request of sessionControl was made from MCU
+     */
+    if (this->module_id == 0x11)
+    {
+        /* Form the new id */
+        int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+
+        /* Send response frame to ECU */
+        response_frame.sessionControl(id, 0x02, true);
+        LOG_INFO(dsc_logger.GET_LOGGER(), "Sent pozitive response frame to ECU");
+    }
+    else
+    {
+        /* Form the new id */
+        int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+
+        /* Send response frame to MCU */
+        response_frame.sessionControl(id, 0x02, true);
         LOG_INFO(dsc_logger.GET_LOGGER(), "Sent pozitive response frame to MCU");
     }
 }
@@ -119,19 +138,18 @@ void DiagnosticSessionControl::switchToDefaultSession()
 /* Method for sending Negative Response */
 void DiagnosticSessionControl::sendNegativeResponse(uint8_t responseCode)
 {
-    /* std::cerr << "Sending Negative Response: " << static_cast<int>(responseCode) << std::endl; */
+    /* Call negative response service */
     LOG_INFO(dsc_logger.GET_LOGGER(), "Sending Negative Response: {}", static_cast<int>(responseCode));
-    /* TO DO: Implement logic to send the negative response */
 }
 
 /* Method to get the current session of module */
-DiagnosticSession DiagnosticSessionControl::getCurrentSession() const
+DiagnosticSession DiagnosticSessionControl::getCurrentSession()
 {
     return current_session;
 }
 
 /* Method to get the current value of session as a String */
-std::string DiagnosticSessionControl::getCurrentSessionToString() const
+std::string DiagnosticSessionControl::getCurrentSessionToString()
 {
     switch (current_session)
     {
