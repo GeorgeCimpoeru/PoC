@@ -230,7 +230,7 @@ def write_info_doors():
     """
     data = request.get_json()
     
-    writer = WriteInfo(0xFA, [0x11, 0x12, 0x13], data)
+    writer = WriteInfo(0xFA, [0x10, 0x11, 0x12], data)
     response = writer.run()
     return jsonify(response)
 

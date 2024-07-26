@@ -102,13 +102,13 @@ function fetchLogs() {
     
     
         const data = {
-            Door_param: doorParam ? parseInt(doorParam) : null,
+             Door_param: doorParam ? parseInt(doorParam) : null,
             Serial_number: serialNumber || null,
             Cigarette_Lighter_Voltage: cigaretteLighterVoltage ? parseFloat(cigaretteLighterVoltage) : null,
             Light_state: lightState || null,
             BeltCard: beltCard || null,
             WindowStatus: windowStatus || null,
-        };
+         };
     
         fetch('/api/write_info_doors', {
             method: 'POST',

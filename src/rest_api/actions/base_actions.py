@@ -274,6 +274,33 @@ class Action:
         data = self._data_from_frame(frame_response)
         data_str = self._list_to_number(data)
         return data_str
+    
+    def _write_by_identifier(self, id, identifier, value):
+        """
+        Function to read data from a specific identifier. The function requests, reads the data, and processes it.
+
+        Args:
+        - identifier: Identifier of the data.
+
+        Returns:
+        - Data as a string.
+        """
+        log_info_message(logger, "Write by identifier {identifier}")
+        value_list = self._number_to_list(value)
+       
+        
+        if isinstance(value_list, list) and len(value_list) > 4:
+            self.generate.write_data_by_identifier_long(id, identifier, value_list)
+        else:
+            self.generate.write_data_by_identifier(id, identifier,value_list)
+            self._passive_response(WRITE_BY_IDENTIFIER, f"Error writing {identifier}")
+
+       
+        self.generate.write_data_by_identifier(id, identifier, value_list)
+        self._passive_response(WRITE_BY_IDENTIFIER, f"Error reading data from identifier {identifier}")
+
+        
+        return True
 
     def __algorithm(self, seed: list):
         """
