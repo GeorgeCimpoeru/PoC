@@ -14,7 +14,7 @@
  *          P0B12-01 10
  * 
  */
-#include "../include/ReadDtcInformation.h"
+#include "src/uds/read_dtc_information/include/ReadDtcInformation.h"
 
 #include <cstring>
 #include <string>

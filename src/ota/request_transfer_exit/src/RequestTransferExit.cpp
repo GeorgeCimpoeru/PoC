@@ -6,9 +6,8 @@
  * 
  */
 
-#include "../include/RequestTransferExit.h"
-#include <iostream>
-#include "../../../mcu/include/MCUModule.h"
+#include "src/ota/request_transfer_exit/include/RequestTransferExit.h"
+#include "src/mcu/include/MCUModule.h"
 
 /* Constructor that initializes the callback_ to nullptr */
 RequestTransferExit::RequestTransferExit(int socket, Logger& RTESLogger) : callback_(nullptr), RTESLogger(RTESLogger), generate_frames(socket, RTESLogger)

@@ -24,6 +24,7 @@
 #include <sys/ioctl.h>
 #include <linux/can.h>
 #include <net/if.h>
+#include "src/mcu/include/MCUModule.h"
 #include "src/utils/include/CreateInterface.h"
 #include "src/utils/include/GenerateFrames.h"
 #include "src/utils/include/Logger.h"

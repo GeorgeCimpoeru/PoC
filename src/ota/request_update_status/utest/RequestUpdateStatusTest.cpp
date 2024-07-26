@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include "../include/RequestUpdateStatus.h"
-#include "../../../uds/write_data_by_identifier/include/WriteDataByIdentifier.h"
-#include "../../../mcu/include/MCUModule.h"
+#include "src/ota/request_update_status/include/RequestUpdateStatus.h"
+#include "src/uds/write_data_by_identifier/include/WriteDataByIdentifier.h"
+#include "src/mcu/include/MCUModule.h"
 
 class RequestUpdateStatusTest : public ::testing::Test {
 protected:

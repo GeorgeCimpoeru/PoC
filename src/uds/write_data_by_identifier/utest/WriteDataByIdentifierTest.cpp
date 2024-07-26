@@ -4,10 +4,10 @@
 #include <string>
 #include <gtest/gtest.h>
 #include <linux/can.h>
-#include "../include/WriteDataByIdentifier.h"
-#include "../../../utils/include/Logger.h"
-#include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
-#include "../../../mcu/include/MCUModule.h"
+#include "src/uds/write_data_by_identifier/include/WriteDataByIdentifier.h"
+#include "src/utils/include/Logger.h"
+#include "src/ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "src/mcu/include/MCUModule.h"
 
 /* Test Fixture for WriteDataByIdentifier */
 class WriteDataByIdentifierTest : public ::testing::Test {

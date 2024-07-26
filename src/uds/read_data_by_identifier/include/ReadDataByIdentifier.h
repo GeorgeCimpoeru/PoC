@@ -20,6 +20,8 @@
 #include "src/utils/include/CreateInterface.h"
 #include "src/utils/include/GenerateFrames.h"
 #include "src/utils/include/Logger.h"
+#include "src/ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "src/mcu/include/MCUModule.h"
 
 class ReadDataByIdentifier
 {

@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
-#include "../include/HandleFrames.h"
+#include "src/mcu/include/HandleFrames.h"
 #include <linux/can.h>
-#include "../include/MCULogger.h"
+#include "src/mcu/include/MCULogger.h"
 class HandleFramesTest : public ::testing::Test{
     public:
     HandleFramesTest(){}

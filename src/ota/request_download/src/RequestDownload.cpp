@@ -1,5 +1,4 @@
-#include "../../../mcu/include/MCUModule.h"
-#include "../include/RequestDownload.h"
+#include "src/ota/request_download/include/RequestDownload.h"
 
 RequestDownloadService::RequestDownloadService(Logger& RDSlogger)
                         : generateFrames(socket, RDSlogger)

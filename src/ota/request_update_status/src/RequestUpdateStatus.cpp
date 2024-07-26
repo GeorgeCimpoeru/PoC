@@ -9,7 +9,7 @@
  * 
  */
 
-#include "../include/RequestUpdateStatus.h"
+#include "src/ota/request_update_status/include/RequestUpdateStatus.h"
 
 RequestUpdateStatus::RequestUpdateStatus(int socket) : socket(socket)
 {}
