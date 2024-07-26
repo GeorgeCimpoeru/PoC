@@ -1,8 +1,9 @@
-from flask import request, jsonify
+from flask import request
 import can
 from utils.logger import *
 from config import Config
 from actions.base_actions import *
+
 
 def manual_send_frame(can_id, can_data):
     data = request.get_json()
@@ -29,9 +30,9 @@ def manual_send_frame(can_id, can_data):
             if received_frame.data[1] == 0x67 and \
                 received_frame.data[2] == 0x01 and \
                     received_frame.data[3] == 0x00 or \
-                        received_frame.data[1] == 0x67 and received_frame.data[2] == 0x02:
-                    log_info_message(logger, "Authentication successful")
-                    received_data['auth_status'] = 'success'
+                    received_frame.data[1] == 0x67 and received_frame.data[2] == 0x02:
+                log_info_message(logger, "Authentication successful")
+                received_data['auth_status'] = 'success'
 
             if received_frame.data[1] == 0x7F:  # Diagnostic negative response
                 nrc = received_frame.data[3]

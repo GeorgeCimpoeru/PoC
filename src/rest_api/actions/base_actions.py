@@ -236,7 +236,6 @@ class Action:
             log_error_message(logger, error_str)
             response_json = self._to_json_error("interrupted", 1)
             raise CustomError(response_json)
-        
         return response
 
     def _data_from_frame(self, msg: can.Message):
@@ -271,7 +270,7 @@ class Action:
         """
         log_info_message(logger, "Read from identifier {identifier}")
         self.generate.read_data_by_identifier(id, identifier)
-        frame_response = self._passive_response(READ_BY_IDENTIFIER, 
+        frame_response = self._passive_response(READ_BY_IDENTIFIER,
                                                 f"Error reading data from identifier {identifier}")
         data = self._data_from_frame(frame_response)
         data_str = self._list_to_number(data)
@@ -283,18 +282,18 @@ class Action:
         """
         return [(~num + 1) & 0xFF for num in seed]
         # return [(~num - 1) & 0xFF for num in seed] # Test case 0x35 Invalid Key
-    
+
     def _authentication(self, id):
         """
         Function to authenticate. Makes the proper request to the ECU.
         """
         log_info_message(logger, "-"*60)
         log_info_message(logger, "Authenticating")
-        self.generate.authentication_seed(id, 
+        self.generate.authentication_seed(id,
                                           sid_send=AUTHENTICATION_SEND,
                                           sid_recv=AUTHENTICATION_RECV,
                                           subf=AUTHENTICATION_SUBF_REQ_SEED)
-        frame_response = self._passive_response(AUTHENTICATION_SEND, 
+        frame_response = self._passive_response(AUTHENTICATION_SEND,
                                                 "Error requesting seed")
         if frame_response.data[1] == 0x67 and \
             frame_response.data[2] == 0x01 and \
@@ -310,7 +309,7 @@ class Action:
                                              sid_send=AUTHENTICATION_RECV,
                                              sid_recv=AUTHENTICATION_SEND,
                                              subf=AUTHENTICATION_SUBF_SEND_KEY)
-            frame_response = self._passive_response(AUTHENTICATION_SEND, 
+            frame_response = self._passive_response(AUTHENTICATION_SEND,
                                                     "Error sending key")
             if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x02:
                 log_info_message(logger, "Authentication successful")

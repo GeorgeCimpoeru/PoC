@@ -22,6 +22,7 @@ ECU_BATTERY = 1
 ECU_ENGINE = 2
 ECU_DOORS = 3
 
+
 class ToJSON:
     """Open-Close principle. Base class for different JSON formats."""
     def _to_json(self, data):
@@ -158,7 +159,6 @@ class ReadInfo(Action):
             self.bus.shutdown()
             return e.message
 
-   
     def read_from_engine(self):
 
         """
@@ -196,7 +196,6 @@ class ReadInfo(Action):
         except CustomError as e:
             self.bus.shutdown()
             return e.message
-
 
     def read_from_doors(self):
         id_door = self.id_ecu[1]
