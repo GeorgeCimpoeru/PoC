@@ -1,6 +1,6 @@
 /**
  * @file WriteDataByIdentifier.h
- * @author your name (you@domain.com)
+ * @author Dirva Nicolae
  * @brief This library represents the WriteDataByIdentifier UDS service.
  * It writes data based on the Data Identifier (DID) received in the CAN frame.
  * For example, if you want to update the battery voltage, 0x01B0 DID is responsible for that.

@@ -22,7 +22,7 @@ $(FINAL): $(OBJS)
 	$(CXX) $(CFLAGS) -o $(FINAL) $(OBJS) ${LDFLAGS}
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
-$(OBJ_DIR)/main.o: src/main.cpp include/MCUModule.h include/ReceiveFrames.h include/HandleFrames.h ../utils/include/GenerateFrames.h ../utils/include/Logger.h ../utils/include/CreateInterface.h ../uds/diagnostic_session_control/include/DiagnosticSessionControl.h include/MCULogger.h ../uds/read_data_by_identifier/include/ReadDataByIdentifier.h ../uds/write_data_by_identifier/include/WriteDataByIdentifier.h ../uds/tester_present/include/TesterPresent.h ../uds/ecu_reset/include/EcuReset.h ../uds/authentication/include/SecurityAccess.h ../ecu_simulation/BatteryModule/include/BatteryModule.h   ../ecu_simulation/BatteryModule/include/HandleFrames.h  ../ecu_simulation/BatteryModule/include/ReceiveFrames.h ../uds/read_dtc_information/include/ReadDtcInformation.h ../ota/request_update_status/include/RequestUpdateStatus.h ../ota/request_transfer_exit/include/RequestTransferExit.h ../ota/request_download/include/RequestDownload.h ../utils/include/MemoryManager.h ../uds/clear_dtc/include/ClearDtc.h
+$(OBJ_DIR)/main.o: src/main.cpp include/MCUModule.h include/ReceiveFrames.h include/HandleFrames.h ../utils/include/GenerateFrames.h ../utils/include/Logger.h ../utils/include/CreateInterface.h ../uds/diagnostic_session_control/include/DiagnosticSessionControl.h include/MCULogger.h ../uds/read_data_by_identifier/include/ReadDataByIdentifier.h ../uds/write_data_by_identifier/include/WriteDataByIdentifier.h ../uds/tester_present/include/TesterPresent.h ../uds/ecu_reset/include/EcuReset.h ../uds/authentication/include/SecurityAccess.h ../ecu_simulation/BatteryModule/include/BatteryModule.h   ../ecu_simulation/BatteryModule/include/HandleFrames.h  ../ecu_simulation/BatteryModule/include/ReceiveFrames.h ../uds/read_dtc_information/include/ReadDtcInformation.h ../ota/request_update_status/include/RequestUpdateStatus.h ../ota/request_transfer_exit/include/RequestTransferExit.h ../ota/request_download/include/RequestDownload.h ../utils/include/MemoryManager.h ../uds/clear_dtc/include/ClearDtc.h ../uds/diagnostic_session_control/include/DiagnosticSessionControl.h
 	$(CXX) $(CFLAGS) -c src/main.cpp -o $(OBJ_DIR)/main.o
 $(OBJ_DIR)/MCUModule.o: src/MCUModule.cpp
 	$(CXX) $(CFLAGS) -c src/MCUModule.cpp -o $(OBJ_DIR)/MCUModule.o
@@ -54,7 +54,7 @@ $(OBJ_DIR)/ClearDtc.o: ../uds/clear_dtc/src/ClearDtc.cpp
 	$(CXX) $(CFLAGS) -c ../uds/clear_dtc/src/ClearDtc.cpp -o $(OBJ_DIR)/ClearDtc.o
 
 clean:
-	rm -f $(FINAL)  ${FINAL_TEST} ../utils/test/GenerateFramesTest test/HandleFrames_test test/ReceiveFramesTest ../utils/test/CreateInterface_test ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest ../uds/authentication/utest/SecurityAccessTest ../uds/tester_present/test/TesterPresentTest
+	rm -f $(FINAL)  ${FINAL_TEST} ../utils/test/GenerateFramesTest test/HandleFrames_test test/ReceiveFramesTest ../utils/test/CreateInterface_test ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest ../uds/diagnostic_session_control/utest/DiagnosticSessionControlTest ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest ../uds/authentication/utest/SecurityAccessTest ../uds/tester_present/test/TesterPresentTest
 	rm -rf $(OBJ_DIR)
 #Delete unnecessary file from gcov compiler
 	find . -name '*.gcno' -delete
@@ -70,12 +70,15 @@ handleTest: HandleFrames_test
 HandleFrames_test: test/HandleFrames_test.cpp src/HandleFrames.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -o test/HandleFrames_test test/HandleFrames_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 
-	../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest.cpp\
-
 # WriteDataByIdentifier Unit tests
-wdbiTest: WDBIFrames_test
+wdbiTest: WDBI_test
 WDBIFrames_test: ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest.cpp ../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+
+# DiagnosticSessionControl Unit tests
+dscTest: DSC_test
+DSC_test: ../uds/diagnostic_session_control/utest/DiagnosticSessionControlTest.cpp ../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../uds/diagnostic_session_control/utest/DiagnosticSessionControlTest ../uds/diagnostic_session_control/utest/DiagnosticSessionControlTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 
 # ReceiveFrames Unit tests
 receiveTest: ReceiveFrames_test
@@ -236,7 +239,7 @@ ReadDataByIdentifierCoverage: ../uds/read_data_by_identifier/utest/ReadDataByIde
 	find . -name '*.gcda' -delete
 	find . -name '*.gcov' -delete
   
-# WriteDayaByIdentifier Coverage
+# WriteDataByIdentifier Coverage
 wdbiCoverage: WDBICoverage
 WDBICoverage: ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest.cpp ../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
@@ -293,6 +296,20 @@ SecurityCoverage: ../uds/authentication/utest/SecurityAccessTest.cpp ../uds/auth
 	genhtml coverage_filtered.info --output-directory coverage/out_SecurityAccessTest
 	xdg-open coverage/out_SecurityAccessTest/index.html
 
+# DiagnosticSessionControl Coverage
+dscCoverage: DSCCoverage
+DSCCoverage: ../uds/diagnostic_session_control/utest/DiagnosticSessionControlTest.cpp ../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../uds/diagnostic_session_control/utest/DiagnosticSessionControlTest ../uds/diagnostic_session_control/utest/DiagnosticSessionControlTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	../uds/diagnostic_session_control/utest/DiagnosticSessionControlTest
+	mkdir -p coverage/out_DiagnosticSessionControlTest
+	gcov -o . ../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp
+	mv DiagnosticSessionControl.cpp.gcov coverage/out_DiagnosticSessionControlTest
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
+	lcov --remove coverage.info '/test/' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_DiagnosticSessionControlTest
+	xdg-open coverage/out_DiagnosticSessionControlTest/index.html
+
 # RoutineControl Coverage
 routineControlCoverage: RoutineControlCoverage
 RoutineControlCoverage: ../uds/routine_control/utest/RoutineControlTest.cpp ../uds/routine_control/src/RoutineControl.cpp
@@ -307,7 +324,7 @@ RoutineControlCoverage: ../uds/routine_control/utest/RoutineControlTest.cpp ../u
 	genhtml coverage_filtered.info --output-directory coverage/out_RoutineControlTest
 	xdg-open coverage/out_RoutineControlTest/index.html
 
-allCoverage: HandleFrames_coverage ReceiveFrames_coverage GenerateFrames_coverage CreateInterface_coverage ReadDataByIdentifier_coverage WDBI_coverage RUSCoverage SecurityAccess_coverage RoutineControl_coverage
+allCoverage: HandleFrames_coverage ReceiveFrames_coverage GenerateFrames_coverage CreateInterface_coverage ReadDataByIdentifier_coverage WDBI_coverage RUSCoverage SecurityAccess_coverage RoutineControl_coverage DSG_coverage
 
 HandleFrames_coverage:
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o test/HandleFrames_test test/HandleFrames_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
@@ -364,6 +381,12 @@ RequestTransferExit_coverage: ../ota/request_transfer_exit/utest/RequestTransfer
 	mkdir -p coverage/out_RequestTransferExit
 	gcov -o . ../ota/request_transfer_exit/utest/RequestTransferExitTest.cpp
 	mv RequestTransferExitTest.cpp.gcov coverage/out_RequestTransferExitTest
+DSC_coverage:
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../uds/diagnostic_session_control/utest/DiagnosticSessionControlTest ../uds/diagnostic_session_control/utest/DiagnosticSessionControlTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	../uds/diagnostic_session_control/utest/DiagnosticSessionControlTest
+	mkdir -p coverage/out_	mkdir -p coverage/out_DiagnosticSessionControl
+	gcov -o . ../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp
+	mv DiagnosticSessionControl.cpp.gcov coverage/out_DiagnosticSessionControl
 
 TesterPresent_coverage:
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../uds/tester_present/test/TesterPresentTest ../uds/tester_present/test/TesterPresentTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
