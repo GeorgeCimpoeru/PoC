@@ -2,6 +2,7 @@
 #define DIAGNOSTICSESSIONCONTROL_H
 
 #include <cstdlib>
+#include <iostream>
 #include "src/utils/include/GenerateFrames.h"
 #include "src/utils/include/Logger.h"
 /* Diagnostic Control Session codes */

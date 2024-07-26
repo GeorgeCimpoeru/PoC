@@ -10,6 +10,7 @@
 #include <string>
 #include <sys/ioctl.h>
 #include <mutex>
+#include "src/mcu/include/MCUModule.h"
 #include "src/utils/include/CreateInterface.h"
 #include "src/utils/include/GenerateFrames.h"
 #include "src/utils/include/Logger.h"

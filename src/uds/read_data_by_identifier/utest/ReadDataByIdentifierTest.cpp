@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include "../include/ReadDataByIdentifier.h"
-#include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
-#include "../../../mcu/include/MCUModule.h"
+#include "src/uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
+#include "src/ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "src/mcu/include/MCUModule.h"
 
 class ReadDataByIdentifierTest : public ::testing::Test {
 protected:

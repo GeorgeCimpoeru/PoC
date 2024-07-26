@@ -22,6 +22,8 @@
 #include <unordered_set>
 #include<iomanip>
 
+#include "src/ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "src/mcu/include/MCUModule.h"
 #include "src/utils/include/GenerateFrames.h"
 #include "src/utils/include/Logger.h"
 

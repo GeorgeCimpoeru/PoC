@@ -1,4 +1,4 @@
-#include "../include/MCUModule.h"
+#include "src/mcu/include/MCUModule.h"
 
 #ifndef UNIT_TESTING_MODE
 Logger MCULogger("MCULogger", "logs/MCULogs.log");

@@ -1,5 +1,4 @@
-#include "../include/DiagnosticSessionControl.h"
-#include <iostream>
+#include "src/uds/diagnostic_session_control/include/DiagnosticSessionControl.h"
 
 /* Default constructor, used in MCU */
 DiagnosticSessionControl::DiagnosticSessionControl(Logger logger, int socket) : dsc_logger(logger),

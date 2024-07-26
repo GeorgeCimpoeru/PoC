@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../include/RequestTransferExit.h"
+#include "src/ota/request_transfer_exit/include/RequestTransferExit.h"
 
 /* Class fixture for general tests */
 class RequestTransferExitTest : public ::testing::Test

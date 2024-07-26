@@ -6,8 +6,7 @@
  * 
  */
 
-#include "../include/RequestTransferExit.h"
-#include <iostream>
+#include "src/ota/request_transfer_exit/include/RequestTransferExit.h"
 
 /* Constructor that initializes the callback_ to nullptr */
 RequestTransferExit::RequestTransferExit(Logger& RTESLogger) : callback_(nullptr), RTESLogger(RTESLogger)
