@@ -18,7 +18,6 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t can_id, 
     /* Extract the first 8 bits of can_id */
     uint8_t lowerbits = can_id & 0xFF;
     uint8_t upperbits = can_id >> 8 & 0xFF;
-    LOG_INFO(rdbi_logger.GET_LOGGER(), "Log in serviciu RDBI");
     /* Check if the request size is less than 4 */
     if (request.size() < 4) {
         /* Invalid request length - prepare a negative response */

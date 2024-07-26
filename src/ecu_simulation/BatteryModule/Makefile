@@ -96,6 +96,11 @@ readDtcTest: readDtc_test
 readDtc_test: ../../uds/read_dtc_information/utest/ReadDtcInformationTest.cpp ../../uds/read_dtc_information/src/ReadDtcInformation.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../../uds/read_dtc_information/utest/ReadDtcInformationTest ../../uds/read_dtc_information/utest/ReadDtcInformationTest.cpp ../../uds/read_dtc_information/src/ReadDtcInformation.cpp ../../utils/src/GenerateFrames.cpp ../../utils/src/CreateInterface.cpp ../../utils/src/Logger.cpp $(CFLAGSTST2) $(LDFLAGS)
 
+# RoutineControl Unit tests
+routineControlTest: routineControlTest_test
+routineControlTest_test: ../../uds/routine_control/utest/RoutineControlTest.cpp ../../uds/routine_control/src/RoutineControl.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../../uds/routine_control/utest/RoutineControlTest ../../uds/routine_control/utest/RoutineControlTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+
 # BatteryModule Coverage
 batteryModuleCoverage: BatteryModuleCoverage
 BatteryModuleCoverage: test/BatteryModuleTest.cpp src/BatteryModule.cpp
@@ -215,6 +220,20 @@ RequestTransferExitCoverage: ../../ota/request_transfer_exit/utest/RequestTransf
 	find . -name '*.gcda' -delete
 	find . -name '*.gcov' -delete
 
+# RoutineControl Coverage
+routineControlCoverage: RoutineControlCoverage
+RoutineControlCoverage: ../../uds/routine_control/utest/RoutineControlTest.cpp ../../uds/routine_control/src/RoutineControl.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../../uds/routine_control/utest/RoutineControlTest ../../uds/routine_control/utest/RoutineControlTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	../../uds/routine_control/utest/RoutineControlTest
+	mkdir -p coverage/out_RoutineControlTest
+	gcov -o . ../../uds/routine_control/src/RoutineControl.cpp
+	mv RoutineControl.cpp.gcov coverage/out_RoutineControlTest
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
+	lcov --remove coverage.info '/test/' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_RoutineControlTest
+	xdg-open coverage/out_RoutineControlTest/index.html
+
 allCoverage: BatteryModule_coverage HandleFrames_coverage ReceiveFrames_coverage GenerateFrames_coverage CreateInterface_coverage ReadDataByIdentifier_coverage RequestTransferExit_coverage
 
 BatteryModule_coverage:
@@ -265,6 +284,13 @@ RequestTransferExit_coverage: ../../ota/request_transfer_exit/utest/RequestTrans
 	mkdir -p coverage/out_RequestTransferExit
 	gcov -o . ../../ota/request_transfer_exit/utest/RequestTransferExitTest.cpp
 	mv RequestTransferExitTest.cpp.gcov coverage/out_RequestTransferExitTest
+
+RoutineControl_coverage: ../../uds/routine_control/utest/RoutineControlTest.cpp ../../uds/routine_control/src/RoutineControl.cpp
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../../uds/routine_control/utest/RoutineControlTest ../../uds/routine_control/utest/RoutineControlTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	./../../uds/routine_control/utest/RoutineControlTest
+	mkdir -p coverage/out_RoutineControl
+	gcov -o . ../../uds/routine_control/src/RoutineControl.cpp
+	mv RoutineControl.cpp.gcov coverage/out_RoutineControl
 
 allCoveragePostProcess:
 	lcov --capture --directory . --output-file coverage.info

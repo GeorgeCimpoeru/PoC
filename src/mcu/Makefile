@@ -125,6 +125,11 @@ securityTest: Security_test
 Security_test: ../uds/authentication/utest/SecurityAccessTest.cpp ../uds/authentication/src/SecurityAccess.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../uds/authentication/utest/SecurityAccessTest ../uds/authentication/utest/SecurityAccessTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
 
+# RoutineControl Unit tests
+routineControlTest: routineControlTest_test
+routineControlTest_test: ../uds/routine_control/utest/RoutineControlTest.cpp ../uds/routine_control/src/RoutineControl.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -o ../uds/routine_control/utest/RoutineControlTest ../uds/routine_control/utest/RoutineControlTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+
 # HandleFrames Coverage
 handleCoverage: HandleFramesCoverage
 HandleFramesCoverage: test/HandleFrames_test.cpp src/HandleFrames.cpp
@@ -281,7 +286,21 @@ SecurityCoverage: ../uds/authentication/utest/SecurityAccessTest.cpp ../uds/auth
 	genhtml coverage_filtered.info --output-directory coverage/out_SecurityAccessTest
 	xdg-open coverage/out_SecurityAccessTest/index.html
 
-allCoverage: HandleFrames_coverage ReceiveFrames_coverage GenerateFrames_coverage CreateInterface_coverage ReadDataByIdentifier_coverage WDBI_coverage RUSCoverage SecurityAccess_coverage
+# RoutineControl Coverage
+routineControlCoverage: RoutineControlCoverage
+RoutineControlCoverage: ../uds/routine_control/utest/RoutineControlTest.cpp ../uds/routine_control/src/RoutineControl.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../uds/routine_control/utest/RoutineControlTest ../uds/routine_control/utest/RoutineControlTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	../uds/routine_control/utest/RoutineControlTest
+	mkdir -p coverage/out_RoutineControlTest
+	gcov -o . ../uds/routine_control/src/RoutineControl.cpp
+	mv RoutineControl.cpp.gcov coverage/out_RoutineControlTest
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
+	lcov --remove coverage.info '/test/' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_RoutineControlTest
+	xdg-open coverage/out_RoutineControlTest/index.html
+
+allCoverage: HandleFrames_coverage ReceiveFrames_coverage GenerateFrames_coverage CreateInterface_coverage ReadDataByIdentifier_coverage WDBI_coverage RUSCoverage SecurityAccess_coverage RoutineControl_coverage
 
 HandleFrames_coverage:
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o test/HandleFrames_test test/HandleFrames_test.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
@@ -345,6 +364,13 @@ SecurityAccess_coverage: ../uds/authentication/utest/SecurityAccessTest.cpp ../u
 	mkdir -p coverage/out_SecurityAccess
 	gcov -o . ../uds/authentication/src/SecurityAccess.cpp
 	mv SecurityAccess.cpp.gcov coverage/out_SecurityAccess
+
+RoutineControl_coverage: ../uds/routine_control/utest/RoutineControlTest.cpp ../uds/routine_control/src/RoutineControl.cpp
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../uds/routine_control/utest/RoutineControlTest ../uds/routine_control/utest/RoutineControlTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	./../uds/routine_control/utest/RoutineControlTest
+	mkdir -p coverage/out_RoutineControl
+	gcov -o . ../uds/routine_control/src/RoutineControl.cpp
+	mv RoutineControl.cpp.gcov coverage/out_RoutineControl
 
 allCoveragePostProcess:
 	lcov --capture --directory . --output-file coverage.info
