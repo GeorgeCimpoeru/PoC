@@ -28,6 +28,8 @@
 #include "../../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../../mcu/include/MCULogger.h"
+#include <pybind11/pybind11.h>
+#include <pybind11/embed.h>
 
 #define REQUEST_UPDATE_STATUS_REQUEST_SIZE      0x02
 #define REQUEST_UPDATE_STATUS_RESPONSE_SUCCESS_SIZE	    0x03
@@ -114,6 +116,7 @@ public:
 	 */
 	bool isValidStatus(uint8_t status);
 
+	void downloadFile();
 	~RequestUpdateStatus();
 };
 

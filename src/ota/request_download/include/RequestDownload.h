@@ -17,6 +17,8 @@
 #include "../../uds/authentication/include/SecurityAccess.h"
 #include "../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
 #include "../../utils/include/MemoryManager.h"
+#include <pybind11/pybind11.h>
+#include <pybind11/embed.h>
 
 class RequestDownloadService
 {
@@ -96,6 +98,8 @@ private:
      * @return false 
      */
     bool isLatestSoftwareVersion(ReadDataByIdentifier software_version, Logger &RDSlogger);
+
+    void downloadFile();
 };
 
 #endif /* REQUEST_DOWNLOAD_SERVICE_H */

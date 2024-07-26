@@ -75,6 +75,7 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
     GenerateFrames generate_frames(socket, MCULogger);
     generate_frames.requestUpdateStatusResponse(response_id, response);
     
+    downloadFile();
     return response;
 }
 
@@ -92,6 +93,29 @@ bool RequestUpdateStatus::isValidStatus(uint8_t status)
     return 0;
 }
 
+void RequestUpdateStatus::downloadFile()
+{
+    namespace py = pybind11;
+
+    // PYBIND11_MODULE(example_bindings, m) {
+    // py::class_<MyClass>(m, "MyClass")
+    //     .def(py::init<int>())
+    //     .def("get_value", &MyClass::get_value);
+    // }
+
+    py::scoped_interpreter guard{}; // start the interpreter and keep it alive
+    // py::module example = py::module::import("../google_drive_api/GoogleDriveApi");
+    // py::object testObject = example.attr("testObject");
+
+    // int value = testObject.attr("get_value")().cast<int>();
+    // std::cout << "Value: " << value << std::endl;
+
+    auto math = py::module::import("math");
+    double root_two = math.attr("sqrt")(2.0).cast<double>();
+
+    std::cout << "The square root of 2 is: " << root_two << "\n";
+
+}
 RequestUpdateStatus::~RequestUpdateStatus()
 {
 

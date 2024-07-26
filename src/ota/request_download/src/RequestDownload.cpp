@@ -391,3 +391,21 @@ bool RequestDownloadService::isLatestSoftwareVersion(ReadDataByIdentifier softwa
  *  return payload;
  * }
  */
+
+void RequestDownloadService::downloadFile()
+{
+    namespace py = pybind11;
+
+    // PYBIND11_MODULE(example_bindings, m) {
+    // py::class_<MyClass>(m, "MyClass")
+    //     .def(py::init<int>())
+    //     .def("get_value", &MyClass::get_value);
+    // }
+
+    py::scoped_interpreter guard{}; // start the interpreter and keep it alive
+    py::module example = py::module::import("../../google_drive_api/GoogleDriveApi");
+    py::object testObject = example.attr("testObject");
+
+    int value = testObject.attr("get_value")().cast<int>();
+    std::cout << "Value: " << value << std::endl;
+}
