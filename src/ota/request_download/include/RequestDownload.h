@@ -22,10 +22,6 @@ class RequestDownloadService
 {
 public:
     /**
-    * @brief Construct a new Request Download Service object
-    */
-    // RequestDownloadService();
-    /**
      * @brief Construct a new Request Download Service object
      * 
      * @param RDSlogger 
