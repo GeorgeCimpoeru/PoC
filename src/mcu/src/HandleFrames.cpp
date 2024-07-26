@@ -293,6 +293,8 @@ namespace MCU
                 }
                 else 
                 {
+                    RoutineControl routine_control(getMcuSocket(frame_id), MCULogger);
+                    routine_control.routineControl(frame_id, frame_data);
                     LOG_INFO(MCULogger.GET_LOGGER(), "RoutineControl called.");
                 }
                 break;
