@@ -99,7 +99,7 @@ class ReadInfo(Action):
         except CustomError as e:
             self.bus.shutdown()
             return e.message
-        
+
     def read_from_battery(self):
         """
         Method to read information from the battery module.
@@ -116,7 +116,7 @@ class ReadInfo(Action):
             log_info_message(logger, "Changing session to default")
             id_battery = self.id_ecu[ECU_BATTERY]
             id = self.my_id * 0x100 + id_battery
-        
+
             log_info_message(logger, "Reading data from battery")
             level = self._read_by_identifier(id, IDENTIFIER_BATTERY_ENERGY_LEVEL)
             voltage = self._read_by_identifier(id, IDENTIFIER_BATTERY_VOLTAGE)

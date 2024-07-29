@@ -35,7 +35,7 @@ class WriteInfo(Action):
         """
         log_info_message(logger, f"Write by identifier {identifier}")
         value_list = self._number_to_list(value)
-         
+
         if isinstance(value_list, list) and len(value_list) > 4:
             self.generate.write_data_by_identifier_long(id, identifier, value_list)
         else:
