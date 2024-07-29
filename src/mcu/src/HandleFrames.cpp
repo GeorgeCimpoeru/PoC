@@ -253,9 +253,8 @@ namespace MCU
                 }
                 else 
                 {
-                    LOG_INFO(MCULogger.GET_LOGGER(), "WriteDataByIdentifier service called!");
-                    std::vector<uint8_t> rdata(frame_data.begin() + 4, frame_data.end());
-                    WriteDataByIdentifier write_data_by_identifier(frame_id, rdata, MCULogger, getMcuSocket(frame_id));
+                    LOG_INFO(MCULogger.GET_LOGGER(), "WriteDataByIdentifier service called!");                    
+                    WriteDataByIdentifier write_data_by_identifier(frame_id, frame_data, MCULogger, getMcuSocket(frame_id));
                 }
                 break;
             case 0x14:
@@ -400,6 +399,9 @@ namespace MCU
                 }
                 else 
                 {
+                    LOG_INFO(MCULogger.GET_LOGGER(), "Request Transfer Exit Service 0x37 called");
+                    RequestTransferExit request_transfer_exit(getMcuSocket(frame_id), MCULogger);
+                    request_transfer_exit.requestTRansferExitRequest(frame_id, frame_data);
                     LOG_INFO(MCULogger.GET_LOGGER(), "RequestTransferExit called.");
                 }
                 break;

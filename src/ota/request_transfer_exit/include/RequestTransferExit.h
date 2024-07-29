@@ -15,18 +15,26 @@
 #include <functional>
 
 #include "../../utils/include/Logger.h"
+#include "../../../utils/include/GenerateFrames.h"
+#include "../../utils/include/MemoryManager.h"
 
 /* Define the callback function type */
 using transferCompleteCallBack = std::function<bool(bool)>;
 
 class RequestTransferExit
 {
-public:
+public:    
     /**
    * @brief Constructor.   
    */
-    /* constructor to initialize the transfer exit */
-    RequestTransferExit(Logger& RTESLogger);
+    // /* constructor to initialize the transfer exit */
+    // RequestTransferExit(Logger& RTESLogger);
+
+    /**
+    * @brief Constructor for transfer exit object
+    * @param RTESLogger local reference to the parent logger
+    */
+    RequestTransferExit(int socket, Logger& RTESLogger);
 
     /**
    * @brief Destructor.
@@ -47,11 +55,20 @@ public:
     */
     bool requestTransferExit(int id, bool transferSuccess);
 
+     /**
+     * @brief method used to facilitate the transfer exit
+     * @param can_id frame id that contains the sender and receiver
+     * @param request_transfer_exit_data Data from a can frame that contains PCI, SID and transfer request parameter record
+     */
+    void requestTRansferExitRequest(canid_t can_id, const std::vector<uint8_t>& request_transfer_exit_data);
+
 private:
     /* Member variable to store the callback function */
     transferCompleteCallBack callback_;  
 
-    Logger& RTESLogger;    
+    Logger& RTESLogger;  
+    GenerateFrames generate_frames;
+    int socket = -1;  
 };
 
 #endif /* REQUEST_TRANSFER_EXIT_H_ */
