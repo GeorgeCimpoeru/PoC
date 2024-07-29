@@ -270,7 +270,8 @@ class Action:
         """
         log_info_message(logger, "Read from identifier {identifier}")
         self.generate.read_data_by_identifier(id, identifier)
-        frame_response = self._passive_response(READ_BY_IDENTIFIER, f"Error reading data from identifier {identifier}")
+        frame_response = self._passive_response(READ_BY_IDENTIFIER,
+                                                f"Error reading data from identifier {identifier}")
         data = self._data_from_frame(frame_response)
         data_str = self._list_to_number(data)
         return data_str
@@ -310,10 +311,13 @@ class Action:
         """
         Function to authenticate. Makes the proper request to the ECU.
         """
-        log_info_message(logger, "-"*60)
         log_info_message(logger, "Authenticating")
-        self.generate.authentication_seed(id, sid_send=AUTHENTICATION_SEND, sid_recv=AUTHENTICATION_RECV, subf=AUTHENTICATION_SUBF_REQ_SEED)
-        frame_response = self._passive_response(AUTHENTICATION_SEND, "Error requesting seed")
+        self.generate.authentication_seed(id,
+                                          sid_send=AUTHENTICATION_SEND,
+                                          sid_recv=AUTHENTICATION_RECV,
+                                          subf=AUTHENTICATION_SUBF_REQ_SEED)
+        frame_response = self._passive_response(AUTHENTICATION_SEND,
+                                                "Error requesting seed")
         if frame_response.data[1] == 0x67 and \
             frame_response.data[2] == 0x01 and \
                 frame_response.data[3] == 0x00:
@@ -328,7 +332,8 @@ class Action:
                                              sid_send=AUTHENTICATION_RECV,
                                              sid_recv=AUTHENTICATION_SEND,
                                              subf=AUTHENTICATION_SUBF_SEND_KEY)
-            frame_response = self._passive_response(AUTHENTICATION_SEND, "Error sending key")
+            frame_response = self._passive_response(AUTHENTICATION_SEND,
+                                                    "Error sending key")
             if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x02:
                 log_info_message(logger, "Authentication successful")
                 return  # Successful authentication

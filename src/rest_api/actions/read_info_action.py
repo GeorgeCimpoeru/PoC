@@ -85,6 +85,7 @@ class ReadInfo(Action):
     - id_ecu: Identifier for the specific ECU being updated.
     - g: Instance of GenerateFrame for generating CAN bus frames.
     """
+
     def _auth_mcu(self):
 
         id_mcu = self.id_ecu[MCU]
@@ -118,6 +119,9 @@ class ReadInfo(Action):
             id = self.my_id * 0x100 + id_battery
 
             log_info_message(logger, "Reading data from battery")
+            id_battery = self.id_ecu[ECU_BATTERY]
+            id = self.my_id * 0x100 + id_battery
+
             level = self._read_by_identifier(id, IDENTIFIER_BATTERY_ENERGY_LEVEL)
             voltage = self._read_by_identifier(id, IDENTIFIER_BATTERY_VOLTAGE)
             state_of_charge = self._read_by_identifier(id, IDENTIFIER_BATTERY_STATE_OF_CHARGE)
@@ -170,16 +174,10 @@ class ReadInfo(Action):
         """
         self._auth_mcu()
         id_engine = self.id_ecu[ECU_ENGINE]
-        id_engine = self.id_ecu[1]
         id = self.my_id * 0x100 + id_engine
 
         try:
-            log_info_message(logger, "Changing session to default")
-            self.generate.session_control(id, 0x01)
-            self._passive_response(SESSION_CONTROL, "Error changing session control")
-            self._authentication(id)
             log_info_message(logger, "Reading data from engine")
-
             power_output = self._read_by_identifier(id, IDENTIFIER_ENGINE_POWER_OUTPUT)
             weight = self._read_by_identifier(id, IDENTIFIER_ENGINE_WEIGHT)
             fuel_consumption = self._read_by_identifier(id, IDENTIFIER_ENGINE_FUEL_CONSUMPTION)
