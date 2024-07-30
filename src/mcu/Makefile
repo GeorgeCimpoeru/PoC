@@ -4,8 +4,8 @@
 
 # Compiler flags
 CXX = g++
-CFLAGS = -std=c++17 -g -fprofile-arcs -ftest-coverage -Wall -pthread -I./include -I../utils/include
-LDFLAGS = -lspdlog
+CFLAGS = -std=c++17 -g -Wall -Werror -pthread -I./include -I../utils/include
+LDFLAGS = -lspdlog -lfmt
 
 # Test flags
 CFLAGSTST = -std=c++17 -I/include -fprofile-arcs -ftest-coverage
@@ -874,4 +874,7 @@ clean:
 	find . -name '*.gcda' -delete
 	find . -name '*.gcov' -delete
 	find . -name '*.info' -delete
+	find ./test -name '*.out' -delete
+	find ./test -name '*.o' -delete
+	find ./coverage -name '*' -delete
 
