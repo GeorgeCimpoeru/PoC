@@ -1,0 +1,93 @@
+[2024-07-29 13:05:50.363] [batteryModuleLogger] [error] [CreateInterface.cpp:64] Error when trying to create the first interface
+[2024-07-29 13:05:50.377] [batteryModuleLogger] [error] [CreateInterface.cpp:70] Error when trying to create the second interface
+[2024-07-29 13:05:50.393] [batteryModuleLogger] [info] [DiagnosticSessionControl.cpp:9] Diagnostic Session Control (0x10) started. Current session: DEFAULT_SESSION
+[2024-07-29 13:05:50.393] [batteryModuleLogger] [info] [ReceiveFrames.cpp:23] Module ID: 0x11
+[2024-07-29 13:05:50.393] [batteryModuleLogger] [info] [BatteryModule.cpp:22] Battery object created successfully, ID : 0x11
+[2024-07-29 13:05:50.393] [batteryModuleLogger] [info] [BatteryModule.cpp:65] Battery module sent UP notification to MCU
+[2024-07-29 13:05:55.394] [batteryModuleLogger] [info] [DiagnosticSessionControl.cpp:9] Diagnostic Session Control (0x10) started. Current session: DEFAULT_SESSION
+[2024-07-29 13:05:55.394] [batteryModuleLogger] [info] [ReceiveFrames.cpp:23] Module ID: 0x11
+[2024-07-29 13:05:55.394] [batteryModuleLogger] [info] [BatteryModule.cpp:40] Battery object created successfully using Parameterized Constructor, ID : 0x11
+[2024-07-29 13:05:55.394] [batteryModuleLogger] [info] [BatteryModule.cpp:65] Battery module sent UP notification to MCU
+[2024-07-29 13:05:55.425] [batteryModuleLogger] [info] [BatteryModule.cpp:165] Battery Data : Energy: 50.0 Wh, Voltage: 10.0 V, Percentage: 100.0 %, State: fully-charged
+[2024-07-29 13:05:55.425] [batteryModuleLogger] [info] [BatteryModule.cpp:177] Battery module starts the frame receiver
+[2024-07-29 13:05:55.425] [batteryModuleLogger] [info] [DiagnosticSessionControl.cpp:9] Diagnostic Session Control (0x10) started. Current session: DEFAULT_SESSION
+[2024-07-29 13:05:56.229] [batteryModuleLogger] [info] [ReceiveFrames.cpp:181] 
+[2024-07-29 13:05:56.229] [batteryModuleLogger] [info] [ReceiveFrames.cpp:182] Received CAN frame
+[2024-07-29 13:05:56.229] [batteryModuleLogger] [info] [ReceiveFrames.cpp:183] CAN ID: 0x80001110
+[2024-07-29 13:05:56.229] [batteryModuleLogger] [info] [ReceiveFrames.cpp:184] Data Length: 4
+[2024-07-29 13:05:56.229] [batteryModuleLogger] [info] [ReceiveFrames.cpp:191] Data: 0x0 0xff 0x11 0x3
+[2024-07-29 13:05:56.229] [batteryModuleLogger] [warning] [ReceiveFrames.cpp:137] Received frame is not for this module
+
+[2024-07-29 13:07:56.313] [batteryModuleLogger] [info] [ReceiveFrames.cpp:181] 
+[2024-07-29 13:07:56.318] [batteryModuleLogger] [info] [ReceiveFrames.cpp:182] Received CAN frame
+[2024-07-29 13:07:56.319] [batteryModuleLogger] [info] [ReceiveFrames.cpp:183] CAN ID: 0x80001011
+[2024-07-29 13:07:56.319] [batteryModuleLogger] [info] [ReceiveFrames.cpp:184] Data Length: 1
+[2024-07-29 13:07:56.319] [batteryModuleLogger] [info] [ReceiveFrames.cpp:191] Data: 0x1
+[2024-07-29 13:07:56.319] [batteryModuleLogger] [info] [ReceiveFrames.cpp:150] Request received from MCU
+[2024-07-29 13:07:56.320] [batteryModuleLogger] [info] [ReceiveFrames.cpp:159] Response sent to MCU
+[2024-07-29 13:09:15.493] [batteryModuleLogger] [info] [BatteryModule.cpp:193] Battery module stopped the frame receiver
+[2024-07-29 13:09:15.535] [batteryModuleLogger] [info] [DiagnosticSessionControl.cpp:23] Diagnostic Session Control object out of scope
+[2024-07-29 13:09:15.537] [batteryModuleLogger] [info] [DiagnosticSessionControl.cpp:23] Diagnostic Session Control object out of scope
+[2024-07-29 13:09:15.537] [batteryModuleLogger] [info] [BatteryModule.cpp:50] Battery object out of scope
+[2024-07-29 13:09:15.768] [batteryModuleLogger] [info] [DiagnosticSessionControl.cpp:23] Diagnostic Session Control object out of scope
+[2024-07-29 13:09:15.768] [batteryModuleLogger] [info] [BatteryModule.cpp:50] Battery object out of scope
+[2024-07-29 14:49:40.744] [batteryModuleLogger] [error] [CreateInterface.cpp:64] Error when trying to create the first interface
+[2024-07-29 14:49:40.770] [batteryModuleLogger] [error] [CreateInterface.cpp:70] Error when trying to create the second interface
+[2024-07-29 14:49:40.792] [batteryModuleLogger] [info] [DiagnosticSessionControl.cpp:9] Diagnostic Session Control (0x10) started. Current session: DEFAULT_SESSION
+[2024-07-29 14:49:40.792] [batteryModuleLogger] [info] [ReceiveFrames.cpp:23] Module ID: 0x11
+[2024-07-29 14:49:40.792] [batteryModuleLogger] [info] [BatteryModule.cpp:22] Battery object created successfully, ID : 0x11
+[2024-07-29 14:49:40.793] [batteryModuleLogger] [info] [BatteryModule.cpp:65] Battery module sent UP notification to MCU
+[2024-07-29 16:17:28.996] [batteryModuleLogger] [error] [CreateInterface.cpp:64] Error when trying to create the first interface
+[2024-07-29 16:17:29.008] [batteryModuleLogger] [error] [CreateInterface.cpp:70] Error when trying to create the second interface
+[2024-07-29 16:17:29.031] [batteryModuleLogger] [info] [DiagnosticSessionControl.cpp:9] Diagnostic Session Control (0x10) started. Current session: DEFAULT_SESSION
+[2024-07-29 16:17:29.031] [batteryModuleLogger] [info] [ReceiveFrames.cpp:23] Module ID: 0x11
+[2024-07-29 16:17:29.031] [batteryModuleLogger] [info] [BatteryModule.cpp:22] Battery object created successfully, ID : 0x11
+[2024-07-29 16:17:29.031] [batteryModuleLogger] [info] [BatteryModule.cpp:65] Battery module sent UP notification to MCU
+[2024-07-29 16:17:34.033] [batteryModuleLogger] [info] [DiagnosticSessionControl.cpp:9] Diagnostic Session Control (0x10) started. Current session: DEFAULT_SESSION
+[2024-07-29 16:17:34.033] [batteryModuleLogger] [info] [ReceiveFrames.cpp:23] Module ID: 0x11
+[2024-07-29 16:17:34.033] [batteryModuleLogger] [info] [BatteryModule.cpp:40] Battery object created successfully using Parameterized Constructor, ID : 0x11
+[2024-07-29 16:17:34.033] [batteryModuleLogger] [info] [BatteryModule.cpp:65] Battery module sent UP notification to MCU
+[2024-07-29 16:17:34.076] [batteryModuleLogger] [info] [BatteryModule.cpp:165] Battery Data : Energy: 50.0 Wh, Voltage: 10.0 V, Percentage: 100.0 %, State: fully-charged
+[2024-07-29 16:17:34.077] [batteryModuleLogger] [info] [BatteryModule.cpp:177] Battery module starts the frame receiver
+[2024-07-29 16:17:34.077] [batteryModuleLogger] [info] [DiagnosticSessionControl.cpp:9] Diagnostic Session Control (0x10) started. Current session: DEFAULT_SESSION
+[2024-07-29 16:18:01.246] [batteryModuleLogger] [info] [ReceiveFrames.cpp:181] 
+[2024-07-29 16:18:01.247] [batteryModuleLogger] [info] [ReceiveFrames.cpp:182] Received CAN frame
+[2024-07-29 16:18:01.247] [batteryModuleLogger] [info] [ReceiveFrames.cpp:183] CAN ID: 0x111110
+[2024-07-29 16:18:01.247] [batteryModuleLogger] [info] [ReceiveFrames.cpp:184] Data Length: 8
+[2024-07-29 16:18:01.247] [batteryModuleLogger] [info] [ReceiveFrames.cpp:191] Data: 0x10 0x9 0x34 0x0 0x22 0x1 0x21 0x1
+[2024-07-29 16:18:01.247] [batteryModuleLogger] [warning] [ReceiveFrames.cpp:137] Received frame is not for this module
+
+[2024-07-29 16:18:01.247] [batteryModuleLogger] [info] [ReceiveFrames.cpp:181] 
+[2024-07-29 16:18:01.247] [batteryModuleLogger] [info] [ReceiveFrames.cpp:182] Received CAN frame
+[2024-07-29 16:18:01.247] [batteryModuleLogger] [info] [ReceiveFrames.cpp:183] CAN ID: 0x111110
+[2024-07-29 16:18:01.247] [batteryModuleLogger] [info] [ReceiveFrames.cpp:184] Data Length: 3
+[2024-07-29 16:18:01.247] [batteryModuleLogger] [info] [ReceiveFrames.cpp:191] Data: 0x21 0x21 0x88
+[2024-07-29 16:18:01.247] [batteryModuleLogger] [warning] [ReceiveFrames.cpp:137] Received frame is not for this module
+
+[2024-07-29 16:29:30.505] [batteryModuleLogger] [error] [CreateInterface.cpp:64] Error when trying to create the first interface
+[2024-07-29 16:29:30.515] [batteryModuleLogger] [error] [CreateInterface.cpp:70] Error when trying to create the second interface
+[2024-07-29 16:29:30.542] [batteryModuleLogger] [info] [DiagnosticSessionControl.cpp:9] Diagnostic Session Control (0x10) started. Current session: DEFAULT_SESSION
+[2024-07-29 16:29:30.542] [batteryModuleLogger] [info] [ReceiveFrames.cpp:23] Module ID: 0x11
+[2024-07-29 16:29:30.542] [batteryModuleLogger] [info] [BatteryModule.cpp:22] Battery object created successfully, ID : 0x11
+[2024-07-29 16:29:30.542] [batteryModuleLogger] [info] [BatteryModule.cpp:65] Battery module sent UP notification to MCU
+[2024-07-29 16:29:35.545] [batteryModuleLogger] [info] [DiagnosticSessionControl.cpp:9] Diagnostic Session Control (0x10) started. Current session: DEFAULT_SESSION
+[2024-07-29 16:29:35.545] [batteryModuleLogger] [info] [ReceiveFrames.cpp:23] Module ID: 0x11
+[2024-07-29 16:29:35.545] [batteryModuleLogger] [info] [BatteryModule.cpp:40] Battery object created successfully using Parameterized Constructor, ID : 0x11
+[2024-07-29 16:29:35.545] [batteryModuleLogger] [info] [BatteryModule.cpp:65] Battery module sent UP notification to MCU
+[2024-07-29 16:29:35.582] [batteryModuleLogger] [info] [BatteryModule.cpp:165] Battery Data : Energy: 50.0 Wh, Voltage: 10.0 V, Percentage: 100.0 %, State: fully-charged
+[2024-07-29 16:29:35.582] [batteryModuleLogger] [info] [BatteryModule.cpp:177] Battery module starts the frame receiver
+[2024-07-29 16:29:35.583] [batteryModuleLogger] [info] [DiagnosticSessionControl.cpp:9] Diagnostic Session Control (0x10) started. Current session: DEFAULT_SESSION
+[2024-07-29 16:29:43.562] [batteryModuleLogger] [info] [ReceiveFrames.cpp:181] 
+[2024-07-29 16:29:43.562] [batteryModuleLogger] [info] [ReceiveFrames.cpp:182] Received CAN frame
+[2024-07-29 16:29:43.562] [batteryModuleLogger] [info] [ReceiveFrames.cpp:183] CAN ID: 0x111110
+[2024-07-29 16:29:43.562] [batteryModuleLogger] [info] [ReceiveFrames.cpp:184] Data Length: 8
+[2024-07-29 16:29:43.562] [batteryModuleLogger] [info] [ReceiveFrames.cpp:191] Data: 0x10 0x9 0x34 0x0 0x22 0x1 0x21 0x1
+[2024-07-29 16:29:43.562] [batteryModuleLogger] [warning] [ReceiveFrames.cpp:137] Received frame is not for this module
+
+[2024-07-29 16:29:43.562] [batteryModuleLogger] [info] [ReceiveFrames.cpp:181] 
+[2024-07-29 16:29:43.562] [batteryModuleLogger] [info] [ReceiveFrames.cpp:182] Received CAN frame
+[2024-07-29 16:29:43.562] [batteryModuleLogger] [info] [ReceiveFrames.cpp:183] CAN ID: 0x111110
+[2024-07-29 16:29:43.562] [batteryModuleLogger] [info] [ReceiveFrames.cpp:184] Data Length: 3
+[2024-07-29 16:29:43.562] [batteryModuleLogger] [info] [ReceiveFrames.cpp:191] Data: 0x21 0x21 0x88
+[2024-07-29 16:29:43.562] [batteryModuleLogger] [warning] [ReceiveFrames.cpp:137] Received frame is not for this module
+

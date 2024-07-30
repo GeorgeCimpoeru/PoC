@@ -178,14 +178,6 @@ namespace MCU
                     LOG_INFO(MCULogger.GET_LOGGER(), "SecurityAccess called.");
                     SecurityAccess security_access(getMcuSocket(frame_id), MCULogger);
                     security_access.securityAccess(frame_id, frame_data);
-                    if (SecurityAccess::getMcuState())
-                    {
-                        LOG_INFO(MCULogger.GET_LOGGER(), "Server is unlocked.");
-                    }
-                    else
-                    {
-                        LOG_INFO(MCULogger.GET_LOGGER(), "Server is locked.");
-                    }
                 }
                 break;
             case 0x29:
@@ -301,8 +293,12 @@ namespace MCU
                 break;
             case 0x51:
             {
-                /* Response from ECU Reset service */
-                LOG_INFO(MCULogger.GET_LOGGER(), "Response for ECUReset received.");
+                /* Response from ECU Reset service
+                   Send the response to API */
+                LOG_INFO(MCULogger.GET_LOGGER(), "Response from EcuReset received.");
+                uint8_t sub_function = frame_data[2];                    
+                EcuReset ecu_reset(frame_id, sub_function, getMcuSocket(frame_id), MCULogger);
+                ecu_reset.ecuResetResponse();
                 break;
             }
             case 0x67:
@@ -378,16 +374,18 @@ namespace MCU
                 }
                 break;
             case 0x36:
-                /* TransferData(sid, frame_data[2], frame_data[3], frame_data[4]); */ 
+                /* TransferData(sid, frame_data[2], frame_data[3], frame_data[4]); */
                 if(frame_data[1] == 0x7F)
                 {
                     processNrc(frame_id, sid, frame_data[3]);
                 }
+                else if(is_multi_frame)
+                {
+                    LOG_INFO(MCULogger.GET_LOGGER(), "TransferData called with multiple frames.");
+                }
                 else 
                 {
-                    TransferData transfer_data(getMcuSocket(frame_id), MCULogger);
-                    transfer_data.transferData(frame_id, frame_data);
-                    LOG_INFO(MCULogger.GET_LOGGER(), "TransferData service called.");
+                    LOG_INFO(MCULogger.GET_LOGGER(), "TransferData called with one frame.");
                 }
                 break;
             case 0x37:
