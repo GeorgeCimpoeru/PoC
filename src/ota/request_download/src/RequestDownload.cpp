@@ -186,7 +186,7 @@ void RequestDownloadService::requestDownloadRequest(int id, std::vector<uint8_t>
             {
                 off_memory_address = off_memory_address * 0x100 + byte;
             }
-            MemoryManager* managerInstance = MemoryManager::getInstance(off_memory_address, path, &MCULogger);
+            MemoryManager* managerInstance = MemoryManager::getInstance(off_memory_address, path, MCULogger);
             managerInstance->getAddress();
             id = (frame_dest_id << 8) | receiver_id;
             /* routine for transfer first or second partition */
@@ -200,7 +200,7 @@ void RequestDownloadService::requestDownloadRequest(int id, std::vector<uint8_t>
             {
                 off_memory_address = off_memory_address * 0x100 + byte;
             }
-            MemoryManager* managerInstance = MemoryManager::getInstance(off_memory_address, path, &MCULogger);
+            MemoryManager* managerInstance = MemoryManager::getInstance(off_memory_address, path, MCULogger);
             managerInstance->getAddress();
            
             id = (frame_dest_id << 8) | receiver_id;

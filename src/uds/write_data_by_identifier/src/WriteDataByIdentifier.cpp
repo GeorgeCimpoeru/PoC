@@ -70,34 +70,34 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         };
 
         /* Find where to write the dataParameter */
-        if(receiver_id == 0x10 && MCU::mcu.mcu_data.find(did) != MCU::mcu.mcu_data.end()) 
+        if(receiver_id == 0x10 && MCU::mcu->mcu_data.find(did) != MCU::mcu->mcu_data.end()) 
         {
             /* Stores the data in the memory location associated with the DID  */
-            MCU::mcu.mcu_data[did] = data_parameter;
+            MCU::mcu->mcu_data[did] = data_parameter;
             LOG_INFO(wdbi_logger.GET_LOGGER(), "Data written to DID 0x{:x} in MCUModule.", did);
-            logCollection(MCU::mcu.mcu_data, "MCUModule");
+            logCollection(MCU::mcu->mcu_data, "MCUModule");
         } 
-        else if (receiver_id == 0x11 && battery.ecu_data.find(did) != battery.ecu_data.end()) 
+        else if (receiver_id == 0x11 && battery->ecu_data.find(did) != battery->ecu_data.end()) 
         {
             /* Stores the data in the memory location associated with the DID  */
-            battery.ecu_data[did] = data_parameter;
+            battery->ecu_data[did] = data_parameter;
             LOG_INFO(wdbi_logger.GET_LOGGER(), "Data written to DID 0x{:x} in BatteryModule.", did);
-            logCollection(battery.ecu_data, "BatteryModule");
+            logCollection(battery->ecu_data, "BatteryModule");
         } 
         else if (valid_dids.find(did) != valid_dids.end())
         {
             /* Determine the correct storage based on receiver_id */
             if (receiver_id == 0x10)
             {
-                MCU::mcu.mcu_data[did] = data_parameter;
+                MCU::mcu->mcu_data[did] = data_parameter;
                 LOG_INFO(wdbi_logger.GET_LOGGER(), "Data written to new DID 0x{:x} in MCUModule.", did);
-                logCollection(MCU::mcu.mcu_data, "MCUModule");
+                logCollection(MCU::mcu->mcu_data, "MCUModule");
             }
             else if (receiver_id == 0x11)
             {
-                battery.ecu_data[did] = data_parameter;
+                battery->ecu_data[did] = data_parameter;
                 LOG_INFO(wdbi_logger.GET_LOGGER(), "Data written to new DID 0x{:x} in BatteryModule.", did);
-                logCollection(battery.ecu_data, "BatteryModule");
+                logCollection(battery->ecu_data, "BatteryModule");
             }
         }
         else 

@@ -151,6 +151,6 @@ public:
      */
     void setBatterySocket(uint8_t interface_number);
 };
-extern BatteryModule battery;
+extern BatteryModule* battery;
 
 #endif

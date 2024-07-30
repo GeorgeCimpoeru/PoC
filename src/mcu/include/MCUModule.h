@@ -114,6 +114,6 @@ namespace MCU
         int mcu_api_socket = -1;
         int mcu_ecu_socket = -1;
     };
-extern MCUModule mcu;
+extern MCUModule* mcu;
 }
 #endif

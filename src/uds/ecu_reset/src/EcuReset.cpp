@@ -36,15 +36,15 @@ void EcuReset::hardReset()
         /* ECU Battery case */
         case 0x00:
             LOG_INFO(ECUResetLog.GET_LOGGER(), "ECU socket closed");
-            close(battery.getBatterySocket());
+            close(battery->getBatterySocket());
             break;
 
         /* MCU case */
         case 0x01:
         {
             LOG_INFO(ECUResetLog.GET_LOGGER(), "MCU sockets closed");
-            close(MCU::mcu.getMcuApiSocket());
-            close(MCU::mcu.getMcuEcuSocket());
+            close(MCU::mcu->getMcuApiSocket());
+            close(MCU::mcu->getMcuEcuSocket());
             break;
         }
     }
@@ -59,15 +59,15 @@ void EcuReset::hardReset()
         /* ECU Battery case */
         case 0x00:
             LOG_INFO(ECUResetLog.GET_LOGGER(), "ECU socket recreated");
-            battery.setBatterySocket(interface_name);
+            battery->setBatterySocket(interface_name);
             break;
 
         /* MCU case */
         case 0x01:
         {
             LOG_INFO(ECUResetLog.GET_LOGGER(), "MCU sockets recreated");
-            MCU::mcu.setMcuApiSocket(interface_name);
-            MCU::mcu.setMcuEcuSocket(interface_name);
+            MCU::mcu->setMcuApiSocket(interface_name);
+            MCU::mcu->setMcuEcuSocket(interface_name);
             break;
         }
     }
@@ -90,15 +90,15 @@ void EcuReset::keyOffReset()
         /* ECU Battery case */
         case 0x00:
             LOG_INFO(ECUResetLog.GET_LOGGER(), "ECU socket closed");
-            close(battery.getBatterySocket());
+            close(battery->getBatterySocket());
             break;
 
         /* MCU case */
         case 0x01:
         {
             LOG_INFO(ECUResetLog.GET_LOGGER(), "MCU sockets closed");
-            close(MCU::mcu.getMcuApiSocket());
-            close(MCU::mcu.getMcuEcuSocket());
+            close(MCU::mcu->getMcuApiSocket());
+            close(MCU::mcu->getMcuEcuSocket());
             break;
         }
     }
@@ -112,15 +112,15 @@ void EcuReset::keyOffReset()
         /* ECU Battery case */
         case 0x00:
             LOG_INFO(ECUResetLog.GET_LOGGER(), "ECU socket recreated");
-            battery.setBatterySocket(interface_name);
+            battery->setBatterySocket(interface_name);
             break;
 
         /* MCU case */
         case 0x01:
         {
             LOG_INFO(ECUResetLog.GET_LOGGER(), "MCU sockets recreated");
-            MCU::mcu.setMcuApiSocket(interface_name);
-            MCU::mcu.setMcuEcuSocket(interface_name);
+            MCU::mcu->setMcuApiSocket(interface_name);
+            MCU::mcu->setMcuEcuSocket(interface_name);
             break;
         }
     }
