@@ -96,25 +96,23 @@ bool RequestUpdateStatus::isValidStatus(uint8_t status)
 void RequestUpdateStatus::downloadFile()
 {
     namespace py = pybind11;
-
-    // PYBIND11_MODULE(example_bindings, m) {
-    // py::class_<MyClass>(m, "MyClass")
-    //     .def(py::init<int>())
-    //     .def("get_value", &MyClass::get_value);
-    // }
-
     py::scoped_interpreter guard{}; // start the interpreter and keep it alive
-    // py::module example = py::module::import("../google_drive_api/GoogleDriveApi");
-    // py::object testObject = example.attr("testObject");
 
-    // int value = testObject.attr("get_value")().cast<int>();
-    // std::cout << "Value: " << value << std::endl;
+    auto sys = py::module::import("sys");
+    sys.attr("path").attr("append")("/home/projectx/accademyprojects/PoC/src/ota/google_drive_api");
 
-    auto math = py::module::import("math");
-    double root_two = math.attr("sqrt")(2.0).cast<double>();
+    py::module python_module = py::module::import("GoogleDriveApi");
+    py::object gGdrive_object = python_module.attr("gDrive");
 
-    std::cout << "The square root of 2 is: " << root_two << "\n";
+    std::string drive_data = gGdrive_object.attr("updateDriveData")().cast<std::string>();
+    std::cout << drive_data << std::endl;
 
+    // std::map<std::string, std::string> drive_file = {
+    //     {"name", "main.py"},
+    //     {"id", "1zWe9bG2VLV1s9px9zdOhroo-NLjqlRv0"},
+    //     {"type", "file"}
+    // };
+    // gGdrive_object.attr("downloadFile")(drive_file);
 }
 RequestUpdateStatus::~RequestUpdateStatus()
 {

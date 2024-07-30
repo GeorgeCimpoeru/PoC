@@ -1,9 +1,9 @@
-PYBIND_INCL_DIR=-I/home/projectx/accademyprojects/pybind11/include/pybind11
-PYTHON_INCL_DIR=-I/usr/include/python3.8 -I/usr/include/python3.7m $(shell python3 -m pybind11 --includes) $(shell python3-config --cflags)
+# PYBIND_INCL_DIR=-I/home/projectx/accademyprojects/pybind11/include/pybind11
+PYTHON_INCL_DIR=-I/usr/include/python3.8
 PYTHON_LIB_DIR=-I/usr/lib/python3.8
 PYTHON_LDFLAGS = $(shell python3.8-config --ldflags --embed)
 #Compiler flags
-CFLAGS = -std=c++17 -g -Wall -fPIE -pthread -I./include -I./src -I../utils/include -I../utils/src -I../uds/diagnostic_session_control/include -I../uds/diagnostic_session_control/src ${PYTHON_INCL_DIR} ${PYTHON_LIB_DIR}
+CFLAGS = -std=c++17 -g -Wall -fPIE -pthread -I./include -I./src -I../utils/include -I../utils/src -I../uds/diagnostic_session_control/include -I../uds/diagnostic_session_control/src ${PYTHON_INCL_DIR}
 CFLAGSTST = -std=c++17 -I/include
 CFLAGSTST2 = -lgtest -lgtest_main -lpthread
 LDFLAGS = -lspdlog ${PYTHON_LDFLAGS}
