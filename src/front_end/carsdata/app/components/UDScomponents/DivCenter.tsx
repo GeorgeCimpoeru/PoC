@@ -20,7 +20,7 @@ const DivCenter = (props: any) => {
         <div className="w-[65%] flex h-screen bg-indigo-950 math-paper">
             <div className="w-[35%] flex flex-col items-center">
                 <h3 className="text-white text-3xl">Vehicle Model</h3>
-                <button className="btn" onClick={callApi}>Button{jsonResp.age}</button>
+                {/* <button className="btn" onClick={callApi}>Button{jsonResp.age}</button> */}
                 <div className="w-full h-full flex flex-col items-center justify-center">
 
 
