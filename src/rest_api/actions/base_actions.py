@@ -76,7 +76,6 @@ How to create a new class action, example:
 """
 
 import can
-import json
 import datetime
 from actions.generate_frames import GenerateFrame as GF
 from utils.logger import *
@@ -360,7 +359,12 @@ class Action:
 
     # Implement in the child class
     def _to_json(self, status, no_errors):
-        pass
+        response_to_frontend = {
+            "status": status,
+            "No of errors": no_errors,
+            "time_stamp": datetime.datetime.now().isoformat()
+        }
+        return response_to_frontend
 
     def _to_json_error(self, error, no_errors):
         response_to_frontend = {
@@ -368,7 +372,7 @@ class Action:
             "No of errors": no_errors,
             "time_stamp": datetime.datetime.now().isoformat()
         }
-        return json.dumps(response_to_frontend)
+        return response_to_frontend
 
     def _list_to_number(self, list: list):
         number = ""
@@ -384,3 +388,11 @@ class Action:
             list.append(number % 0x100)
             number = number//0x100
         return list[::-1]
+
+    def _number_to_byte_list(self, number: int):
+        """Converts a number to a list of bytes."""
+        byte_list = []
+        while number > 0:
+            byte_list.insert(0, number & 0xFF)
+            number = number >> 8
+        return byte_list

@@ -4,7 +4,7 @@ from actions.update_action import Updates
 from actions.read_info_action import *
 from utils.logger import log_memory
 from actions.manual_send_frame import manual_send_frame
-from actions.write_info_action import WriteInfo
+from actions.write_info_action import WriteToDoors, WriteToBattery
 
 
 api_bp = Blueprint('api', __name__)
@@ -94,45 +94,17 @@ def send_frame():
 
 @api_bp.route('/write_info_doors', methods=['POST'])
 def write_info_doors():
-    """
-    Write information to the doors.
-    ---
-    parameters:
-      - name: body
-        in: body
-        required: true
-        schema:
-          type: object
-          properties:
-            Door_param:
-              type: integer
-            Serial_number:
-              type: string
-            Cigarette_Lighter_Voltage:
-              type: number
-              format: float
-            Light_state:
-              type: string
-            BeltCard:
-              type: string
-            WindowStatus:
-              type: string
-    responses:
-      200:
-        description: Information written successfully
-        schema:
-          type: object
-          properties:
-            status:
-              type: string
-            No of errors:
-              type: integer
-            time_stamp:
-              type: string
-    """
     data = request.get_json()
 
-    writer = WriteInfo(0xFA, [0x10, 0x11, 0x12], data)
+    writer = WriteToDoors(0xFA, [0x10, 0x11, 0x12], data)
+    response = writer.run()
+    return jsonify(response)
+
+
+@api_bp.route('/write_info_battery', methods=['POST'])
+def write_info_battery():
+    data = request.get_json()
+    writer = WriteToBattery(0xFA, [0x10, 0x11, 0x12], data)
     response = writer.run()
     return jsonify(response)
 
