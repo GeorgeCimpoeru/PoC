@@ -42,7 +42,7 @@ public:
      * @param frame_data 
      * @param WDBILogger 
      */
-    WriteDataByIdentifier(canid_t frame_id, std::vector<uint8_t> frame_data, Logger& wdbi_logger, int socket);
+    WriteDataByIdentifier(Logger& wdbi_logger, int socket);
     /**
      * @brief Destroy the Write Data By Identifier object
      * 

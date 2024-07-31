@@ -701,7 +701,8 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                         LOG_INFO(batteryModuleLogger->GET_LOGGER(), "{}", dataStream.str());
                         /* writeDataByIdentifier(id, identifier, rdata); */
                         LOG_INFO(batteryModuleLogger->GET_LOGGER(), "WriteDataByIdentifier service called!");
-                        WriteDataByIdentifier write_data_by_identifier(id, stored_data, *batteryModuleLogger, socket);
+                        WriteDataByIdentifier write_data_by_identifier(*batteryModuleLogger, socket);
+                        write_data_by_identifier.WriteDataByIdentifierService(id, stored_data);
                     } 
                     else 
                     {   
@@ -729,7 +730,8 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                         LOG_INFO(batteryModuleLogger->GET_LOGGER(), "{}", dataStream.str());
                         /* writeDataByIdentifierLongRequest(id, identifier, rdata); */
                         LOG_INFO(batteryModuleLogger->GET_LOGGER(), "WriteDataByIdentifier service called!");
-                        WriteDataByIdentifier write_data_by_identifier(id, rdata, *batteryModuleLogger, socket);
+                        WriteDataByIdentifier write_data_by_identifier(*batteryModuleLogger, socket);
+                        write_data_by_identifier.WriteDataByIdentifierService(id, stored_data);
                     }
                 }
                 break;
@@ -856,7 +858,23 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     LOG_INFO(batteryModuleLogger->GET_LOGGER(), "SID pos: {}", sid_position);
                     LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Data size: {}", stored_data.size());
                     sub_function = stored_data[sid_position + 1];
+<<<<<<< HEAD
                     LOG_INFO(batteryModuleLogger->GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
+=======
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
+
+                    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "AccessTimingParameters called.");
+                    AccessTimingParameter access_timing_parameter(batteryModuleLogger, this->socket);
+                    if(stored_data.size() < 4)
+                    {
+                        access_timing_parameter.handleRequest(id, stored_data[2], {});
+                    }
+                    else
+                    {
+                        std::vector<uint8_t> timing_parameters(stored_data.begin() + 3, stored_data.end());
+                        access_timing_parameter.handleRequest(id, stored_data[2], timing_parameters);
+                    }
+>>>>>>> Access Timing Parameter service implemented.
                     /* accessTimingParametersRequest(id, sub_function); */
                 }
                 break;

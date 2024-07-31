@@ -1,0 +1,82 @@
+#ifndef UDS_ATP_SERVICE
+#define UDS_ATP_SERVICE
+
+#include "../../../utils/include/GenerateFrames.h"
+#include "../../../utils/include/Logger.h"
+
+#include <linux/can.h>
+#include <cstdlib>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+
+class AccessTimingParameter
+{
+public:
+    /**
+     * @brief Constuctor
+     */
+    AccessTimingParameter(Logger logger, int socket);
+
+    /**
+     * @brief Destroy the Access Timing Parameter object
+     * 
+     */
+    ~AccessTimingParameter();
+
+    /**
+     * @brief  This method handles the Access Timing Parameter request by calling
+     * the appropriate function based on the sub-function received.
+     * 
+     * @param frame_id The id of the received frame. 
+     * @param sub_function The sub-function indicating which timing parameter action to perform.
+     */
+    void handleRequest(canid_t frame_id, uint8_t sub_function, std::vector<uint8_t> frame_data);
+
+    /**
+     * @brief This method returns the default P2 and P2* time values.
+     * 
+     * This method will provide both the default and currently active timing parameter values for the communication.
+     * It allows the client to understand what the default and current timeout values are.
+     */
+    void readExtendedTimingParameters(canid_t frame_id);
+
+    /**
+     * @brief This method sets the timing parameters to their default values.
+     * 
+     * This method resets the timing parameters (P2 and P2*) to their default values
+     * It ensures that any custom timing settings are reverted back to the standard default values.
+     */
+    void setTimingParametersToDefault(canid_t frame_id);
+
+    /**
+     * @brief This method returns the currently active P2 and P2* max time values.
+     * 
+     * This method provides the current timing parameter values that are actively being used by the communication link.
+     * It allows the client to verify the current timeout settings without referring to the default values.
+     */
+    void readCurrentlyActiveTimingParameters(canid_t frame_id);
+
+    /**
+     * @brief Sets the timing parameters to the provided values.
+     * 
+     * Configures the maximum time allowed for different session operations.
+     * 
+     * @param p2_max_time Maximum time for default session operations.
+     * @param p2_star_max_time Maximum time for programming session operations.
+     */
+    void setTimingParameters(canid_t frame_id, std::vector<uint8_t> data_frame);
+    
+private:
+    /* The default maximum time for the default session in milliseconds */
+    static const uint16_t DEFAULT_P2_MAX_TIME;
+    /* The default maximum time for the programming session in milliseconds */
+    static const uint16_t DEFAULT_P2_STAR_MAX_TIME;
+
+    static uint16_t p2_max_time;
+    static uint16_t p2_star_max_time;
+    Logger atp_logger;
+    int socket = -1;
+    int module_id;
+};
+
+#endif

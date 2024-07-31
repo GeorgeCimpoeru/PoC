@@ -219,6 +219,16 @@ namespace MCU
                 else 
                 {
                     LOG_INFO(MCULogger->GET_LOGGER(), "AccessTimingParameters called.");
+                    AccessTimingParameter access_timing_parameter(*MCULogger, getMcuSocket(frame_id));
+                    if(frame_data.size() < 4)
+                    {
+                        access_timing_parameter.handleRequest(frame_id, frame_data[2], {});
+                    }
+                    else
+                    {
+                        std::vector<uint8_t> timing_parameters(frame_data.begin() + 3, frame_data.end());
+                        access_timing_parameter.handleRequest(frame_id, frame_data[2], timing_parameters);
+                    }
                 }
                 break;
             case 0x22:
@@ -254,7 +264,8 @@ namespace MCU
                 else 
                 {
                     LOG_INFO(MCULogger->GET_LOGGER(), "WriteDataByIdentifier service called!");
-                    WriteDataByIdentifier write_data_by_identifier(frame_id, frame_data, *MCULogger, getMcuSocket(frame_id));
+                    WriteDataByIdentifier write_data_by_identifier(*MCULogger, getMcuSocket(frame_id));
+                    write_data_by_identifier.WriteDataByIdentifierService(frame_id, frame_data);
                 }
                 break;
             case 0x14:
