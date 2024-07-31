@@ -94,6 +94,8 @@ public:
 
     static uint16_t p2_max_time;
     static uint16_t p2_star_max_time;
+
+private:
     Logger atp_logger;
     int socket = -1;
     int module_id;
