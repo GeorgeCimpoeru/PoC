@@ -6,32 +6,28 @@
 int socket_;
 class ReadDataByIdentifierTest : public ::testing::Test {
 protected:
-    Logger logger;
+    Logger* logger;
     ReadDataByIdentifier* rdbi;
     CreateInterface* create_interface;
 
     ReadDataByIdentifierTest()
     {
+        logger = new Logger;
         rdbi = new ReadDataByIdentifier(socket_, logger);
+        battery = new BatteryModule(0x00, 0x11);
+        MCU::mcu = new MCU::MCUModule(0x01);
     }
-    /* Setup and teardown methods */
-    void SetUp() override {
-        /* Initialize any required data or state */
-        MCU::mcu.mcu_data.clear();
-        battery.ecu_data.clear();
-
-        /* Populate some test data for MCU */
-        MCU::mcu.mcu_data[0x1234] = {0x01, 0x02, 0x03, 0x04};
-
-        /* Populate some test data for Battery */
-        battery.ecu_data[0x5678] = {0x05, 0x06, 0x07, 0x08};
-    }
-
-    void TearDown() override {
+    ~ReadDataByIdentifierTest()
+    {
+        delete logger;
+        delete rdbi;
+        MCU::mcu = nullptr;
+        battery = nullptr;
     }
 };
 TEST_F(ReadDataByIdentifierTest, InvalidMessageLength) {
     canid_t can_id = 0x10; 
+    MCU::mcu->mcu_data[0x1234] = {0x01, 0x02, 0x03, 0x04};
     /* ReadDataByIdentifier request for data identifier 0x1234 */
     std::vector<uint8_t> request = {0x22, 0x01, 0x12};
 
@@ -43,6 +39,7 @@ TEST_F(ReadDataByIdentifierTest, InvalidMessageLength) {
 
 TEST_F(ReadDataByIdentifierTest, ValidRequestForMCUData) {
     canid_t can_id = 0x10; 
+    MCU::mcu->mcu_data[0x1234] = {0x01, 0x02, 0x03, 0x04};
     /* ReadDataByIdentifier request for data identifier 0x1234 */
     std::vector<uint8_t> request = {0x22, 0x01, 0x12, 0x34};
 
@@ -54,11 +51,13 @@ TEST_F(ReadDataByIdentifierTest, ValidRequestForMCUData) {
 
 
 TEST_F(ReadDataByIdentifierTest, ValidRequestForBatteryData) {
-    canid_t can_id = 0x11;
+    ASSERT_NE(battery, nullptr);
+    canid_t can_id = 0x1011;
+    battery->ecu_data[0x01A0] = {0x01, 0x02, 0x03, 0x04};
     /* ReadDataByIdentifier request for data identifier 0x5678 */
-    std::vector<uint8_t> request = {0x22, 0x01, 0x56, 0x78};
+    std::vector<uint8_t> request = {0x22, 0x01, 0x01, 0xA0};
 
-    std::vector<uint8_t> expected_response = {0x05, 0x06, 0x07, 0x08};
+    std::vector<uint8_t> expected_response = {0x01, 0x02, 0x03, 0x04};
     std::vector<uint8_t> actual_response = rdbi->readDataByIdentifier(can_id, request, false);
 
     EXPECT_EQ(expected_response, actual_response);
@@ -109,7 +108,7 @@ TEST_F(ReadDataByIdentifierTest, LongResponseForAPIFrame) {
     std::vector<uint8_t> request = {0x22, 0x01, 0x12, 0x34};
     /* 10 bytes of data */
     std::vector<uint8_t> long_data(10, 0xBB);
-    MCU::mcu.mcu_data[0x1234] = long_data;
+    MCU::mcu->mcu_data[0x1234] = long_data;
 
     std::vector<uint8_t> actual_response = rdbi->readDataByIdentifier(can_id, request, true);
 
@@ -131,7 +130,7 @@ TEST_F(ReadDataByIdentifierTest, LongResponseForNonAPIFrame) {
     create_interface = nullptr;
     /* Populate MCU data with a long response */
     std::vector<uint8_t> long_data(10, 0xBB);
-    MCU::mcu.mcu_data[0x1234] = long_data;
+    MCU::mcu->mcu_data[0x1234] = long_data;
 
     std::vector<uint8_t> actual_response = rdbi->readDataByIdentifier(can_id, request, false);
 
@@ -146,4 +145,10 @@ TEST_F(ReadDataByIdentifierTest, LongResponseForNonAPIFrame) {
 
     /* Assert that the size of the actual response is greater than 8 bytes */
     EXPECT_GT(actual_response.size(), 8);
+}
+
+int main(int argc, char* argv[])
+{
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

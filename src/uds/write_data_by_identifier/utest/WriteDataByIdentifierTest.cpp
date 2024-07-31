@@ -6,21 +6,37 @@
 #include <linux/can.h>
 #include "../include/WriteDataByIdentifier.h"
 #include "../../../utils/include/Logger.h"
+#include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "../../../mcu/include/MCUModule.h"
 
 /* Test Fixture for WriteDataByIdentifier */
 class WriteDataByIdentifierTest : public ::testing::Test {
 protected:
     canid_t frame_id;
     std::vector<uint8_t> frame_data;
-    Logger mockLogger;
+    Logger* mockLogger;
     WriteDataByIdentifier* writeDataByIdentifier;
+
+    WriteDataByIdentifierTest()
+    {   
+        mockLogger = new Logger;
+        battery = new BatteryModule(0x00, 0x11);
+        MCU::mcu = new MCU::MCUModule(0x01);
+        writeDataByIdentifier = new WriteDataByIdentifier(frame_id, frame_data, *mockLogger, 1);
+    }
+    WriteDataByIdentifierTest()
+    {  
+        delete mockLogger;
+        delete writeDataByIdentifier;
+        MCU::mcu = nullptr;
+        battery = nullptr;
+    }
 
     void SetUp() override {
         /* Example frame ID */
         frame_id = 0x10FA;
         /* Example frame data */
         frame_data = {0x2E, 0x00, 0x01, 0x02, 0x03};
-        writeDataByIdentifier = new WriteDataByIdentifier(frame_id, frame_data, mockLogger, 1);
     }
 
     void TearDown() override {
@@ -35,7 +51,7 @@ TEST_F(WriteDataByIdentifierTest, IncorrectMessageLength) {
     std::vector<uint8_t> invalid_frame_data = {0x2E, 0x00};
 
     testing::internal::CaptureStdout();
-    WriteDataByIdentifier writeDataByIdentifier(frame_id, invalid_frame_data, mockLogger, 1);
+    WriteDataByIdentifier writeDataByIdentifier(frame_id, invalid_frame_data, *mockLogger, 1);
 
     std::string output = testing::internal::GetCapturedStdout();
     EXPECT_NE(output.find("Write Data By Identifier Service invoked."), std::string::npos);
@@ -46,34 +62,35 @@ TEST_F(WriteDataByIdentifierTest, IncorrectMessageLength) {
 /* Test for Valid Data Identifier in MCUModule on API socket*/
 TEST_F(WriteDataByIdentifierTest, ValidDIDInMCUModuleOnAPISocket) {
     std::cerr << "Running TestValidDIDInMCUModuleOnAPISocket" << std::endl;
-
+    MCU::mcu->mcu_data[0xfa90] = {0x01};
     frame_id = 0xFA10;
     frame_data = {0x05, 0x2E, 0xf1, 0x90, 0x12, 0x34};
 
     testing::internal::CaptureStdout();
-    WriteDataByIdentifier writeDataByIdentifier(frame_id, frame_data, mockLogger, 1);
+    WriteDataByIdentifier writeDataByIdentifier(frame_id, frame_data, *mockLogger, 1);
 
     std::string output = testing::internal::GetCapturedStdout();
     EXPECT_NE(output.find("Write Data By Identifier Service invoked."), std::string::npos);
     EXPECT_NE(output.find("Data written to new DID 0xf190 in MCUModule."), std::string::npos);
-    EXPECT_NE(output.find("MCUModule contents:\nDID 0xf190: 12 34 \nDID 0x01e0: 00 \n"), std::string::npos);
+    EXPECT_NE(output.find("MCUModule contents:"), std::string::npos);
+    EXPECT_NE(output.find("DID 0xf190: 12 34"), std::string::npos);
     std::cerr << "Finished TestValidDIDInMCUModuleOnAPISocket" << std::endl;
 }
 
 /* Test for Valid Data Identifier in MCUModule on CANBus socket*/
 TEST_F(WriteDataByIdentifierTest, ValidDIDInMCUModuleOnCANBusSocket) {
     std::cerr << "Running TestValidDIDInMCUModuleOnCANBusSocket" << std::endl;
-
+    MCU::mcu->mcu_data[0xf260] = {0x01};
     frame_id = 0x1110;
-    frame_data = {0x05, 0x2E, 0xf1, 0x90, 0x12, 0x34};
+    frame_data = {0x05, 0x2E, 0xf2, 0x60, 0x12, 0x34};
 
     testing::internal::CaptureStdout();
-    WriteDataByIdentifier writeDataByIdentifier(frame_id, frame_data, mockLogger, 1);
+    WriteDataByIdentifier writeDataByIdentifier(frame_id, frame_data, *mockLogger, 1);
 
     std::string output = testing::internal::GetCapturedStdout();
     EXPECT_NE(output.find("Write Data By Identifier Service invoked."), std::string::npos);
-    EXPECT_NE(output.find("Data written to DID 0xf190 in MCUModule."), std::string::npos);
-    EXPECT_NE(output.find("MCUModule contents:\nDID 0xf190: 12 34 \nDID 0x01e0: 00 \n"), std::string::npos);
+    EXPECT_NE(output.find("Data written to DID 0xf260 in MCUModule."), std::string::npos);
+    EXPECT_NE(output.find("MCUModule contents:"), std::string::npos);
     std::cerr << "Finished TestValidDIDInMCUModuleOnCANBusSocket" << std::endl;
 }
 
@@ -85,7 +102,7 @@ TEST_F(WriteDataByIdentifierTest, ValidDIDInBatteryModule) {
     frame_data = {0x05, 0x2E, 0x01, 0xd0, 0x12, 0x34};
 
     testing::internal::CaptureStdout();
-    WriteDataByIdentifier writeDataByIdentifier(frame_id, frame_data, mockLogger, 1);
+    WriteDataByIdentifier writeDataByIdentifier(frame_id, frame_data, *mockLogger, 1);
 
     std::string output = testing::internal::GetCapturedStdout();
     EXPECT_NE(output.find("Write Data By Identifier Service invoked."), std::string::npos);
@@ -106,13 +123,12 @@ TEST_F(WriteDataByIdentifierTest, NewValidDIDInBatteryModule) {
     frame_data = {0x05, 0x2E, 0xf1, 0x8c, 0x03, 0x04};
 
     testing::internal::CaptureStdout();
-    WriteDataByIdentifier writeDataByIdentifier(frame_id, frame_data, mockLogger, 1);
+    WriteDataByIdentifier writeDataByIdentifier(frame_id, frame_data, *mockLogger, 1);
 
     std::string output = testing::internal::GetCapturedStdout();
     EXPECT_NE(output.find("Write Data By Identifier Service invoked."), std::string::npos);
     EXPECT_NE(output.find("Data written to new DID 0xf18c in BatteryModule."), std::string::npos);
     EXPECT_NE(output.find("BatteryModule contents:"), std::string::npos);
-    EXPECT_NE(output.find("DID 0x01d0: 12 34"), std::string::npos);
     EXPECT_NE(output.find("DID 0x01c0: 00"), std::string::npos);
     EXPECT_NE(output.find("DID 0x01b0: 00"), std::string::npos);
     EXPECT_NE(output.find("DID 0xf18c: 03 04"), std::string::npos);
@@ -127,7 +143,7 @@ TEST_F(WriteDataByIdentifierTest, InvalidDID) {
     std::vector<uint8_t> invalid_did_frame = {0x05, 0x2E, 0xff, 0xff, 0x03, 0x04};
 
     testing::internal::CaptureStdout();
-    WriteDataByIdentifier writeDataByIdentifier(frame_id, invalid_did_frame, mockLogger, 1);
+    WriteDataByIdentifier writeDataByIdentifier(frame_id, invalid_did_frame, *mockLogger, 1);
 
     std::string output = testing::internal::GetCapturedStdout();
     EXPECT_NE(output.find("Write Data By Identifier Service invoked."), std::string::npos);

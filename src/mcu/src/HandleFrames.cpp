@@ -9,7 +9,7 @@
 namespace MCU
 {
     HandleFrames::HandleFrames(int socket_api, int socket_canbus) 
-                : mcuDiagnosticSessionControl(*MCULogger, socket_api)
+                : mcuDiagnosticSessionControl(MCULogger, socket_api)
     {
         this->socket_api = socket_api;
         this->socket_canbus = socket_canbus;
@@ -230,7 +230,7 @@ namespace MCU
                 else 
                 {
                     LOG_INFO(MCULogger->GET_LOGGER(), "ReadDataByIdentifier called.");
-                    ReadDataByIdentifier read_data_by_identifier(getMcuSocket(frame_id), *MCULogger);
+                    ReadDataByIdentifier read_data_by_identifier(getMcuSocket(frame_id), MCULogger);
                     read_data_by_identifier.readDataByIdentifier(frame_id, frame_data, true);
                 }
                 break;
@@ -377,7 +377,7 @@ namespace MCU
                     LOG_INFO(MCULogger->GET_LOGGER(), "SID pos: {}", sid);
                     LOG_INFO(MCULogger->GET_LOGGER(), "Data size: {}", frame_data.size());
                     RequestDownloadService requestDownload(getMcuSocket(frame_id), *MCULogger);
-                    ReadDataByIdentifier software_version(getMcuSocket(frame_id), *MCULogger);
+                    ReadDataByIdentifier software_version(getMcuSocket(frame_id), MCULogger);
                     SecurityAccess logged_in(getMcuSocket(frame_id), *MCULogger);
                     requestDownload.requestDownloadRequest(frame_id, frame_data, *MCULogger, mcuDiagnosticSessionControl, software_version, logged_in);
                 }

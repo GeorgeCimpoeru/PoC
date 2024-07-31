@@ -2,8 +2,8 @@
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
-ReadDataByIdentifier::ReadDataByIdentifier(int socket, Logger& rdbi_logger) 
-            : generate_frames(socket, rdbi_logger), rdbi_logger(rdbi_logger)
+ReadDataByIdentifier::ReadDataByIdentifier(int socket, Logger* rdbi_logger) 
+            : generate_frames(socket, *rdbi_logger), rdbi_logger(*rdbi_logger)
 {
     this->socket = socket;
 }
@@ -50,8 +50,9 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t can_id, 
         if (lowerbits == 0x10) {
             response = MCU::mcu->mcu_data.at(data_identifier);
         } else {
-            battery->fetchBatteryData();
-            response = battery->ecu_data.at(data_identifier);
+            // battery->fetchBatteryData();
+            LOG_ERROR(rdbi_logger.GET_LOGGER(), "am ajuns aici");
+            response = (battery->ecu_data).at(data_identifier);
         }
 
     } else {

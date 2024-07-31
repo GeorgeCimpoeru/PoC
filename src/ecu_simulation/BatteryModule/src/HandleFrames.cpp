@@ -1,10 +1,10 @@
 #include "../include/HandleFrames.h"
 /* Services to be included here */
-HandleFrames::HandleFrames() : diagnosticSessionControl(*batteryModuleLogger, socket)
+HandleFrames::HandleFrames() : diagnosticSessionControl(batteryModuleLogger, socket)
 {
 
 }
-HandleFrames::HandleFrames(int socket) : diagnosticSessionControl(*batteryModuleLogger, socket)
+HandleFrames::HandleFrames(int socket) : diagnosticSessionControl(batteryModuleLogger, socket)
 {
     this->socket = socket;
 }
@@ -278,7 +278,7 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                     /* Combine the two bytes into a single 16-bit identifier */ 
                     uint16_t identifier = (stored_data[2] << 8) | stored_data[3];
                     LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Stored data: {}", static_cast<int>(identifier));
-                    ReadDataByIdentifier read_data_by_identifier(socket, *batteryModuleLogger);
+                    ReadDataByIdentifier read_data_by_identifier(socket, batteryModuleLogger);
                     read_data_by_identifier.readDataByIdentifier(id, stored_data, true);
                 }
                 break;
