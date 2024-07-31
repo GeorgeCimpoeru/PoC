@@ -4,7 +4,7 @@ from actions.update_action import Updates
 from actions.read_info_action import *
 from utils.logger import log_memory
 from actions.manual_send_frame import manual_send_frame
-
+from actions.write_info_action import WriteInfoAction
 api_bp = Blueprint('api', __name__)
 ecu_ids = [0x10, 0x11, 0x12]
 
@@ -33,6 +33,57 @@ def read_info_bat():
     response = reader.read_from_battery()
     return jsonify(response)
 
+@api_bp.route('/write_info_battery', methods=['POST'])
+def write_info_bat():
+    """
+    Write information for battery.
+    ---
+    responses:
+      200:
+        description: Information retrieved successfully
+        schema:
+          type: object
+          properties:
+            battery_level:
+              type: integer
+            voltage:
+              type: integer
+            battery_state_of_charge:
+              type: integer
+            temperature:
+              type: integer
+            life_cycle:
+              type: integer
+            fully_charged:
+              type: boolean
+            serial_number:
+              type: string
+            range_battery:
+              type: integer
+            charging_time:
+              type: integer
+            device_consumption:
+              type: integer
+            time_stamp:
+              type: string
+              format: date-time
+    responses:
+      200:
+        description: Information written successfully
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+            No of errors:
+              type: integer
+            time_stamp:
+              type: string
+    """
+    data = request.get_json()    
+    writer = WriteInfoAction(0xFA, [0x10, 0x11, 0x12], data)
+    response = writer.run()
+    return jsonify(response)
 
 @api_bp.route('/read_info_engine', methods=['GET'])
 def read_info_eng():
