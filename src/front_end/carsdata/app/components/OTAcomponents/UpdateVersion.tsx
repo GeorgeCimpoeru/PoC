@@ -1,44 +1,43 @@
+'use client'
 import React, { useState } from 'react';
-import axios from 'axios';
 
-async function updateECUVersion(ecuId: string, version: string): Promise<any> {
-    const url = 'http://127.0.0.1:5000/api/update_to_version';
-    const payload = {
-        ecu_id: ecuId,
-        version: version
-    };
-
-    try {
-        const response = await axios.post(url, payload, {
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        return response.data;
-    } catch (error) {
-        console.error('Error updating ECU version:', error);
-        throw error;
-    }
-}
-
-const MyComponent: React.FC = () => {
+const UpdateVersion = () => {
     const [response, setResponse] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
     const [isPopupVisible, setIsPopupVisible] = useState(false);
+    const [data, setData] = useState<any>(null);
 
     const handleUpdate = async () => {
         try {
-            const result = await updateECUVersion('123', '2');
-            setResponse(result);
+            const response = await fetch('http://127.0.0.1:5000/api/update_to_version', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ecu_id: "123",
+                    version: "2"
+                })
+            });
+
+            console.log("Response received:", response);
+            if (!response.ok) {
+                throw new Error(`Network response was not ok: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            console.log("Data received:", result);
+            setData(result);
             setError(null);
-        } catch (err) {
-            if (err instanceof Error) {
-                setError(err.message);
+        } catch (error: unknown) {
+            console.error("Fetch error:", error);
+            if (error instanceof Error) {
+                setError(error.message);
             } else {
-                setError('An unexpected error occurred');
+                setError('An unknown error occurred');
             }
         } finally {
-            setIsPopupVisible(true); 
+            setIsPopupVisible(true);
         }
     };
 
@@ -59,7 +58,7 @@ const MyComponent: React.FC = () => {
                             X
                         </button>
                         <h2>Update Status</h2>
-                        {response && <div className="mt-4 text-blue-700">Update successful! {JSON.stringify(response)}</div>}
+                        {data && <div className="mt-4 text-blue-700">Update successful! {JSON.stringify(data)}</div>}
                         {error && <div className="mt-4 text-red-500">Update failed: {error}</div>}
                     </div>
                 </div>
@@ -68,4 +67,4 @@ const MyComponent: React.FC = () => {
     );
 }
 
-export default MyComponent;
+export default UpdateVersion;
