@@ -1,0 +1,35 @@
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+Waiting for cache lock: Could not get lock /var/lib/dpkg/lock-frontend. It is held by process 89992 (apt)...
+Waiting for cache lock: Could not get lock /var/lib/dpkg/lock-frontend. It is held by process 89992 (apt)...
+Waiting for cache lock: Could not get lock /var/lib/dpkg/lock-frontend. It is held by process 89992 (apt)...
+Waiting for cache lock: Could not get lock /var/lib/dpkg/lock-frontend. It is held by process 89992 (apt)...
+Reading package lists...
+Building dependency tree...
+Reading state information...
+build-essential is already the newest version (12.8ubuntu1.1).
+The following packages were automatically installed and are no longer required:
+  gir1.2-goa-1.0 linux-headers-5.15.0-107-generic
+  linux-hwe-5.15-headers-5.15.0-107 linux-image-5.15.0-107-generic
+  linux-modules-5.15.0-107-generic linux-modules-extra-5.15.0-107-generic
+Use 'sudo apt autoremove' to remove them.
+0 upgraded, 0 newly installed, 0 to remove and 115 not upgraded.
+Installed build-essential
+rm -f main  test_binary ../utils/test/GenerateFramesTest test/HandleFrames_test test/ReceiveFramesTest ../utils/test/CreateInterface_test ../uds/write_data_by_identifier/utest/WriteDataByIdentifierTest ../uds/read_data_by_identifier/utest/ReadDataByIdentifierTest ../ota/transfer_data/utest/TransferDataTest
+rm -rf obj
+find . -name '*.gcno' -delete
+find . -name '*.gcda' -delete
+find . -name '*.gcov' -delete
+find . -name '*.info' -delete
+Cleaned the MCUModule build
+mkdir -p obj
+g++ -std=c++17 -g -Wall -pthread -I./include -I./src -I../utils/include -I../utils/src -I../uds/diagnostic_session_control/include -I../uds/diagnostic_session_control/src -c ../utils/src/Logger.cpp -o obj/Logger.o
+g++ -std=c++17 -g -Wall -pthread -I./include -I./src -I../utils/include -I../utils/src -I../uds/diagnostic_session_control/include -I../uds/diagnostic_session_control/src -o main src/main.cpp src/MCUModule.cpp ../ecu_simulation/BatteryModule/src/BatteryModule.cpp ../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../utils/src/CreateInterface.cpp ../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp src/ReceiveFrames.cpp ../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp ../uds/ecu_reset/src/EcuReset.cpp ../uds/authentication/src/SecurityAccess.cpp ../ecu_simulation/BatteryModule/src/HandleFrames.cpp ../ecu_simulation/BatteryModule/src/ReceiveFrames.cpp ../uds/read_dtc_information/src/ReadDtcInformation.cpp ../ota/request_update_status/src/RequestUpdateStatus.cpp ../ota/request_transfer_exit/src/RequestTransferExit.cpp ../ota/request_download/src/RequestDownload.cpp ../utils/src/MemoryManager.cpp ../ota/transfer_data/src/TransferData.cpp obj/Logger.o -lspdlog
+../ecu_simulation/BatteryModule/src/BatteryModule.cpp: In member function ‘void BatteryModule::fetchBatteryData()’:
+../ecu_simulation/BatteryModule/src/BatteryModule.cpp:156:33: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  156 |         std::string data = exec("upower -i /org/freedesktop/UPower/devices/battery_BAT0");
+      |                                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Compiled the MCU application
+RTNETLINK answers: File exists
+RTNETLINK answers: File exists

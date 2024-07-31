@@ -1,0 +1,255 @@
+[2024-07-29 13:05:56.178] [MCULogger] [error] [CreateInterface.cpp:64] Error when trying to create the first interface
+[2024-07-29 13:05:56.201] [MCULogger] [error] [CreateInterface.cpp:70] Error when trying to create the second interface
+[2024-07-29 13:05:56.228] [MCULogger] [info] [DiagnosticSessionControl.cpp:9] Diagnostic Session Control (0x10) started. Current session: DEFAULT_SESSION
+[2024-07-29 13:05:56.228] [MCULogger] [info] [WriteDataByIdentifier.cpp:18] Write Data By Identifier Service invoked.
+[2024-07-29 13:05:56.228] [MCULogger] [info] [WriteDataByIdentifier.cpp:115] Data written to new DID 0x1e0 in MCUModule.
+[2024-07-29 13:05:56.228] [MCULogger] [info] [WriteDataByIdentifier.cpp:69] MCUModule contents:
+DID 0x01e0: 00 
+
+[2024-07-29 13:05:56.228] [MCULogger] [info] [ReceiveFrames.cpp:36] Captured a frame on the CANBus socket
+[2024-07-29 13:05:56.228] [MCULogger] [info] [ReceiveFrames.cpp:55] Pass a valid Module ID: 0x80001110 and frame added to the processing queue.
+[2024-07-29 13:05:56.229] [MCULogger] [info] [ReceiveFrames.cpp:101] Frame processing method invoked!
+[2024-07-29 13:05:56.229] [MCULogger] [info] [ReceiveFrames.cpp:111] Frame with ID: 0x80001110 is taken from processing queue
+[2024-07-29 13:05:56.229] [MCULogger] [info] [ReceiveFrames.cpp:204] 
+[2024-07-29 13:05:56.229] [MCULogger] [info] [ReceiveFrames.cpp:205] Received CAN frame
+[2024-07-29 13:05:56.229] [MCULogger] [info] [ReceiveFrames.cpp:206] Module ID: 0x80001110
+[2024-07-29 13:05:56.229] [MCULogger] [info] [ReceiveFrames.cpp:207] Data Length: 4
+[2024-07-29 13:05:56.229] [MCULogger] [info] [ReceiveFrames.cpp:214] Data: 0x0 0xff 0x11 0x3
+[2024-07-29 13:05:56.229] [MCULogger] [info] [ReceiveFrames.cpp:215] 
+[2024-07-29 13:05:56.229] [MCULogger] [info] [ReceiveFrames.cpp:129] Frame received to notify MCU that ECU with ID: 0x11 is up
+[2024-07-29 13:07:56.322] [MCULogger] [info] [ReceiveFrames.cpp:36] Captured a frame on the CANBus socket
+[2024-07-29 13:07:56.323] [MCULogger] [info] [ReceiveFrames.cpp:55] Pass a valid Module ID: 0x80001110 and frame added to the processing queue.
+[2024-07-29 13:07:56.323] [MCULogger] [info] [ReceiveFrames.cpp:111] Frame with ID: 0x80001110 is taken from processing queue
+[2024-07-29 13:07:56.323] [MCULogger] [info] [ReceiveFrames.cpp:204] 
+[2024-07-29 13:07:56.323] [MCULogger] [info] [ReceiveFrames.cpp:205] Received CAN frame
+[2024-07-29 13:07:56.323] [MCULogger] [info] [ReceiveFrames.cpp:206] Module ID: 0x80001110
+[2024-07-29 13:07:56.323] [MCULogger] [info] [ReceiveFrames.cpp:207] Data Length: 4
+[2024-07-29 13:07:56.323] [MCULogger] [info] [ReceiveFrames.cpp:214] Data: 0x0 0xff 0x11 0x3
+[2024-07-29 13:07:56.323] [MCULogger] [info] [ReceiveFrames.cpp:215] 
+[2024-07-29 13:07:56.323] [MCULogger] [info] [ReceiveFrames.cpp:129] Frame received to notify MCU that ECU with ID: 0x11 is up
+[2024-07-29 13:09:15.588] [MCULogger] [info] [ReceiveFrames.cpp:36] Captured a frame on the CANBus socket
+[2024-07-29 13:09:15.589] [MCULogger] [error] [ReceiveFrames.cpp:39] Read Error
+[2024-07-29 13:09:56.493] [MCULogger] [warning] [GenerateFrames.cpp:56] Write error
+
+[2024-07-29 14:47:33.514] [MCULogger] [error] [CreateInterface.cpp:64] Error when trying to create the first interface
+[2024-07-29 14:47:33.527] [MCULogger] [error] [CreateInterface.cpp:70] Error when trying to create the second interface
+[2024-07-29 14:47:33.553] [MCULogger] [info] [DiagnosticSessionControl.cpp:9] Diagnostic Session Control (0x10) started. Current session: DEFAULT_SESSION
+[2024-07-29 14:47:33.554] [MCULogger] [info] [WriteDataByIdentifier.cpp:18] Write Data By Identifier Service invoked.
+[2024-07-29 14:47:33.554] [MCULogger] [info] [WriteDataByIdentifier.cpp:115] Data written to new DID 0x1e0 in MCUModule.
+[2024-07-29 14:47:33.554] [MCULogger] [info] [WriteDataByIdentifier.cpp:69] MCUModule contents:
+DID 0x01e0: 00 
+
+[2024-07-29 14:47:33.555] [MCULogger] [info] [ReceiveFrames.cpp:36] Captured a frame on the CANBus socket
+[2024-07-29 14:47:33.555] [MCULogger] [info] [ReceiveFrames.cpp:55] Pass a valid Module ID: 0x80001110 and frame added to the processing queue.
+[2024-07-29 14:47:33.555] [MCULogger] [info] [ReceiveFrames.cpp:101] Frame processing method invoked!
+[2024-07-29 14:47:33.555] [MCULogger] [info] [ReceiveFrames.cpp:111] Frame with ID: 0x80001110 is taken from processing queue
+[2024-07-29 14:47:33.555] [MCULogger] [info] [ReceiveFrames.cpp:204] 
+[2024-07-29 14:47:33.555] [MCULogger] [info] [ReceiveFrames.cpp:205] Received CAN frame
+[2024-07-29 14:47:33.555] [MCULogger] [info] [ReceiveFrames.cpp:206] Module ID: 0x80001110
+[2024-07-29 14:47:33.555] [MCULogger] [info] [ReceiveFrames.cpp:207] Data Length: 4
+[2024-07-29 14:47:33.555] [MCULogger] [info] [ReceiveFrames.cpp:214] Data: 0x0 0xff 0x11 0x3
+[2024-07-29 14:47:33.555] [MCULogger] [info] [ReceiveFrames.cpp:215] 
+[2024-07-29 14:47:33.555] [MCULogger] [info] [ReceiveFrames.cpp:129] Frame received to notify MCU that ECU with ID: 0x11 is up
+[2024-07-29 16:14:03.448] [MCULogger] [error] [CreateInterface.cpp:64] Error when trying to create the first interface
+[2024-07-29 16:14:03.459] [MCULogger] [error] [CreateInterface.cpp:70] Error when trying to create the second interface
+[2024-07-29 16:14:03.474] [MCULogger] [info] [DiagnosticSessionControl.cpp:9] Diagnostic Session Control (0x10) started. Current session: DEFAULT_SESSION
+[2024-07-29 16:14:03.474] [MCULogger] [info] [WriteDataByIdentifier.cpp:18] Write Data By Identifier Service invoked.
+[2024-07-29 16:14:03.474] [MCULogger] [info] [WriteDataByIdentifier.cpp:115] Data written to new DID 0x1e0 in MCUModule.
+[2024-07-29 16:14:03.478] [MCULogger] [info] [WriteDataByIdentifier.cpp:69] MCUModule contents:
+DID 0x01e0: 00 
+
+[2024-07-29 16:14:03.478] [MCULogger] [info] [ReceiveFrames.cpp:36] Captured a frame on the CANBus socket
+[2024-07-29 16:14:03.478] [MCULogger] [info] [ReceiveFrames.cpp:55] Pass a valid Module ID: 0x80001110 and frame added to the processing queue.
+[2024-07-29 16:14:03.478] [MCULogger] [info] [ReceiveFrames.cpp:101] Frame processing method invoked!
+[2024-07-29 16:14:03.479] [MCULogger] [info] [ReceiveFrames.cpp:111] Frame with ID: 0x80001110 is taken from processing queue
+[2024-07-29 16:14:03.479] [MCULogger] [info] [ReceiveFrames.cpp:204] 
+[2024-07-29 16:14:03.479] [MCULogger] [info] [ReceiveFrames.cpp:205] Received CAN frame
+[2024-07-29 16:14:03.479] [MCULogger] [info] [ReceiveFrames.cpp:206] Module ID: 0x80001110
+[2024-07-29 16:14:03.479] [MCULogger] [info] [ReceiveFrames.cpp:207] Data Length: 4
+[2024-07-29 16:14:03.479] [MCULogger] [info] [ReceiveFrames.cpp:214] Data: 0x0 0xff 0x11 0x3
+[2024-07-29 16:14:03.479] [MCULogger] [info] [ReceiveFrames.cpp:215] 
+[2024-07-29 16:14:03.479] [MCULogger] [info] [ReceiveFrames.cpp:129] Frame received to notify MCU that ECU with ID: 0x11 is up
+[2024-07-29 16:17:11.107] [MCULogger] [error] [CreateInterface.cpp:64] Error when trying to create the first interface
+[2024-07-29 16:17:11.124] [MCULogger] [error] [CreateInterface.cpp:70] Error when trying to create the second interface
+[2024-07-29 16:17:11.143] [MCULogger] [info] [DiagnosticSessionControl.cpp:9] Diagnostic Session Control (0x10) started. Current session: DEFAULT_SESSION
+[2024-07-29 16:17:11.143] [MCULogger] [info] [WriteDataByIdentifier.cpp:18] Write Data By Identifier Service invoked.
+[2024-07-29 16:17:11.143] [MCULogger] [info] [WriteDataByIdentifier.cpp:115] Data written to new DID 0x1e0 in MCUModule.
+[2024-07-29 16:17:11.143] [MCULogger] [info] [WriteDataByIdentifier.cpp:69] MCUModule contents:
+DID 0x01e0: 00 
+
+[2024-07-29 16:17:11.144] [MCULogger] [info] [ReceiveFrames.cpp:101] Frame processing method invoked!
+[2024-07-29 16:17:11.144] [MCULogger] [info] [ReceiveFrames.cpp:36] Captured a frame on the CANBus socket
+[2024-07-29 16:17:11.144] [MCULogger] [info] [ReceiveFrames.cpp:55] Pass a valid Module ID: 0x80001110 and frame added to the processing queue.
+[2024-07-29 16:17:11.144] [MCULogger] [info] [ReceiveFrames.cpp:111] Frame with ID: 0x80001110 is taken from processing queue
+[2024-07-29 16:17:11.144] [MCULogger] [info] [ReceiveFrames.cpp:204] 
+[2024-07-29 16:17:11.144] [MCULogger] [info] [ReceiveFrames.cpp:205] Received CAN frame
+[2024-07-29 16:17:11.144] [MCULogger] [info] [ReceiveFrames.cpp:206] Module ID: 0x80001110
+[2024-07-29 16:17:11.144] [MCULogger] [info] [ReceiveFrames.cpp:207] Data Length: 4
+[2024-07-29 16:17:11.144] [MCULogger] [info] [ReceiveFrames.cpp:214] Data: 0x0 0xff 0x11 0x3
+[2024-07-29 16:17:11.144] [MCULogger] [info] [ReceiveFrames.cpp:215] 
+[2024-07-29 16:17:11.144] [MCULogger] [info] [ReceiveFrames.cpp:129] Frame received to notify MCU that ECU with ID: 0x11 is up
+[2024-07-29 16:17:29.032] [MCULogger] [info] [ReceiveFrames.cpp:36] Captured a frame on the CANBus socket
+[2024-07-29 16:17:29.032] [MCULogger] [info] [ReceiveFrames.cpp:55] Pass a valid Module ID: 0x80001110 and frame added to the processing queue.
+[2024-07-29 16:17:29.032] [MCULogger] [info] [ReceiveFrames.cpp:111] Frame with ID: 0x80001110 is taken from processing queue
+[2024-07-29 16:17:29.032] [MCULogger] [info] [ReceiveFrames.cpp:204] 
+[2024-07-29 16:17:29.032] [MCULogger] [info] [ReceiveFrames.cpp:205] Received CAN frame
+[2024-07-29 16:17:29.032] [MCULogger] [info] [ReceiveFrames.cpp:206] Module ID: 0x80001110
+[2024-07-29 16:17:29.032] [MCULogger] [info] [ReceiveFrames.cpp:207] Data Length: 4
+[2024-07-29 16:17:29.032] [MCULogger] [info] [ReceiveFrames.cpp:214] Data: 0x0 0xff 0x11 0x3
+[2024-07-29 16:17:29.032] [MCULogger] [info] [ReceiveFrames.cpp:215] 
+[2024-07-29 16:17:29.032] [MCULogger] [info] [ReceiveFrames.cpp:129] Frame received to notify MCU that ECU with ID: 0x11 is up
+[2024-07-29 16:17:29.032] [MCULogger] [info] [ReceiveFrames.cpp:73] Captured a frame on the API socket
+[2024-07-29 16:17:29.032] [MCULogger] [info] [ReceiveFrames.cpp:86] Pass a valid Module ID: 0x800010fa and frame added to the processing queue.
+[2024-07-29 16:17:29.032] [MCULogger] [info] [ReceiveFrames.cpp:111] Frame with ID: 0x800010fa is taken from processing queue
+[2024-07-29 16:17:29.032] [MCULogger] [info] [ReceiveFrames.cpp:204] 
+[2024-07-29 16:17:29.032] [MCULogger] [info] [ReceiveFrames.cpp:205] Received CAN frame
+[2024-07-29 16:17:29.032] [MCULogger] [info] [ReceiveFrames.cpp:206] Module ID: 0x800010fa
+[2024-07-29 16:17:29.032] [MCULogger] [info] [ReceiveFrames.cpp:207] Data Length: 4
+[2024-07-29 16:17:29.032] [MCULogger] [info] [ReceiveFrames.cpp:214] Data: 0x3 0x6e 0x1 0xe0
+[2024-07-29 16:17:29.032] [MCULogger] [info] [ReceiveFrames.cpp:215] 
+[2024-07-29 16:17:29.032] [MCULogger] [info] [ReceiveFrames.cpp:159] Frame received from device with sender ID: 0x10 sent for API processing
+[2024-07-29 16:17:29.032] [MCULogger] [info] [ReceiveFrames.cpp:162] Frame with ID: 0x800010fa sent on API socket
+[2024-07-29 16:17:34.034] [MCULogger] [info] [ReceiveFrames.cpp:36] Captured a frame on the CANBus socket
+[2024-07-29 16:17:34.034] [MCULogger] [info] [ReceiveFrames.cpp:55] Pass a valid Module ID: 0x80001110 and frame added to the processing queue.
+[2024-07-29 16:17:34.034] [MCULogger] [info] [ReceiveFrames.cpp:111] Frame with ID: 0x80001110 is taken from processing queue
+[2024-07-29 16:17:34.034] [MCULogger] [info] [ReceiveFrames.cpp:204] 
+[2024-07-29 16:17:34.034] [MCULogger] [info] [ReceiveFrames.cpp:205] Received CAN frame
+[2024-07-29 16:17:34.034] [MCULogger] [info] [ReceiveFrames.cpp:206] Module ID: 0x80001110
+[2024-07-29 16:17:34.034] [MCULogger] [info] [ReceiveFrames.cpp:207] Data Length: 4
+[2024-07-29 16:17:34.034] [MCULogger] [info] [ReceiveFrames.cpp:214] Data: 0x0 0xff 0x11 0x3
+[2024-07-29 16:17:34.034] [MCULogger] [info] [ReceiveFrames.cpp:215] 
+[2024-07-29 16:17:34.034] [MCULogger] [info] [ReceiveFrames.cpp:129] Frame received to notify MCU that ECU with ID: 0x11 is up
+[2024-07-29 16:18:01.246] [MCULogger] [info] [ReceiveFrames.cpp:36] Captured a frame on the CANBus socket
+[2024-07-29 16:18:01.247] [MCULogger] [info] [ReceiveFrames.cpp:55] Pass a valid Module ID: 0x111110 and frame added to the processing queue.
+[2024-07-29 16:18:01.247] [MCULogger] [info] [ReceiveFrames.cpp:36] Captured a frame on the CANBus socket
+[2024-07-29 16:18:01.247] [MCULogger] [info] [ReceiveFrames.cpp:55] Pass a valid Module ID: 0x111110 and frame added to the processing queue.
+[2024-07-29 16:18:01.247] [MCULogger] [info] [ReceiveFrames.cpp:111] Frame with ID: 0x111110 is taken from processing queue
+[2024-07-29 16:18:01.247] [MCULogger] [info] [ReceiveFrames.cpp:204] 
+[2024-07-29 16:18:01.247] [MCULogger] [info] [ReceiveFrames.cpp:205] Received CAN frame
+[2024-07-29 16:18:01.247] [MCULogger] [info] [ReceiveFrames.cpp:206] Module ID: 0x111110
+[2024-07-29 16:18:01.247] [MCULogger] [info] [ReceiveFrames.cpp:207] Data Length: 8
+[2024-07-29 16:18:01.247] [MCULogger] [info] [ReceiveFrames.cpp:214] Data: 0x10 0x9 0x34 0x0 0x22 0x1 0x21 0x1
+[2024-07-29 16:18:01.247] [MCULogger] [info] [ReceiveFrames.cpp:215] 
+[2024-07-29 16:18:01.247] [MCULogger] [info] [ReceiveFrames.cpp:153] Received frame for MCU to execute service with SID: 0x9
+[2024-07-29 16:18:01.247] [MCULogger] [info] [ReceiveFrames.cpp:154] Calling HandleFrames module to execute the service and parse the frame.
+[2024-07-29 16:18:01.247] [MCULogger] [info] [HandleFrames.cpp:71] Multi-frame Sequence with 2 frames
+[2024-07-29 16:18:01.247] [MCULogger] [info] [ReceiveFrames.cpp:111] Frame with ID: 0x111110 is taken from processing queue
+[2024-07-29 16:18:01.247] [MCULogger] [info] [ReceiveFrames.cpp:204] 
+[2024-07-29 16:18:01.247] [MCULogger] [info] [ReceiveFrames.cpp:205] Received CAN frame
+[2024-07-29 16:18:01.247] [MCULogger] [info] [ReceiveFrames.cpp:206] Module ID: 0x111110
+[2024-07-29 16:18:01.247] [MCULogger] [info] [ReceiveFrames.cpp:207] Data Length: 3
+[2024-07-29 16:18:01.247] [MCULogger] [info] [ReceiveFrames.cpp:214] Data: 0x21 0x21 0x88
+[2024-07-29 16:18:01.247] [MCULogger] [info] [ReceiveFrames.cpp:215] 
+[2024-07-29 16:18:01.247] [MCULogger] [info] [ReceiveFrames.cpp:153] Received frame for MCU to execute service with SID: 0x21
+[2024-07-29 16:18:01.247] [MCULogger] [info] [ReceiveFrames.cpp:154] Calling HandleFrames module to execute the service and parse the frame.
+[2024-07-29 16:18:01.247] [MCULogger] [info] [HandleFrames.cpp:109] Data is: 
+[2024-07-29 16:18:01.247] [MCULogger] [info] [HandleFrames.cpp:112] 9
+[2024-07-29 16:18:01.247] [MCULogger] [info] [HandleFrames.cpp:112] 52
+[2024-07-29 16:18:01.247] [MCULogger] [info] [HandleFrames.cpp:112] 0
+[2024-07-29 16:18:01.247] [MCULogger] [info] [HandleFrames.cpp:112] 34
+[2024-07-29 16:18:01.247] [MCULogger] [info] [HandleFrames.cpp:112] 1
+[2024-07-29 16:18:01.247] [MCULogger] [info] [HandleFrames.cpp:112] 33
+[2024-07-29 16:18:01.247] [MCULogger] [info] [HandleFrames.cpp:112] 1
+[2024-07-29 16:18:01.247] [MCULogger] [info] [HandleFrames.cpp:112] 33
+[2024-07-29 16:18:01.247] [MCULogger] [info] [HandleFrames.cpp:112] 136
+[2024-07-29 16:18:01.247] [MCULogger] [info] [HandleFrames.cpp:373] Service 0x34 RequestDownload
+[2024-07-29 16:18:01.247] [MCULogger] [info] [HandleFrames.cpp:374] SID pos: 52
+[2024-07-29 16:18:01.247] [MCULogger] [info] [HandleFrames.cpp:375] Data size: 9
+[2024-07-29 16:18:01.247] [MCULogger] [info] [RequestDownload.cpp:25] Service 0x34 RequestDownload
+[2024-07-29 16:18:01.247] [MCULogger] [info] [RequestDownload.cpp:420] MCU authentication state
+[2024-07-29 16:18:01.247] [MCULogger] [info] [RequestDownload.cpp:435] Check software version
+[2024-07-29 16:18:01.247] [MCULogger] [info] [ReadDataByIdentifier.cpp:21] Log in serviciu RDBI
+[2024-07-29 16:18:01.247] [MCULogger] [error] [ReadDataByIdentifier.cpp:60] Request out of range
+[2024-07-29 16:18:01.247] [MCULogger] [info] [RequestDownload.cpp:61] Software is not at the latest version
+[2024-07-29 16:29:18.341] [MCULogger] [error] [CreateInterface.cpp:64] Error when trying to create the first interface
+[2024-07-29 16:29:18.352] [MCULogger] [error] [CreateInterface.cpp:70] Error when trying to create the second interface
+[2024-07-29 16:29:18.373] [MCULogger] [info] [DiagnosticSessionControl.cpp:9] Diagnostic Session Control (0x10) started. Current session: DEFAULT_SESSION
+[2024-07-29 16:29:18.373] [MCULogger] [info] [WriteDataByIdentifier.cpp:18] Write Data By Identifier Service invoked.
+[2024-07-29 16:29:18.373] [MCULogger] [info] [WriteDataByIdentifier.cpp:115] Data written to new DID 0x1e0 in MCUModule.
+[2024-07-29 16:29:18.373] [MCULogger] [info] [WriteDataByIdentifier.cpp:69] MCUModule contents:
+DID 0x01e0: 00 
+
+[2024-07-29 16:29:18.374] [MCULogger] [info] [ReceiveFrames.cpp:36] Captured a frame on the CANBus socket
+[2024-07-29 16:29:18.374] [MCULogger] [info] [ReceiveFrames.cpp:55] Pass a valid Module ID: 0x80001110 and frame added to the processing queue.
+[2024-07-29 16:29:18.374] [MCULogger] [info] [ReceiveFrames.cpp:101] Frame processing method invoked!
+[2024-07-29 16:29:18.374] [MCULogger] [info] [ReceiveFrames.cpp:111] Frame with ID: 0x80001110 is taken from processing queue
+[2024-07-29 16:29:18.374] [MCULogger] [info] [ReceiveFrames.cpp:204] 
+[2024-07-29 16:29:18.374] [MCULogger] [info] [ReceiveFrames.cpp:205] Received CAN frame
+[2024-07-29 16:29:18.374] [MCULogger] [info] [ReceiveFrames.cpp:206] Module ID: 0x80001110
+[2024-07-29 16:29:18.374] [MCULogger] [info] [ReceiveFrames.cpp:207] Data Length: 4
+[2024-07-29 16:29:18.375] [MCULogger] [info] [ReceiveFrames.cpp:214] Data: 0x0 0xff 0x11 0x3
+[2024-07-29 16:29:18.375] [MCULogger] [info] [ReceiveFrames.cpp:215] 
+[2024-07-29 16:29:18.375] [MCULogger] [info] [ReceiveFrames.cpp:129] Frame received to notify MCU that ECU with ID: 0x11 is up
+[2024-07-29 16:29:30.542] [MCULogger] [info] [ReceiveFrames.cpp:36] Captured a frame on the CANBus socket
+[2024-07-29 16:29:30.542] [MCULogger] [info] [ReceiveFrames.cpp:55] Pass a valid Module ID: 0x80001110 and frame added to the processing queue.
+[2024-07-29 16:29:30.542] [MCULogger] [info] [ReceiveFrames.cpp:111] Frame with ID: 0x80001110 is taken from processing queue
+[2024-07-29 16:29:30.542] [MCULogger] [info] [ReceiveFrames.cpp:204] 
+[2024-07-29 16:29:30.542] [MCULogger] [info] [ReceiveFrames.cpp:205] Received CAN frame
+[2024-07-29 16:29:30.542] [MCULogger] [info] [ReceiveFrames.cpp:206] Module ID: 0x80001110
+[2024-07-29 16:29:30.542] [MCULogger] [info] [ReceiveFrames.cpp:207] Data Length: 4
+[2024-07-29 16:29:30.542] [MCULogger] [info] [ReceiveFrames.cpp:214] Data: 0x0 0xff 0x11 0x3
+[2024-07-29 16:29:30.542] [MCULogger] [info] [ReceiveFrames.cpp:215] 
+[2024-07-29 16:29:30.542] [MCULogger] [info] [ReceiveFrames.cpp:129] Frame received to notify MCU that ECU with ID: 0x11 is up
+[2024-07-29 16:29:30.545] [MCULogger] [info] [ReceiveFrames.cpp:73] Captured a frame on the API socket
+[2024-07-29 16:29:30.545] [MCULogger] [info] [ReceiveFrames.cpp:86] Pass a valid Module ID: 0x800010fa and frame added to the processing queue.
+[2024-07-29 16:29:30.545] [MCULogger] [info] [ReceiveFrames.cpp:111] Frame with ID: 0x800010fa is taken from processing queue
+[2024-07-29 16:29:30.545] [MCULogger] [info] [ReceiveFrames.cpp:204] 
+[2024-07-29 16:29:30.545] [MCULogger] [info] [ReceiveFrames.cpp:205] Received CAN frame
+[2024-07-29 16:29:30.545] [MCULogger] [info] [ReceiveFrames.cpp:206] Module ID: 0x800010fa
+[2024-07-29 16:29:30.545] [MCULogger] [info] [ReceiveFrames.cpp:207] Data Length: 4
+[2024-07-29 16:29:30.545] [MCULogger] [info] [ReceiveFrames.cpp:214] Data: 0x3 0x6e 0x1 0xe0
+[2024-07-29 16:29:30.545] [MCULogger] [info] [ReceiveFrames.cpp:215] 
+[2024-07-29 16:29:30.545] [MCULogger] [info] [ReceiveFrames.cpp:159] Frame received from device with sender ID: 0x10 sent for API processing
+[2024-07-29 16:29:30.545] [MCULogger] [info] [ReceiveFrames.cpp:162] Frame with ID: 0x800010fa sent on API socket
+[2024-07-29 16:29:35.545] [MCULogger] [info] [ReceiveFrames.cpp:36] Captured a frame on the CANBus socket
+[2024-07-29 16:29:35.546] [MCULogger] [info] [ReceiveFrames.cpp:55] Pass a valid Module ID: 0x80001110 and frame added to the processing queue.
+[2024-07-29 16:29:35.546] [MCULogger] [info] [ReceiveFrames.cpp:111] Frame with ID: 0x80001110 is taken from processing queue
+[2024-07-29 16:29:35.546] [MCULogger] [info] [ReceiveFrames.cpp:204] 
+[2024-07-29 16:29:35.546] [MCULogger] [info] [ReceiveFrames.cpp:205] Received CAN frame
+[2024-07-29 16:29:35.546] [MCULogger] [info] [ReceiveFrames.cpp:206] Module ID: 0x80001110
+[2024-07-29 16:29:35.546] [MCULogger] [info] [ReceiveFrames.cpp:207] Data Length: 4
+[2024-07-29 16:29:35.546] [MCULogger] [info] [ReceiveFrames.cpp:214] Data: 0x0 0xff 0x11 0x3
+[2024-07-29 16:29:35.546] [MCULogger] [info] [ReceiveFrames.cpp:215] 
+[2024-07-29 16:29:35.546] [MCULogger] [info] [ReceiveFrames.cpp:129] Frame received to notify MCU that ECU with ID: 0x11 is up
+[2024-07-29 16:29:43.562] [MCULogger] [info] [ReceiveFrames.cpp:36] Captured a frame on the CANBus socket
+[2024-07-29 16:29:43.562] [MCULogger] [info] [ReceiveFrames.cpp:55] Pass a valid Module ID: 0x111110 and frame added to the processing queue.
+[2024-07-29 16:29:43.562] [MCULogger] [info] [ReceiveFrames.cpp:36] Captured a frame on the CANBus socket
+[2024-07-29 16:29:43.562] [MCULogger] [info] [ReceiveFrames.cpp:55] Pass a valid Module ID: 0x111110 and frame added to the processing queue.
+[2024-07-29 16:29:43.562] [MCULogger] [info] [ReceiveFrames.cpp:111] Frame with ID: 0x111110 is taken from processing queue
+[2024-07-29 16:29:43.562] [MCULogger] [info] [ReceiveFrames.cpp:204] 
+[2024-07-29 16:29:43.562] [MCULogger] [info] [ReceiveFrames.cpp:205] Received CAN frame
+[2024-07-29 16:29:43.562] [MCULogger] [info] [ReceiveFrames.cpp:206] Module ID: 0x111110
+[2024-07-29 16:29:43.562] [MCULogger] [info] [ReceiveFrames.cpp:207] Data Length: 8
+[2024-07-29 16:29:43.562] [MCULogger] [info] [ReceiveFrames.cpp:214] Data: 0x10 0x9 0x34 0x0 0x22 0x1 0x21 0x1
+[2024-07-29 16:29:43.562] [MCULogger] [info] [ReceiveFrames.cpp:215] 
+[2024-07-29 16:29:43.562] [MCULogger] [info] [ReceiveFrames.cpp:153] Received frame for MCU to execute service with SID: 0x9
+[2024-07-29 16:29:43.562] [MCULogger] [info] [ReceiveFrames.cpp:154] Calling HandleFrames module to execute the service and parse the frame.
+[2024-07-29 16:29:43.562] [MCULogger] [info] [HandleFrames.cpp:71] Multi-frame Sequence with 2 frames
+[2024-07-29 16:29:43.562] [MCULogger] [info] [ReceiveFrames.cpp:111] Frame with ID: 0x111110 is taken from processing queue
+[2024-07-29 16:29:43.562] [MCULogger] [info] [ReceiveFrames.cpp:204] 
+[2024-07-29 16:29:43.562] [MCULogger] [info] [ReceiveFrames.cpp:205] Received CAN frame
+[2024-07-29 16:29:43.562] [MCULogger] [info] [ReceiveFrames.cpp:206] Module ID: 0x111110
+[2024-07-29 16:29:43.562] [MCULogger] [info] [ReceiveFrames.cpp:207] Data Length: 3
+[2024-07-29 16:29:43.562] [MCULogger] [info] [ReceiveFrames.cpp:214] Data: 0x21 0x21 0x88
+[2024-07-29 16:29:43.562] [MCULogger] [info] [ReceiveFrames.cpp:215] 
+[2024-07-29 16:29:43.562] [MCULogger] [info] [ReceiveFrames.cpp:153] Received frame for MCU to execute service with SID: 0x21
+[2024-07-29 16:29:43.562] [MCULogger] [info] [ReceiveFrames.cpp:154] Calling HandleFrames module to execute the service and parse the frame.
+[2024-07-29 16:29:43.562] [MCULogger] [info] [HandleFrames.cpp:109] Data is: 
+[2024-07-29 16:29:43.562] [MCULogger] [info] [HandleFrames.cpp:112] 9
+[2024-07-29 16:29:43.562] [MCULogger] [info] [HandleFrames.cpp:112] 52
+[2024-07-29 16:29:43.562] [MCULogger] [info] [HandleFrames.cpp:112] 0
+[2024-07-29 16:29:43.562] [MCULogger] [info] [HandleFrames.cpp:112] 34
+[2024-07-29 16:29:43.562] [MCULogger] [info] [HandleFrames.cpp:112] 1
+[2024-07-29 16:29:43.563] [MCULogger] [info] [HandleFrames.cpp:112] 33
+[2024-07-29 16:29:43.563] [MCULogger] [info] [HandleFrames.cpp:112] 1
+[2024-07-29 16:29:43.563] [MCULogger] [info] [HandleFrames.cpp:112] 33
+[2024-07-29 16:29:43.563] [MCULogger] [info] [HandleFrames.cpp:112] 136
+[2024-07-29 16:29:43.563] [MCULogger] [info] [HandleFrames.cpp:369] Service 0x34 RequestDownload
+[2024-07-29 16:29:43.563] [MCULogger] [info] [HandleFrames.cpp:370] SID pos: 52
+[2024-07-29 16:29:43.563] [MCULogger] [info] [HandleFrames.cpp:371] Data size: 9
+[2024-07-29 16:29:43.563] [MCULogger] [info] [RequestDownload.cpp:25] Service 0x34 RequestDownload
+[2024-07-29 16:29:43.563] [MCULogger] [info] [RequestDownload.cpp:421] MCU authentication state
+[2024-07-29 16:29:43.563] [MCULogger] [info] [RequestDownload.cpp:436] Check software version
+[2024-07-29 16:29:43.563] [MCULogger] [info] [ReadDataByIdentifier.cpp:21] Log in serviciu RDBI
+[2024-07-29 16:29:43.563] [MCULogger] [error] [ReadDataByIdentifier.cpp:60] Request out of range
+[2024-07-29 16:29:43.563] [MCULogger] [info] [RequestDownload.cpp:61] Software is not at the latest version
