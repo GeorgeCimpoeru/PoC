@@ -230,7 +230,6 @@ class Action:
         """
         log_info_message(logger, "Collecting the response")
         response = self.__collect_response(sid)
-        log_info_message(logger, f"Collected response: {response}")
 
         if response is None:
             log_error_message(logger, error_str)
@@ -272,6 +271,7 @@ class Action:
         self.generate.read_data_by_identifier(id, identifier)
         frame_response = self._passive_response(READ_BY_IDENTIFIER,
                                                 f"Error reading data from identifier {identifier}")
+        log_info_message(logger, f"Frame response: {frame_response}")
         data = self._data_from_frame(frame_response)
         data_str = self._list_to_number(data)
         return data_str

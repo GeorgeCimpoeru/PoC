@@ -3,6 +3,7 @@ from database.mcu_ids_database_handler import McuIdsDatabaseHandler
 from actions.base_actions import *
 import time
 
+
 class RequestIdAction(Action):
     def run(self):
         """

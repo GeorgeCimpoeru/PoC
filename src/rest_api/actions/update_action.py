@@ -23,6 +23,7 @@ class ToJSON():
         }
         return response
 
+
 class Updates(Action):
     """
     Update class for managing software updates on an Electronic Control Unit (ECU).
@@ -152,8 +153,3 @@ class Updates(Action):
             number_of_dtc = response.data[5]
             log_info_message(logger, f"There are {number_of_dtc} errors found after download")
             return number_of_dtc
-
-# curl -X POST http://127.0.0.1:5000/api/update_to_version -H "Content-Type: application/json" -d '{
-#   "ecu_id": "0x10",
-#   "version": "1"
-# }'
