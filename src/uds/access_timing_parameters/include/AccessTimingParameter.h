@@ -86,8 +86,7 @@ public:
      * @param p2_star_max_time Maximum time for programming session operations.
      */
     void setTimingParameters(canid_t frame_id, std::vector<uint8_t> data_frame);
-
-private:
+    
     /* The default maximum time for the default session in milliseconds */
     static const uint16_t DEFAULT_P2_MAX_TIME;
     /* The default maximum time for the programming session in milliseconds */
