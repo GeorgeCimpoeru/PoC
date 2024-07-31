@@ -44,15 +44,11 @@ class RequestIdAction(Action):
         log_info_message(logger, "Request frame sent")
 
     def _read_response_frames(self, timeout=10):
-        log_info_message(logger, "Waiting for response on service: request_ids")
         end_time = time.time() + timeout
         while time.time() < end_time:
             response = self.bus.recv(Config.BUS_RECEIVE_TIMEOUT)
             if response:
                 data = response.data
-                hex_data = [f"{byte:02X}" for byte in data]
-                log_info_message(logger, f"Raw Data (hex): {hex_data}")
-
                 if len(data) < 3:
                     return {"status": "Invalid response length"}
 
