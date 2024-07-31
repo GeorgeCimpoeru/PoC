@@ -4,35 +4,22 @@ import time
 from config import Config
 import datetime
 
+
 class IDsToJson():
     def _to_json(self, data):
-            """
-            Creates a JSON response with the given data and timestamp.
+        response = {
+            "status": data.get("status"),
+            "mcu_id": data.get("mcu_id"),
+            "ecu_ids": data.get("ecu_ids", []),
+            "time_stamp": datetime.datetime.now().isoformat()
+        }
+        if "reason" in data:
+            response["reason"] = data["reason"]
+        return response
 
-            Args:
-            - data: Data to be included in the JSON response.
-
-            Returns:
-            - JSON-formatted response containing the data and timestamp.
-            """
-            response = {
-                "status": data.get("status"),
-                "mcu_id": data.get("mcu_id"),
-                "ecu_ids": data.get("ecu_ids", []),
-                "time_stamp": datetime.datetime.now().isoformat()
-            }
-            if "reason" in data:
-                response["reason"] = data["reason"]
-            return response
 
 class RequestIdAction(Action):
     def read_ids(self):
-        """
-        Executes the ID request action and processes the response.
-
-        Returns:
-        - JSON response containing the status and any collected data or errors.
-        """
         self.mcu_db_handler = McuIdsDatabaseHandler()
         self.id = self.my_id
         try:
@@ -52,23 +39,11 @@ class RequestIdAction(Action):
             return {"status": "Error", "message": str(e)}
 
     def _send_request_frame(self):
-        """
-        Sends the request frame to the ECU and logs the action.
-        """
         log_info_message(logger, "Sending request frame for ECU IDs")
         self.generate.send_frame(self.id, [0x01, 0x99])
         log_info_message(logger, "Request frame sent")
 
     def _read_response_frames(self, timeout=10):
-        """
-        Reads and processes response frames within a specified timeout.
-
-        Args:
-        - timeout: Time in seconds to wait for responses (default: 10.0).
-
-        Returns:
-        - Dictionary containing the status and any collected data.
-        """
         log_info_message(logger, "Waiting for response on service: request_ids")
         end_time = time.time() + timeout
         while time.time() < end_time:

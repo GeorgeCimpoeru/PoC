@@ -3,6 +3,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class McuIdsDatabaseHandler:
     def __init__(self):
         self.conn = sqlite3.connect('database/mcu_ids.db')

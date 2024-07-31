@@ -6,7 +6,6 @@ from utils.logger import log_memory
 from actions.manual_send_frame import manual_send_frame
 
 api_bp = Blueprint('api', __name__)
-ecu_ids = [0x10, 0x11, 0x12]
 
 
 @api_bp.route('/request_ids', methods=['GET'])
