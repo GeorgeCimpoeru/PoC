@@ -93,21 +93,21 @@ function fetchLogs() {
     }
     
     function writeInfoDoors() {
-        const doorParam = prompt('Enter Door Parameter:');
-        // const serialNumber = prompt('Enter Serial Number:');
-        // const cigaretteLighterVoltage = prompt('Enter Cigarette Lighter Voltage:');
-        // const lightState = prompt('Enter Light State:');
-        // const beltCard = prompt('Enter Belt Card State:');
-        // const windowStatus = prompt('Enter Window Status:');
+        const door = prompt('Enter Door Parameter:');
+        // const serial_number = prompt('Enter Serial Number:');
+        // const lighter_voltage = prompt('Enter Cigarette Lighter Voltage:');
+        // const light_state = prompt('Enter Light State:');
+        // const belt = prompt('Enter Belt Card State:');
+        // const windows_closed = prompt('Enter Window Status:');
     
     
         const data = {
-            Door_param: doorParam ? parseInt(doorParam) : null,
-            // Serial_number: serialNumber || null,
-            // Cigarette_Lighter_Voltage: cigaretteLighterVoltage ? parseFloat(cigaretteLighterVoltage) : null,
-            // Light_state: lightState || null,
-            // BeltCard: beltCard || null,
-            // WindowStatus: windowStatus || null,
+            door: door || null,
+            // serial_number: serial_number || null,
+            // lighter_voltage: lighter_voltage || null,
+            // light_state: light_state || null,
+            // belt: belt || null,
+            // windows_closed: windows_closed || null,
          };
     
         fetch('/api/write_info_doors', {

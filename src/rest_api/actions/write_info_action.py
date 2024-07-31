@@ -49,12 +49,12 @@ class WriteInfo(Action):
         log_info_message(logger, f"Writing data to ECU ID: {id_ECU}")
 
         data_params = [
-            (IDENTIFIER_DOOR, int(self.data.get('Door_param'))),
-            # (IDENTIFIER_DOOR_SERIALNUMBER, int(self.data.get('Serial_number'))),
-            # (IDENTIFIER_LIGHTER_VOLTAGE, int(self.data.get('Cigarette_Lighter_Voltage'))),
-            # (IDENTIFIER_LIGHT_STATE, int(self.data.get('Light_state'))),
-            # (IDENTIFIER_BELT_STATE, int(self.data.get('BeltCard'))),
-            # (IDENTIFIER_WINDOWS_CLOSED, int(self.data.get('WindowStatus')))
+            (IDENTIFIER_BATTERY_ENERGY_LEVEL, int(self.data.get('door'))),
+            # (IDENTIFIER_DOOR_SERIALNUMBER, int(self.data.get('serial_number'))),
+            # (IDENTIFIER_LIGHTER_VOLTAGE, int(self.data.get('lighter_voltage'))),
+            # (IDENTIFIER_LIGHT_STATE, int(self.data.get('light_state'))),
+            # (IDENTIFIER_BELT_STATE, int(self.data.get('belt'))),
+            # (IDENTIFIER_WINDOWS_CLOSED, int(self.data.get('windows_closed')))
         ]
 
         for identifier, data_param in data_params:

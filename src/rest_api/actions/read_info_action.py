@@ -66,12 +66,12 @@ class EngineToJSON():
 class DoorsToJSON():
     def _to_json(self, data: list):
         response_to_frontend = {
-            "Door_param": data[0],
-            "Serial_number": data[1],
-            "Cigarette_Lighter_Voltage": data[2],
-            "Light_state": data[3],
-            "BeltCard": data[4],
-            "WindowStatus": data[5],
+            "door": data[0],
+            "serial_number": data[1],
+            "lighter_voltage": data[2],
+            "light_state": data[3],
+            "belt": data[4],
+            "windows_closed": data[5],
         }
         return response_to_frontend
 
@@ -217,13 +217,13 @@ class ReadInfo(Action):
 
             log_info_message(logger, "Reading data from doors")
 
-            Door = self._read_by_identifier(id, IDENTIFIER_DOOR)
+            door = self._read_by_identifier(id, IDENTIFIER_DOOR)
             serial_number = self._read_by_identifier(id, IDENTIFIER_DOOR_SERIALNUMBER)
             cigarette_lighter_voltage = self._read_by_identifier(id, IDENTIFIER_LIGHTER_VOLTAGE)
             light_state = self._read_by_identifier(id, IDENTIFIER_LIGHT_STATE)
             belt = self._read_by_identifier(id, IDENTIFIER_BELT_STATE)
             windows_closed = self._read_by_identifier(id, IDENTIFIER_WINDOWS_CLOSED)
-            data = [Door, serial_number, cigarette_lighter_voltage, light_state, belt, windows_closed]
+            data = [door, serial_number, cigarette_lighter_voltage, light_state, belt, windows_closed]
 
             module = DoorsToJSON()
             response = module._to_json(data)
