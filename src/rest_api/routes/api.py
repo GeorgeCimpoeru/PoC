@@ -11,8 +11,8 @@ ecu_ids = [0x10, 0x11, 0x12]
 
 @api_bp.route('/request_ids', methods=['GET'])
 def request_ids():
-    requester = RequestIdAction(my_id=0xFA)
-    response = requester.run()
+    requester = RequestIdAction(my_id=0xFA99)
+    response = requester.read_ids()
     return jsonify(response)
 
 
