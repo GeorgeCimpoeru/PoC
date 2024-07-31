@@ -22,8 +22,8 @@ def update_to_version():
     ecu_id = data.get('ecu_id')
     version = data.get('version')
     updater = Updates(my_id=0xFA, id_ecu=ecu_id)
-    response = updater.update_to(ecu_id=int(ecu_id),
-                                 version=int(version))
+    response = updater.update_to(ecu_id=ecu_id,
+                                 version=version)
     return jsonify(response)
 
 

@@ -109,7 +109,7 @@ class ReadInfo(Action):
         - JSON response.
         """
         self._auth_mcu()
-        id_battery = self.id_ecu[ECU_BATTERY]
+        id_battery = self.id_ecu[MCU]
         id = self.my_id * 0x100 + id_battery
 
         try:
@@ -168,10 +168,13 @@ class ReadInfo(Action):
         - data response.
         """
         self._auth_mcu()
-        id_engine = self.id_ecu[ECU_ENGINE]
+        id_engine = self.id_ecu[MCU]
         id = self.my_id * 0x100 + id_engine
 
         try:
+            id_battery = self.id_ecu[ECU_ENGINE]
+            id = self.my_id * 0x100 + id_battery
+
             log_info_message(logger, "Reading data from engine")
             power_output = self._read_by_identifier(id, IDENTIFIER_ENGINE_POWER_OUTPUT)
             weight = self._read_by_identifier(id, IDENTIFIER_ENGINE_WEIGHT)
