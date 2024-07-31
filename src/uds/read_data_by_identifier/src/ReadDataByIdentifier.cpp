@@ -43,15 +43,15 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t can_id, 
     can_id = ((lowerbits << 8) | upperbits);
 
     /* Determine which ECU data storage to use based on the first 8 bits of can_id */
-    if ((lowerbits == 0x10 && MCU::mcu.mcu_data.find(data_identifier) != MCU::mcu.mcu_data.end()) ||
-        (lowerbits == 0x11 && battery.ecu_data.find(data_identifier) != battery.ecu_data.end())) {
+    if ((lowerbits == 0x10 && MCU::mcu->mcu_data.find(data_identifier) != MCU::mcu->mcu_data.end()) ||
+        (lowerbits == 0x11 && battery->ecu_data.find(data_identifier) != battery->ecu_data.end())) {
 
         /* Fetch the data based on the data identifier */
         if (lowerbits == 0x10) {
-            response = MCU::mcu.mcu_data.at(data_identifier);
+            response = MCU::mcu->mcu_data.at(data_identifier);
         } else {
-            battery.fetchBatteryData();
-            response = battery.ecu_data.at(data_identifier);
+            battery->fetchBatteryData();
+            response = battery->ecu_data.at(data_identifier);
         }
 
     } else {
