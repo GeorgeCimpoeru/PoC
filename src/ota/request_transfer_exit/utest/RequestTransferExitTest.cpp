@@ -72,7 +72,7 @@ int createSocket()
     if (flags == -1) {
         return 1;
     }
-    // Set the O_NONBLOCK flag to make the socket non-blocking
+    /* Set the O_NONBLOCK flag to make the socket non-blocking */
     flags |= O_NONBLOCK;
     if (fcntl(s, F_SETFL, flags) == -1) {
         return -1;
