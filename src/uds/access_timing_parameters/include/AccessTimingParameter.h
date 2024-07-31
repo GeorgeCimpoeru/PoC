@@ -1,3 +1,24 @@
+/**
+ * @file AccessTimingParameter.h
+ * @author Dirva Nicolae
+ * @brief This library represents the Access Timing Parameter UDS service.
+ * 
+ * The Access Timing Parameter service manages the configuration and retrieval of timing parameters used in UDS communication.
+ * Specifically, it handles the default and currently active P2 and P2* maximum time values.
+ * The service allows for reading the default timing parameters, resetting them to their default values,
+ * and setting them to new values based on the received CAN frame.
+ * 
+ * The request frame has the format:
+ * frame.data = {PCI_L(1 byte), SID(1 byte = 0x83), SUB_FUNCTION(1 byte), ...}
+ * 
+ * The positive response frame sent by the service will have the format:
+ * frame.data = {PCI_L(1 byte), RESPONSE_SID(1 byte = 0xC3), SUB_FUNCTION(1 byte), ...}
+ * 
+ * The negative response frame sent by the service will have the format:
+ * frame.data = {PCI_L(1 byte), 0x7F, SID(1 byte = 0x83), NRC(1 byte)} indicating errors such as
+ * unsupported sub-functions or incorrect message length.
+ */
+
 #ifndef UDS_ATP_SERVICE
 #define UDS_ATP_SERVICE
 
@@ -65,7 +86,7 @@ public:
      * @param p2_star_max_time Maximum time for programming session operations.
      */
     void setTimingParameters(canid_t frame_id, std::vector<uint8_t> data_frame);
-    
+
 private:
     /* The default maximum time for the default session in milliseconds */
     static const uint16_t DEFAULT_P2_MAX_TIME;
