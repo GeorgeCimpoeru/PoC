@@ -115,18 +115,18 @@ void RequestDownloadService::requestDownloadRequest(int id, std::vector<uint8_t>
         return;
     }
 
-    int max_number_block = calculate_max_number_block();
+    int max_number_block = calculate_max_number_block(memory_size);
 
     download();
 
     if (download_type == 0x88)
     {
-        requestDownloadResp(id, memory_size, max_number_block);
+        requestDownloadResp(id, memory_address, max_number_block);
         return;
     }
     else if ( download_type == 0x89 )
     {
-        requestDownloadResp89(id, memory_size, max_number_block);
+        requestDownloadResp89(id, memory_address, max_number_block);
         return;
     }
     /* Send frame error */
@@ -136,26 +136,23 @@ void RequestDownloadService::download()
 {
     /* run here python script to download from drive */
 }
-int RequestDownloadService::calculate_max_number_block()
+int RequestDownloadService::calculate_max_number_block(int memory_size)
 {
     /* Assuming 512 bytes as the max length */
     int block_size = 512;
     /* Initialize max_number_block with a value that ensures it will be updated */
     int max_number_block = 0;
 
-    // /* HOW IS CALCULATED 'max_number_block'??? */
-    // /* Calculate max_number_block as the maximum ceiling of memory_size divided by block_size */
-    // for (uint8_t byte = 0; byte < memory_size.size(); ++byte)
-    // {
-    //     int blocks_needed = (memory_size[byte] + block_size - 1) / block_size;
-    //     LOG_DEBUG(RDSlogger.GET_LOGGER(), "blocks_needed:{}", blocks_needed);
-    //     if (blocks_needed > max_number_block)
-    //     {
-    //         max_number_block = blocks_needed;
-    //     }
-    // }
-    // LOG_DEBUG(RDSlogger.GET_LOGGER(), "max_number_block:{}", max_number_block);
-    // return 1;
+    /* HOW IS CALCULATED 'max_number_block'??? */
+    /* Calculate max_number_block as the maximum ceiling of memory_size divided by block_size */
+    int blocks_needed = (memory_size + block_size - 1) / block_size;
+    LOG_DEBUG(RDSlogger.GET_LOGGER(), "blocks_needed:{}", blocks_needed);
+    
+    // Update max_number_block with the calculated blocks_needed
+    max_number_block = blocks_needed;
+
+    LOG_DEBUG(RDSlogger.GET_LOGGER(), "max_number_block:{}", max_number_block);
+    return 1;
 }
 
 void RequestDownloadService::requestDownloadResp89(int id, int memory_address, int max_number_block)
@@ -179,7 +176,7 @@ void RequestDownloadService::requestDownloadResp89(int id, int memory_address, i
     }
 }
 
-bool RequestDownloadService::downloadInEcu(int id, int memory_address)
+void RequestDownloadService::downloadInEcu(int id, int memory_address)
 {
     int receiver_id = id & 0xFF;
     int new_id = 0x1000 + receiver_id;
@@ -203,7 +200,7 @@ bool RequestDownloadService::downloadInEcu(int id, int memory_address)
         return;
     }
     
-    for (uint16_t block_sequence_counter = 0; block_sequence_counter * max_number_block < data.size(); ++block_sequence_counter)
+    for (std::vector<unsigned char>::size_type block_sequence_counter = 0; block_sequence_counter * max_number_block < data.size(); ++block_sequence_counter)
     {
         std::vector<uint8_t> data_to_send;
         data_to_send.insert(data_to_send.begin(), data.begin() + (max_number_block * block_sequence_counter), data.begin() + ((max_number_block * block_sequence_counter + 1)));
@@ -260,15 +257,17 @@ can_frame* RequestDownloadService::read_frame(int id, uint8_t sid)
 
         if (poll_result > 0 && pfd.revents & POLLIN) 
         {
-            struct can_frame frame ;
-            int nbytes = read(this->socket, &frame, sizeof(frame));
+            can_frame* frame = new can_frame;
+            int nbytes = read(this->socket, frame, sizeof(*frame));
 
             if (nbytes > 0) 
             {
-                if ((frame.can_id & 0xFF == 0x10) && (frame.data[1] == sid+0x40))
+                if (((frame->can_id & 0xFF) == 0x10) && (frame->data[1] == sid+0x40))
                 {
-                    return &frame;  
+                    return frame;  
                 }
+                /* Clean up if frame is not used */ 
+                delete frame;  
             }
         }
         end = std::chrono::system_clock::now();
@@ -286,7 +285,6 @@ can_frame* RequestDownloadService::read_frame(int id, uint8_t sid)
 void RequestDownloadService::requestDownloadResp(int id, int memory_address, int max_number_block)
 {
     std::string path = "";
-    //static std::mutex create_interface_mutex;
     /* Rename destination in sender and viceversa */
     uint8_t frame_sender_id = (id >> 8) & 0xFF;
     uint8_t frame_dest_id = id & 0xFF;
@@ -296,7 +294,6 @@ void RequestDownloadService::requestDownloadResp(int id, int memory_address, int
     {
         MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, &MCULogger);
         managerInstance->getAddress();
-        // std::lock_guard<std::mutex> lock(create_interface_mutex);
         LOG_DEBUG(RDSlogger.GET_LOGGER(), "log in service");
         id = (frame_dest_id << 8) | (frame_sender_id);
         LOG_DEBUG(RDSlogger.GET_LOGGER(), "frame id 0x{0:x}", static_cast<int>(id));
@@ -433,6 +430,7 @@ bool RequestDownloadService::isRequestAuthenticated()
 bool RequestDownloadService::isLatestSoftwareVersion()
 {
     /* Logic to check version */
+    return true;
     ReadDataByIdentifier software_version(this->socket, this->RDSlogger);
     LOG_INFO(RDSlogger.GET_LOGGER(), "Check software version");
     uint16_t IDENTIFIER_SOFTWARE = 0x1234; //dummy

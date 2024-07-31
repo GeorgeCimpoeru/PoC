@@ -1,19 +1,29 @@
+/**
+ * @file RequestDownload.h
+ * @author Stoisor Miruna & Ruben Mujdei
+ * @brief  This class is used in scenarios where firmware or data needs to be downloaded to 
+ * an MCU or ECU. It ensures that requests are authenticated, sessions are valid, and the 
+ * data is correctly formatted and handled. It provides methods for dealing with both 
+ * compressed and uncompressed data, handles memory management, and manages manual or automatic OTA updates.
+ * Data format:
+ * The request frame format: stored.data = {PCI_L(1byte), SID(1byte = 0x34), DFI(1byte),AML(1byte), MA+MA.size(1byte or more), MS+MS.size(1byte or more))}
+ * The positive response format: frame.data = {LMNB(1byte), RESPONSE_SID(1byte = 0x74), LMNB_format(1byte), MNB(1byte or more)}
+ * The negative response format: frame.data = {PCI_L(1byte), 0x7F, SID(1byte = 0x34), NRC(1byte)}
+ */
+
 #ifndef REQUEST_DOWNLOAD_SERVICE_H
 #define REQUEST_DOWNLOAD_SERVICE_H
 
 #include <iostream>
 #include <vector>
 #include <sstream>
-#include <mutex>
 #include <cstring>
 #include <string>
 #include <utility>
 #include <chrono>
-
 #include <sys/ioctl.h>
 #include <linux/can.h>
 #include <net/if.h>
-
 #include "../../../utils/include/CreateInterface.h"
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../utils/include/Logger.h"
@@ -119,7 +129,7 @@ private:
      * 
      * @return int 
      */
-    int calculate_max_number_block();
+    int calculate_max_number_block(int memory_size);
     /**
      * @brief Method to read frame from can bus
      * 
@@ -135,7 +145,7 @@ private:
      * @param memory_address 
      * @return true 
      */
-    bool downloadInEcu(int id, int memory_address);
+    void downloadInEcu(int id, int memory_address);
 };
 
 #endif /* REQUEST_DOWNLOAD_SERVICE_H */
