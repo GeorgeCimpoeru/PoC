@@ -24,12 +24,6 @@ class RequestTransferExit
 {
 public:    
     /**
-   * @brief Constructor.   
-   */
-    // /* constructor to initialize the transfer exit */
-    // RequestTransferExit(Logger& RTESLogger);
-
-    /**
     * @brief Constructor for transfer exit object
     * @param RTESLogger local reference to the parent logger
     */
