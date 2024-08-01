@@ -19,10 +19,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo add-apt-repository ppa:deadsnakes/ppa
-          sudo apt-get install -y build-essential cmake libspdlog-dev libfmt-dev python3.8 # Install essential build tools and libraries
+          sudo apt-get install -y build-essential cmake libspdlog-dev libfmt-dev python3.8-dev # Install essential build tools and libraries
           git clone https://github.com/pybind/pybind11
           cd pybind11
-          sudo python3 setup.py install
+          sudo python3.8 setup.py install
       - name: Run Makefile in src/mcu with Extra Flags
         run: |
           cd src/mcu
