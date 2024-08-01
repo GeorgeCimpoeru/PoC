@@ -18,7 +18,8 @@ jobs:
       - name: Set up Build Environment
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake libspdlog-dev libfmt-dev  # Install essential build tools and libraries
+          sudo add-apt-repository ppa:deadsnakes-ppa
+          sudo apt-get install -y build-essential cmake libspdlog-dev libfmt-dev python3.8 # Install essential build tools and libraries
           git clone https://github.com/pybind/pybind11
           cd pybind11
           sudo python3 setup.py install
