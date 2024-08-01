@@ -107,12 +107,15 @@ void RequestUpdateStatus::downloadFile()
     std::string drive_data = gGdrive_object.attr("updateDriveData")().cast<std::string>();
     std::cout << drive_data << std::endl;
 
-    // std::map<std::string, std::string> drive_file = {
-    //     {"name", "main.py"},
-    //     {"id", "1zWe9bG2VLV1s9px9zdOhroo-NLjqlRv0"},
-    //     {"type", "file"}
-    // };
-    // gGdrive_object.attr("downloadFile")(drive_file);
+    std::map <std::string, std::string> file_to_upload;
+    file_to_upload["name"] = "main.elf";
+    file_to_upload["path"] = "/home/projectx/accademyprojects/PoC/src/mcu/main.elf";
+    file_to_upload["parent"] = "15b2q_YupkZocnALf4Iq5bHaJMXi8FHm9";
+    gGdrive_object.attr("uploadFile")("main.elf", "/home/projectx/accademyprojects/PoC/src/mcu/main", "15b2q_YupkZocnALf4Iq5bHaJMXi8FHm9");
+
+    drive_data = gGdrive_object.attr("updateDriveData")().cast<std::string>();
+    std::cout << drive_data << std::endl;
+    gGdrive_object.attr("downloadFile")("1K3SKcTK8Tgb_Z-JadtGrckKCbHhvs90O");
 }
 RequestUpdateStatus::~RequestUpdateStatus()
 {

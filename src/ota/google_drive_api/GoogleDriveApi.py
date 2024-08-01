@@ -26,6 +26,7 @@ class GDriveAPI:
     __drive_service = None
     # store data from the drive in json format
     __drive_data_json = {}
+    __drive_data_array = []
 
     # class variable __instance will keep track of the lone object instance
     __instance = None
@@ -50,9 +51,10 @@ class GDriveAPI:
             
     def updateDriveData(self):
         self.__drive_data_json = json.dumps(self.__getDriveData(), indent=4)
+        
         return self.__drive_data_json
     
-    def uploadFile(self, file_name, file_path, parent_folder_id):
+    def uploadFile(self, file_name, file_path, parent_folder_id = DRIVE_BASE_FILE['id']):
         file_metadata = {
         'name': file_name,          
         'parents': [parent_folder_id]  # ID of the folder where you want to upload
@@ -62,24 +64,30 @@ class GDriveAPI:
 
         file = self.__drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
 
-    def downloadFile(self, file, path_to_download = DRIVE_DOWNLOAD_PATH):
+    def downloadFile(self, file_id, path_to_download = DRIVE_DOWNLOAD_PATH):
         try:
             # pylint: disable=maybe-no-member
-            request = self.__drive_service.files().get_media(fileId=file['id'])
+            file_to_download = [data for data in self.__drive_data_array if data['id'] == str(file_id)]          
+            if not file_to_download:
+                print(f"No file found with ID: {file_id}")
+                return
+            
+            file_to_download = file_to_download[0]  # Access the first element
+            request = self.__drive_service.files().get_media(fileId=file_to_download['id'])
             downloaded_file = io.BytesIO()
             downloader = MediaIoBaseDownload(downloaded_file, request)
             done = False
 
-            while done is False:
+            while not done:
                 status, done = downloader.next_chunk()
-                print(f"Download {int(status.progress() * 100)}.")
+                print(f"Download {int(status.progress() * 100)}%.")
 
         except HttpError as error:
             print(f"An error occurred: {error}")
-            file = None
+            return
 
         downloaded_file.seek(0)
-        with open(f"{path_to_download}/{file['name']}", 'wb') as f:
+        with open(f"{path_to_download}/{file_to_download['name']}", 'wb') as f:
             f.write(downloaded_file.read())
             print(f"File downloaded and saved to {path_to_download}")
 
@@ -103,9 +111,10 @@ class GDriveAPI:
             'children': []
         }
 
+        self.__drive_data_array.append(json_file)    
         if json_file['type'] == "folder":
             json_file['children'].extend(self.__getDriveData(file) for file in folder_data['files'])
-            
+
         return json_file
 # Object to be imported in other modules
 gDrive = GDriveAPI.getInstance(CREDS_PATH)
