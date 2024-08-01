@@ -40,7 +40,7 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
     readDataRequest.emplace_back(OTA_UPDATE_STATUS_DID_MSB);    /* OTA_UPDATE_STATUS_MSB_DID */
     readDataRequest.emplace_back(OTA_UPDATE_STATUS_DID_LSB);    /* OTA_UPDATE_STATUS_LSB_DID */
 
-    ReadDataByIdentifier RIDB(socket, *MCULogger);
+    ReadDataByIdentifier RIDB(socket, MCULogger);
     std::vector<uint8_t> RIDB_response = RIDB.readDataByIdentifier(request_id, readDataRequest, false);
     std::vector<uint8_t> response;
 

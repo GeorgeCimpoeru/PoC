@@ -8,6 +8,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
+#ifndef UDS_SECURITY_ACCESS_H
+#define UDS_SECURITY_ACCESS_H
 
 #include <linux/can.h>
 #include <vector>
@@ -19,9 +21,6 @@
 
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../utils/include/Logger.h"
-
-#ifndef UDS_SECURITY_ACCESS_H
-#define UDS_SECURITY_ACCESS_H
 
 class SecurityAccess
 {

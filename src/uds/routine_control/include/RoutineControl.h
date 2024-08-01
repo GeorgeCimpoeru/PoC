@@ -4,6 +4,8 @@
  * @brief This library represents the Routine Control UDS service.
  * This is used to start a specific routine based on a routine identifierd provided in the request
  */
+#ifndef UDS_ROUTINE_CONTROL_H
+#define UDS_ROUTINE_CONTROL_H
 
 #include <linux/can.h>
 #include <vector>
@@ -12,9 +14,6 @@
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../utils/include/Logger.h"
 #include "../../utils/include/MemoryManager.h"
-
-#ifndef UDS_ROUTINE_CONTROL_H
-#define UDS_ROUTINE_CONTROL_H
 
 class RoutineControl
 {
