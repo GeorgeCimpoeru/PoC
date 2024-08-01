@@ -117,7 +117,7 @@ void RequestDownloadService::requestDownloadRequest(int id, std::vector<uint8_t>
 
     int max_number_block = calculate_max_number_block(memory_size);
 
-    download();
+    downloadSoftwareVersion("software_version_id");
 
     if (download_type == 0x88)
     {
@@ -132,10 +132,6 @@ void RequestDownloadService::requestDownloadRequest(int id, std::vector<uint8_t>
     /* Send frame error */
 }
 
-void RequestDownloadService::download()
-{
-    /* run here python script to download from drive */
-}
 int RequestDownloadService::calculate_max_number_block(int memory_size)
 {
     /* Assuming 512 bytes as the max length */
@@ -472,7 +468,7 @@ void RequestDownloadService::downloadSoftwareVersion(std::string version_file_id
     gGdrive_object.attr("uploadFile")("main.elf", "/home/projectx/accademyprojects/PoC/src/mcu/main", "15b2q_YupkZocnALf4Iq5bHaJMXi8FHm9");
     version_file_id = "1K3SKcTK8Tgb_Z-JadtGrckKCbHhvs90O";
     */
-   
+
     /* Call the downloadFile method from GoogleDriveApi.py */
     gGdrive_object.attr("downloadFile")(version_file_id);
 }
