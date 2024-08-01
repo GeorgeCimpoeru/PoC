@@ -21,8 +21,7 @@ jobs:
           sudo apt-get install -y build-essential cmake libspdlog-dev libfmt-dev  # Install essential build tools and libraries
           git clone https://github.com/pybind/pybind11
           cd pybind11
-          python3 setup.py
-          continue-on-error: true
+          sudo python3 setup.py install
       - name: Run Makefile in src/mcu with Extra Flags
         run: |
           cd src/mcu
