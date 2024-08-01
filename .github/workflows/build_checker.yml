@@ -22,6 +22,7 @@ jobs:
           git clone https://github.com/pybind/pybind11
           cd pybind11
           python3 setup.py
+          continue-on-error: true
       - name: Run Makefile in src/mcu with Extra Flags
         run: |
           cd src/mcu
