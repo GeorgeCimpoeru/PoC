@@ -16,7 +16,7 @@ protected:
 
     void SetUp() override {
         socket = 1; // Example socket number
-        dsc = new DiagnosticSessionControl(mockLogger, socket);
+        dsc = new DiagnosticSessionControl(&mockLogger, socket);
     }
 
     void TearDown() override {
@@ -31,7 +31,7 @@ TEST_F(DiagnosticSessionControlTest, DefaultConstructorInitializesDefaultSession
 
 /* Test for Parameterized Constructor Initializing Default Session */
 TEST_F(DiagnosticSessionControlTest, ParameterizedConstructorInitializesDefaultSession) {
-    DiagnosticSessionControl dscWithModuleId(0x11, mockLogger, socket);
+    DiagnosticSessionControl dscWithModuleId(0x11, &mockLogger, socket);
     EXPECT_EQ(dscWithModuleId.getCurrentSession(), DEFAULT_SESSION);
 }
 
@@ -87,7 +87,7 @@ TEST_F(DiagnosticSessionControlTest, ValidSessionSwitchToDefaultSession) {
 TEST_F(DiagnosticSessionControlTest, SwitchToDefaultSessionWithModuleId) {
     std::cerr << "Running SwitchToDefaultSessionWithModuleId" << std::endl;
 
-    DiagnosticSessionControl dscWithModuleId(0x11, mockLogger, socket);
+    DiagnosticSessionControl dscWithModuleId(0x11, &mockLogger, socket);
 
     testing::internal::CaptureStdout();
     dscWithModuleId.sessionControl(0x1011, SUB_FUNCTION_DEFAULT_SESSION);
@@ -114,7 +114,7 @@ TEST_F(DiagnosticSessionControlTest, ValidSessionSwitchToProgrammingSession) {
 TEST_F(DiagnosticSessionControlTest, SwitchToProgrammingSessionWithModuleId) {
     std::cerr << "Running SwitchToProgrammingSessionWithModuleId" << std::endl;
 
-    DiagnosticSessionControl dscWithModuleId(0x11, mockLogger, socket);
+    DiagnosticSessionControl dscWithModuleId(0x11, &mockLogger, socket);
 
     testing::internal::CaptureStdout();
     dscWithModuleId.sessionControl(0x1011, SUB_FUNCTION_PROGRAMMING_SESSION);

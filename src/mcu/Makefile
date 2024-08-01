@@ -213,7 +213,7 @@ OBJS_ROUTINECONTROL_TEST = $(OBJ_DIR)/MemoryManager_test.o \
 			   			   $(OBJ_DIR)/GenerateFrames_test.o \
 			   			   $(OBJ_DIR)/RoutineControl_test.o
 					
-OBJS_ACESSTIMINGPARAMETER_TEST = $(OBJ_DIR)/Logger_test.o \
+OBJS_ACCESSTIMINGPARAMETER_TEST = $(OBJ_DIR)/Logger_test.o \
 			   						 $(OBJ_DIR)/GenerateFrames_test.o \
 			   						 $(OBJ_DIR)/AccessTimingParameter_test.o
 
@@ -517,13 +517,13 @@ $(OTA_DIR)/transfer_data/utest/TransferData_test.o: $(OTA_DIR)/transfer_data/ute
 
 
 # AccessTimingParameter Unit tests
-accessTimingParameterTest: $(OBJ_DIR) $(OTA_DIR)/access_timing_parameters/utest/accessTimingParameterTest.out
+accessTimingParameterTest: $(OBJ_DIR) $(UDS_DIR)/access_timing_parameters/utest/accessTimingParameterTest.out
 
-$(OTA_DIR)/access_timing_parameters/utest/accessTimingParameterTest.out: $(OBJ_DIR) $(OBJS_TRANSFERDATA_TEST) $(OTA_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o
-	$(CXX) $(CFLAGSTST) -o $(OTA_DIR)/access_timing_parameters/utest/accessTimingParameterTest.out $(OTA_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o $(OBJS_TRANSFERDATA_TEST) $(CFLAGSTST2) $(LDFLAGS)
+$(UDS_DIR)/access_timing_parameters/utest/accessTimingParameterTest.out: $(UDS_DIR) $(OBJS_ACCESSTIMINGPARAMETER_TEST) $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o
+	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/access_timing_parameters/utest/accessTimingParameterTest.out $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o $(OBJS_ACCESSTIMINGPARAMETER_TEST) $(CFLAGSTST2) $(LDFLAGS)
 
-$(OTA_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o: $(OTA_DIR)/access_timing_parameters/utest/AccessTimingParameterTest.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(OTA_DIR)/access_timing_parameters/utest/AccessTimingParameterTest.cpp -o $(OTA_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o $(CFLAGSTST2) $(LDFLAGS)
+$(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o: $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameterTest.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameterTest.cpp -o $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 
 
