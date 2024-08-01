@@ -115,6 +115,7 @@ private:
      * @return std::pair<int,int> 
      */
     std::pair<int,int> extractSizeAndAddressLength( std::vector<uint8_t> stored_data);
+    void download();
     /**
      * @brief Response to request download
      * 
