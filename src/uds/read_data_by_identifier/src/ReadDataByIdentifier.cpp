@@ -50,8 +50,7 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t can_id, 
         if (lowerbits == 0x10) {
             response = MCU::mcu->mcu_data.at(data_identifier);
         } else {
-            // battery->fetchBatteryData();
-            LOG_ERROR(rdbi_logger.GET_LOGGER(), "am ajuns aici");
+            /* battery->fetchBatteryData(); */
             response = (battery->ecu_data).at(data_identifier);
         }
 
