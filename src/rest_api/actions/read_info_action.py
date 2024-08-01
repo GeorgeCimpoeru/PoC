@@ -110,14 +110,9 @@ class ReadInfo(Action):
         """
         self._auth_mcu()
         id_battery = self.id_ecu[ECU_BATTERY]
-        id_battery = self.id_ecu[0]
         id = self.my_id * 0x100 + id_battery
 
         try:
-            log_info_message(logger, "Changing session to default")
-            id_battery = self.id_ecu[ECU_BATTERY]
-            id = self.my_id * 0x100 + id_battery
-
             log_info_message(logger, "Reading data from battery")
             id_battery = self.id_ecu[ECU_BATTERY]
             id = self.my_id * 0x100 + id_battery

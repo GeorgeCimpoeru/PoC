@@ -103,10 +103,10 @@ class WriteToBattery(WriteInfo):
 
     def _prepare_data_for_write(self):
         return [
-            (IDENTIFIER_BATTERY_ENERGY_LEVEL, int(self.data.get('energy_level'))),
+            (IDENTIFIER_BATTERY_ENERGY_LEVEL, int(self.data.get('battery_level'))),
             (IDENTIFIER_BATTERY_VOLTAGE, int(self.data.get('voltage'))),
-            (IDENTIFIER_BATTERY_STATE_OF_CHARGE, int(self.data.get('battery_state_of_charge'))),
             (IDENTIFIER_BATTERY_PERCENTAGE, int(self.data.get('percentage'))),
+            (IDENTIFIER_BATTERY_STATE_OF_CHARGE, int(self.data.get('battery_state_of_charge'))),
             (IDENTIFIER_BATTERY_TEMPERATURE, int(self.data.get('temperature'))),
             (IDENTIFIER_BATTERY_LIFE_CYCLE, int(self.data.get('life_cycle'))),
             (IDENTIFIER_BATTERY_FULLY_CHARGED, int(self.data.get('fully_charged'))),

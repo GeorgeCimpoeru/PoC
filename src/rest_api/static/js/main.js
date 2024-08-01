@@ -124,7 +124,7 @@ function fetchLogs() {
     }
 
     function writeInfoBattery() {
-        const energyLevel = prompt('Enter Battery Energy Level:');
+        const battery_level = prompt('Enter Battery Energy Level:');
         const voltage = prompt('Enter Battery Voltage:');
         const stateOfCharge = prompt('Enter Battery State of Charge:');
         const percentage = prompt('Enter Battery Percentage:');
@@ -137,7 +137,7 @@ function fetchLogs() {
         
 
         const data = {
-            energy_level: energyLevel || null,
+            battery_level: battery_level || null,
             voltage: voltage || null,
             battery_state_of_charge: stateOfCharge || null,
             percentage: percentage || null,
