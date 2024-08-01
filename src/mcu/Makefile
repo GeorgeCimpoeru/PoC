@@ -1,8 +1,12 @@
+#Python flags needed for pybing library
+PYTHON_INCL_DIR=-I/usr/include/python3.8
+PYTHON_LIB_DIR=-I/usr/lib/python3.8
+PYTHON_LDFLAGS = $(shell python3.8-config --ldflags --embed)
 #Compiler flags
-CFLAGS = -std=c++17 -g -Wall -pthread -I./include -I./src -I../utils/include -I../utils/src -I../uds/diagnostic_session_control/include -I../uds/diagnostic_session_control/src
+CFLAGS = -std=c++17 -g -Wall -pthread -I./include -I./src -I../utils/include -I../utils/src -I../uds/diagnostic_session_control/include -I../uds/diagnostic_session_control/src ${PYTHON_INCL_DIR}
 CFLAGSTST = -std=c++17 -I/include
 CFLAGSTST2 = -lgtest -lgtest_main -lpthread
-LDFLAGS = -lspdlog
+LDFLAGS = -lspdlog ${PYTHON_LDFLAGS}
 CFLAGSTST += -DUNIT_TESTING_MODE
 #Sources files
 SRCS = src/main.cpp src/MCUModule.cpp ../ecu_simulation/BatteryModule/src/BatteryModule.cpp ../utils/src/GenerateFrames.cpp src/HandleFrames.cpp ../utils/src/CreateInterface.cpp ../uds/diagnostic_session_control/src/DiagnosticSessionControl.cpp src/ReceiveFrames.cpp ../uds/read_data_by_identifier/src/ReadDataByIdentifier.cpp ../uds/write_data_by_identifier/src/WriteDataByIdentifier.cpp ../uds/ecu_reset/src/EcuReset.cpp ../uds/authentication/src/SecurityAccess.cpp  ../ecu_simulation/BatteryModule/src/HandleFrames.cpp  ../ecu_simulation/BatteryModule/src/ReceiveFrames.cpp ../uds/read_dtc_information/src/ReadDtcInformation.cpp ../ota/request_update_status/src/RequestUpdateStatus.cpp ../ota/request_transfer_exit/src/RequestTransferExit.cpp ../ota/request_download/src/RequestDownload.cpp ../utils/src/MemoryManager.cpp ../ota/transfer_data/src/TransferData.cpp
