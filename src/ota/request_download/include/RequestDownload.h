@@ -116,12 +116,6 @@ private:
      */
     std::pair<int,int> extractSizeAndAddressLength( std::vector<uint8_t> stored_data);
     /**
-     * @brief Method for downloading software version from drive
-     * 
-     * @param version_file_id 
-     */
-    void RequestDownloadService::downloadSoftwareVersion(std::string version_file_id);
-    /**
      * @brief Response to request download
      * 
      * @param receiver_id 
