@@ -803,15 +803,17 @@ transferData_coverage: transferDataTest
 	gcov -o obj/TransferData_test.gcno obj/TransferData_test.gcda $(OTA_DIR)/transfer_data/src/TransferData.cpp
 	mv TransferData.cpp.gcov coverage/out_TransferData
 
+
+
 # BatteryModule Coverage - solo job
-batteryModuleCoverage: receiveFrames_coverage
+batteryModuleCoverage: batteryModule_coverage
 	lcov --capture --directory . --output-file coverage.info
 	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
 	lcov --remove coverage.info '/test/' --output-file coverage.info
 	genhtml coverage_filtered.info --output-directory coverage/out_BatteryModuleTest
 	xdg-open coverage/out_BatteryModuleTest/index.html
 # This job runs for allCoverage
-batteryModule_coverage: receiveFramesTest
+batteryModule_coverage: batteryModuleTest
 	./$(SRC_TEST)/batteryModuleTest.out
 	mkdir -p coverage/out_BatteryModuleTest
 	gcov -o obj/BatteryModule_test.gcno obj/BatteryModule_test.gcda $(SRC_TEST)/BatteryModule.cpp
