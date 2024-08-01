@@ -14,6 +14,16 @@ from actions.base_actions import *  # Assuming this imports necessary actions
 import time
 
 
+class ToJSON():
+    def _to_json(self, status: str, no_errors):
+        response = {
+            "status_download": status,
+            "errors": no_errors,
+            "time_stamp": datetime.datetime.now().isoformat()
+        }
+        return response
+
+
 class Updates(Action):
     """
     Update class for managing software updates on an Electronic Control Unit (ECU).
@@ -40,11 +50,15 @@ class Updates(Action):
           indicating that the latest version is already installed.
         """
         self.data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-        self.id = (self.my_id * 0x100) + ecu_id
+        self.id = (self.my_id * 0x100) + int(ecu_id, 16)
 
         try:
-            # Verify if the current version matches the desired version
-            self._verify_version(version)
+
+            current_version = self._verify_version(version)
+            if current_version == version:
+                response_json = ToJSON()._to_json(f"Version {version} already installed", 0)
+                self.bus.shutdown()
+                return response_json
             log_info_message(logger, "Proceeding to download new version")
 
             # Change session to initiate download process
@@ -54,7 +68,6 @@ class Updates(Action):
 
             self._authentication(self.id)
 
-            # Download the software update data
             log_info_message(logger, "Downloading... Please wait")
             self._download_data(self.data)
 
@@ -75,7 +88,7 @@ class Updates(Action):
             no_errors = self._check_errors()
 
             # Generate a JSON response indicating the success of the update
-            response_json = self._to_json("downloaded", no_errors)
+            response_json = ToJSON()._to_json("downloaded", no_errors)
 
             # Shutdown the CAN bus interface
             self.bus.shutdown()
@@ -121,11 +134,7 @@ class Updates(Action):
         """
         log_info_message(logger, "Reading current version")
         current_version = self._read_by_identifier(self.id, IDENTIFIER_SYSTEM_ECU_FLASH_SOFTWARE_VERSION_NUMBER)
-
-        if current_version == version:
-            log_info_message(logger, "Already installed latest version")
-            response_json = self._to_json("already installed", 0)
-            raise CustomError(response_json)
+        return current_version
 
     def _check_errors(self):
         """
@@ -144,21 +153,3 @@ class Updates(Action):
             number_of_dtc = response.data[5]
             log_info_message(logger, f"There are {number_of_dtc} errors found after download")
             return number_of_dtc
-
-    def _to_json(self, status: str, no_errors):
-        """
-        Private method to create a JSON response with status and error information.
-
-        Args:
-        - status: Status of the download process ("downloaded" or "already installed").
-        - no_errors: Number of errors found in the ECU after the update.
-
-        Returns:
-        - JSON-formatted response containing status, errors, and timestamp.
-        """
-        response_to_frontend = {
-            "status_download": status,
-            "errors": no_errors,
-            "time_stamp": datetime.datetime.now().isoformat()
-        }
-        return response_to_frontend
