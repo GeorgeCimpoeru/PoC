@@ -137,6 +137,17 @@ class ReadInfo(Action):
             id_battery = self.id_ecu[ECU_BATTERY]
             id = self.my_id * 0x100 + id_battery
 
+            level = None
+            voltage = None
+            percentage = None
+            state_of_charge = None
+            life_cycle = None
+            fully_charged = None
+            serial_number = None
+            range_battery = None
+            charging_time = None
+            device_consumption = None
+
             level = self._read_by_identifier(id, IDENTIFIER_BATTERY_ENERGY_LEVEL)
             voltage = self._read_by_identifier(id, IDENTIFIER_BATTERY_VOLTAGE)
             percentage = self._read_by_identifier(id, IDENTIFIER_BATTERY_PERCENTAGE)
@@ -159,7 +170,7 @@ class ReadInfo(Action):
 
             data = [str(int(level, 16)),
                     int(voltage, 16),
-                    ((int(percentage, 16) / 255) * 100),
+                    round(((int(percentage, 16) / 255) * 100), 2),
                     battery_state_of_charge,
                     life_cycle,
                     fully_charged,
