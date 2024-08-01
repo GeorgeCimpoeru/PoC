@@ -448,6 +448,34 @@ bool RequestDownloadService::isLatestSoftwareVersion()
     return false;
 }
 
+void RequestDownloadService::downloadSoftwareVersion(std::string version_file_id)
+{
+    namespace py = pybind11;
+    py::scoped_interpreter guard{}; // start the interpreter and keep it alive
+
+    auto sys = py::module::import("sys");
+    sys.attr("path").attr("append")("/home/projectx/accademyprojects/PoC/src/ota/google_drive_api");
+
+    /* Get the created Python module */
+    py::module python_module = py::module::import("GoogleDriveApi");
+    /* From the module, get the needed functionality (gDrive object) */
+    py::object gGdrive_object = python_module.attr("gDrive");
+
+    /* Call the update method in order to check what files are on drive and can be downloaded. */
+    std::string drive_data = gGdrive_object.attr("updateDriveData")().cast<std::string>();
+    std::cout << drive_data << std::endl;
+
+    /*
+        CODE USED FOR UPLOADING FROM CPP TO GOOGLE DRIVE
+
+    std::map <std::string, std::string> file_to_upload;
+    gGdrive_object.attr("uploadFile")("main.elf", "/home/projectx/accademyprojects/PoC/src/mcu/main", "15b2q_YupkZocnALf4Iq5bHaJMXi8FHm9");
+    version_file_id = "1K3SKcTK8Tgb_Z-JadtGrckKCbHhvs90O";
+    */
+   
+    /* Call the downloadFile method from GoogleDriveApi.py */
+    gGdrive_object.attr("downloadFile")(version_file_id);
+}
 /** Use libraries for tar
  * #include <archive.h>
  * #include <archive_entry.h>
