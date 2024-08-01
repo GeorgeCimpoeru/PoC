@@ -1,6 +1,5 @@
 #Python flags needed for pybing library
 PYTHON_INCL_DIR=-I/usr/include/python3.8
-PYTHON_LIB_DIR=-I/usr/lib/python3.8
 PYTHON_LDFLAGS = $(shell python3.8-config --ldflags --embed)
 #Compiler flags
 CFLAGS = -std=c++17 -g -Wall -Werror -pthread -I./include -I./src -I../utils/include -I../utils/src -I../uds/diagnostic_session_control/include -I../uds/diagnostic_session_control/src ${PYTHON_INCL_DIR}
