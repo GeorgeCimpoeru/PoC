@@ -4,7 +4,7 @@ import Image from 'next/image';
 import './style.css';
 import ModalUDS from '../sharedComponents/ModalUDS';
 
-const DivCenter = (props: any) => {
+const DivCenterMCU = (props: any) => {
     const [jsonResp, setJsonResp] = useState('');
 
     const callApi = async () => {
@@ -47,7 +47,7 @@ const DivCenter = (props: any) => {
                     <div className="w-[30%] m-7 text-white grid justify-items-end">
                         <label htmlFor="my_modal_3"
                             className="inline-flex items-center justify-center p-2 bg-green-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-green-700">
-                            fwefe
+                            321km
                         </label>
                         <ModalUDS id="my_modal_3" cardTitle={'Parameter X'} />
                         <p>Parameter X</p>
@@ -66,7 +66,7 @@ const DivCenter = (props: any) => {
                 <div className="w-[30%] m-7 text-white">
                     <label htmlFor="my_modal_4"
                         className="inline-flex items-center justify-center p-2 bg-blue-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-blue-700">
-                        efwf
+                        4psi
                     </label>
                     <ModalUDS id="my_modal_4" cardTitle={'Parameter X'} />
                     <p>Parameter X</p>
@@ -76,7 +76,7 @@ const DivCenter = (props: any) => {
                 <div className="w-[30%] m-7 text-white grid justify-items-end">
                     <label htmlFor="my_modal_5"
                         className="inline-flex items-center justify-center p-2 bg-red-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-red-700">
-                        efdwe
+                        OFF
                     </label>
                     <ModalUDS id="my_modal_5" cardTitle={'Parameter X'} />
                     <p>Parameter X</p>
@@ -86,7 +86,7 @@ const DivCenter = (props: any) => {
                 <div className="w-[30%] m-7 text-white grid justify-items-end">
                     <label htmlFor="my_modal_6"
                         className="inline-flex items-center justify-center p-2 bg-green-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-green-700">
-                        wefcwec
+                        ON
                     </label>
                     <ModalUDS id="my_modal_6" cardTitle={'Parameter X'} />
                     <p>Parameter X</p>
@@ -96,7 +96,7 @@ const DivCenter = (props: any) => {
                 <div className="w-[30%] m-7 text-white">
                     <label htmlFor="my_modal_7"
                         className="inline-flex items-center justify-center p-2 bg-purple-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-purple-700">
-                        cwefew
+                        4Y1-SL6...
                     </label>
                     <ModalUDS id="my_modal_7" cardTitle={'Parameter X'} />
                     <p>Parameter X</p>
@@ -108,4 +108,4 @@ const DivCenter = (props: any) => {
     )
 }
 
-export default DivCenter
+export default DivCenterMCU
