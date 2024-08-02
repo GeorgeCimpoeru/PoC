@@ -2,8 +2,8 @@
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
-ReadDataByIdentifier::ReadDataByIdentifier(int socket, Logger& rdbi_logger) 
-            : generate_frames(socket, rdbi_logger), rdbi_logger(rdbi_logger)
+ReadDataByIdentifier::ReadDataByIdentifier(int socket, Logger* rdbi_logger) 
+            : generate_frames(socket, *rdbi_logger), rdbi_logger(*rdbi_logger)
 {
     this->socket = socket;
 }
@@ -18,7 +18,6 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t can_id, 
     /* Extract the first 8 bits of can_id */
     uint8_t lowerbits = can_id & 0xFF;
     uint8_t upperbits = can_id >> 8 & 0xFF;
-    LOG_INFO(rdbi_logger.GET_LOGGER(), "Log in serviciu RDBI");
     /* Check if the request size is less than 4 */
     if (request.size() < 4) {
         /* Invalid request length - prepare a negative response */
@@ -44,15 +43,15 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t can_id, 
     can_id = ((lowerbits << 8) | upperbits);
 
     /* Determine which ECU data storage to use based on the first 8 bits of can_id */
-    if ((lowerbits == 0x10 && MCU::mcu.mcu_data.find(data_identifier) != MCU::mcu.mcu_data.end()) ||
-        (lowerbits == 0x11 && battery.ecu_data.find(data_identifier) != battery.ecu_data.end())) {
+    if ((lowerbits == 0x10 && MCU::mcu->mcu_data.find(data_identifier) != MCU::mcu->mcu_data.end()) ||
+        (lowerbits == 0x11 && battery->ecu_data.find(data_identifier) != battery->ecu_data.end())) {
 
         /* Fetch the data based on the data identifier */
         if (lowerbits == 0x10) {
-            response = MCU::mcu.mcu_data.at(data_identifier);
+            response = MCU::mcu->mcu_data.at(data_identifier);
         } else {
-            battery.fetchBatteryData();
-            response = battery.ecu_data.at(data_identifier);
+            /* battery->fetchBatteryData(); */
+            response = (battery->ecu_data).at(data_identifier);
         }
 
     } else {
