@@ -39,7 +39,8 @@ MCU_OBJS = $(OBJ_DIR)/MCUModule.o \
 UTILS_OBJS = $(OBJ_DIR)/MemoryManager.o \
              $(OBJ_DIR)/Logger.o \
              $(OBJ_DIR)/GenerateFrames.o \
-             $(OBJ_DIR)/CreateInterface.o
+             $(OBJ_DIR)/CreateInterface.o \
+             $(OBJ_DIR)/NegativeResponse.o
 
 # UDS object files
 UDS_OBJS = $(OBJ_DIR)/DiagnosticSessionControl.o \
@@ -149,6 +150,9 @@ $(OBJ_DIR)/RoutineControl.o: $(UDS_DIR)/routine_control/src/RoutineControl.cpp
 
 $(OBJ_DIR)/AccessTimingParameter.o: $(UDS_DIR)/access_timing_parameters/src/AccessTimingParameter.cpp
 	$(CXX) $(CFLAGS) -c $(UDS_DIR)/access_timing_parameters/src/AccessTimingParameter.cpp -o $(OBJ_DIR)/AccessTimingParameter.o
+  
+$(OBJ_DIR)/NegativeResponse.o: $(UTILS_DIR)/NegativeResponse.cpp
+	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/NegativeResponse.cpp -o $(OBJ_DIR)/NegativeResponse.o
 
 
 #----------------------------------------------------UNIT TESTS-----------------------------------------------------
@@ -164,7 +168,8 @@ BATTERY_OBJS_TEST = $(OBJ_DIR)/BatteryModule_test.o \
 UTILS_OBJS_TEST = $(OBJ_DIR)/MemoryManager_test.o \
                   $(OBJ_DIR)/Logger_test.o \
                   $(OBJ_DIR)/CreateInterface_test.o \
-                  $(OBJ_DIR)/GenerateFrames_test.o
+                  $(OBJ_DIR)/GenerateFrames_test.o \
+                  $(OBJ_DIR)/NegativeResponse_test.o
 
 OBJS_GENERATE_TEST = $(OBJ_DIR)/Logger_test.o \
                   	 $(OBJ_DIR)/GenerateFrames_test.o
@@ -174,6 +179,10 @@ OBJS_MEMORY_TEST =   $(OBJ_DIR)/Logger_test.o \
 
 OBJS_CREATEINTERFACE_TEST = $(OBJ_DIR)/Logger_test.o \
                       		$(OBJ_DIR)/CreateInterface_test.o
+
+OBJS_NEGATIVERESPONSE_TEST = $(OBJ_DIR)/Logger_test.o \
+							 $(OBJ_DIR)/GenerateFrames_test.o \
+							 $(OBJ_DIR)/NegativeResponse_test.o \
                       		
 OBJS_LOGGER_TEST = $(OBJ_DIR)/Logger_test.o \
 
@@ -312,9 +321,13 @@ $(OBJ_DIR)/RoutineControl_test.o: $(UDS_DIR)/routine_control/src/RoutineControl.
 $(OBJ_DIR)/AccessTimingParameter_test.o: $(UDS_DIR)/access_timing_parameters/src/AccessTimingParameter.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/access_timing_parameters/src/AccessTimingParameter.cpp -o $(OBJ_DIR)/AccessTimingParameter_test.o $(CFLAGSTST2) $(LDFLAGS)
 
+$(OBJ_DIR)/NegativeResponse_test.o: $(UTILS_DIR)/NegativeResponse.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_DIR)/NegativeResponse.cpp -o $(OBJ_DIR)/NegativeResponse_test.o $(CFLAGSTST2) $(LDFLAGS)
+
 	
 # Compile all unit tests
-allTests: handleFramesTest receiveFramesTest generateFramesTest loggerTest memoryManagerTest createInterfaceTest diagnosticSessionControlTest writeDataByIdentifierTest readDataByIdentifierTest requestTransferExitTest readDtcTest clearDtcTest requestUpdateStatusTest securityAccessTest routineControlTest transferDataTest requestDownloadTest ecuResetTest accessTimingParameterTest
+allTests: handleFramesTest receiveFramesTest generateFramesTest loggerTest memoryManagerTest createInterfaceTest diagnosticSessionControlTest writeDataByIdentifierTest readDataByIdentifierTest requestTransferExitTest readDtcTest clearDtcTest requestUpdateStatusTest securityAccessTest routineControlTest transferDataTest requestDownloadTest ecuResetTest negativeResponseTest accessTimingParameterTest
+
 
 # HandleFrames Unit tests
 handleFramesTest: $(OBJ_DIR) $(SRC_TEST)/handleFramesTest.out
@@ -533,6 +546,16 @@ $(UDS_DIR)/access_timing_parameters/utest/accessTimingParameterTest.out: $(UDS_D
 $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o: $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameterTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameterTest.cpp -o $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o $(CFLAGSTST2) $(LDFLAGS)
 
+
+
+# NegativeResponse Unit tests
+negativeResponseTest: $(OBJ_DIR) $(UTILS_TEST)/negativeResponseTest.out
+
+$(UTILS_TEST)/negativeResponseTest.out: $(OBJ_DIR) $(OBJS_NEGATIVERESPONSE_TEST) $(UTILS_TEST)/NegativeResponse_test.o
+	$(CXX) $(CFLAGSTST) -o $(UTILS_TEST)/negativeResponseTest.out $(UTILS_TEST)/NegativeResponse_test.o $(OBJS_NEGATIVERESPONSE_TEST) $(CFLAGSTST2) $(LDFLAGS)
+
+$(UTILS_TEST)/NegativeResponse_test.o: $(UTILS_TEST)/NegativeResponseTest.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/NegativeResponseTest.cpp -o $(UTILS_TEST)/NegativeResponse_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 
 #----------------------------------------------------Coverage--------------------------------------------------------
@@ -795,6 +818,22 @@ ecuReset_coverage: ecuResetTest
 
 
 
+# NegativeResponse Coverage - solo job
+negativeResponseCoverage: negativeResponse_coverage
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
+	lcov --remove coverage.info '/test/' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_NegativeResponseTest
+	xdg-open coverage/out_NegativeResponseTest/index.html
+# This job runs for allCoverage
+negativeResponse_coverage: negativeResponseTest
+	./$(UTILS_TEST)/negativeResponseTest.out
+	mkdir -p coverage/out_NegativeResponse
+	gcov -o obj/NegativeResponse_test.gcno obj/NegativeResponse_test.gcda $(UTILS_DIR)/NegativeResponse.cpp
+	mv NegativeResponse.cpp.gcov coverage/out_NegativeResponse
+
+
+
 # RequestDownload Coverage - solo job
 requestDownloadCoverage: requestDownload_coverage
 	lcov --capture --directory . --output-file coverage.info
@@ -825,15 +864,17 @@ transferData_coverage: transferDataTest
 	gcov -o obj/TransferData_test.gcno obj/TransferData_test.gcda $(OTA_DIR)/transfer_data/src/TransferData.cpp
 	mv TransferData.cpp.gcov coverage/out_TransferData
 
+
+
 # BatteryModule Coverage - solo job
-batteryModuleCoverage: receiveFrames_coverage
+batteryModuleCoverage: batteryModule_coverage
 	lcov --capture --directory . --output-file coverage.info
 	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
 	lcov --remove coverage.info '/test/' --output-file coverage.info
 	genhtml coverage_filtered.info --output-directory coverage/out_BatteryModuleTest
 	xdg-open coverage/out_BatteryModuleTest/index.html
 # This job runs for allCoverage
-batteryModule_coverage: receiveFramesTest
+batteryModule_coverage: batteryModuleTest
 	./$(SRC_TEST)/batteryModuleTest.out
 	mkdir -p coverage/out_BatteryModuleTest
 	gcov -o obj/BatteryModule_test.gcno obj/BatteryModule_test.gcda $(SRC_TEST)/BatteryModule.cpp

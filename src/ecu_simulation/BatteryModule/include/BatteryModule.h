@@ -64,7 +64,7 @@ public:
     /**
      * @brief Destructor Battery Module object.
      */
-    ~BatteryModule();
+    virtual ~BatteryModule();
 
     /**
      * @brief Function to notify MCU if the module is Up & Running.
