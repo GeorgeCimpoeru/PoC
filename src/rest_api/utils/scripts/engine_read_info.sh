@@ -1,25 +1,27 @@
 #!/bin/bash
 
+# Authentication
+cansend vcan1 000010FA#0467010202
+sleep 2
+cansend vcan1 000010FA#026702
+sleep 1
+
 # Send CAN frames for reading engine information
-cansend vcan0 023#0462101024
+cansend vcan1 000012FA#0462101021
 sleep 1
-cansend vcan0 023#025003
+cansend vcan1 000012FA#0462101022
 sleep 1
-cansend vcan0 023#0141
+cansend vcan1 000012FA#0462101023
 sleep 1
-cansend vcan0 023#0142
+cansend vcan1 000012FA#0462101024
 sleep 1
-cansend vcan0 023#0143
+cansend vcan1 000012FA#0462101025
 sleep 1
-cansend vcan0 023#0144
+cansend vcan1 000012FA#0462101026
 sleep 1
-cansend vcan0 023#0145
+cansend vcan1 000012FA#0462101027
 sleep 1
-cansend vcan0 023#0146
+cansend vcan1 000012FA#0462101028
 sleep 1
-cansend vcan0 023#0147
-sleep 1
-cansend vcan0 023#0148
-sleep 1
-cansend vcan0 023#0149
+cansend vcan1 000012FA#0462101029
 sleep 1

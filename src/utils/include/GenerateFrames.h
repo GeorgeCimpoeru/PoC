@@ -266,7 +266,7 @@ class GenerateFrames
          * @param response varaible for request or response frame
          * Response&Request
          */
-        void accessTimingParameters(int id, uint8_t sub_function, bool response=false);
+        void accessTimingParameters(int id, uint8_t sub_function,std::vector<uint8_t> data_parameter, bool response=false);
         /**
          * @param id id of the frame(sender id and receiver id)
          * @param sid sid of the service id for which the Negativ response is send

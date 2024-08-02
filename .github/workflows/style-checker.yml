@@ -1,10 +1,10 @@
 name: Google C++ Style Checker
 on:
   pull_request:
-    branches: [feature/UDS, feature/OTA]
+    branches: [DEV_BE, feature/UDS, feature/OTA]
     paths: ['**.c', '**.cpp', '**.h', '**.hpp', '**.cxx', '**.hxx', '**.cc', '**.hh', '**CMakeLists.txt', 'meson.build', '**.cmake']
   push:
-    branches: [feature/UDS, feature/OTA]
+    branches: [DEV_BE, feature/UDS, feature/OTA]
     paths: ['**.c', '**.cpp', '**.h', '**.hpp', '**.cxx', '**.hxx', '**.cc', '**.hh', '**CMakeLists.txt', 'meson.build', '**.cmake']
 jobs:
   style-check:
