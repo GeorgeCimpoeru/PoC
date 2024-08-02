@@ -1,11 +1,13 @@
 ######### Makefile for BatteryModule
 ######### Author: Theodor Stoica (contact theodor.stoica@randstaddigital.com for any help)
 
-
+#Python flags
+PYTHON_INCL_DIR=-I/usr/include/python3.8
+PYTHON_LDFLAGS = $(shell python3.8-config --ldflags --embed)
 # Compiler flags
 CXX = g++
-CFLAGS = -std=c++17 -g -Wall -Werror -pthread -I./include -I../../utils/include
-LDFLAGS = -lspdlog -lfmt
+CFLAGS = -std=c++17 -g -Wall -Werror -pthread -I./include -I../../utils/include ${PYTHON_INCL_DIR}
+LDFLAGS = -lspdlog -lfmt  ${PYTHON_LDFLAGS}
 
 # Test flags
 CFLAGSTST = -std=c++17 -I/include -fprofile-arcs -ftest-coverage

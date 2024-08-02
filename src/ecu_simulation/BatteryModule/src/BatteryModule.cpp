@@ -63,7 +63,7 @@ void BatteryModule::sendNotificationToMCU()
 }
 
 /* Helper function to execute shell commands and fetch output */
-std::string BatteryModule::exec(const char *cmd)
+std::string BatteryModule::exec(char *cmd)
 {
     std::array<char, 128> buffer;
     std::string result;

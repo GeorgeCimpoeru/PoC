@@ -1,11 +1,14 @@
 ######### Makefile for MCU module
 ######### Author: Theodor Stoica (contact theodor.stoica@randstaddigital.com for any help)
 
+#Python flags needed for pybing library
+PYTHON_INCL_DIR=-I/usr/include/python3.8
+PYTHON_LDFLAGS = $(shell python3.8-config --ldflags --embed)
 
 # Compiler flags
 CXX = g++
-CFLAGS = -std=c++17 -g -Wall -Werror -pthread -I./include -I../utils/include
-LDFLAGS = -lspdlog -lfmt
+CFLAGS = -std=c++17 -g -Wall -Werror -pthread -I./include -I../utils/include ${PYTHON_INCL_DIR}
+LDFLAGS = -lspdlog -lfmt ${PYTHON_LDFLAGS}
 
 # Test flags
 CFLAGSTST = -std=c++17 -I/include -fprofile-arcs -ftest-coverage
@@ -326,9 +329,12 @@ $(OBJ_DIR)/AccessTimingParameter_test.o: $(UDS_DIR)/access_timing_parameters/src
 $(OBJ_DIR)/NegativeResponse_test.o: $(UTILS_DIR)/NegativeResponse.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_DIR)/NegativeResponse.cpp -o $(OBJ_DIR)/NegativeResponse_test.o $(CFLAGSTST2) $(LDFLAGS)
 
+
 	
 # Compile all unit tests
+
 allTests: handleFramesTest receiveFramesTest generateFramesTest loggerTest memoryManagerTest createInterfaceTest diagnosticSessionControlTest writeDataByIdentifierTest readDataByIdentifierTest requestTransferExitTest readDtcTest clearDtcTest requestUpdateStatusTest securityAccessTest routineControlTest transferDataTest requestDownloadTest ecuResetTest negativeResponseTest accessTimingParameterTest
+
 
 # HandleFrames Unit tests
 handleFramesTest: $(OBJ_DIR) $(SRC_TEST)/handleFramesTest.out
@@ -553,6 +559,7 @@ $(UTILS_TEST)/NegativeResponse_test.o: $(UTILS_TEST)/NegativeResponseTest.cpp
 
 # routineControl Coverage - solo job
 routineControlCoverage: routineControl_coverage
+
 	lcov --capture --directory . --output-file coverage.info
 	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
 	lcov --remove coverage.info '/test/' --output-file coverage.info
@@ -710,7 +717,6 @@ createInterface_coverage: createInterfaceTest
 	mkdir -p coverage/out_CreateInterface
 	gcov -o obj/CreateInterface_test.gcno obj/CreateInterface_test.gcda $(UTILS_DIR)/CreateInterface.cpp
 	mv CreateInterface.cpp.gcov coverage/out_CreateInterface
-
 
 
 # HandleFrames Coverage - solo job
@@ -872,6 +878,13 @@ negativeResponse_coverage: negativeResponseTest
 
 allCoverage: securityAccess_coverage routineControl_coverage transferData_coverage requestDownload_coverage ecuReset_coverage memoryManager_coverage logger_coverage generateFrames_coverage receiveFrames_coverage handleFrames_coverage createInterface_coverage diagnosticSessionControl_coverage writeDataByIdentifier_coverage readDataByIdentifier_coverage requestTransferExit_coverage clearDtc_coverage readDtc_coverage requestUpdateStatus_coverage negativeResponse_coverage accessTimingParameter_coverage
 
+
+TransferData_coverage: ../ota/transfer_data/utest/TransferDataTest.cpp ../ota/transfer_data/src/TransferData.cpp
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../ota/transfer_data/utest/TransferDataTest ../ota/transfer_data/utest/TransferDataTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	../../ota/transfer_data/src/TransferDataTest
+	mkdir -p coverage/out_TransferData
+	gcov -o . ../ota/transfer_data/utest/TransferDataTest.cpp
+	mv TransferDataTest.cpp.gcov coverage/out_TransferData
 
 allCoveragePostProcess:
 	lcov --capture --directory . --output-file coverage.info

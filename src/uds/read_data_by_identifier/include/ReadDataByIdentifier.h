@@ -1,6 +1,6 @@
 /**
  * @file ReadDataByIdentifier.h
- * @author your name (you@domain.com)
+ * @author Mihnea Tanasevici
  * @brief This library represents the ReadDataByIdentifier UDS service.
  * It retrieves data based on the Data Identifier(DID) received in the can_frame.]
  * For example, if you want to know the battery voltage, 0x01B0 DID is responsible for that.
