@@ -50,7 +50,8 @@ UDS_OBJS = $(OBJ_DIR)/DiagnosticSessionControl.o \
            $(OBJ_DIR)/SecurityAccess.o \
            $(OBJ_DIR)/ReadDtcInformation.o \
            $(OBJ_DIR)/ClearDtc.o \
-           $(OBJ_DIR)/RoutineControl.o
+           $(OBJ_DIR)/RoutineControl.o \
+		   $(OBJ_DIR)/AccessTimingParameter.o
 
 # OTA object files
 OTA_OBJS = $(OBJ_DIR)/RequestUpdateStatus.o \
@@ -147,6 +148,9 @@ $(OBJ_DIR)/ClearDtc.o: $(UDS_DIR)/clear_dtc/src/ClearDtc.cpp
 $(OBJ_DIR)/RoutineControl.o: $(UDS_DIR)/routine_control/src/RoutineControl.cpp
 	$(CXX) $(CFLAGS) -c $(UDS_DIR)/routine_control/src/RoutineControl.cpp -o $(OBJ_DIR)/RoutineControl.o
 
+$(OBJ_DIR)/AccessTimingParameter.o: $(UDS_DIR)/access_timing_parameters/src/AccessTimingParameter.cpp
+	$(CXX) $(CFLAGS) -c $(UDS_DIR)/access_timing_parameters/src/AccessTimingParameter.cpp -o $(OBJ_DIR)/AccessTimingParameter.o
+  
 $(OBJ_DIR)/NegativeResponse.o: $(UTILS_DIR)/NegativeResponse.cpp
 	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/NegativeResponse.cpp -o $(OBJ_DIR)/NegativeResponse.o
 
@@ -189,7 +193,9 @@ UDS_OBJS_TEST = $(OBJ_DIR)/DiagnosticSessionControl_test.o \
                 $(OBJ_DIR)/SecurityAccess_test.o \
                 $(OBJ_DIR)/ReadDtcInformation_test.o \
                 $(OBJ_DIR)/ClearDtc_test.o \
-                $(OBJ_DIR)/RoutineControl_test.o
+                $(OBJ_DIR)/RoutineControl_test.o \
+				$(OBJ_DIR)/AccessTimingParameter_test.o
+
 
 OBJS_DIAGNOSTICSESSIONCONTROL_TEST = $(OBJ_DIR)/Logger_test.o \
 			   						 $(OBJ_DIR)/GenerateFrames_test.o \
@@ -234,6 +240,10 @@ OBJS_REQUESTDOWNLOAD_TEST = $(OBJ_DIR)/Logger_test.o \
 OBJS_TRANSFERDATA_TEST = $(OBJ_DIR)/Logger_test.o \
 			   			  $(OBJ_DIR)/GenerateFrames_test.o \
 			   			  $(OBJ_DIR)/TransferData_test.o
+
+OBJS_ACCESSTIMINGPARAMETER_TEST = $(OBJ_DIR)/Logger_test.o \
+			   						 $(OBJ_DIR)/GenerateFrames_test.o \
+			   						 $(OBJ_DIR)/AccessTimingParameter_test.o
 
 OBJS_TEST = $(MCU_OBJS_TEST) \
             $(BATTERY_OBJS_TEST) \
@@ -308,13 +318,16 @@ $(OBJ_DIR)/ClearDtc_test.o: $(UDS_DIR)/clear_dtc/src/ClearDtc.cpp
 $(OBJ_DIR)/RoutineControl_test.o: $(UDS_DIR)/routine_control/src/RoutineControl.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/routine_control/src/RoutineControl.cpp -o $(OBJ_DIR)/RoutineControl_test.o $(CFLAGSTST2) $(LDFLAGS)
 
+$(OBJ_DIR)/AccessTimingParameter_test.o: $(UDS_DIR)/access_timing_parameters/src/AccessTimingParameter.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/access_timing_parameters/src/AccessTimingParameter.cpp -o $(OBJ_DIR)/AccessTimingParameter_test.o $(CFLAGSTST2) $(LDFLAGS)
+
 $(OBJ_DIR)/NegativeResponse_test.o: $(UTILS_DIR)/NegativeResponse.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_DIR)/NegativeResponse.cpp -o $(OBJ_DIR)/NegativeResponse_test.o $(CFLAGSTST2) $(LDFLAGS)
 
-
 	
 # Compile all unit tests
-allTests: handleFramesTest receiveFramesTest generateFramesTest loggerTest memoryManagerTest createInterfaceTest diagnosticSessionControlTest writeDataByIdentifierTest readDataByIdentifierTest requestTransferExitTest readDtcTest clearDtcTest requestUpdateStatusTest securityAccessTest routineControlTest transferDataTest requestDownloadTest ecuResetTest negativeResponseTest
+allTests: handleFramesTest receiveFramesTest generateFramesTest loggerTest memoryManagerTest createInterfaceTest diagnosticSessionControlTest writeDataByIdentifierTest readDataByIdentifierTest requestTransferExitTest readDtcTest clearDtcTest requestUpdateStatusTest securityAccessTest routineControlTest transferDataTest requestDownloadTest ecuResetTest negativeResponseTest accessTimingParameterTest
+
 
 # HandleFrames Unit tests
 handleFramesTest: $(OBJ_DIR) $(SRC_TEST)/handleFramesTest.out
@@ -522,6 +535,16 @@ $(OTA_DIR)/transfer_data/utest/transferDataTest.out: $(OBJ_DIR) $(OBJS_TRANSFERD
 
 $(OTA_DIR)/transfer_data/utest/TransferData_test.o: $(OTA_DIR)/transfer_data/utest/TransferDataTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(OTA_DIR)/transfer_data/utest/TransferDataTest.cpp -o $(OTA_DIR)/transfer_data/utest/TransferData_test.o $(CFLAGSTST2) $(LDFLAGS)
+
+
+# AccessTimingParameter Unit tests
+accessTimingParameterTest: $(OBJ_DIR) $(UDS_DIR)/access_timing_parameters/utest/accessTimingParameterTest.out
+
+$(UDS_DIR)/access_timing_parameters/utest/accessTimingParameterTest.out: $(UDS_DIR) $(OBJS_ACCESSTIMINGPARAMETER_TEST) $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o
+	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/access_timing_parameters/utest/accessTimingParameterTest.out $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o $(OBJS_ACCESSTIMINGPARAMETER_TEST) $(CFLAGSTST2) $(LDFLAGS)
+
+$(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o: $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameterTest.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameterTest.cpp -o $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 
 
@@ -857,8 +880,22 @@ batteryModule_coverage: batteryModuleTest
 	gcov -o obj/BatteryModule_test.gcno obj/BatteryModule_test.gcda $(SRC_TEST)/BatteryModule.cpp
 	mv BatteryModule.cpp.gcov coverage/out_BatteryModule
 
+# AccessTimingParameter Coverage - solo job
+accessTimingParameterCoverage: accessTimingParameter_coverage
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
+	lcov --remove coverage.info '/test/' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_AccessTimingParameterTest
+	xdg-open coverage/out_AccessTimingParameterTest/index.html
+# This job runs for allCoverage
+accessTimingParameter_coverage: accessTimingParameterTest
+	./$(UDS_DIR)/access_timing_parameters/utest/accessTimingParameterTest.out
+	mkdir -p coverage/out_AccessTimingParameterTest
+	gcov -o obj/AccessTimingParameter_test.gcno obj/AccessTimingParameter_test.gcda $(UDS_DIR)/access_timing_parameters/src/AccessTimingParameter.cpp
+	mv AccessTimingParameter.cpp.gcov coverage/out_AccessTimingParameter
 
-allCoverage: securityAccess_coverage routineControl_coverage transferData_coverage requestDownload_coverage ecuReset_coverage memoryManager_coverage logger_coverage generateFrames_coverage receiveFrames_coverage handleFrames_coverage createInterface_coverage diagnosticSessionControl_coverage writeDataByIdentifier_coverage readDataByIdentifier_coverage requestTransferExit_coverage clearDtc_coverage readDtc_coverage requestUpdateStatus_coverage batteryModule_coverage
+
+allCoverage: securityAccess_coverage routineControl_coverage transferData_coverage requestDownload_coverage ecuReset_coverage memoryManager_coverage logger_coverage generateFrames_coverage receiveFrames_coverage handleFrames_coverage createInterface_coverage diagnosticSessionControl_coverage writeDataByIdentifier_coverage readDataByIdentifier_coverage requestTransferExit_coverage clearDtc_coverage readDtc_coverage requestUpdateStatus_coverage batteryModule_coverage accessTimingParameter_coverage
 
 
 
@@ -892,7 +929,8 @@ SUB_DIRS_UDS := \
     read_memory_by_adress \
     routine_control \
     tester_present \
-    write_data_by_identifier
+    write_data_by_identifier \
+	access_timing_parameters
 FULL_SUB_DIRS_UDS := $(addprefix $(BASE_DIR_1)/, $(SUB_DIRS_UDS))
 
 SUB_DIRS_OTA := \

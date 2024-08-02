@@ -2,11 +2,10 @@
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
-WriteDataByIdentifier::WriteDataByIdentifier(canid_t frame_id, std::vector<uint8_t> frame_data, Logger& wdbi_logger, int socket)
+WriteDataByIdentifier::WriteDataByIdentifier(Logger& wdbi_logger, int socket)
             : generate_frames(socket, wdbi_logger), wdbi_logger(wdbi_logger)
 {   
     this->socket = socket;
-    WriteDataByIdentifierService(frame_id, frame_data);
 }
 
 WriteDataByIdentifier::~WriteDataByIdentifier()
@@ -122,6 +121,6 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
 
         /* Check on which socket to send the frame */
-        generate_frames.writeDataByIdentifier(id, did, data_parameter);
+        generate_frames.writeDataByIdentifier(id, did, {});
     }
 };

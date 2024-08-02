@@ -477,7 +477,7 @@ void GenerateFrames::clearDiagnosticInformation(int id, std::vector<uint8_t> gro
     return;
 }
 
-void GenerateFrames::accessTimingParameters(int id, uint8_t sub_function, bool response)
+void GenerateFrames::accessTimingParameters(int id, uint8_t sub_function, std::vector<uint8_t> data_parameter, bool response)
 {
     if (!response)
     {
@@ -485,9 +485,17 @@ void GenerateFrames::accessTimingParameters(int id, uint8_t sub_function, bool r
         this->sendFrame(id, data);
         return;
     }
-    std::vector<uint8_t> data = {0x02, 0xC3, sub_function};
-    this->sendFrame(id, data);
-    return;
+    else if(!data_parameter.size())
+    {
+        std::vector<uint8_t> data = {0x02, 0x3c, sub_function};
+        this->sendFrame(id, data);
+        return;
+    }
+    else
+    {
+        this->sendFrame(id, data_parameter);
+        return;
+    }
 }
 
 void GenerateFrames::negativeResponse(int id, uint8_t sid, uint8_t nrc)
