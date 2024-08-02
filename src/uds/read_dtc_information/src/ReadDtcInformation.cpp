@@ -149,7 +149,7 @@ int ReadDTC::dtc_to_hex(std::string dtc)
 {
     std::map<char,uint8_t> first_byte =
     {
-        {'P',00}, {'C',01}, {'B',2}, {'u',3}
+        {'P',00}, {'C',01}, {'B',2}, {'U',3}
     };
     int hex = (first_byte[dtc[0]]<<6) | (to_int(dtc [1])<<4) | to_int(dtc[2]);
     hex = hex * 0x100 + to_int(dtc[3]) * 0x10 + to_int(dtc[4]);

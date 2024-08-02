@@ -1,29 +1,24 @@
 #include "../include/MCUModule.h"
 
-#ifndef UNIT_TESTING_MODE
-Logger MCULogger("MCULogger", "logs/MCULogs.log");
-#else
-Logger MCULogger;
-#endif /* UNIT_TESTING_MODE */
+Logger* MCULogger = nullptr;
 namespace MCU
 {
-    MCUModule mcu(0x01);
+    MCUModule* mcu = nullptr;
     /* Constructor */
     MCUModule::MCUModule(uint8_t interfaces_number) : 
                     is_running(false),
-                    create_interface(CreateInterface::getInstance(interfaces_number, MCULogger)),
+                    create_interface(CreateInterface::getInstance(interfaces_number, *MCULogger)),
                     receive_frames(nullptr),
                     mcu_api_socket(create_interface->createSocket(interfaces_number)),
                     mcu_ecu_socket(create_interface->createSocket(interfaces_number >> 4))
                     {
 
         receive_frames = new ReceiveFrames(mcu_ecu_socket, mcu_api_socket);
-        WriteDataByIdentifier WDBI(0x1111FA10, {PCI_L, WRITE_DATA_BY_IDENTIFIER_SID, OTA_UPDATE_STATUS_DID_MSB, OTA_UPDATE_STATUS_DID_LSB, IDLE}, MCULogger, mcu_api_socket);
     }
 
     /* Default constructor */
     MCUModule::MCUModule() : is_running(false),
-                         create_interface(CreateInterface::getInstance(0x01, MCULogger)),
+                         create_interface(CreateInterface::getInstance(0x01, *MCULogger)),
                          receive_frames(nullptr) {}
 
     /* Destructor */

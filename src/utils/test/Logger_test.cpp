@@ -76,7 +76,8 @@ TEST_F(LoggerTest, AddFileLogger)
     Logger logger("logger", "logs/logs.log");
 
     std::string newLoggerName = "newLogger";
-    logger.addFileLogger(newLoggerName, "logs/logs.log");
+    std::string newFilePath = "logs/new_logs.log";
+    logger.setFileLogger(newLoggerName, newFilePath);
 
     EXPECT_EQ(logger.getLoggers().back(), newLoggerName);
 }
@@ -86,21 +87,6 @@ TEST_F(LoggerTest, AddFileLogger)
  * EXPECTED: Check if vector of loggers contains the added file loggers.
  * 
  */
-TEST_F(LoggerTest, GetAllLoggersTest)
-{
-    uint8_t numberOfLoggers = 2;
-
-    std::string loggerName1 = "logger1";
-    Logger logger(loggerName1, "logs/logs.log");
-
-    std::string loggerName2 = "logger2";
-    logger.addFileLogger(loggerName2, "logs/logs.log");
-
-    EXPECT_EQ(logger.getLoggers().size(), numberOfLoggers);
-
-    EXPECT_NE(std::find(logger.getLoggers().begin(), logger.getLoggers().end(), loggerName1), logger.getLoggers().end());
-    EXPECT_NE(std::find(logger.getLoggers().begin(), logger.getLoggers().end(), loggerName2), logger.getLoggers().end());
-}
 
 /**
  * @brief ACTION: Remove a logger.

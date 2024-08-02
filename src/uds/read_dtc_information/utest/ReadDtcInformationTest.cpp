@@ -37,7 +37,7 @@ class CaptureFrame
         struct can_frame frame;
         void capture()
         {
-            int nbytes = read(socket_, &frame, sizeof(struct can_frame));
+            read(socket_, &frame, sizeof(struct can_frame));
         }
 };
 
@@ -56,7 +56,6 @@ int createSocket()
 {
     /* Create socket */
     std::string name_interface = "vcan0";
-    struct can_frame frame;
     struct sockaddr_can addr;
     struct ifreq ifr;
     int s;
@@ -109,7 +108,7 @@ struct ReadDtcTest : testing::Test
     ReadDtcTest()
     {
         logger = new Logger("log_test_read_dtc","./log_test_read_dtc.log");
-        r = new ReadDTC(*logger, "./dtcs.txt",socket2_);
+        r = new ReadDTC(*logger, "../dtcs.txt",socket2_);
         c1 = new CaptureFrame();
     }
     ~ReadDtcTest()
