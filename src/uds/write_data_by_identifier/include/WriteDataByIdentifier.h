@@ -1,6 +1,6 @@
 /**
  * @file WriteDataByIdentifier.h
- * @author your name (you@domain.com)
+ * @author Dirva Nicolae
  * @brief This library represents the WriteDataByIdentifier UDS service.
  * It writes data based on the Data Identifier (DID) received in the CAN frame.
  * For example, if you want to update the battery voltage, 0x01B0 DID is responsible for that.
@@ -8,6 +8,8 @@
  * The positive response frame sent by the service will have the format: frame.data = {PCI_L(1byte), RESPONSE_SID(1byte = 0x6E), DID(2bytes)}
  * The negative response frame sent by the service will have the format: frame.data = {PCI_L(1byte), 0x7F, SID(1byte = 0x2E), NRC(1byte)}
  */
+#ifndef UDS_WDBI_SERVICE
+#define UDS_WDBI_SERVICE
 
 #include <iostream>
 #include <vector>
@@ -25,9 +27,6 @@
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../../utils/include/Logger.h"
 
-#ifndef UDS_WDBI_SERVICE
-#define UDS_WDBI_SERVICE
-
 class WriteDataByIdentifier
 {
 private:
@@ -43,7 +42,7 @@ public:
      * @param frame_data 
      * @param WDBILogger 
      */
-    WriteDataByIdentifier(canid_t frame_id, std::vector<uint8_t> frame_data, Logger& wdbi_logger, int socket);
+    WriteDataByIdentifier(Logger& wdbi_logger, int socket);
     /**
      * @brief Destroy the Write Data By Identifier object
      * 
