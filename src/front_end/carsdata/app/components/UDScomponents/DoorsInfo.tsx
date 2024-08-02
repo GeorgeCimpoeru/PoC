@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const BatteryInfo = () => {
+const DoorsInfo = () => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -8,7 +8,7 @@ const BatteryInfo = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch('http://127.0.0.1:5000/api/read_info_battery', {
+                const response = await fetch('http://127.0.0.1:5000/api/read_info_doors', {
                     cache: 'no-store'
                 });
                 if (!response.ok) {
@@ -25,11 +25,7 @@ const BatteryInfo = () => {
         };
 
         fetchData();
-    }, []); // Empty dependency array ensures this runs once after the initial render
-
-    if (loading) {
-        return <div>Loading...</div>;
-    }
+    }, []);
 
     if (error) {
         return <div>Error: {error.message}</div>;
@@ -45,7 +41,7 @@ const BatteryInfo = () => {
 
     return (
         <div className="overflow-x-auto">
-            <h2>Battery Info</h2>
+            <h2>Doors Info</h2>
             <table className="table">
                 <thead>
                     <tr>
@@ -66,4 +62,4 @@ const BatteryInfo = () => {
     );
 };
 
-export default BatteryInfo;
+export default DoorsInfo;
