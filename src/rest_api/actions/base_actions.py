@@ -76,7 +76,6 @@ How to create a new class action, example:
 """
 
 import can
-import json
 import datetime
 from actions.generate_frames import GenerateFrame as GF
 from utils.logger import *
@@ -276,6 +275,30 @@ class Action:
         data_str = self._list_to_number(data)
         return data_str
 
+    def _write_by_identifier(self, id, identifier, value):
+        """
+        Function to read data from a specific identifier. The function requests, reads the data, and processes it.
+
+        Args:
+        - identifier: Identifier of the data.
+
+        Returns:
+        - Data as a string.
+        """
+        log_info_message(logger, "Write by identifier {identifier}")
+        value_list = self._number_to_list(value)
+
+        if isinstance(value_list, list) and len(value_list) > 4:
+            self.generate.write_data_by_identifier_long(id, identifier, value_list)
+        else:
+            self.generate.write_data_by_identifier(id, identifier, value_list)
+            self._passive_response(WRITE_BY_IDENTIFIER, f"Error writing {identifier}")
+
+        self.generate.write_data_by_identifier(id, identifier, value_list)
+        self._passive_response(WRITE_BY_IDENTIFIER, f"Error reading data from identifier {identifier}")
+
+        return True
+
     def __algorithm(self, seed: list):
         """
         Method to generate a key based on the seed.
@@ -287,7 +310,6 @@ class Action:
         """
         Function to authenticate. Makes the proper request to the ECU.
         """
-        log_info_message(logger, "-"*60)
         log_info_message(logger, "Authenticating")
         self.generate.authentication_seed(id,
                                           sid_send=AUTHENTICATION_SEND,
@@ -337,7 +359,12 @@ class Action:
 
     # Implement in the child class
     def _to_json(self, status, no_errors):
-        pass
+        response_to_frontend = {
+            "status": status,
+            "No of errors": no_errors,
+            "time_stamp": datetime.datetime.now().isoformat()
+        }
+        return response_to_frontend
 
     def _to_json_error(self, error, no_errors):
         response_to_frontend = {
@@ -345,7 +372,7 @@ class Action:
             "No of errors": no_errors,
             "time_stamp": datetime.datetime.now().isoformat()
         }
-        return json.dumps(response_to_frontend)
+        return response_to_frontend
 
     def _list_to_number(self, list: list):
         number = ""
@@ -354,3 +381,18 @@ class Action:
                 number += "0"
             number += hex(item)[2:]
         return number
+
+    def _number_to_list(self, number: int) -> list:
+        list = []
+        while number:
+            list.append(number % 0x100)
+            number = number//0x100
+        return list[::-1]
+
+    def _number_to_byte_list(self, number: int):
+        """Converts a number to a list of bytes."""
+        byte_list = []
+        while number > 0:
+            byte_list.insert(0, number & 0xFF)
+            number = number >> 8
+        return byte_list
