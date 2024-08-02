@@ -39,7 +39,8 @@ MCU_OBJS = $(OBJ_DIR)/MCUModule.o \
 UTILS_OBJS = $(OBJ_DIR)/MemoryManager.o \
              $(OBJ_DIR)/Logger.o \
              $(OBJ_DIR)/GenerateFrames.o \
-             $(OBJ_DIR)/CreateInterface.o
+             $(OBJ_DIR)/CreateInterface.o \
+             $(OBJ_DIR)/NegativeResponse.o
 
 # UDS object files
 UDS_OBJS = $(OBJ_DIR)/DiagnosticSessionControl.o \
@@ -146,6 +147,9 @@ $(OBJ_DIR)/ClearDtc.o: $(UDS_DIR)/clear_dtc/src/ClearDtc.cpp
 $(OBJ_DIR)/RoutineControl.o: $(UDS_DIR)/routine_control/src/RoutineControl.cpp
 	$(CXX) $(CFLAGS) -c $(UDS_DIR)/routine_control/src/RoutineControl.cpp -o $(OBJ_DIR)/RoutineControl.o
 
+$(OBJ_DIR)/NegativeResponse.o: $(UTILS_DIR)/NegativeResponse.cpp
+	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/NegativeResponse.cpp -o $(OBJ_DIR)/NegativeResponse.o
+
 
 #----------------------------------------------------UNIT TESTS-----------------------------------------------------
 
@@ -160,7 +164,8 @@ BATTERY_OBJS_TEST = $(OBJ_DIR)/BatteryModule_test.o \
 UTILS_OBJS_TEST = $(OBJ_DIR)/MemoryManager_test.o \
                   $(OBJ_DIR)/Logger_test.o \
                   $(OBJ_DIR)/CreateInterface_test.o \
-                  $(OBJ_DIR)/GenerateFrames_test.o
+                  $(OBJ_DIR)/GenerateFrames_test.o \
+                  $(OBJ_DIR)/NegativeResponse_test.o
 
 OBJS_GENERATE_TEST = $(OBJ_DIR)/Logger_test.o \
                   	 $(OBJ_DIR)/GenerateFrames_test.o
@@ -170,6 +175,10 @@ OBJS_MEMORY_TEST =   $(OBJ_DIR)/Logger_test.o \
 
 OBJS_CREATEINTERFACE_TEST = $(OBJ_DIR)/Logger_test.o \
                       		$(OBJ_DIR)/CreateInterface_test.o
+
+OBJS_NEGATIVERESPONSE_TEST = $(OBJ_DIR)/Logger_test.o \
+							 $(OBJ_DIR)/GenerateFrames_test.o \
+							 $(OBJ_DIR)/NegativeResponse_test.o \
                       		
 OBJS_LOGGER_TEST = $(OBJ_DIR)/Logger_test.o \
 
@@ -299,10 +308,13 @@ $(OBJ_DIR)/ClearDtc_test.o: $(UDS_DIR)/clear_dtc/src/ClearDtc.cpp
 $(OBJ_DIR)/RoutineControl_test.o: $(UDS_DIR)/routine_control/src/RoutineControl.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/routine_control/src/RoutineControl.cpp -o $(OBJ_DIR)/RoutineControl_test.o $(CFLAGSTST2) $(LDFLAGS)
 
+$(OBJ_DIR)/NegativeResponse_test.o: $(UTILS_DIR)/NegativeResponse.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_DIR)/NegativeResponse.cpp -o $(OBJ_DIR)/NegativeResponse_test.o $(CFLAGSTST2) $(LDFLAGS)
+
 
 	
 # Compile all unit tests
-allTests: handleFramesTest receiveFramesTest generateFramesTest loggerTest memoryManagerTest createInterfaceTest diagnosticSessionControlTest writeDataByIdentifierTest readDataByIdentifierTest requestTransferExitTest readDtcTest clearDtcTest requestUpdateStatusTest securityAccessTest routineControlTest transferDataTest requestDownloadTest ecuResetTest
+allTests: handleFramesTest receiveFramesTest generateFramesTest loggerTest memoryManagerTest createInterfaceTest diagnosticSessionControlTest writeDataByIdentifierTest readDataByIdentifierTest requestTransferExitTest readDtcTest clearDtcTest requestUpdateStatusTest securityAccessTest routineControlTest transferDataTest requestDownloadTest ecuResetTest negativeResponseTest
 
 # HandleFrames Unit tests
 handleFramesTest: $(OBJ_DIR) $(SRC_TEST)/handleFramesTest.out
@@ -511,6 +523,16 @@ $(OTA_DIR)/transfer_data/utest/transferDataTest.out: $(OBJ_DIR) $(OBJS_TRANSFERD
 $(OTA_DIR)/transfer_data/utest/TransferData_test.o: $(OTA_DIR)/transfer_data/utest/TransferDataTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(OTA_DIR)/transfer_data/utest/TransferDataTest.cpp -o $(OTA_DIR)/transfer_data/utest/TransferData_test.o $(CFLAGSTST2) $(LDFLAGS)
 
+
+
+# NegativeResponse Unit tests
+negativeResponseTest: $(OBJ_DIR) $(UTILS_TEST)/negativeResponseTest.out
+
+$(UTILS_TEST)/negativeResponseTest.out: $(OBJ_DIR) $(OBJS_NEGATIVERESPONSE_TEST) $(UTILS_TEST)/NegativeResponse_test.o
+	$(CXX) $(CFLAGSTST) -o $(UTILS_TEST)/negativeResponseTest.out $(UTILS_TEST)/NegativeResponse_test.o $(OBJS_NEGATIVERESPONSE_TEST) $(CFLAGSTST2) $(LDFLAGS)
+
+$(UTILS_TEST)/NegativeResponse_test.o: $(UTILS_TEST)/NegativeResponseTest.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/NegativeResponseTest.cpp -o $(UTILS_TEST)/NegativeResponse_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 
 #----------------------------------------------------Coverage--------------------------------------------------------
@@ -770,6 +792,22 @@ ecuReset_coverage: ecuResetTest
 	mkdir -p coverage/out_EcuReset
 	gcov -o obj/EcuReset_test.gcno obj/EcuReset_test.gcda $(UDS_DIR)/ecu_reset/src/EcuReset.cpp
 	mv EcuReset.cpp.gcov coverage/out_EcuReset
+
+
+
+# NegativeResponse Coverage - solo job
+negativeResponseCoverage: negativeResponse_coverage
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
+	lcov --remove coverage.info '/test/' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_NegativeResponseTest
+	xdg-open coverage/out_NegativeResponseTest/index.html
+# This job runs for allCoverage
+negativeResponse_coverage: negativeResponseTest
+	./$(UTILS_TEST)/negativeResponseTest.out
+	mkdir -p coverage/out_NegativeResponse
+	gcov -o obj/NegativeResponse_test.gcno obj/NegativeResponse_test.gcda $(UTILS_DIR)/NegativeResponse.cpp
+	mv NegativeResponse.cpp.gcov coverage/out_NegativeResponse
 
 
 
