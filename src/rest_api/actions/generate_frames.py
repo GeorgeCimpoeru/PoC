@@ -1,7 +1,10 @@
 import can
 from utils.logger import SingletonLogger
 from config import Config
+import threading
 
+
+can_lock = threading.Lock()
 
 logger_singleton = SingletonLogger('logger.log')
 logger = logger_singleton.logger
@@ -17,11 +20,12 @@ class GenerateFrame:
             self.bus = bus
 
     def send_frame(self, id, data):
-        message = can.Message(arbitration_id=id, data=data, is_extended_id=True)
-        try:
-            self.bus.send(message)
-        except can.CanError:
-            print("Message not sent")
+        with can_lock:
+            message = can.Message(arbitration_id=id, data=data, is_extended_id=True)
+            try:
+                self.bus.send(message)
+            except can.CanError:
+                print("Message not sent")
 
     def control_frame(self, id):
         data = [0x30, 0x00, 0x00, 0x00]
@@ -122,14 +126,14 @@ class GenerateFrame:
             if response is False else [4, 0x31, sub_funct, routine_id // 0x100, routine_id % 0x100]
         self.send_frame(id, data)
 
-    def authentication_seed(self, id, seed=[]):
+    def authentication_seed(self, id, sid_send, sid_recv, subf, seed=[]):
         length_seed = len(seed)
-        data = [length_seed + 2, 0x69, 0x1] + seed if length_seed > 0 else [2, 0x29, 0x1]
+        data = [length_seed + 2, sid_recv, subf] + seed if length_seed > 0 else [2, sid_send, subf]
         self.send_frame(id, data)
 
-    def authentication_key(self, id, key=[]):
+    def authentication_key(self, id, sid_send, sid_recv, subf, key=[]):
         length_key = len(key)
-        data = [length_key + 2, 0x29, 0x2] + key if length_key > 0 else [2, 0x69, 0x2]
+        data = [length_key + 2, sid_recv, subf] + key if length_key > 0 else [2, sid_send, subf]
         self.send_frame(id, data)
 
     def tester_present(self, id, response=False):
