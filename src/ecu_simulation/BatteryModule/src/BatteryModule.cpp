@@ -150,7 +150,8 @@ void BatteryModule::fetchBatteryData()
     try
     {
         /* Execute the shell command to read System Info about Battery */
-        std::string data = exec("upower -i /org/freedesktop/UPower/devices/battery_BAT0");
+        char* path = strdup("upower -i /org/freedesktop/UPower/devices/battery_BAT0");
+        std::string data = exec(path);
         /* Call the function in order to parse the datas */
         parseBatteryInfo(data, energy, voltage, percentage, state);
 
