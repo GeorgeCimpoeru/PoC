@@ -1,25 +1,22 @@
 #include "../include/BatteryModule.h"
 
-#ifdef UNIT_TESTING_MODE
-Logger batteryModuleLogger;
-#else
-Logger batteryModuleLogger("batteryModuleLogger", "logs/batteryModuleLogger.log");
-#endif /* UNIT_TESTING_MODE */
-BatteryModule battery;
+
+Logger* batteryModuleLogger = nullptr;
+BatteryModule* battery = nullptr;
 /** Constructor - initializes the BatteryModule with default values,
  * sets up the CAN interface, and prepares the frame receiver. */
 BatteryModule::BatteryModule() : moduleId(0x11),
                                  energy(0.0),
                                  voltage(0.0),
                                  percentage(0.0),
-                                 canInterface(CreateInterface::getInstance(0x00, batteryModuleLogger)),
+                                 canInterface(CreateInterface::getInstance(0x00, *batteryModuleLogger)),
                                  frameReceiver(nullptr)
 {
     battery_socket = canInterface->createSocket(0x00);
     /* Initialize the Frame Receiver */
     frameReceiver = new ReceiveFrames(battery_socket, moduleId);
 
-    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery object created successfully, ID : 0x{:X}", this->moduleId);
+    LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Battery object created successfully, ID : 0x{:X}", this->moduleId);
 
     /* Send Up-Notification to MCU */
     sendNotificationToMCU();
@@ -30,14 +27,14 @@ BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_mo
                                                                     energy(0.0),
                                                                     voltage(0.0),
                                                                     percentage(0.0),
-                                                                    canInterface(CreateInterface::getInstance(_interfaceNumber, batteryModuleLogger)),
+                                                                    canInterface(CreateInterface::getInstance(_interfaceNumber, *batteryModuleLogger)),
                                                                     frameReceiver(nullptr)
 {
     battery_socket = canInterface->createSocket(0x00);
     /* Initialize the Frame Receiver */
     frameReceiver = new ReceiveFrames(battery_socket, moduleId);
 
-    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery object created successfully using Parameterized Constructor, ID : 0x{:X}", this->moduleId);
+    LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Battery object created successfully using Parameterized Constructor, ID : 0x{:X}", this->moduleId);
 
     /* Send Up-Notification to MCU */ 
     sendNotificationToMCU();
@@ -47,14 +44,14 @@ BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_mo
 BatteryModule::~BatteryModule()
 {
     delete frameReceiver;
-    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery object out of scope");
+    LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Battery object out of scope");
 }
 
 /* Function to notify MCU if the module is Up & Running */
 void BatteryModule::sendNotificationToMCU()
 {
     /* Create an instance of GenerateFrames with the CAN socket */
-    GenerateFrames notifyFrame = GenerateFrames(battery_socket, batteryModuleLogger);
+    GenerateFrames notifyFrame = GenerateFrames(battery_socket, *batteryModuleLogger);
 
     /* Create a vector of uint8_t (bytes) containing the data to be sent */
     std::vector<uint8_t> data = {0x0, 0xff, 0x11, 0x3};
@@ -62,7 +59,7 @@ void BatteryModule::sendNotificationToMCU()
     /* Send the CAN frame with ID 0x22110 and the data vector */
     notifyFrame.sendFrame(0x1110, data);
 
-    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery module sent UP notification to MCU");
+    LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Battery module sent UP notification to MCU");
 }
 
 /* Helper function to execute shell commands and fetch output */
@@ -153,7 +150,8 @@ void BatteryModule::fetchBatteryData()
     try
     {
         /* Execute the shell command to read System Info about Battery */
-        std::string data = exec("upower -i /org/freedesktop/UPower/devices/battery_BAT0");
+        char* path = strdup("upower -i /org/freedesktop/UPower/devices/battery_BAT0");
+        std::string data = exec(path);
         /* Call the function in order to parse the datas */
         parseBatteryInfo(data, energy, voltage, percentage, state);
 
@@ -162,19 +160,19 @@ void BatteryModule::fetchBatteryData()
         this->voltage = voltage;
         this->percentage = percentage;
 
-        LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery Data : Energy: {} Wh, Voltage: {} V, Percentage: {} %, State: {}", energy, voltage, percentage, state);
+        LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Battery Data : Energy: {} Wh, Voltage: {} V, Percentage: {} %, State: {}", energy, voltage, percentage, state);
     }
     catch (const std::exception &e)
     {
         /* std::cerr << "Error fetching battery data: " << e.what() << std::endl; */
-        LOG_ERROR(batteryModuleLogger.GET_LOGGER(), "Error fetching battery data: {}", e.what());
+        LOG_ERROR(batteryModuleLogger->GET_LOGGER(), "Error fetching battery data: {}", e.what());
     }
 }
 
 /* Function to receive CAN frames */
 void BatteryModule::receiveFrames()
 {
-    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery module starts the frame receiver");
+    LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Battery module starts the frame receiver");
 
     /* Create a HandleFrames object to process received frames */
     HandleFrames handleFrames(this->battery_socket);
@@ -190,7 +188,7 @@ void BatteryModule::receiveFrames()
 void BatteryModule::stopFrames()
 {
     frameReceiver->stop();
-    LOG_INFO(batteryModuleLogger.GET_LOGGER(), "Battery module stopped the frame receiver");
+    LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Battery module stopped the frame receiver");
 }
 
 /* Getter function for current */

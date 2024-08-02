@@ -64,7 +64,7 @@ public:
     /**
      * @brief Destructor Battery Module object.
      */
-    ~BatteryModule();
+    virtual ~BatteryModule();
 
     /**
      * @brief Function to notify MCU if the module is Up & Running.
@@ -151,6 +151,6 @@ public:
      */
     void setBatterySocket(uint8_t interface_number);
 };
-extern BatteryModule battery;
+extern BatteryModule* battery;
 
 #endif

@@ -8,6 +8,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
+#ifndef UDS_SECURITY_ACCESS_H
+#define UDS_SECURITY_ACCESS_H
 
 #include <linux/can.h>
 #include <vector>
@@ -18,10 +20,8 @@
 #include <chrono>
 
 #include "../../../utils/include/GenerateFrames.h"
-#include "../../utils/include/Logger.h"
-
-#ifndef UDS_SECURITY_ACCESS_H
-#define UDS_SECURITY_ACCESS_H
+#include "../../../utils/include/Logger.h"
+#include "../../../utils/include/NegativeResponse.h"
 
 class SecurityAccess
 {
@@ -42,6 +42,8 @@ class SecurityAccess
     static constexpr uint8_t RTDNE = 0x37;
     /* Adjust delay timer here. */
     static constexpr uint8_t TIMEOUT_IN_SECONDS = 0x05;
+    /* Adjust nr of attempts here. */
+    static constexpr uint8_t MAX_NR_OF_ATTEMPTS = 3;
 
     private:
         GenerateFrames* generate_frames;

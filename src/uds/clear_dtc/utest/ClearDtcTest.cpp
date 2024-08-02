@@ -1,20 +1,22 @@
 /**
- * @file read_dtc_information_test.cpp
+ * @file ClearDtcTest.cpp
  * @author Mujdei Ruben
- * @brief Unit test for Read_dtc service
+ * @brief 
  * @version 0.1
- * @date 2024-07-03
+ * @date 2024-07-24
  * 
  * @copyright Copyright (c) 2024
  * 
- * PS: Test work with the next data in the file 'dtcs.txt':
+ * PS: Test work with the next data in the file './dtcs.txt':
  *          P0A9B-17 24
  *          P0805-11 2F
+ *          C0805-11 2F
  *          B1234-00 00
  *          P0B12-01 10
- * 
+ *          C0B12-01 10
+ * The file is created automatically!!
  */
-#include "../include/ReadDtcInformation.h"
+#include "../include/ClearDtc.h"
 
 #include <cstring>
 #include <string>
@@ -29,6 +31,8 @@ int socket_;
 int socket2_;
 /* Const */
 const int id = 0x3412;
+std::string path_to_dtc = "./dtcs.txt";
+Logger* logger = new Logger("log_test_read_dtc","./log_test_read_dtc.log");
 
 /* Class to capture the frame sin the can-bus */
 class CaptureFrame
@@ -102,64 +106,87 @@ void testFrames(struct can_frame expected_frame, CaptureFrame &c1 )
 /* Create object for all tests */
 struct ReadDtcTest : testing::Test
 {
-    ReadDTC* r;
+    ClearDtc* clear;
     CaptureFrame* c1;
-    Logger* logger;
     ReadDtcTest()
     {
-        logger = new Logger("log_test_read_dtc","./log_test_read_dtc.log");
-        r = new ReadDTC(*logger, "../dtcs.txt",socket2_);
+        clear = new ClearDtc(path_to_dtc,*logger,socket2_);
         c1 = new CaptureFrame();
     }
     ~ReadDtcTest()
     {
-        delete r;
+        delete clear;
         delete c1;
     }
 };
 
-TEST_F(ReadDtcTest, SubFunction1)
+TEST_F(ReadDtcTest, TestsSendFrame)
 {
-    struct can_frame result_frame = createFrame({0x06, 0x59, 0x01, 0x3F, 0x01, 0x00, 0x02});
+    struct can_frame result_frame = createFrame({0x01, 0x54});
 
-    r->read_dtc(0x1234, {0x4,0x19,0x01, 0x84});
+    clear->clearDtc(0x1234, {0x4,0x14,0x01,0x0A,0xAA});
     c1->capture();
     testFrames(result_frame, *c1);
 }
 
-TEST_F(ReadDtcTest, SubFunction2)
+TEST_F(ReadDtcTest, TestClearDtc)
 {
-    struct can_frame result_frame = createFrame({0x06, 0x59, 0x02, 0x3F, 0x0B, 0x12, 0x01, 0x10});
-    r->read_dtc(0x1234, {0x4,0x19,0x02, 0x10});
-    c1->capture();
-    testFrames(result_frame, *c1);
+    clear->clearDtc(0x1234, {0x4,0x14,0x01,0x0A,0xAA});
+    std::ifstream file_dtc;
+    file_dtc.open(path_to_dtc);
+    std::string line;
+    int k=0;
+    while (std::getline(file_dtc,line))
+    {
+        k++;
+    }
+    EXPECT_EQ(k,4);
 }
 
-TEST_F(ReadDtcTest, SubFunction2_Test2)
+TEST_F(ReadDtcTest, TestClearDtc2)
 {
-    struct can_frame result_frame = createFrame({0x10, 0x0B, 0x59, 0x02, 0x3F, 0x0A, 0x9B, 0x17});
-    Logger logger;
-    GenerateFrames g = GenerateFrames(socket_,logger);
-    g.flowControlFrame(0x1234);
-    r->read_dtc(0x1234, {0x4,0x19,0x02, 0x84});
-    c1->capture();
-    
-    testFrames(result_frame, *c1);
+    clear->clearDtc(0x1234, {0x4,0x14,0xFF,0xFF,0xFF});
+    std::ifstream file_dtc;
+    file_dtc.open(path_to_dtc);
+    std::string line;
+    int k=0;
+    while (std::getline(file_dtc,line))
+    {
+        k++;
+    }
+    EXPECT_EQ(k,0);
 }
 
-TEST_F(ReadDtcTest, SubFunction2_Test3)
+TEST_F(ReadDtcTest, NRC0x13Test)
 {
     testing::internal::CaptureStdout();
-    r->read_dtc(0x1234, {0x4,0x19,0x02, 0x84});
-    c1->capture();
+    clear->clearDtc(0x1234, {0x4,0x14,0x01,0x0A,0xAA,0xBB});
     std::string output = testing::internal::GetCapturedStdout();
-    EXPECT_NE(output.find("Timeout. FLow control frame not received!"), std::string::npos);
+    EXPECT_NE(output.find("Incorrect message length or invalid format"), std::string::npos);
+}
+
+TEST_F(ReadDtcTest, NRC0x31Test)
+{
+    testing::internal::CaptureStdout();
+    clear->clearDtc(0x1234, {0x4,0x14,0x01,0x0A,0xAB});
+    std::string output = testing::internal::GetCapturedStdout();
+    EXPECT_NE(output.find("RequestOutOfRange NRC:Specified Group of DTC parameter is not supported"), std::string::npos);
 }
 
 int main(int argc, char* argv[])
 {
+    std::ofstream outfile(path_to_dtc);
+    outfile << "P0A9B-17 24"<<std::endl;
+    outfile << "P0805-11 2F"<<std::endl;
+    outfile << "C0805-11 2F"<<std::endl;
+    outfile << "B1234-00 00"<<std::endl;
+    outfile << "P0B12-01 10"<<std::endl;
+    outfile << "C0B12-01 10"<<std::endl;
     socket_ = createSocket();
     socket2_ = createSocket();
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
+    outfile.close();
+    const char * p = path_to_dtc.c_str();
+    remove(p);
 }
