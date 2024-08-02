@@ -5,6 +5,6 @@
 
 /* Global logger for the MCU Module */
 
-extern Logger MCULogger;
+extern Logger* MCULogger;
 
 #endif

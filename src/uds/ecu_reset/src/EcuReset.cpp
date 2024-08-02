@@ -25,6 +25,7 @@ void EcuReset::ecuResetRequest()
 }
 void EcuReset::hardReset()
 {
+    uint8_t lowerbits = can_id & 0xFF;
     CreateInterface* interface = CreateInterface::getInstance(0x00, ECUResetLog);
     /* Deletes the interface */
     uint8_t interface_name = interface->getInterfaceName();
@@ -32,19 +33,19 @@ void EcuReset::hardReset()
     interface->deleteInterface();
 
     /* Close the sockets binded to the interface */
-    switch(interface_name) {
+    switch(lowerbits) {
         /* ECU Battery case */
-        case 0x00:
+        case 0x11:
             LOG_INFO(ECUResetLog.GET_LOGGER(), "ECU socket closed");
-            close(battery.getBatterySocket());
+            close(battery->getBatterySocket());
             break;
 
         /* MCU case */
-        case 0x01:
+        case 0x10:
         {
             LOG_INFO(ECUResetLog.GET_LOGGER(), "MCU sockets closed");
-            close(MCU::mcu.getMcuApiSocket());
-            close(MCU::mcu.getMcuEcuSocket());
+            close(MCU::mcu->getMcuApiSocket());
+            close(MCU::mcu->getMcuEcuSocket());
             break;
         }
     }
@@ -55,19 +56,19 @@ void EcuReset::hardReset()
     interface->startInterface();
 
     /* Recreate the sockets */
-    switch(interface_name) {
+    switch(lowerbits) {
         /* ECU Battery case */
-        case 0x00:
+        case 0x11:
             LOG_INFO(ECUResetLog.GET_LOGGER(), "ECU socket recreated");
-            battery.setBatterySocket(interface_name);
+            battery->setBatterySocket(interface_name);
             break;
 
         /* MCU case */
-        case 0x01:
+        case 0x10:
         {
             LOG_INFO(ECUResetLog.GET_LOGGER(), "MCU sockets recreated");
-            MCU::mcu.setMcuApiSocket(interface_name);
-            MCU::mcu.setMcuEcuSocket(interface_name);
+            MCU::mcu->setMcuApiSocket(interface_name);
+            MCU::mcu->setMcuEcuSocket(interface_name);
             break;
         }
     }
@@ -78,6 +79,7 @@ void EcuReset::hardReset()
 
 void EcuReset::keyOffReset()
 {
+    uint8_t lowerbits = can_id & 0xFF;
     CreateInterface* interface = CreateInterface::getInstance(0x00, ECUResetLog);
     /* Turns down the interface */
     uint8_t interface_name = interface->getInterfaceName();
@@ -86,19 +88,19 @@ void EcuReset::keyOffReset()
     interface->stopInterface();
 
     /* Close the sockets binded to the interface */
-    switch(interface_name) {
+    switch(lowerbits) {
         /* ECU Battery case */
-        case 0x00:
+        case 0x11:
             LOG_INFO(ECUResetLog.GET_LOGGER(), "ECU socket closed");
-            close(battery.getBatterySocket());
+            close(battery->getBatterySocket());
             break;
 
         /* MCU case */
-        case 0x01:
+        case 0x10:
         {
             LOG_INFO(ECUResetLog.GET_LOGGER(), "MCU sockets closed");
-            close(MCU::mcu.getMcuApiSocket());
-            close(MCU::mcu.getMcuEcuSocket());
+            close(MCU::mcu->getMcuApiSocket());
+            close(MCU::mcu->getMcuEcuSocket());
             break;
         }
     }
@@ -108,19 +110,19 @@ void EcuReset::keyOffReset()
     interface->startInterface();
 
     /* Recreate the sockets */
-    switch(interface_name) {
+    switch(lowerbits) {
         /* ECU Battery case */
-        case 0x00:
+        case 0x11:
             LOG_INFO(ECUResetLog.GET_LOGGER(), "ECU socket recreated");
-            battery.setBatterySocket(interface_name);
+            battery->setBatterySocket(interface_name);
             break;
 
         /* MCU case */
-        case 0x01:
+        case 0x10:
         {
             LOG_INFO(ECUResetLog.GET_LOGGER(), "MCU sockets recreated");
-            MCU::mcu.setMcuApiSocket(interface_name);
-            MCU::mcu.setMcuEcuSocket(interface_name);
+            MCU::mcu->setMcuApiSocket(interface_name);
+            MCU::mcu->setMcuEcuSocket(interface_name);
             break;
         }
     }

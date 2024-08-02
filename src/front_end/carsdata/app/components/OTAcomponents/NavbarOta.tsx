@@ -1,5 +1,5 @@
-import React from 'react'
-import Image from 'next/image'
+import React from 'react';
+import Image from 'next/image';
 
 const NavbarOta = () => {
     return (
@@ -24,7 +24,6 @@ const NavbarOta = () => {
                     <li><a>ECU 3</a></li>
                 </ul>
             </div>
-
         </nav>
     )
 }

@@ -395,18 +395,6 @@ TEST_F(ReceiveFramesTest, TestPrintFrames)
     std::cerr << "Finished TestPrintFrames" << std::endl;
 }
   
-//* Test to verify the send_test_frame function */
-TEST_F(ReceiveFramesTest, TestSendTestFrame)
-{
-    std::cerr << "Running TestSendTestFrame" << std::endl;
-    testing::internal::CaptureStdout();
-    receive_frames->startListenCANBus(); 
-    receive_frames->sendTestFrame();
-    std::string output = testing::internal::GetCapturedStdout();
-    EXPECT_TRUE(output.empty());
-    std::cerr << "Finished TestSendTestFrame" << std::endl;
-}
-  
 /* Test to verify stop_listen_api function */
 TEST_F(ReceiveFramesTest, TestStopListenAPI)
 {

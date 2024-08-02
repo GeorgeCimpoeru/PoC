@@ -18,17 +18,18 @@ const TableOta = (props: any) => {
                 <tbody>
                     {props.listOfUpdates.map((item: any, index: any) => (
                         <tr key={index}>
-                            <td align="center">{item}</td>
+                            <td align="center">{item.artifact}</td>
                             <td align="center">Failed</td>
                             <td align="center">Incomplete</td>
                             <td align="center">Completed</td>
                             <td align="center">Failed</td>
                             <td align="center"> <label htmlFor="my_modal_1" className="w-10 btn btn-sm">Log info</label></td>
-                            <ModalString id="my_modal_1" cardTitle={'Door'} />
+                            <ModalString id="my_modal_1" cardTitle={'Log info'} />
                         </tr>
                     ))}
                 </tbody>
             </table>
+
             <div className="absolute right-0 top-0 m-5">
             </div>
         </div>

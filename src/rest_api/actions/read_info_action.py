@@ -17,6 +17,11 @@ import datetime
 from actions.base_actions import *
 from configs.data_identifiers import *
 
+MCU = 0
+ECU_BATTERY = 1
+ECU_ENGINE = 2
+ECU_DOORS = 3
+
 
 class ToJSON:
     """Open-Close principle. Base class for different JSON formats."""
@@ -24,30 +29,13 @@ class ToJSON:
         pass
 
 
-# class BatteryToJSON():
-#     def _to_json(self, data: list):
-#         response_to_frontend = {
-#             "battery_level": data[0],
-#             "voltage": data[1],
-#             "battery_state_of_charge": data[2],
-#             "temperature": data[3],
-#             "life_cycle": data[4],
-#             "fully_charged": data[5],
-#             "serial_number": data[6],
-#             "range_battery": data[7],
-#             "charging_time": data[8],
-#             "device_consumption": data[9],
-#             "time_stamp": datetime.datetime.now().isoformat()
-#         }
-#         return (response_to_frontend)
-
 class BatteryToJSON():
     def _to_json(self, data: list):
-        response_to_frontend = {
+        response = {
             "battery_level": data[0],
             "voltage": data[1],
-            "battery_state_of_charge": data[2],
-            "percentage": data[3],
+            "percentage": data[2],
+            "battery_state_of_charge": data[3],
             "life_cycle": data[4],
             "fully_charged": data[5],
             "serial_number": data[6],
@@ -56,19 +44,12 @@ class BatteryToJSON():
             "device_consumption": data[9],
             "time_stamp": datetime.datetime.now().isoformat()
         }
-        return (response_to_frontend)
-
-# class ElementToJSON(ToJSON):
-#     def _to_json(self, data: list):
-#         response_to_frontend = {}
-#         for index, element in enumerate(data, start=1):
-#             response_to_frontend[f"Element{index}"] = element
-#         return json.dumps(response_to_frontend)
+        return response
 
 
 class EngineToJSON():
     def _to_json(self, data: list):
-        response_to_frontend = {
+        response = {
             "power_output": data[0],
             "weight": data[1],
             "fuel_consumption": data[1],
@@ -79,20 +60,20 @@ class EngineToJSON():
             "engine_state": data[6],
             "serial_number": data[7]
         }
-        return (response_to_frontend)
+        return response
 
 
 class DoorsToJSON():
     def _to_json(self, data: list):
         response_to_frontend = {
-            "Door_param": data[0],
-            "Serial_number": data[1],
-            "Cigarette_Lighter_Voltage": data[2],
-            "Light_state": data[3],
-            "BeltCard": data[4],
-            "WindowStatus": data[5],
+            "door": data[0],
+            "serial_number": data[1],
+            "lighter_voltage": data[2],
+            "light_state": data[3],
+            "belt": data[4],
+            "windows_closed": data[5],
         }
-        return (response_to_frontend)
+        return response_to_frontend
 
 
 class ReadInfo(Action):
@@ -105,6 +86,41 @@ class ReadInfo(Action):
     - g: Instance of GenerateFrame for generating CAN bus frames.
     """
 
+    def _auth_mcu(self):
+
+        id_mcu = self.id_ecu[MCU]
+        id = self.my_id * 0x100 + id_mcu
+
+        try:
+            log_info_message(logger, "Changing session to default")
+            # self.generate.session_control(id, 0x01)
+            # self._passive_response(SESSION_CONTROL, "Error changing session control")
+            self._authentication(id)
+
+        except CustomError as e:
+            self.bus.shutdown()
+            return e.message
+
+    @staticmethod
+    def _get_battery_state_of_charge(state_of_charge):
+        # Remove the '0x' prefix if present
+        if state_of_charge.startswith("0x"):
+            state_of_charge = state_of_charge[2:]
+
+        # Dictionary mapping hex string values to battery states
+        state_mapping = {
+            "00": "Unknown state",
+            "01": "Charging",
+            "02": "Discharging",
+            "03": "Empty",
+            "04": "Fully charged",
+            "05": "Pending charge",
+            "06": "Pending discharge"
+        }
+
+        # Return the corresponding state or "Unknown state" if not found
+        return state_mapping.get(state_of_charge, "Unknown state")
+
     def read_from_battery(self):
         """
         Method to read information from the battery module.
@@ -112,93 +128,67 @@ class ReadInfo(Action):
         Returns:
         - JSON response.
         """
-
-        id_battery = self.id_ecu[0]
+        self._auth_mcu()
+        id_battery = self.id_ecu[MCU]
         id = self.my_id * 0x100 + id_battery
 
         try:
-            log_info_message(logger, "Changing session to default")
-            # self.generate.session_control(id, 0x01)
-            # self._passive_response(SESSION_CONTROL, "Error changing session control")
-
-            # self._authentication(id)
-
             log_info_message(logger, "Reading data from battery")
+            id_battery = self.id_ecu[ECU_BATTERY]
+            id = self.my_id * 0x100 + id_battery
+
+            level = None
+            voltage = None
+            percentage = None
+            state_of_charge = None
+            life_cycle = None
+            fully_charged = None
+            serial_number = None
+            range_battery = None
+            charging_time = None
+            device_consumption = None
+
             level = self._read_by_identifier(id, IDENTIFIER_BATTERY_ENERGY_LEVEL)
             voltage = self._read_by_identifier(id, IDENTIFIER_BATTERY_VOLTAGE)
-            state_of_charge = self._read_by_identifier(id, IDENTIFIER_BATTERY_STATE_OF_CHARGE)
             percentage = self._read_by_identifier(id, IDENTIFIER_BATTERY_PERCENTAGE)
-            # temperature = self._read_by_identifier(id, IDENTIFIER_BATTERY_TEMPERATURE) # ToDO
-            # life_cycle = self._read_by_identifier(id, IDENTIFIER_BATTERY_LIFE_CYCLE) # ToDo
-            # fully_charged = self._read_by_identifier(id, IDENTIFIER_BATTERY_FULLY_CHARGED) # ToDo
-            # serial_number = self._read_by_identifier(id, IDENTIFIER_ECU_SERIAL_NUMBER) # ToDo
-            # range_battery = self._read_by_identifier(id, IDENTIFIER_BATTERY_RANGE) # ToDo
-            # charging_time = self._read_by_identifier(id, IDENTIFIER_BATTERY_CHARGING_TIME) # ToDo
-            # device_consumption = self._read_by_identifier(id, IDENTIFIER_DEVICE_CONSUMPTION) # ToDo
-            # data = [level, voltage, state_of_charge, temperature, life_cycle, fully_charged, serial_number, range_battery, charging_time, device_consumption]
+            state_of_charge = self._read_by_identifier(id, IDENTIFIER_BATTERY_STATE_OF_CHARGE)
+            # life_cycle = self._read_by_identifier(id, IDENTIFIER_BATTERY_LIFE_CYCLE)
+            # fully_charged = self._read_by_identifier(id, IDENTIFIER_BATTERY_FULLY_CHARGED)
+            # serial_number = self._read_by_identifier(id, IDENTIFIER_ECU_SERIAL_NUMBER)
+            # range_battery = self._read_by_identifier(id, IDENTIFIER_BATTERY_RANGE)
+            # charging_time = self._read_by_identifier(id, IDENTIFIER_BATTERY_CHARGING_TIME)
+            # device_consumption = self._read_by_identifier(id, IDENTIFIER_DEVICE_CONSUMPTION)
 
-            life_cycle = "NA"
-            fully_charged = "NA"
-            serial_number = "NA"
-            range_battery = "NA"
-            charging_time = "NA"
-            device_consumption = "NA"
+            life_cycle = life_cycle if life_cycle is not None else "No read"
+            fully_charged = fully_charged if fully_charged is not None else "No read"
+            serial_number = serial_number if serial_number is not None else "No read"
+            range_battery = range_battery if range_battery is not None else "No read"
+            charging_time = charging_time if charging_time is not None else "No read"
+            device_consumption = device_consumption if device_consumption is not None else "No read"
 
-            percentage_value = ((int(percentage, 16) / 255) * 100)
-            percentage_string = f"{percentage_value:.2f}%"
+            battery_state_of_charge = self._get_battery_state_of_charge(state_of_charge)
 
-            voltage_value = int(voltage, 16)
-            voltage_string = f"{voltage_value:.2f}V"
+            data = [str(int(level, 16)),
+                    int(voltage, 16),
+                    round(((int(percentage, 16) / 255) * 100), 2),
+                    battery_state_of_charge,
+                    life_cycle,
+                    fully_charged,
+                    serial_number,
+                    range_battery,
+                    charging_time,
+                    device_consumption]
 
-            battery_state_of_charge = "Charging" if state_of_charge == "01" else "Not charging"
+            response_json = BatteryToJSON()._to_json(data)
 
-            data = [str(int(level, 16)), voltage_string, battery_state_of_charge, percentage_string, life_cycle, fully_charged, serial_number, range_battery, charging_time, device_consumption]
-            module = BatteryToJSON()
-
-            response_json = module._to_json(data)
             # Shutdown the CAN bus interface
             self.bus.shutdown()
-
             log_info_message(logger, "Sending JSON")
             return response_json
 
         except CustomError as e:
             self.bus.shutdown()
             return e.message
-
-    # def read_from_custom(self, identifiers:list):
-    #     """
-    #     Method to read information from specific identifier.
-
-    #     Returns:
-    #     - JSON response.
-    #     """
-    #     id_battery = self.id_ecu[1]
-    #     id = self.my_id * 0x100 + id_battery
-    #     try:
-    #         log_info_message(logger, "Changing session to default")
-    #         self.generate.session_control(id, 0x01)
-    #         self._passive_response(SESSION_CONTROL, "Error changing session control")
-
-    #         self._authentication(id)
-
-    #         #Read each data from identifier
-    #         log_info_message(logger, "Reading data..")
-    #         data_collected = []
-    #         for identifier in identifiers:
-    #             data_collected.append(self._read_by_identifier(id,identifier))
-
-    #         module = ElementToJSON()
-    #         response_json = self._to_json(module, data_collected)
-    #         # Shutdown the CAN bus interface
-    #         self.bus.shutdown()
-
-    #         log_info_message(logger, "Sending JSON")
-    #         return response_json
-
-    #     except CustomError as e:
-    #         self.bus.shutdown()
-    #         return e.message
 
     def read_from_engine(self):
 
@@ -208,17 +198,15 @@ class ReadInfo(Action):
         Returns:
         - data response.
         """
-
-        id_engine = self.id_ecu[1]
+        self._auth_mcu()
+        id_engine = self.id_ecu[MCU]
         id = self.my_id * 0x100 + id_engine
 
         try:
-            log_info_message(logger, "Changing session to default")
-            self.generate.session_control(id, 0x01)
-            self._passive_response(SESSION_CONTROL, "Error changing session control")
-            self._authentication(id)
-            log_info_message(logger, "Reading data from engine")
+            id_battery = self.id_ecu[ECU_ENGINE]
+            id = self.my_id * 0x100 + id_battery
 
+            log_info_message(logger, "Reading data from engine")
             power_output = self._read_by_identifier(id, IDENTIFIER_ENGINE_POWER_OUTPUT)
             weight = self._read_by_identifier(id, IDENTIFIER_ENGINE_WEIGHT)
             fuel_consumption = self._read_by_identifier(id, IDENTIFIER_ENGINE_FUEL_CONSUMPTION)
@@ -243,47 +231,36 @@ class ReadInfo(Action):
             self.bus.shutdown()
             return e.message
 
+    def read_from_doors(self):
+        id_door = self.id_ecu[1]
+        id = self.my_id * 0x100 + id_door
 
-def read_from_doors(self):
-    id_door = self.id_ecu[1]
-    id = self.my_id * 0x100 + id_door
+        try:
+            log_info_message(logger, "Changing session to default")
+            self.generate.session_control(id, 0x01)
+            self._passive_response(SESSION_CONTROL, "Error changing session control")
+            log_info_message(logger, "Changing session to default")
+            self.generate.session_control(id, 0x01)
+            self._passive_response(SESSION_CONTROL, "Error changing session control")
+            self._authentication(id)
 
-    try:
-        log_info_message(logger, "Changing session to default")
-        self.generate.session_control(id, 0x01)
-        self._passive_response(SESSION_CONTROL, "Error changing session control")
-        log_info_message(logger, "Changing session to default")
-        self.generate.session_control(id, 0x01)
-        self._passive_response(SESSION_CONTROL, "Error changing session control")
-        self._authentication(id)
+            log_info_message(logger, "Reading data from doors")
 
-        log_info_message(logger, "Reading data from doors")
+            door = self._read_by_identifier(id, IDENTIFIER_DOOR)
+            serial_number = self._read_by_identifier(id, IDENTIFIER_DOOR_SERIALNUMBER)
+            cigarette_lighter_voltage = self._read_by_identifier(id, IDENTIFIER_LIGHTER_VOLTAGE)
+            light_state = self._read_by_identifier(id, IDENTIFIER_LIGHT_STATE)
+            belt = self._read_by_identifier(id, IDENTIFIER_BELT_STATE)
+            windows_closed = self._read_by_identifier(id, IDENTIFIER_WINDOWS_CLOSED)
+            data = [door, serial_number, cigarette_lighter_voltage, light_state, belt, windows_closed]
 
-        Door = self._read_by_identifier(id, IDENTIFIER_DOOR)
-        serial_number = self._read_by_identifier(id, IDENTIFIER_DOOR_SERIALNUMBER)
-        cigarette_lighter_voltage = self._read_by_identifier(id, IDENTIFIER_LIGHTER_VOLTAGE)
-        light_state = self._read_by_identifier(id, IDENTIFIER_LIGHT_STATE)
-        belt = self._read_by_identifier(id, IDENTIFIER_BELT_STATE)
-        windows_closed = self._read_by_identifier(id, IDENTIFIER_WINDOWS_CLOSED)
-        data = [Door, serial_number, cigarette_lighter_voltage, light_state, belt, windows_closed]
+            module = DoorsToJSON()
+            response = module._to_json(data)
+            # Shutdown the CAN bus interface
+            self.bus.shutdown()
 
-        module = DoorsToJSON()
-        response = module._to_json(data)
-        # Shutdown the CAN bus interface
-        self.bus.shutdown()
-
-        log_info_message(logger, "Sending JSON")
-        return response
-    except CustomError as e:
-        self.bus.shutdown()
-        return e.message
-
-    # def _to_json(self, module: ToJSON, data: list):
-    #     """
-    #     Private method to create a JSON response with status and error information.
-
-    #     Args:
-    #     - module: An instance of ToJSON or its subclasses.
-    #     - data: Data collected from the ECU.
-    #     """
-    #     return module._to_json(data)
+            log_info_message(logger, "Sending JSON")
+            return response
+        except CustomError as e:
+            self.bus.shutdown()
+            return e.message

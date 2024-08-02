@@ -64,7 +64,7 @@ public:
     /**
      * @brief Destructor Battery Module object.
      */
-    ~BatteryModule();
+    virtual ~BatteryModule();
 
     /**
      * @brief Function to notify MCU if the module is Up & Running.
@@ -79,7 +79,7 @@ public:
      * @param cmd Shell command to be executed.
      * @return Output returned by the shell command. 
      */
-    virtual std::string exec(const char *cmd);
+    virtual std::string exec(char *cmd);
 
     /**
      * @brief This function will parse the data from the system about battery,
@@ -151,6 +151,6 @@ public:
      */
     void setBatterySocket(uint8_t interface_number);
 };
-extern BatteryModule battery;
+extern BatteryModule* battery;
 
 #endif

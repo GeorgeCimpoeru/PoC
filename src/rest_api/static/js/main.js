@@ -59,25 +59,6 @@ function readInfoBattery() {
       });
 }
 
-function readInfoEngine() {
-    fetch('/api/read_info_engine', {
-        method: 'GET',
-    }).then(response => response.json())
-      .then(data => {
-          document.getElementById('response-output').textContent = JSON.stringify(data);
-          fetchLogs(); 
-      });
-}
-
-function readInfoDoors() {
-    fetch('/api/read_info_doors', {
-        method: 'GET',
-    }).then(response => response.json())
-      .then(data => {
-          document.getElementById('response-output').textContent = JSON.stringify(data);
-          fetchLogs(); 
-      });
-}
 
 function fetchLogs() {
     fetch('/api/logs', {
@@ -97,4 +78,91 @@ function fetchLogs() {
       .catch(error => {
           console.error('Error fetching logs:', error);
       });
+    }
+
+
+
+    function readInfoDoors() {
+        fetch('/api/read_info_doors', {
+            method: 'GET',
+        }).then(response => response.json())
+          .then(data => {
+              document.getElementById('response-output').textContent = JSON.stringify(data);
+              fetchLogs(); 
+          });
+    }
+    
+    function writeInfoDoors() {
+        const door = prompt('Enter Door Parameter:');
+        const serial_number = prompt('Enter Serial Number:');
+        const lighter_voltage = prompt('Enter Cigarette Lighter Voltage:');
+        const light_state = prompt('Enter Light State:');
+        const belt = prompt('Enter Belt Card State:');
+        const windows_closed = prompt('Enter Window Status:');
+    
+    
+        const data = {
+            door: door || null,
+            serial_number: serial_number || null,
+            lighter_voltage: lighter_voltage || null,
+            light_state: light_state || null,
+            belt: belt || null,
+            windows_closed: windows_closed || null,
+         };
+    
+        fetch('/api/write_info_doors', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        }).then(response => response.json())
+          .then(data => {
+              displayResponse(data);
+              fetchLogs(); 
+          });
+    }
+
+    function writeInfoBattery() {
+        const battery_level = prompt('Enter Battery Energy Level:');
+        const voltage = prompt('Enter Battery Voltage:');
+        const stateOfCharge = prompt('Enter Battery State of Charge:');
+        const percentage = prompt('Enter Battery Percentage:');
+        const temperature = prompt('Enter Battery Temperature:');
+        const lifeCycle = prompt('Enter Battery Life Cycle:');
+        const fullyCharged = prompt('Enter Battery Fully Charged Status:');
+        const range = prompt('Enter Battery Range:');
+        const chargingTime = prompt('Enter Battery Charging Time:');
+        const deviceConsumption = prompt('Enter Device Consumption:');
+        
+
+        const data = {
+            battery_level: battery_level || null,
+            voltage: voltage || null,
+            battery_state_of_charge: stateOfCharge || null,
+            percentage: percentage || null,
+            temperature: temperature || null,
+            life_cycle: lifeCycle || null,
+            fully_charged: fullyCharged || null,
+            range_battery: range || null,
+            charging_time: chargingTime || null,
+            device_consumption: deviceConsumption || null
+        };
+        
+        
+        fetch('/api/write_info_battery', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+        .then(response => response.json())
+        .then(data => {
+            displayResponse(data);
+            fetchLogs(); 
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
     }

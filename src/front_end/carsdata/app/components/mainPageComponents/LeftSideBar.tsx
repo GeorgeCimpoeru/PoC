@@ -19,7 +19,7 @@ const LeftSideBar = () => {
                 </Link>
             </div>
             <div className="flex items-center justify-center mt-20">
-                <Link href="/uds">
+                <Link href="/UDS">
                     <h2>UDS</h2>
                     <Image
                         src="/udsIcon.png"
