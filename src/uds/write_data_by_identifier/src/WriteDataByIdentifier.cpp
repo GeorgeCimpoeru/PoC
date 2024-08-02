@@ -2,11 +2,10 @@
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
-WriteDataByIdentifier::WriteDataByIdentifier(canid_t frame_id, std::vector<uint8_t> frame_data, Logger& wdbi_logger, int socket)
+WriteDataByIdentifier::WriteDataByIdentifier(Logger& wdbi_logger, int socket)
             : generate_frames(socket, wdbi_logger), wdbi_logger(wdbi_logger)
 {   
     this->socket = socket;
-    WriteDataByIdentifierService(frame_id, frame_data);
 }
 
 WriteDataByIdentifier::~WriteDataByIdentifier()
@@ -18,6 +17,7 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
     LOG_INFO(wdbi_logger.GET_LOGGER(), "Write Data By Identifier Service invoked.");
 
     std::vector<uint8_t> response;
+    std::vector<uint8_t> data_parameter = {};
     /* Checks if frame_data has the required minimum length */
     if (frame_data.size() < 3)
     {
@@ -44,7 +44,6 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         /* Extract Data Parameter */
         DataParameter data_parameter(frame_data.begin() + 4, frame_data.end());
         uint8_t receiver_id = frame_id & 0xFF;
-        uint8_t sender_id = frame_id >> 8 & 0xFF;
 
         /* List of valid DIDs */
         std::unordered_set<uint16_t> valid_dids = {
@@ -70,68 +69,35 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         };
 
         /* Find where to write the dataParameter */
-        if(receiver_id == 0x10 && MCU::mcu.mcu_data.find(did) != MCU::mcu.mcu_data.end()) 
+        if(receiver_id == 0x10 && MCU::mcu->mcu_data.find(did) != MCU::mcu->mcu_data.end()) 
         {
             /* Stores the data in the memory location associated with the DID  */
-            MCU::mcu.mcu_data[did] = data_parameter;
+            MCU::mcu->mcu_data[did] = data_parameter;
             LOG_INFO(wdbi_logger.GET_LOGGER(), "Data written to DID 0x{:x} in MCUModule.", did);
-            logCollection(MCU::mcu.mcu_data, "MCUModule");
-
-            /* Create positive response */
-            response.clear();
-            /* PCI */
-            response.push_back(0x03);
-            /* Response sid */
-            response.push_back(0x6E);
-            /* First identifier */
-            response.push_back(frame_data[2]);
-            /* Second identifier */
-            response.push_back(frame_data[3]);
+            logCollection(MCU::mcu->mcu_data, "MCUModule");
         } 
-        else if (receiver_id == 0x11 && battery.ecu_data.find(did) != battery.ecu_data.end()) 
+        else if (receiver_id == 0x11 && battery->ecu_data.find(did) != battery->ecu_data.end()) 
         {
             /* Stores the data in the memory location associated with the DID  */
-            battery.ecu_data[did] = data_parameter;
+            battery->ecu_data[did] = data_parameter;
             LOG_INFO(wdbi_logger.GET_LOGGER(), "Data written to DID 0x{:x} in BatteryModule.", did);
-            logCollection(battery.ecu_data, "BatteryModule");
-
-            /* Create positive response */
-            response.clear();
-            /* PCI */
-            response.push_back(0x03);
-            /* Response sid */
-            response.push_back(0x6E);
-            /* First identifier */
-            response.push_back(frame_data[2]);
-            /* Second identifier */
-            response.push_back(frame_data[3]);
+            logCollection(battery->ecu_data, "BatteryModule");
         } 
         else if (valid_dids.find(did) != valid_dids.end())
         {
             /* Determine the correct storage based on receiver_id */
             if (receiver_id == 0x10)
             {
-                MCU::mcu.mcu_data[did] = data_parameter;
+                MCU::mcu->mcu_data[did] = data_parameter;
                 LOG_INFO(wdbi_logger.GET_LOGGER(), "Data written to new DID 0x{:x} in MCUModule.", did);
-                logCollection(MCU::mcu.mcu_data, "MCUModule");
+                logCollection(MCU::mcu->mcu_data, "MCUModule");
             }
             else if (receiver_id == 0x11)
             {
-                battery.ecu_data[did] = data_parameter;
+                battery->ecu_data[did] = data_parameter;
                 LOG_INFO(wdbi_logger.GET_LOGGER(), "Data written to new DID 0x{:x} in BatteryModule.", did);
-                logCollection(battery.ecu_data, "BatteryModule");
+                logCollection(battery->ecu_data, "BatteryModule");
             }
-
-            /* Create positive response */
-            response.clear();
-            /* PCI */
-            response.push_back(0x03);
-            /* Response sid */
-            response.push_back(0x6E);
-            /* First identifier */
-            response.push_back(frame_data[2]);
-            /* Second identifier */
-            response.push_back(frame_data[3]);
         }
         else 
         {
@@ -155,6 +121,6 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
 
         /* Check on which socket to send the frame */
-        generate_frames.sendFrame(id, response, socket, DATA_FRAME);
+        generate_frames.writeDataByIdentifier(id, did, {});
     }
 };

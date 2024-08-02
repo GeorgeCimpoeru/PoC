@@ -1,22 +1,31 @@
 #!/bin/bash
 
-cansend vcan0 2FA#0462101012
+# Verify version
+cansend vcan1 000011FA#0462101012
 sleep 1
-cansend vcan0 2FA#025002
+
+# Session Control
+cansend vcan1 000011FA#025002
 sleep 1
-cansend vcan0 2FA#0469010102
+
+# Auth: Seed
+cansend vcan1 000010FA#0467010202
+sleep 2
+# Auth: Key
+cansend vcan1 000010FA#026702
 sleep 1
-cansend vcan0 2FA#026902
+
+cansend vcan1 000011FA#027401
 sleep 1
-cansend vcan0 2FA#0174
+cansend vcan1 000011FA#027601
 sleep 1
-cansend vcan0 2FA#0276
+cansend vcan1 000011FA#027701
 sleep 1
-cansend vcan0 2FA#0277
+cansend vcan1 000011FA#025002
 sleep 1
-cansend vcan0 2FA#025001
+cansend vcan1 000011FA#025102
 sleep 1
-cansend vcan0 2FA#025103
-sleep 1
-cansend vcan0 2FA#055901111104
+# cansend vcan1 000011FA#055901111104 # 4 errors
+# sleep 1
+cansend vcan1 000011FA#055901111100 # no errors
 sleep 1

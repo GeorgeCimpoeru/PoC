@@ -1,13 +1,17 @@
 #include "../include/BatteryModule.h"
 
 int main() {
-    sleep(5);
-    BatteryModule batteryModule(0x00,0x11);
-    batteryModule.fetchBatteryData();
-    std::thread receiveFrThread([&batteryModule]()
-                               { batteryModule.receiveFrames(); });
+    #ifdef UNIT_TESTING_MODE
+    batteryModuleLogger = new Logger;
+    #else
+    batteryModuleLogger = new Logger("batteryModuleLogger", "logs/batteryModuleLogger.log");
+    #endif /* UNIT_TESTING_MODE */
+    battery = new BatteryModule(0x00,0x11);
+    battery->fetchBatteryData();
+    std::thread receiveFrThread([]()
+                               { battery->receiveFrames(); });
     sleep(200);
-    batteryModule.stopFrames();
+    battery->stopFrames();
     receiveFrThread.join();
     return 0;
 }

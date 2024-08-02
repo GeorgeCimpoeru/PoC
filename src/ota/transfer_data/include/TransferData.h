@@ -1,3 +1,10 @@
+/**
+ * @file TransferData.h
+ * @author Mihnea Tanasevici
+ * @brief This library represents the TransferData service.
+ * It is used to transfer data to a mememory location.
+ * It is using the MemoryManager class that prepares the memory in Request Download service before calling TransferData.
+ */
 #ifndef TRANSFER_DATA_H
 #define TRANSFER_DATA_H
 
