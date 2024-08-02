@@ -6,7 +6,7 @@ const NavbarHistory = (props: any) => {
 
     return (
         <nav className="bg-gray-300 rounded-lg m-5 p-6 shadow-xl flex justify-between items-center">
-            <div className="text-gray-800 text-2xl font-bold">Over-the-Air Update History</div>
+            <div className="text-gray-800 text-2xl font-bold">Over-the-Air History</div>
             <div className="dropdown dropdown-click">
                 <div tabIndex={0} role="button" className="btn bg-blue-500 m-1 relative">Select device
                     <Image
