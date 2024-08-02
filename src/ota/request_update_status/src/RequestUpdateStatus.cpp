@@ -25,7 +25,7 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
 
     if(receiver_byte != MCU_ID || sender_byte != API_ID)
     {
-        LOG_WARN(MCULogger.GET_LOGGER(), "Request update status must be made from API to MCU. Request redirected from API to MCU.");
+        LOG_WARN(MCULogger->GET_LOGGER(), "Request update status must be made from API to MCU. Request redirected from API to MCU.");
         receiver_byte = MCU_ID;
         sender_byte = API_ID;
         request_id = (API_ID << 8) | MCU_ID;
@@ -57,7 +57,7 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
         uint8_t status = RIDB_response[0];
         if (isValidStatus(RIDB_response[0]) == 0)
         {
-            LOG_WARN(MCULogger.GET_LOGGER(), "Status value {} read from readDataByIdentifier is invalid.", status);
+            LOG_WARN(MCULogger->GET_LOGGER(), "Status value {} read from readDataByIdentifier is invalid.", status);
             response.push_back(PCI_L);           /* PCI_l*/
             response.push_back(NEGATIVE_RESPONSE);           /* Negative response */
             response.push_back(REQUEST_UPDATE_STATUS_SID);  /* SID */
@@ -72,7 +72,7 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
         }
     }
 
-    GenerateFrames generate_frames(socket, MCULogger);
+    GenerateFrames generate_frames(socket, *MCULogger);
     generate_frames.requestUpdateStatusResponse(response_id, response);
     
     return response;
