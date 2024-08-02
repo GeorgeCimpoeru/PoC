@@ -93,6 +93,7 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
     /* Extract the first 8 bits of can_id. */
     uint8_t lowerbits = can_id & 0xFF;
     uint8_t upperbits = can_id >> 8 & 0xFF;
+    NegativeResponse nrc(socket, security_logger);
 
     /* Reverse ids */
     can_id = ((lowerbits << 8) | upperbits);
@@ -120,7 +121,7 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
             (request[2] == 0x02 && request[0] == 2)
             || (request.size() != static_cast<size_t>(request[0] + 1)))
         {
-            generate_frames->negativeResponse(can_id,SECURITY_ACCESS_SID, IMLOIF);
+            nrc.sendNRC(can_id,SECURITY_ACCESS_SID,IMLOIF);
         }
         else
         {
@@ -129,12 +130,12 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
             /* Subfunction not supported, we use only 1st lvl of security access. */
             if (sf != 0x01 && sf != 0x02)
             {
-                generate_frames->negativeResponse(can_id,SECURITY_ACCESS_SID, SFNS);
+                nrc.sendNRC(can_id,SECURITY_ACCESS_SID,SFNS);
             }
             else if (sf == 0x01)
             {
                 /* Adjust the seed length between 1 and 5.*/
-                std::srand(static_cast<unsigned>(std::time(nullptr)));
+                std::srand(static_cast<uint8_t>(std::time(nullptr)));
                 size_t seed_length = std::rand() % 5 + 1;
 
                 std::vector<uint8_t> seed = generateRandomBytes(seed_length);
@@ -163,7 +164,7 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                 if (security_access_seed.empty())
                 {
                     LOG_ERROR(security_logger.GET_LOGGER(), "Cannot have sendKey request before requestSeed.");
-                    generate_frames->negativeResponse(can_id,SECURITY_ACCESS_SID,RSE);
+                    nrc.sendNRC(can_id,SECURITY_ACCESS_SID,RSE);
                 }
                 else if (time_left == 0)
                 {
@@ -193,8 +194,7 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                         if (nr_of_attempts > 0)
                         {
                             /* Invalid key, doesnt match with server's key. */
-                            LOG_ERROR(security_logger.GET_LOGGER(), "Security Access denied. Invalid Key.");
-                            generate_frames->negativeResponse(can_id,SECURITY_ACCESS_SID, IK);
+                            nrc.sendNRC(can_id,SECURITY_ACCESS_SID,IK);
                             nr_of_attempts--;
                             LOG_INFO(security_logger.GET_LOGGER(), "{} attempts left.", nr_of_attempts);
                         }
@@ -206,8 +206,7 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                              * by this request(i.e. due to reaching the limit of false access attempts which activate
                              * the delay timer).
                             */
-                            LOG_ERROR(security_logger.GET_LOGGER(), "Exceeded number of attempts.");
-                            generate_frames->negativeResponse(can_id,SECURITY_ACCESS_SID, ENOA);
+                            nrc.sendNRC(can_id,SECURITY_ACCESS_SID,ENOA);
                                 
                             /* Start the delay timer clock. */
                             end_time = std::chrono::steady_clock::now() + std::chrono::seconds(TIMEOUT_IN_SECONDS);
@@ -217,8 +216,8 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                             uint32_t time_left_copy = time_left;
                             uint32_t seconds = time_left_copy / 1000;
                             uint32_t milliseconds = time_left_copy % 1000;
-                            LOG_INFO(security_logger.GET_LOGGER(), "Please wait {} seconds and {} milliseconds \
-                                before sending key again.", seconds,milliseconds);
+                            LOG_ERROR(security_logger.GET_LOGGER(), "Please wait {} seconds and {} milliseconds" \
+                                "before sending key again.", seconds,milliseconds);
                         }
                     }
                 }
@@ -232,8 +231,8 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                     uint32_t time_left_copy = time_left;
                     uint32_t seconds = time_left_copy / 1000;
                     uint32_t milliseconds = time_left_copy % 1000;
-                    LOG_INFO(security_logger.GET_LOGGER(), "Please wait {} seconds and {} milliseconds \
-                        before sending key again.", seconds,milliseconds);
+                    LOG_ERROR(security_logger.GET_LOGGER(), "Please wait {} seconds and {} milliseconds" \
+                        "before sending key again.", seconds,milliseconds);
                     response = convertTimeToCANFrame(time_left);
                     generate_frames->sendFrame(can_id,response,DATA_FRAME);
                 }
@@ -243,6 +242,7 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                 LOG_ERROR(security_logger.GET_LOGGER(), "Server is already unlocked.");
             }
         }
+        delete generate_frames;
     }
     else
     {
