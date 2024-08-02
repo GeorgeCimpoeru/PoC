@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
-const BatteryInfo = async () => {
-
+const BatteryInfo = () => {
     // const [data, setData] = useState(null);
     // const [loading, setLoading] = useState(true);
     // const [error, setError] = useState(null);
+
     // useEffect(() => {
     //     const fetchData = async () => {
     //         try {
@@ -23,33 +23,25 @@ const BatteryInfo = async () => {
     //             setLoading(false);
     //         }
     //     };
+
     //     fetchData();
     // }, []); // Empty dependency array ensures this runs once after the initial render
+
     // if (loading) {
     //     return <div>Loading...</div>;
     // }
+
     // if (error) {
     //     return <div>Error: {error.message}</div>;
     // }
+
     // if (data) {
     //     console.log(data);
     // }
+
     // if (!data) {
     //     return <div>No data available</div>;
     // }
-
-
-    const res = await fetch(
-        'https://api.agify.io/?name=meelad',
-        { cache: 'no-store' }
-    );
-
-    const jsonData = await res.json();
-
-    // const response = await fetch('https://api.agify.io/?name=meelad', {
-    //     cache: 'no-store'
-    // });
-    // const result = await response.json();
 
     return (
         <div className="overflow-x-auto">
@@ -62,19 +54,21 @@ const BatteryInfo = async () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {jsonData.stringify}
-                    {/* {result.item.map((key: any, value: any) => (
+                    {/* {Object.entries(data).map(([key, value]) => (
                         <tr key={key}>
                             <td>{key}</td>
                             <td>{value}</td>
                         </tr>
                     ))} */}
+<<<<<<<< HEAD:src/front_end/carsdata/app/components/UDScomponents/BatteryInfo.tsx
                     {/* {Object.entries(jsonData).map(([key, value]) => (
                         <tr key={key}>
                             <td>{key}</td>
                             <td>{value}</td>
                         </tr>
                     ))} */}
+========
+>>>>>>>> feature/front:src/front_end/carsdata/app/components/udsComponents/BatteryInfo.tsx
                 </tbody>
             </table>
         </div>

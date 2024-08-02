@@ -10,7 +10,7 @@ const ModalUDS = (props: any) => {
 
     const handleClick = () => {
         setInput('');
-        props.handleInputClick();
+        props.handleInputClick(props.id);
     }
 
     const handleClose = () => {
@@ -25,9 +25,10 @@ const ModalUDS = (props: any) => {
                 <div className="modal-box">
                     <h3 className="text-lg font-bold">{props.cardTitle}</h3>
                     <p className="py-4">Insert new value for {props.cardTitle}</p>
-                    <input type="text" placeholder="Type here" className="input input-bordered w-full max-w-xs" value={input} onClick={handleClick} onChange={handleChange} />
+                    <input type="number" placeholder="Type here" className="input input-bordered w-full max-w-xs" value={input} onClick={handleClick} onChange={handleChange} />
                     <div className="modal-action">
-                        <label htmlFor={props.id} className="btn">Save</label>
+                        <label htmlFor={props.id} className="btn">Close</label>
+                        <label htmlFor={props.id} className="btn" onClick={props.changeAPIdata}>Save</label>
                     </div>
                 </div>
             </div>

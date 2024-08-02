@@ -3,7 +3,7 @@ import Image from "next/image";
 
 const DivRight = () => {
     return (
-        <div className="w-[25%] h-screen flex flex-col bg-white">
+        <div className="w-[24%] h-screen flex flex-col bg-white">
 
             {/* <div className="avatar placeholder grid justify-items-end">
                 <div className="w-fit h-fit">

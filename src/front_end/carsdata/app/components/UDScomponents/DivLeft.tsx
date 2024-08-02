@@ -16,7 +16,7 @@ const DivLeft = (props: any) => {
         setActiveIcon(iconIndex);
 
         // Send the modified value back to the server
-        const response = await fetch('/uds', {
+        const response = await fetch('/UDS', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -24,11 +24,11 @@ const DivLeft = (props: any) => {
             body: JSON.stringify(modifiedValue),
         });
 
-        if (response.ok) {
-            console.log('Value sent back to the server successfully');
-        } else {
-            console.error('Failed to send value back to the server');
-        }
+        // if (response.ok) {
+        //     console.log('Value sent back to the server successfully');
+        // } else {
+        //     console.error('Failed to send value back to the server');
+        // }
     };
 
     return (
