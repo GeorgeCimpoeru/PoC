@@ -31,7 +31,7 @@
 #include "../../uds/authentication/include/SecurityAccess.h"
 #include "../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
 #include "../../utils/include/MemoryManager.h"
-
+#include <pybind11/embed.h>
 class RequestDownloadService
 {
 public:
@@ -115,7 +115,6 @@ private:
      * @return std::pair<int,int> 
      */
     std::pair<int,int> extractSizeAndAddressLength( std::vector<uint8_t> stored_data);
-    void download();
     /**
      * @brief Response to request download
      * 
@@ -146,6 +145,13 @@ private:
      * @return true 
      */
     void downloadInEcu(int id, int memory_address);
+
+    /**
+     * @brief Method for downloading software version from google drive.
+     * 
+     * @param version_file_id 
+     */
+    void downloadSoftwareVersion(std::string version_file_id);
 };
 
 #endif /* REQUEST_DOWNLOAD_SERVICE_H */
