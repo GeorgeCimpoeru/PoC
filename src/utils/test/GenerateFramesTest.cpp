@@ -1,5 +1,5 @@
 #include "../include/GenerateFrames.h"
-
+#include "Logger.h"
 #include <gtest/gtest.h>
 #include <net/if.h>
 #include <cstring>
@@ -571,7 +571,7 @@ TEST_F(GenerateFramesTest, RequestDownloadTest)
         c1->capture();
     });
     /* Send frame */
-    g1->requestDownload(id,0x00,0x3445,0x10);
+    g1->requestDownload(id,0x00,0x3445,0x10, 0x01);
     receive_thread.join();
     /* TEST */
     testFrames(result_frame, *c1);
@@ -601,7 +601,7 @@ TEST_F(GenerateFramesTest, RequestDownloadTest3)
         c1->capture();
     });
     /* Send frame */
-    g1->requestDownload(id,0x00,-2,0x10);
+    g1->requestDownload(id,0x00,-2,0x10, 0x01);
     receive_thread.join();
     /* TEST */
     testFrames(result_frame, *c1);
@@ -749,10 +749,15 @@ TEST_F(GenerateFramesTest, ErrorLongResponse)
 /* Test for Service request UpdateStatus */
 TEST_F(GenerateFramesTest, ReqStatus) 
 {
+    int id = 123; 
+    std::vector<uint8_t> response = {0x01, 0x7F}; 
+
     /* Send frame */
-    bool response = g1->requestUpdateStatus(id,true);
+    bool result = g1->requestUpdateStatusResponse(id, response);
+
     /* TEST */
-    EXPECT_EQ(response, false);
+    EXPECT_EQ(result, false);
+
 }
 
 
