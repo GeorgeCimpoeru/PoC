@@ -886,6 +886,13 @@ TransferData_coverage: ../ota/transfer_data/utest/TransferDataTest.cpp ../ota/tr
 	gcov -o . ../ota/transfer_data/utest/TransferDataTest.cpp
 	mv TransferDataTest.cpp.gcov coverage/out_TransferData
 
+TransferData_coverage: ../ota/transfer_data/utest/TransferDataTest.cpp ../ota/transfer_data/src/TransferData.cpp
+	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../ota/transfer_data/utest/TransferDataTest ../ota/transfer_data/utest/TransferDataTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
+	../../ota/transfer_data/src/TransferDataTest
+	mkdir -p coverage/out_TransferData
+	gcov -o . ../ota/transfer_data/utest/TransferDataTest.cpp
+	mv TransferDataTest.cpp.gcov coverage/out_TransferData
+
 allCoveragePostProcess:
 	lcov --capture --directory . --output-file coverage.info
 	lcov --remove coverage.info '/usr/*' --output-file coverage_filtered.info
