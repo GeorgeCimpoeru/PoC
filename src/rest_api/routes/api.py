@@ -15,8 +15,8 @@ ecu_ids = [0x10, 0x11, 0x12]
 
 @api_bp.route('/request_ids', methods=['GET'])
 def request_ids():
-    requester = RequestIdAction(my_id=0xFA)
-    response = requester.run()
+    requester = RequestIdAction(my_id=0xFA99)
+    response = requester.read_ids()
     return jsonify(response)
 
 
@@ -26,7 +26,8 @@ def update_to_version():
     ecu_id = data.get('ecu_id')
     version = data.get('version')
     updater = Updates(my_id=0xFA, id_ecu=ecu_id)
-    response = updater.update_to(ecu_id=int(ecu_id), version=int(version))
+    response = updater.update_to(ecu_id=ecu_id,
+                                 version=version)
     return jsonify(response)
 
 

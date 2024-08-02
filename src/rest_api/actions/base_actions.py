@@ -182,7 +182,7 @@ class Action:
             # Simple Frame
             else:
                 break
-            msg = self.bus.recv(3)
+            msg = self.bus.recv(Config.BUS_RECEIVE_TIMEOUT)
         if flag:
             msg = msg_ext
         if msg is not None and self.__verify_frame(msg, sid):
@@ -229,7 +229,6 @@ class Action:
         """
         log_info_message(logger, "Collecting the response")
         response = self.__collect_response(sid)
-        log_info_message(logger, f"Collected response: {response}")
 
         if response is None:
             log_error_message(logger, error_str)
@@ -267,10 +266,11 @@ class Action:
         Returns:
         - Data as a string.
         """
-        log_info_message(logger, "Read from identifier {identifier}")
+        log_info_message(logger, f"Read from identifier {identifier}")
         self.generate.read_data_by_identifier(id, identifier)
         frame_response = self._passive_response(READ_BY_IDENTIFIER,
                                                 f"Error reading data from identifier {identifier}")
+        log_info_message(logger, f"Frame response: {frame_response}")
         data = self._data_from_frame(frame_response)
         data_str = self._list_to_number(data)
         return data_str
