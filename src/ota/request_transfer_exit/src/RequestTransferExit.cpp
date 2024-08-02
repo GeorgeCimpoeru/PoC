@@ -68,9 +68,9 @@ void RequestTransferExit::requestTRansferExitRequest(canid_t can_id, const std::
     else    
     {
         /* Retrieve transfer_status based on the OTA_UPDATE_STATUS_DID if it exists */
-        if ( MCU::mcu.mcu_data.find(0x01E0) != MCU::mcu.mcu_data.end())
+        if ( MCU::mcu->mcu_data.find(0x01E0) != MCU::mcu->mcu_data.end())
         {
-            uint8_t transfer_status = MCU::mcu.mcu_data.at(0x01E0)[0];
+            uint8_t transfer_status = MCU::mcu->mcu_data.at(0x01E0)[0];
             /* Check if the transfer data has been completed */
             if (transfer_status == 0x31)        
                 {

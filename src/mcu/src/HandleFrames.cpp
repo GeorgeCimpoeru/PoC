@@ -390,7 +390,7 @@ namespace MCU
                     RequestDownloadService requestDownload(getMcuSocket(frame_id), *MCULogger);
                     ReadDataByIdentifier software_version(getMcuSocket(frame_id), MCULogger);
                     SecurityAccess logged_in(getMcuSocket(frame_id), *MCULogger);
-                    requestDownload.requestDownloadRequest(frame_id, frame_data, *MCULogger, mcuDiagnosticSessionControl, software_version, logged_in);
+                    requestDownload.requestDownloadRequest(frame_id, frame_data);
                 }
                 break;
             case 0x36:
@@ -401,7 +401,7 @@ namespace MCU
                 }
                 else if(is_multi_frame)
                 {
-                    LOG_INFO(MCULogger.GET_LOGGER(), "TransferData called with multiple frames.");
+                    LOG_INFO(MCULogger->GET_LOGGER(), "TransferData called with multiple frames.");
                 }
                 else 
                 {
@@ -419,7 +419,7 @@ namespace MCU
                 else 
                 {
                     LOG_INFO(MCULogger->GET_LOGGER(), "Request Transfer Exit Service 0x37 called");
-                    RequestTransferExit request_transfer_exit(getMcuSocket(frame_id), MCULogger);
+                    RequestTransferExit request_transfer_exit(getMcuSocket(frame_id), *MCULogger);
                     request_transfer_exit.requestTRansferExitRequest(frame_id, frame_data);
                     LOG_INFO(MCULogger->GET_LOGGER(), "RequestTransferExit called.");
                 }
