@@ -4,7 +4,6 @@ Please include a summary of the changes and the related issue. Please also inclu
 
 ## Trello link [here](put here the link)
 
-
 ## Type of change
 
 - [ ] Bug fix (non-breaking change which fixes an issue)
