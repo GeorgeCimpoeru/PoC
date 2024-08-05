@@ -879,13 +879,6 @@ negativeResponse_coverage: negativeResponseTest
 allCoverage: securityAccess_coverage routineControl_coverage transferData_coverage requestDownload_coverage ecuReset_coverage memoryManager_coverage logger_coverage generateFrames_coverage receiveFrames_coverage handleFrames_coverage createInterface_coverage diagnosticSessionControl_coverage writeDataByIdentifier_coverage readDataByIdentifier_coverage requestTransferExit_coverage clearDtc_coverage readDtc_coverage requestUpdateStatus_coverage negativeResponse_coverage accessTimingParameter_coverage
 
 
-TransferData_coverage: ../ota/transfer_data/utest/TransferDataTest.cpp ../ota/transfer_data/src/TransferData.cpp
-	  $(CXX) $(CFLAGS) $(CFLAGSTST) -fprofile-arcs -ftest-coverage -o ../ota/transfer_data/utest/TransferDataTest ../ota/transfer_data/utest/TransferDataTest.cpp $(SRCSTEST) $(CFLAGSTST2) $(LDFLAGS)
-	../../ota/transfer_data/src/TransferDataTest
-	mkdir -p coverage/out_TransferData
-	gcov -o . ../ota/transfer_data/utest/TransferDataTest.cpp
-	mv TransferDataTest.cpp.gcov coverage/out_TransferData
-
 allCoveragePostProcess:
 	lcov --capture --directory . --output-file coverage.info
 	lcov --remove coverage.info '/usr/*' --output-file coverage_filtered.info
