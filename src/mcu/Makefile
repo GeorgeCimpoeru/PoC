@@ -3,7 +3,7 @@
 
 #Python flags needed for pybing library
 PYTHON_INCL_DIR=-I/usr/include/python3.8
-PYTHON_LDFLAGS = $(shell python3.8-config --ldflags --embed)
+PYTHON_LDFLAGS = -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -lcrypt -ldl -lutil -lm -lpthread
 
 # Compiler flags
 CXX = g++
