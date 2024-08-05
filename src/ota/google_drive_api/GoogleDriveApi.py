@@ -11,8 +11,10 @@ CREDS_PATH = '/home/projectx/accademyprojects/PoC/key.json'
 OAUTH2_SCOPE = 'https://www.googleapis.com/auth/drive'
 DRIVE_BASE_FILE = {
     "name": "SW_VERSIONS",
-    "id": '11Zj4tGV1EjEF9IfXKG29GnYkAbB7HRL_',
+    "id": '1LtP9TKMDLFv2Hbf-d51DaXDCBE59vZer',
 }
+DRIVE_ECU_BATTERY_SW_VERSIONS_FILE = '1QkgBWPEaKg5bnOU0eXjPOEcz6lqNCG-N'
+DRIVE_MCU_SW_VERSIONS_FILE = '1aGo68MWCYBxMVSPd0-jZ4cBGICGdMRxp'
 DRIVE_DOWNLOAD_PATH = '/home/projectx/Downloads'
 
 # QUERY STRINGS for google drive api filest.list() method
