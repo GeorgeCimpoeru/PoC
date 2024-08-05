@@ -3,7 +3,7 @@
 
 #Python flags needed for pybing library
 PYTHON_INCL_DIR=-I/usr/include/python3.8
-PYTHON_LDFLAGS = $(shell python3.8-config --ldflags --embed)
+PYTHON_LDFLAGS = -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -lcrypt -ldl -lutil -lm -lpthread
 
 # Compiler flags
 CXX = g++
@@ -11,7 +11,7 @@ CFLAGS = -std=c++17 -g -Wall -Werror -pthread -I./include -I../utils/include ${P
 LDFLAGS = -lspdlog -lfmt ${PYTHON_LDFLAGS}
 
 # Test flags
-CFLAGSTST = -std=c++17 -I/include -fprofile-arcs -ftest-coverage
+CFLAGSTST = -std=c++17 -I/include -I/usr/include/python3.8 -fprofile-arcs -ftest-coverage
 CFLAGSTST2 = -lgtest -lgtest_main -lpthread
 CFLAGSTST += -DUNIT_TESTING_MODE
 
@@ -333,7 +333,7 @@ $(OBJ_DIR)/NegativeResponse_test.o: $(UTILS_DIR)/NegativeResponse.cpp
 	
 # Compile all unit tests
 
-allTests: handleFramesTest receiveFramesTest generateFramesTest loggerTest memoryManagerTest createInterfaceTest diagnosticSessionControlTest writeDataByIdentifierTest readDataByIdentifierTest requestTransferExitTest readDtcTest clearDtcTest requestUpdateStatusTest securityAccessTest routineControlTest transferDataTest requestDownloadTest ecuResetTest negativeResponseTest accessTimingParameterTest
+allTests: mcuModuleTest handleFramesTest receiveFramesTest generateFramesTest loggerTest memoryManagerTest createInterfaceTest diagnosticSessionControlTest writeDataByIdentifierTest readDataByIdentifierTest requestTransferExitTest readDtcTest clearDtcTest requestUpdateStatusTest securityAccessTest routineControlTest transferDataTest requestDownloadTest ecuResetTest negativeResponseTest accessTimingParameterTest
 
 
 # HandleFrames Unit tests
@@ -355,6 +355,17 @@ $(SRC_TEST)/receiveFramesTest.out: $(OBJ_DIR) $(OBJS_TEST) $(SRC_TEST)/ReceiveFr
 
 $(SRC_TEST)/ReceiveFrames_test.o: $(SRC_TEST)/ReceiveFramesTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(SRC_TEST)/ReceiveFramesTest.cpp -o $(SRC_TEST)/ReceiveFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
+
+
+
+# MCUModule Unit tests
+mcuModuleTest: $(OBJ_DIR) $(SRC_TEST)/mcuModuleTest.out
+
+$(SRC_TEST)/mcuModuleTest.out: $(OBJ_DIR) $(OBJS_TEST) $(SRC_TEST)/MCUModule_test.o
+	$(CXX) $(CFLAGSTST) -o $(SRC_TEST)/mcuModuleTest.out $(SRC_TEST)/MCUModule_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
+
+$(SRC_TEST)/MCUModule_test.o: $(SRC_TEST)/MCUModuleTest.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(SRC_TEST)/MCUModuleTest.cpp -o $(SRC_TEST)/MCUModule_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 
 
@@ -750,6 +761,20 @@ receiveFrames_coverage: receiveFramesTest
 	mv ReceiveFrames.cpp.gcov coverage/out_ReceiveFrames
 
 
+# MCUModule Coverage - solo job
+mcuModuleCoverage: mcuModule_coverage
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
+	lcov --remove coverage.info '/test/' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_MCUModuleTest
+	xdg-open coverage/out_MCUModuleTest/index.html
+# This job runs for allCoverage
+mcuModule_coverage: mcuModuleTest
+	./$(SRC_TEST)/mcuModuleTest.out
+	mkdir -p coverage/out_MCUModuleTest
+	gcov -o obj/MCUModule_test.gcno obj/MCUModule_test.gcda $(SRC_TEST)/MCUModule.cpp
+	mv MCUModule.cpp.gcov coverage/out_MCUModule
+
 
 # GenerateFrames Coverage - solo job
 generateFramesCoverage: generateFrames_coverage
@@ -876,7 +901,7 @@ negativeResponse_coverage: negativeResponseTest
 	mv NegativeResponse.cpp.gcov coverage/out_NegativeResponse
 
 
-allCoverage: securityAccess_coverage routineControl_coverage transferData_coverage requestDownload_coverage ecuReset_coverage memoryManager_coverage logger_coverage generateFrames_coverage receiveFrames_coverage handleFrames_coverage createInterface_coverage diagnosticSessionControl_coverage writeDataByIdentifier_coverage readDataByIdentifier_coverage requestTransferExit_coverage clearDtc_coverage readDtc_coverage requestUpdateStatus_coverage negativeResponse_coverage accessTimingParameter_coverage
+allCoverage: securityAccess_coverage routineControl_coverage transferData_coverage requestDownload_coverage ecuReset_coverage memoryManager_coverage logger_coverage generateFrames_coverage mcuModule_coverage receiveFrames_coverage handleFrames_coverage createInterface_coverage diagnosticSessionControl_coverage writeDataByIdentifier_coverage readDataByIdentifier_coverage requestTransferExit_coverage clearDtc_coverage readDtc_coverage requestUpdateStatus_coverage negativeResponse_coverage accessTimingParameter_coverage
 
 
 allCoveragePostProcess:
