@@ -101,16 +101,31 @@ class WriteToBattery(WriteInfo):
     def get_ecu_id(self):
         return 0x11
 
-    def _prepare_data_for_write(self):
-        return [
-            (IDENTIFIER_BATTERY_ENERGY_LEVEL, int(self.data.get('battery_level'))),
-            (IDENTIFIER_BATTERY_VOLTAGE, int(self.data.get('voltage'))),
-            (IDENTIFIER_BATTERY_PERCENTAGE, int(self.data.get('percentage'))),
-            (IDENTIFIER_BATTERY_STATE_OF_CHARGE, int(self.data.get('battery_state_of_charge'))),
-            (IDENTIFIER_BATTERY_TEMPERATURE, int(self.data.get('temperature'))),
-            (IDENTIFIER_BATTERY_LIFE_CYCLE, int(self.data.get('life_cycle'))),
-            (IDENTIFIER_BATTERY_FULLY_CHARGED, int(self.data.get('fully_charged'))),
-            (IDENTIFIER_BATTERY_RANGE, int(self.data.get('range_battery'))),
-            (IDENTIFIER_BATTERY_CHARGING_TIME, int(self.data.get('charging_time'))),
-            (IDENTIFIER_DEVICE_CONSUMPTION, int(self.data.get('device_consumption')))
-        ]
+    def _prepare_data_for_write(self, item=None):
+        """
+        Prepares the data for writing. If an item identifier is provided,
+        it prepares only that specific data item.
+
+        Args:
+        - item: Optional identifier for a specific data item to prepare.
+
+        Returns:
+        - List of tuples containing identifier and data to write.
+        """
+        all_data = {
+            IDENTIFIER_BATTERY_ENERGY_LEVEL: self.data.get('battery_level'),
+            IDENTIFIER_BATTERY_VOLTAGE: self.data.get('voltage'),
+            IDENTIFIER_BATTERY_PERCENTAGE: self.data.get('percentage'),
+            IDENTIFIER_BATTERY_STATE_OF_CHARGE: self.data.get('battery_state_of_charge'),
+            IDENTIFIER_BATTERY_TEMPERATURE: self.data.get('temperature'),
+            IDENTIFIER_BATTERY_LIFE_CYCLE: self.data.get('life_cycle'),
+            IDENTIFIER_BATTERY_FULLY_CHARGED: self.data.get('fully_charged'),
+            IDENTIFIER_BATTERY_RANGE: self.data.get('range_battery'),
+            IDENTIFIER_BATTERY_CHARGING_TIME: self.data.get('charging_time'),
+            IDENTIFIER_DEVICE_CONSUMPTION: self.data.get('device_consumption')
+        }
+
+        if item:
+            return [(item, all_data.get(item))]
+
+        return [(id_, value) for id_, value in all_data.items() if value is not None]
