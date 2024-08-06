@@ -9,6 +9,16 @@ protected:
     int socket_id = 2;
     Logger logger;
     RequestUpdateStatus RUS = RequestUpdateStatus(socket_id);
+
+    RequestUpdateStatusTest()
+    {
+        MCU::mcu = new MCU::MCUModule(0x01);
+    }
+    
+    ~RequestUpdateStatusTest()
+    {
+        MCU::mcu = nullptr;
+    }
 };
 
 /**
