@@ -1,5 +1,6 @@
 import io
 import json
+import os
 
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
@@ -7,7 +8,8 @@ from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload
 from googleapiclient.http import MediaFileUpload
 
-CREDS_PATH = '/home/projectx/accademyprojects/PoC/key.json'
+PROJECT_PATH = os.path.abspath(os.path.join(os.getcwd(), "..", ".."))
+CREDS_PATH = PROJECT_PATH + '/key.json'
 OAUTH2_SCOPE = 'https://www.googleapis.com/auth/drive'
 DRIVE_BASE_FILE = {
     "name": "SW_VERSIONS",

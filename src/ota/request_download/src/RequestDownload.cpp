@@ -449,8 +449,12 @@ void RequestDownloadService::downloadSoftwareVersion(std::string version_file_id
     namespace py = pybind11;
     py::scoped_interpreter guard{}; // start the interpreter and keep it alive
 
+    /* PROJECT_PATH defined in makefile to be the root folder path (POC)*/
+    std::string project_path = PROJECT_PATH;
+    std::string path_to_drive_api = project_path + "/src/ota/google_drive_api";
+
     auto sys = py::module::import("sys");
-    sys.attr("path").attr("append")("/home/projectx/accademyprojects/PoC/src/ota/google_drive_api");
+    sys.attr("path").attr("append")(path_to_drive_api);
 
     /* Get the created Python module */
     py::module python_module = py::module::import("GoogleDriveApi");
