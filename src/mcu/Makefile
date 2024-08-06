@@ -471,8 +471,8 @@ $(UDS_DIR)/clear_dtc/utest/ClearDtc_test.o: $(UDS_DIR)/clear_dtc/utest/ClearDtcT
 # RequestUpdateStatus Unit tests
 requestUpdateStatusTest: $(OBJ_DIR) $(OTA_DIR)/request_update_status/utest/requestUpdateStatusTest.out
 
-$(OTA_DIR)/request_update_status/utest/requestUpdateStatusTest.out: $(OBJ_DIR) $(OBJS_REQUESTUPDATESTATUS_TEST) $(OTA_DIR)/request_update_status/utest/RequestUpdateStatus_test.o
-	$(CXX) $(CFLAGSTST) -o $(OTA_DIR)/request_update_status/utest/requestUpdateStatusTest.out $(OTA_DIR)/request_update_status/utest/RequestUpdateStatus_test.o $(OBJS_REQUESTUPDATESTATUS_TEST) $(CFLAGSTST2) $(LDFLAGS)
+$(OTA_DIR)/request_update_status/utest/requestUpdateStatusTest.out: $(OBJ_DIR) $(OBJS_TEST) $(OTA_DIR)/request_update_status/utest/RequestUpdateStatus_test.o
+	$(CXX) $(CFLAGSTST) -o $(OTA_DIR)/request_update_status/utest/requestUpdateStatusTest.out $(OTA_DIR)/request_update_status/utest/RequestUpdateStatus_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
 
 $(OTA_DIR)/request_update_status/utest/RequestUpdateStatus_test.o: $(OTA_DIR)/request_update_status/utest/RequestUpdateStatusTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(OTA_DIR)/request_update_status/utest/RequestUpdateStatusTest.cpp -o $(OTA_DIR)/request_update_status/utest/RequestUpdateStatus_test.o $(CFLAGSTST2) $(LDFLAGS)

@@ -6,8 +6,9 @@
 
 class RequestUpdateStatusTest : public ::testing::Test {
 protected:
-    int socketid = 2;
-    RequestUpdateStatus RUS = RequestUpdateStatus(socketid);
+    int socket_id = 2;
+    Logger logger;
+    RequestUpdateStatus RUS = RequestUpdateStatus(socket_id);
 };
 
 /**
@@ -84,7 +85,8 @@ TEST_F(RequestUpdateStatusTest, AfterStatusUpdateTest)
     int request_id = 0x0000fa10;
     uint8_t new_status = WAIT;
 
-    WriteDataByIdentifier WDBI(request_id, {PCI_L, WRITE_DATA_BY_IDENTIFIER_SID, OTA_UPDATE_STATUS_DID_MSB, OTA_UPDATE_STATUS_DID_LSB, new_status}, MCULogger, 0);
+    WriteDataByIdentifier WDBI(logger, socket_id);
+    WDBI.WriteDataByIdentifierService(request_id, {PCI_L, WRITE_DATA_BY_IDENTIFIER_SID, OTA_UPDATE_STATUS_DID_MSB, OTA_UPDATE_STATUS_DID_LSB, new_status});
 
     std::vector<uint8_t> request = {PCI_L, REQUEST_UPDATE_STATUS_SID};
     std::vector<uint8_t> response = RUS.requestUpdateStatus(request_id, request);
@@ -107,7 +109,8 @@ TEST_F(RequestUpdateStatusTest, NegativeResponseInvalidStatusTest)
     int request_id = 0x0000fa10;
     uint8_t invalid_status = 0xFF;
 
-    WriteDataByIdentifier WDBI(request_id, {PCI_L, WRITE_DATA_BY_IDENTIFIER_SID, OTA_UPDATE_STATUS_DID_MSB, OTA_UPDATE_STATUS_DID_LSB, invalid_status}, MCULogger, 0);
+    WriteDataByIdentifier WDBI(logger, socket_id);
+    WDBI.WriteDataByIdentifierService(request_id, {PCI_L, WRITE_DATA_BY_IDENTIFIER_SID, OTA_UPDATE_STATUS_DID_MSB, OTA_UPDATE_STATUS_DID_LSB, invalid_status});
 
     std::vector<uint8_t> request = {PCI_L, REQUEST_UPDATE_STATUS_SID};
     std::vector<uint8_t> response = RUS.requestUpdateStatus(request_id, request);
