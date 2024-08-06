@@ -128,12 +128,12 @@ function fetchLogs() {
         const voltage = prompt('Enter Battery Voltage:');
         const stateOfCharge = prompt('Enter Battery State of Charge:');
         const percentage = prompt('Enter Battery Percentage:');
-        // const temperature = prompt('Enter Battery Temperature:');
-        // const lifeCycle = prompt('Enter Battery Life Cycle:');
-        // const fullyCharged = prompt('Enter Battery Fully Charged Status:');
-        // const range = prompt('Enter Battery Range:');
-        // const chargingTime = prompt('Enter Battery Charging Time:');
-        // const deviceConsumption = prompt('Enter Device Consumption:');
+        const temperature = prompt('Enter Battery Temperature:');
+        const lifeCycle = prompt('Enter Battery Life Cycle:');
+        const fullyCharged = prompt('Enter Battery Fully Charged Status:');
+        const range = prompt('Enter Battery Range:');
+        const chargingTime = prompt('Enter Battery Charging Time:');
+        const deviceConsumption = prompt('Enter Device Consumption:');
         
 
         const data = {
@@ -141,12 +141,12 @@ function fetchLogs() {
             voltage: voltage || null,
             battery_state_of_charge: stateOfCharge || null,
             percentage: percentage || null,
-            // temperature: temperature || null,
-            // life_cycle: lifeCycle || null,
-            // fully_charged: fullyCharged || null,
-            // range_battery: range || null,
-            // charging_time: chargingTime || null,
-            // device_consumption: deviceConsumption || null
+            temperature: temperature || null,
+            life_cycle: lifeCycle || null,
+            fully_charged: fullyCharged || null,
+            range_battery: range || null,
+            charging_time: chargingTime || null,
+            device_consumption: deviceConsumption || null
         };
         
         

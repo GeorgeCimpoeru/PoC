@@ -117,16 +117,15 @@ class WriteToBattery(WriteInfo):
             IDENTIFIER_BATTERY_VOLTAGE: self.data.get('voltage'),
             IDENTIFIER_BATTERY_PERCENTAGE: self.data.get('percentage'),
             IDENTIFIER_BATTERY_STATE_OF_CHARGE: self.data.get('battery_state_of_charge'),
-            # IDENTIFIER_BATTERY_TEMPERATURE: self.data.get('temperature'),
-            # IDENTIFIER_BATTERY_LIFE_CYCLE: self.data.get('life_cycle'),
-            # IDENTIFIER_BATTERY_FULLY_CHARGED: self.data.get('fully_charged'),
-            # IDENTIFIER_BATTERY_RANGE: self.data.get('range_battery'),
-            # IDENTIFIER_BATTERY_CHARGING_TIME: self.data.get('charging_time'),
-            # IDENTIFIER_DEVICE_CONSUMPTION: self.data.get('device_consumption')
+            IDENTIFIER_BATTERY_TEMPERATURE: self.data.get('temperature'),
+            IDENTIFIER_BATTERY_LIFE_CYCLE: self.data.get('life_cycle'),
+            IDENTIFIER_BATTERY_FULLY_CHARGED: self.data.get('fully_charged'),
+            IDENTIFIER_BATTERY_RANGE: self.data.get('range_battery'),
+            IDENTIFIER_BATTERY_CHARGING_TIME: self.data.get('charging_time'),
+            IDENTIFIER_DEVICE_CONSUMPTION: self.data.get('device_consumption')
         }
 
         if item:
             return [(item, all_data.get(item))]
-        
-        return [(id_, value) for id_, value in all_data.items() if value is not None]
 
+        return [(id_, value) for id_, value in all_data.items() if value is not None]
