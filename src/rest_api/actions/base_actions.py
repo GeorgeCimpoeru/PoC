@@ -103,7 +103,8 @@ CLEAR_DTC = 0X14
 REQUEST_DOWNLOAD = 0X34
 TRANSFER_DATA = 0X36
 REQUEST_TRANSFER_EXIT = 0X37
-
+REQ_DOWNLOAD_TYPE_AUTO = 0x89
+REQ_DOWNLOAD_TYPE_MANUAL = 0x88
 
 class FrameWithData:
     """Base class for frames with data extraction methods."""
