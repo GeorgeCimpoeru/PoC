@@ -17,7 +17,7 @@ DRIVE_BASE_FILE = {
 }
 DRIVE_ECU_BATTERY_SW_VERSIONS_FILE = '1QkgBWPEaKg5bnOU0eXjPOEcz6lqNCG-N'
 DRIVE_MCU_SW_VERSIONS_FILE = '1aGo68MWCYBxMVSPd0-jZ4cBGICGdMRxp'
-#TO BE CHANGED WITH THE DESIRED PATH FOR DOWNLOADS
+# TO BE CHANGED WITH THE DESIRED PATH FOR DOWNLOADS
 DRIVE_DOWNLOAD_PATH = PROJECT_PATH
 
 # QUERY STRINGS for google drive api filest.list() method
@@ -27,7 +27,8 @@ FILE_MIMETYPE_QUERY = "mimeType = 'application/vnd.google-apps.file'"
 ecu_map = {
     0x10: "mcu",
     0x11: "battery"
-}   
+}
+
 
 class GDriveAPI:
     # credentials needed for authorization. Created from the google cloud key.json file
@@ -73,7 +74,8 @@ class GDriveAPI:
 
         media = MediaFileUpload(file_path, mimetype='text/plain')
 
-        self.__drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+        self.__drive_service.files().create(
+            body=file_metadata, media_body=media, fields='id').execute()
 
     def downloadFile(self, ecu_id, sw_version_byte, path_to_download=DRIVE_DOWNLOAD_PATH):
         try:
@@ -83,7 +85,8 @@ class GDriveAPI:
             file_to_download = [
                 data for data in self.__drive_data_array if data['type'] == ecu_map[ecu_id] and data['sw_version'] == str(sw_version)]
             if not file_to_download:
-                print(f"No file found with type:{ecu_map[ecu_id]} and version {sw_version}")
+                print(
+                    f"No file found with type:{ecu_map[ecu_id]} and version {sw_version}")
                 return
             print('Version found, downloading..')
             file_to_download = file_to_download[0]  # Access the first element
@@ -110,11 +113,11 @@ class GDriveAPI:
     def __convertByteToSwVersion(self, software_version_byte):
         # Convert the hex string to an integer
         int_value = int(str(software_version_byte), 16)
-        
+
         # SMost significant 3 bits => major version, next 4 bits minor_version, lsb not important for versioning
         major_version = ((int_value & 0b11100000) >> 5) + 1
         minor_version = (int_value & 0b00011110) >> 1
-        
+
         # Combine the parts into the version string
         software_version = f"{major_version}.{minor_version}"
         return software_version
@@ -135,7 +138,7 @@ class GDriveAPI:
         version_with_zip = file_name.split('_')[-1]
         version = version_with_zip.rstrip('.zip')
         return version
-    
+
     def __getDriveData(self, file=DRIVE_BASE_FILE):
 
         folder_data = self.__getFilesFromFolder(file["id"])
@@ -145,7 +148,7 @@ class GDriveAPI:
             'type': self.__getFileType(file),
             'children': [],
         }
-        if(json_file['type'] != "folder"):
+        if (json_file['type'] != "folder"):
             json_file['sw_version'] = self.__getSoftwareVersion(file['name'])
             json_file['size'] = file.get('size', 'N/A')
         self.__drive_data_array.append(json_file)

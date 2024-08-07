@@ -23,8 +23,9 @@ import shutil
 PROJECT_PATH = os.path.abspath(os.path.join(os.getcwd(), "..", ".."))
 PATH_SOFTWARE_RELEASES = PROJECT_PATH + '/software_releases'
 
+
 def create_exec(version: str, sw_to_build: str):
-    dir_name = "release_" + sw_to_build + '_'  + version
+    dir_name = "release_" + sw_to_build + '_' + version
     directory_path = os.path.expanduser(PATH_SOFTWARE_RELEASES + "/"+dir_name)
 
     if subprocess.run(["ls {0}/{1} 2>/dev/null".format(PATH_SOFTWARE_RELEASES, dir_name)], shell=True).returncode == 0:
@@ -76,6 +77,7 @@ def uploadRelease(directory_path: str):
                               DRIVE_ECU_BATTERY_SW_VERSIONS_FILE)
             print(file + ' UPLOADED TO GOOGLE DRIVE')
 
+
 def validateSoftwareVersion(software_version):
     if "." not in software_version:
         print("Version not valid, must look like 1.1, 1.6 etc")
@@ -90,9 +92,11 @@ def validateSoftwareVersion(software_version):
         exit(-1)
     return software_version
 
+
 def validateSoftwareToBuild(software_to_build):
-    #TODO
+    # TODO
     return software_to_build
+
 
 def main():
     version = "1.0"
@@ -107,6 +111,7 @@ def main():
 
     output_path = create_exec(version, sw_to_build)
     uploadRelease(output_path)
+
 
 if __name__ == "__main__":
     main()
