@@ -110,12 +110,10 @@ class GDriveAPI:
     def __convertByteToSwVersion(self, software_version_byte):
         # Convert the hex string to an integer
         int_value = int(str(software_version_byte), 16)
-        # Extract the most significant 7 bits
-        version_bits = int_value >> 1  # Shift right by 1 to drop the LSB
         
-        # Split the 7 bits into the most significant 4 bits and the least significant 3 bits
-        major_version = version_bits >> 3
-        minor_version = (version_bits & 0b111)
+        # SMost significant 3 bits => major version, next 4 bits minor_version, lsb not important for versioning
+        major_version = ((int_value & 0b11100000) >> 5) + 1
+        minor_version = (int_value & 0b00011110) >> 1
         
         # Combine the parts into the version string
         software_version = f"{major_version}.{minor_version}"
