@@ -76,7 +76,6 @@ How to create a new class action, example:
 """
 
 import can
-import json
 import datetime
 from actions.generate_frames import GenerateFrame as GF
 from utils.logger import *
@@ -91,7 +90,12 @@ SESSION_CONTROL = 0x10
 RESET_ECU = 0x11
 READ_BY_ADDRESS = 0x23
 READ_BY_IDENTIFIER = 0x022
-AUTHENTICATION = 0x29
+AUTHENTICATION_SEND = 0x27
+AUTHENTICATION_RECV = 0x67
+# AUTHENTICATION_SEND = 0x26
+# AUTHENTICATION_RECV = 0x66
+AUTHENTICATION_SUBF_REQ_SEED = 0x1
+AUTHENTICATION_SUBF_SEND_KEY = 0x2
 ROUTINE_CONTROL = 0X31
 WRITE_BY_IDENTIFIER = 0X2E
 READ_DTC = 0X19
@@ -166,6 +170,7 @@ class Action:
         flag = False
         msg_ext = None
         msg = self.bus.recv(3)
+        print(msg)
         while msg is not None:
             # First Frame
             if msg.data[0] == 0x10:
@@ -177,7 +182,7 @@ class Action:
             # Simple Frame
             else:
                 break
-            msg = self.bus.recv(3)
+            msg = self.bus.recv(Config.BUS_RECEIVE_TIMEOUT)
         if flag:
             msg = msg_ext
         if msg is not None and self.__verify_frame(msg, sid):
@@ -197,7 +202,13 @@ class Action:
         """
         if msg.arbitration_id % 0x100 != self.my_id:
             return False
+        if msg.data[1] == 0x7F:
+            self.__handle_negative_response(msg)
+            return False
         if msg.data[0] != 0x10:
+            if msg.data[1] == 0x67 and msg.data[2] == 0x00:
+                log_info_message(logger, "Authentication successful")
+                return True  # Successful authentication frame
             if msg.data[1] != sid + 0x40:
                 return False
         else:
@@ -238,7 +249,7 @@ class Action:
         handlers = {
             0x62: ReadByIdentifier(),
             0x63: ReadByAddress(),
-            0x69: AuthenticationSeed(),
+            0x67: AuthenticationSeed(),
         }
         handler = handlers.get(msg.data[1] if msg.data[0] != 0x10 else msg.data[2])
         if handler:
@@ -255,40 +266,105 @@ class Action:
         Returns:
         - Data as a string.
         """
-        log_info_message(logger, "Read from identifier {identifier}")
+        log_info_message(logger, f"Read from identifier {identifier}")
         self.generate.read_data_by_identifier(id, identifier)
-        frame_response = self._passive_response(READ_BY_IDENTIFIER, f"Error reading data from identifier {identifier}")
+        frame_response = self._passive_response(READ_BY_IDENTIFIER,
+                                                f"Error reading data from identifier {identifier}")
+        log_info_message(logger, f"Frame response: {frame_response}")
         data = self._data_from_frame(frame_response)
         data_str = self._list_to_number(data)
         return data_str
+
+    def _write_by_identifier(self, id, identifier, value):
+        """
+        Function to read data from a specific identifier. The function requests, reads the data, and processes it.
+
+        Args:
+        - identifier: Identifier of the data.
+
+        Returns:
+        - Data as a string.
+        """
+        log_info_message(logger, "Write by identifier {identifier}")
+        value_list = self._number_to_list(value)
+
+        if isinstance(value_list, list) and len(value_list) > 4:
+            self.generate.write_data_by_identifier_long(id, identifier, value_list)
+        else:
+            self.generate.write_data_by_identifier(id, identifier, value_list)
+            self._passive_response(WRITE_BY_IDENTIFIER, f"Error writing {identifier}")
+
+        self.generate.write_data_by_identifier(id, identifier, value_list)
+        self._passive_response(WRITE_BY_IDENTIFIER, f"Error reading data from identifier {identifier}")
+
+        return True
 
     def __algorithm(self, seed: list):
         """
         Method to generate a key based on the seed.
         """
-        key = []
-        bit_width = 8
-        for value in seed:
-            if value < 0:
-                value = (1 << bit_width) + value
-            key.append(value & ((1 << bit_width) - 1))
-        return key
+        return [(~num + 1) & 0xFF for num in seed]
+        # return [(~num - 1) & 0xFF for num in seed] # Test case 0x35 Invalid Key
 
     def _authentication(self, id):
         """
         Function to authenticate. Makes the proper request to the ECU.
         """
         log_info_message(logger, "Authenticating")
-        self.generate.authentication_seed(id)
-        frame_response = self._passive_response(AUTHENTICATION, "Error requesting seed")
-        seed = self._data_from_frame(frame_response)
-        key = self.__algorithm(seed)
-        self.generate.authentication_key(id, key)
-        self._passive_response(AUTHENTICATION, "Error sending key")
+        self.generate.authentication_seed(id,
+                                          sid_send=AUTHENTICATION_SEND,
+                                          sid_recv=AUTHENTICATION_RECV,
+                                          subf=AUTHENTICATION_SUBF_REQ_SEED)
+        frame_response = self._passive_response(AUTHENTICATION_SEND,
+                                                "Error requesting seed")
+        if frame_response.data[1] == 0x67 and \
+            frame_response.data[2] == 0x01 and \
+                frame_response.data[3] == 0x00:
+            log_info_message(logger, "Authentication successful")
+            return  # Successful authentication
+        else:
+            seed = self._data_from_frame(frame_response)
+            key = self.__algorithm(seed)
+            log_info_message(logger, f"Key: {key}")
+            self.generate.authentication_key(id,
+                                             key=key,
+                                             sid_send=AUTHENTICATION_RECV,
+                                             sid_recv=AUTHENTICATION_SEND,
+                                             subf=AUTHENTICATION_SUBF_SEND_KEY)
+            frame_response = self._passive_response(AUTHENTICATION_SEND,
+                                                    "Error sending key")
+            if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x02:
+                log_info_message(logger, "Authentication successful")
+                return  # Successful authentication
+
+    def __handle_negative_response(self, frame_response):
+        """
+        Handles the negative response scenarios.
+        """
+        negative_responses = {
+            0x12: "SubFunctionNotSupported",
+            0x13: "IncorrectMessageLengthOrInvalidFormat",
+            0x24: "RequestSequenceError",
+            0x35: "InvalidKey",
+            0x36: "ExceededNumberOfAttempts",
+            0x37: "RequiredTimeDelayNotExpired"
+        }
+
+        nrc = frame_response.data[3]
+        error_message = negative_responses.get(nrc, "Unknown error")
+        log_error_message(logger, f"Authentication failed: {error_message}")
+
+        response_json = self._to_json_error(error_message, 1)
+        raise CustomError(response_json)
 
     # Implement in the child class
     def _to_json(self, status, no_errors):
-        pass
+        response_to_frontend = {
+            "status": status,
+            "No of errors": no_errors,
+            "time_stamp": datetime.datetime.now().isoformat()
+        }
+        return response_to_frontend
 
     def _to_json_error(self, error, no_errors):
         response_to_frontend = {
@@ -296,7 +372,7 @@ class Action:
             "No of errors": no_errors,
             "time_stamp": datetime.datetime.now().isoformat()
         }
-        return json.dumps(response_to_frontend)
+        return response_to_frontend
 
     def _list_to_number(self, list: list):
         number = ""
@@ -305,3 +381,18 @@ class Action:
                 number += "0"
             number += hex(item)[2:]
         return number
+
+    def _number_to_list(self, number: int) -> list:
+        list = []
+        while number:
+            list.append(number % 0x100)
+            number = number//0x100
+        return list[::-1]
+
+    def _number_to_byte_list(self, number: int):
+        """Converts a number to a list of bytes."""
+        byte_list = []
+        while number > 0:
+            byte_list.insert(0, number & 0xFF)
+            number = number >> 8
+        return byte_list

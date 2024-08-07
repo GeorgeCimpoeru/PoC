@@ -4,6 +4,6 @@
 #include "../../../utils/include/Logger.h"
 
 /* Global logger for the Battery Module */
-extern Logger batteryModuleLogger;
+extern Logger* batteryModuleLogger;
 
 #endif
