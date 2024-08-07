@@ -7,6 +7,7 @@ import shutil
 # command: python3 ReleaseScript.py [version_number] [what_to_create: mcu/ecu/all]
 # example: python3 ReleaseScript.py 1 all
 
+PROJECT_PATH = os.path.abspath(os.path.join(os.getcwd(), "..", ".."))
 path_tool = ""
 
 
@@ -75,7 +76,8 @@ def create_exec(version: str, sw_to_build: str):
 
 
 def uploadRelease(directory_path: str):
-    sys.path.append('/home/projectx/accademyprojects/PoC/src/ota/google_drive_api')
+    google_drive_api_path = PROJECT_PATH + '/src/ota/google_drive_api'
+    sys.path.append(google_drive_api_path)
     from GoogleDriveApi import gDrive, DRIVE_MCU_SW_VERSIONS_FILE, DRIVE_ECU_BATTERY_SW_VERSIONS_FILE
 
     for file in os.listdir(directory_path):
@@ -102,7 +104,7 @@ def main():
     if len(sys.argv) > 2:
         sw_to_build = sys.argv[2]
     output_path = create_exec(version, sw_to_build)
-    uploadRelease(output_path)
+    # uploadRelease(output_path)
 
 
 if __name__ == "__main__":
