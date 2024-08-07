@@ -66,6 +66,7 @@ def handle_negative_response(frame_response):
         0x12: "SubFunctionNotSupported",
         0x13: "IncorrectMessageLengthOrInvalidFormat",
         0x24: "RequestSequenceError",
+        0x31: "RequestOutofRange",
         0x35: "InvalidKey",
         0x36: "ExceededNumberOfAttempts",
         0x37: "RequiredTimeDelayNotExpired"
