@@ -2,6 +2,7 @@ import sys
 import os
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 sys.path.append(PROJECT_ROOT)
+import json
 
 from flask import request, jsonify, Blueprint
 from actions.request_id_action import RequestIdAction
@@ -120,7 +121,8 @@ def get_logs():
 @api_bp.route('/drive_update_data', methods=['GET'])
 def update_drive_data():
     try:
-        drive_data = gDrive.getDriveData()
-        return jsonify(drive_data)
+        drive_data_str = gDrive.getDriveData()
+        # drive_data = json.loads(drive_data_str)
+        return jsonify(drive_data_str)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
