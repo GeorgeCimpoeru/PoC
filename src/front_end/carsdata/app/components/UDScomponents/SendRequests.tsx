@@ -7,8 +7,8 @@ const SendRequests = () => {
     const [canId, setCanId] = useState("");
     const [canData, setCanData] = useState("");
 
-    const fetchLogs = () => {
-        fetch('http://127.0.0.1:5000/api/logs', {
+    const fetchLogs = async () => {
+        await fetch('http://127.0.0.1:5000/api/logs', {
             method: 'GET',
         }).then(response => response.json())
             .then(data => {
@@ -19,12 +19,12 @@ const SendRequests = () => {
             });
     }
 
-    const sendFrame = () => {
+    const sendFrame = async () => {
         if (!canId || !canData) {
             alert('CAN ID and CAN Data cannot be empty.');
             return;
         }
-        fetch('http://127.0.0.1:5000/api/send_frame', {
+        await fetch('http://127.0.0.1:5000/api/send_frame', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -37,8 +37,8 @@ const SendRequests = () => {
             });
     }
 
-    const requestIds = () => {
-        fetch('http://127.0.0.1:5000/api/request_ids', {
+    const requestIds = async () => {
+        await fetch('http://127.0.0.1:5000/api/request_ids', {
             method: 'GET',
         }).then(response => response.json())
             .then(data => {
@@ -47,10 +47,10 @@ const SendRequests = () => {
             });
     }
 
-    const updateToVersion = () => {
+    const updateToVersion = async () => {
         const ecuId = prompt('Enter ECU ID:');
         const version = prompt('Enter Version:');
-        fetch('http://127.0.0.1:5000/api/update_to_version', {
+        await fetch('http://127.0.0.1:5000/api/update_to_version', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -63,8 +63,8 @@ const SendRequests = () => {
             });
     }
 
-    const readInfoBattery = () => {
-        fetch('http://127.0.0.1:5000/api/read_info_battery', {
+    const readInfoBattery = async () => {
+        await fetch('http://127.0.0.1:5000/api/read_info_battery', {
             method: 'GET',
         }).then(response => response.json())
             .then(data => {
@@ -73,12 +73,12 @@ const SendRequests = () => {
             });
     }
 
-    const readInfoEngine = () => {
+    const readInfoEngine = async () => {
 
     }
 
-    const readInfoDoors = () => {
-        fetch('http://127.0.0.1:5000/api/read_info_doors', {
+    const readInfoDoors = async () => {
+        await fetch('http://127.0.0.1:5000/api/read_info_doors', {
             method: 'GET',
         }).then(response => response.json())
             .then(data => {
@@ -87,7 +87,7 @@ const SendRequests = () => {
             });
     }
 
-    const writeInfoDoors = () => {
+    const writeInfoDoors = async () => {
         const door = prompt('Enter Door Parameter:');
         const serial_number = prompt('Enter Serial Number:');
         const lighter_voltage = prompt('Enter Cigarette Lighter Voltage:');
@@ -104,7 +104,7 @@ const SendRequests = () => {
             windows_closed: windows_closed || null,
         };
 
-        fetch('http://127.0.0.1:5000/api/write_info_doors', {
+        await fetch('http://127.0.0.1:5000/api/write_info_doors', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -117,11 +117,11 @@ const SendRequests = () => {
             });
     }
 
-    const writeInfoBattery = () => {
+    const writeInfoBattery = async () => {
         const battery_level = prompt('Enter Battery Energy Level:');
-        const voltage = prompt('Enter Battery Voltage:');
         const stateOfCharge = prompt('Enter Battery State of Charge:');
         const percentage = prompt('Enter Battery Percentage:');
+        const voltage = prompt('Enter Battery Voltage:');
         // const temperature = prompt('Enter Battery Temperature:');
         // const lifeCycle = prompt('Enter Battery Life Cycle:');
         // const fullyCharged = prompt('Enter Battery Fully Charged Status:');
@@ -131,9 +131,9 @@ const SendRequests = () => {
 
         const data = {
             battery_level: battery_level || null,
-            voltage: voltage || null,
             battery_state_of_charge: stateOfCharge || null,
             percentage: percentage || null,
+            voltage: voltage || null,
             // temperature: temperature || null,
             // life_cycle: lifeCycle || null,
             // fully_charged: fullyCharged || null,
@@ -143,7 +143,7 @@ const SendRequests = () => {
         };
 
 
-        fetch('http://127.0.0.1:5000/api/write_info_battery', {
+        await fetch('http://127.0.0.1:5000/api/write_info_battery', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -158,6 +158,7 @@ const SendRequests = () => {
             .catch(error => {
                 console.error('Error:', error);
             });
+        console.log(data);
     }
 
     return (
