@@ -37,7 +37,7 @@ const LeftSideBar = (props: any) => {
                 />
                 {hoveredIcon === 1 && (
                     <div className="absolute bg-gray-700 text-white p-2 rounded mt-1">
-                        ECU
+                        ECU 1
                     </div>
                 )}
             </div>
@@ -48,8 +48,8 @@ const LeftSideBar = (props: any) => {
                 className={activeIcon === 2 ? 'bg-white/50 p-1 rounded-lg' : ''}
             >
                 <Image
-                    src="/history.png"
-                    alt="History icon"
+                    src="/mcu.png"
+                    alt="MCU icon"
                     className="dark:invert m-1 hover:object-scale-down"
                     width={100}
                     height={24}
@@ -57,7 +57,7 @@ const LeftSideBar = (props: any) => {
                 />
                 {hoveredIcon === 2 && (
                     <div className="absolute bg-gray-700 text-white p-2 rounded mt-1">
-                        History
+                        MCU 1
                     </div>
                 )}
             </div>

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import MyComponent from './UpdateVersion'; 
+// import MyComponent from './UpdateVersion'; 
+import UpdateVersion from './UpdateVersion';
 
-const NavbarOTA = () => {
+const NavbarOtaSlides = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
 
     const slides = [
@@ -19,9 +20,12 @@ const NavbarOTA = () => {
 
     return (
         <>
-            <nav className="bg-gray-300 rounded-lg m-5 p-6 shadow-xl flex justify-between items-center">
+            {/* <nav className="bg-gray-300 rounded-lg m-5 p-6 shadow-xl flex justify-between items-center">
                 <div className="text-gray-800 text-2xl font-bold">Over-the-Air Update</div>
-            </nav>
+                <button>
+                    <UpdateVersion></UpdateVersion>
+                </button>
+            </nav> */}
             <div className="relative mx-5 flex justify-center">
                 <div className="carousel max-w-4xl w-full h-96 relative overflow-hidden">
                     {slides.map((slide, index) => (
@@ -39,7 +43,7 @@ const NavbarOTA = () => {
                 </div>
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                     <button>
-                        <MyComponent></MyComponent>
+                        <UpdateVersion></UpdateVersion>
                     </button>
                 </div>
             </div>
@@ -47,4 +51,4 @@ const NavbarOTA = () => {
     );
 }
 
-export default NavbarOTA;
+export default NavbarOtaSlides;
