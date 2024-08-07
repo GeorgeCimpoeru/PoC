@@ -77,7 +77,17 @@ def uploadRelease(directory_path: str):
             print(file + ' UPLOADED TO GOOGLE DRIVE')
 
 def validateSoftwareVersion(software_version):
-    #TODO
+    if "." not in software_version:
+        print("Version not valid, must look like 1.1, 1.6 etc")
+        exit(-1)
+
+    major_version, minor_version = software_version.split('.')
+    major_version = int(major_version)
+    minor_version = int(minor_version)
+
+    if major_version < 1 or major_version > 8 or minor_version < 0 or minor_version > 15:
+        print("Version not valid. Valid versions are between 1.0 and 8.15")
+        exit(-1)
     return software_version
 
 def validateSoftwareToBuild(software_to_build):
