@@ -114,8 +114,8 @@ class GDriveAPI:
         version_bits = int_value >> 1  # Shift right by 1 to drop the LSB
         
         # Split the 7 bits into the most significant 4 bits and the least significant 3 bits
-        major_version = version_bits >> 3  # Shift right by 3 to get the 4 MSBs
-        minor_version = (version_bits & 0b111) + 1  # Mask to get the 3 LSBs
+        major_version = version_bits >> 3
+        minor_version = (version_bits & 0b111)
         
         # Combine the parts into the version string
         software_version = f"{major_version}.{minor_version}"
