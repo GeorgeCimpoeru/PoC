@@ -120,7 +120,7 @@ class GDriveAPI:
         return software_version
 
     def __getFilesFromFolder(self, folder_name):
-        return self.__drive_service.files().list(q="'" + folder_name + "' in parents", pageSize=10, fields="nextPageToken, files(id, name)").execute()
+        return self.__drive_service.files().list(q="'" + folder_name + "' in parents", pageSize=10, fields="nextPageToken, files(id, name, size)").execute()
 
     def __getFileType(self, file):
         type = "folder"
@@ -147,6 +147,7 @@ class GDriveAPI:
         }
         if(json_file['type'] != "folder"):
             json_file['sw_version'] = self.__getSoftwareVersion(file['name'])
+            json_file['size'] = file.get('size', 'N/A')
         self.__drive_data_array.append(json_file)
         if json_file['type'] == "folder":
             json_file['children'].extend(self.__getDriveData(file)
