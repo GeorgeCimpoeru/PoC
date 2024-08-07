@@ -117,7 +117,11 @@ void RequestDownloadService::requestDownloadRequest(int id, std::vector<uint8_t>
 
     int max_number_block = calculate_max_number_block(memory_size);
 
-    downloadSoftwareVersion("software_version_id");
+    /* To be changed with actual values, these are used for test. */
+    uint8_t ecu_id = 0x10;
+    /* 0x24 => 0010 010 0* => v2.2, LSB not taken in consideration for versioning */
+    uint8_t sw_version_byte = 0x24;
+    downloadSoftwareVersion(ecu_id, sw_version_byte);
 
     if (download_type == 0x88)
     {
@@ -444,13 +448,17 @@ bool RequestDownloadService::isLatestSoftwareVersion()
     return false;
 }
 
-void RequestDownloadService::downloadSoftwareVersion(std::string version_file_id)
+void RequestDownloadService::downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_version)
 {
     namespace py = pybind11;
     py::scoped_interpreter guard{}; // start the interpreter and keep it alive
 
+    /* PROJECT_PATH defined in makefile to be the root folder path (POC)*/
+    std::string project_path = PROJECT_PATH;
+    std::string path_to_drive_api = project_path + "/src/ota/google_drive_api";
+
     auto sys = py::module::import("sys");
-    sys.attr("path").attr("append")("/home/projectx/accademyprojects/PoC/src/ota/google_drive_api");
+    sys.attr("path").attr("append")(path_to_drive_api);
 
     /* Get the created Python module */
     py::module python_module = py::module::import("GoogleDriveApi");
@@ -470,7 +478,7 @@ void RequestDownloadService::downloadSoftwareVersion(std::string version_file_id
     */
 
     /* Call the downloadFile method from GoogleDriveApi.py */
-    gGdrive_object.attr("downloadFile")(version_file_id);
+     gGdrive_object.attr("downloadFile")(ecu_id, sw_version);
 }
 /** Use libraries for tar
  * #include <archive.h>

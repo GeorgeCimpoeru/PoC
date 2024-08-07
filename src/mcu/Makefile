@@ -1,13 +1,15 @@
 ######### Makefile for MCU module
 ######### Author: Theodor Stoica (contact theodor.stoica@randstaddigital.com for any help)
 
+#POC Project root path
+PROJECT_PATH := $(shell cd $(shell pwd)/../../ && pwd)
 #Python flags needed for pybing library
 PYTHON_INCL_DIR=-I/usr/include/python3.8
 PYTHON_LDFLAGS = -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -lcrypt -ldl -lutil -lm -lpthread
 
 # Compiler flags
 CXX = g++
-CFLAGS = -std=c++17 -g -Wall -Werror -pthread -I./include -I../utils/include ${PYTHON_INCL_DIR}
+CFLAGS = -std=c++17 -g -Wall -Werror -pthread -I./include -I../utils/include ${PYTHON_INCL_DIR} -DPROJECT_PATH=\"$(PROJECT_PATH)\"
 LDFLAGS = -lspdlog -lfmt ${PYTHON_LDFLAGS}
 
 # Test flags

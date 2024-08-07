@@ -151,7 +151,7 @@ private:
      * 
      * @param version_file_id 
      */
-    void downloadSoftwareVersion(std::string version_file_id);
+    void downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_version);
 };
 
 #endif /* REQUEST_DOWNLOAD_SERVICE_H */
