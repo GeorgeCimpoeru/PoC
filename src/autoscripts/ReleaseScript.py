@@ -3,41 +3,28 @@ import sys
 import subprocess
 import shutil
 
-# HOW TO USE THE SCRIPT
-# command: python3 ReleaseScript.py [version_number] [what_to_create: mcu/ecu/all]
-# example: python3 ReleaseScript.py 1 all
+"""
+    STEPS TO DO BEFORE RUNNING THE SCRIPT
+
+1.Create and activate the venv, install dependencies
+    cd /src/rest_api
+    python3.8 -m venv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
+2.Add key.json to PoC folder
+  Copy the key.json from drive PoC folder
+
+    HOW TO USE THE SCRIPT
+
+    command: python3 ReleaseScript.py [version_number] [what_to_create: mcu/ecu/all]
+    example: python3 ReleaseScript.py 1 all
+"""
 
 PROJECT_PATH = os.path.abspath(os.path.join(os.getcwd(), "..", ".."))
 PATH_SOFTWARE_RELEASES = PROJECT_PATH + '/software_releases'
 
-def find_path():
-    # Search in most impotrtantdir
-    possible_paths = ["~/PoC/software_releases", "~/Desktop/PoC/software_releases"]
-    for path in possible_paths:
-        if os.system("cd {0} 2>/dev/null".format(path)) == 0:
-            global path_tool
-            PATH_SOFTWARE_RELEASES = path
-            return
-    # Search in the whole user dir
-    result = subprocess.run("find ~ -type d -name PoC 2>/dev/null",
-                            shell=True, stdout=subprocess.PIPE, text=True)
-    if str(result.stdout) != "":
-        PATH_SOFTWARE_RELEASES = str(result.stdout)[:-1]+"/software_releases"
-        return
-    # Unable to find
-    print("Unable to find the PoC/software_releases dir, please pass the path as second argument")
-    exit(-1)
-
-
-def checking():
-    r = subprocess.run('pwd', shell=True, stdout=subprocess.PIPE, text=True)
-    current_dir = str(r.stdout)[-10:-1]
-    if current_dir != "PoC/software_releases":
-        find_path()
-
-
 def create_exec(version: str, sw_to_build: str):
-    dir_name = "release_" + version + '_' + sw_to_build
+    dir_name = "release_" + sw_to_build + '_'  + version
     directory_path = os.path.expanduser(PATH_SOFTWARE_RELEASES + "/"+dir_name)
 
     if subprocess.run(["ls {0}/{1} 2>/dev/null".format(PATH_SOFTWARE_RELEASES, dir_name)], shell=True).returncode == 0:
@@ -83,25 +70,33 @@ def uploadRelease(directory_path: str):
         if "MCU" in file:
             gDrive.uploadFile(file, os.path.join(
                 directory_path, file), DRIVE_MCU_SW_VERSIONS_FILE)
-            print('${file} UPLOADED TO GOOGLE DRIVE')
+            print(file + ' UPLOADED TO GOOGLE DRIVE')
         elif "BATTERY" in file:
             gDrive.uploadFile(file, os.path.join(directory_path, file),
                               DRIVE_ECU_BATTERY_SW_VERSIONS_FILE)
-            print('${file} UPLOADED TO GOOGLE DRIVE')
+            print(file + ' UPLOADED TO GOOGLE DRIVE')
+
+def validateSoftwareVersion(software_version):
+    #TODO
+    return software_version
+
+def validateSoftwareToBuild(software_to_build):
+    #TODO
+    return software_to_build
 
 def main():
-    version = "1"
+    version = "1.0"
     sw_to_build = "all"
-    if len(sys.argv) > 1:
-        version = sys.argv[1]
-    elif len(sys.argv) <= 1:
-        print("Please provide as argument the version of the release")
-        # exit(-1)
-    if len(sys.argv) > 2:
-        sw_to_build = sys.argv[2]
-    output_path = create_exec(version, sw_to_build)
-    # uploadRelease(output_path)
 
+    if len(sys.argv) < 2:
+        print("Please provide as first argument the version of the release using format 1.0 -> 1.15 and as second argument the software to build mcu/ecu/all")
+        exit(-1)
+    else:
+        version = validateSoftwareVersion(sys.argv[1])
+        sw_to_build = validateSoftwareToBuild(sys.argv[2])
+
+    output_path = create_exec(version, sw_to_build)
+    uploadRelease(output_path)
 
 if __name__ == "__main__":
     main()
