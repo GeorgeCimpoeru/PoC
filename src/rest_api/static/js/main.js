@@ -19,7 +19,7 @@ function sendFrame() {
     }).then(response => response.json())
       .then(data => {
           document.getElementById('response-output').textContent = JSON.stringify(data);
-          fetchLogs(); 
+          fetchLogs();
       });
 }
 
@@ -29,7 +29,7 @@ function requestIds() {
     }).then(response => response.json())
       .then(data => {
           document.getElementById('response-output').textContent = JSON.stringify(data);
-          fetchLogs(); 
+          fetchLogs();
       });
 }
 
@@ -45,7 +45,7 @@ function updateToVersion() {
     }).then(response => response.json())
       .then(data => {
           document.getElementById('response-output').textContent = JSON.stringify(data);
-          fetchLogs(); 
+          fetchLogs();
       });
 }
 
@@ -55,7 +55,7 @@ function readInfoBattery() {
     }).then(response => response.json())
       .then(data => {
           document.getElementById('response-output').textContent = JSON.stringify(data);
-          fetchLogs(); 
+          fetchLogs();
       });
 }
 
@@ -66,9 +66,9 @@ function fetchLogs() {
     }).then(response => response.json())
       .then(data => {
           const logBody = document.getElementById('log-body');
-          logBody.innerHTML = ''; 
-          
-          
+          logBody.innerHTML = '';
+
+
           data.logs.reverse().forEach((log, index) => {
               const row = document.createElement('tr');
               row.innerHTML = `<td>${index + 1}</td><td>${log}</td>`;
@@ -88,10 +88,10 @@ function fetchLogs() {
         }).then(response => response.json())
           .then(data => {
               document.getElementById('response-output').textContent = JSON.stringify(data);
-              fetchLogs(); 
+              fetchLogs();
           });
     }
-    
+
     function writeInfoDoors() {
         const door = prompt('Enter Door Parameter:');
         const serial_number = prompt('Enter Serial Number:');
@@ -99,8 +99,8 @@ function fetchLogs() {
         const light_state = prompt('Enter Light State:');
         const belt = prompt('Enter Belt Card State:');
         const windows_closed = prompt('Enter Window Status:');
-    
-    
+
+
         const data = {
             door: door || null,
             serial_number: serial_number || null,
@@ -109,7 +109,7 @@ function fetchLogs() {
             belt: belt || null,
             windows_closed: windows_closed || null,
          };
-    
+
         fetch('/api/write_info_doors', {
             method: 'POST',
             headers: {
@@ -119,7 +119,7 @@ function fetchLogs() {
         }).then(response => response.json())
           .then(data => {
               displayResponse(data);
-              fetchLogs(); 
+              fetchLogs();
           });
     }
 
@@ -134,7 +134,7 @@ function fetchLogs() {
         const range = prompt('Enter Battery Range:');
         const chargingTime = prompt('Enter Battery Charging Time:');
         const deviceConsumption = prompt('Enter Device Consumption:');
-        
+
 
         const data = {
             battery_level: battery_level || null,
@@ -148,8 +148,8 @@ function fetchLogs() {
             charging_time: chargingTime || null,
             device_consumption: deviceConsumption || null
         };
-        
-        
+
+
         fetch('/api/write_info_battery', {
             method: 'POST',
             headers: {
@@ -160,9 +160,19 @@ function fetchLogs() {
         .then(response => response.json())
         .then(data => {
             displayResponse(data);
-            fetchLogs(); 
+            fetchLogs();
         })
         .catch(error => {
             console.error('Error:', error);
         });
+    }
+
+    function gDriveReadData() {
+        fetch('/api/drive_update_data', {
+            method: 'GET',
+        }).then(response => response.json())
+          .then(data => {
+              document.getElementById('response-output').textContent = JSON.stringify(data);
+              fetchLogs();
+          });
     }

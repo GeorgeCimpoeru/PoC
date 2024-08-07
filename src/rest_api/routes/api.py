@@ -1,3 +1,8 @@
+import sys
+import os
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+sys.path.append(PROJECT_ROOT)
+
 from flask import request, jsonify, Blueprint
 from actions.request_id_action import RequestIdAction
 from actions.update_action import Updates
@@ -5,13 +10,10 @@ from actions.read_info_action import *
 from utils.logger import log_memory
 from actions.manual_send_frame import manual_send_frame
 from actions.write_info_action import WriteToDoors, WriteToBattery
-
+from src.ota.google_drive_api.GoogleDriveApi import GDriveAPI
 
 api_bp = Blueprint('api', __name__)
-
-
-ecu_ids = [0x10, 0x11, 0x12]
-
+gDrive = GDriveAPI.getInstance()
 
 @api_bp.route('/request_ids', methods=['GET'])
 def request_ids():
@@ -113,3 +115,12 @@ def write_info_battery():
 @api_bp.route('/logs')
 def get_logs():
     return jsonify({'logs': log_memory})
+
+# Google Drive API Endpoints
+@api_bp.route('/drive_update_data', methods=['GET'])
+def update_drive_data():
+    try:
+        drive_data = gDrive.getDriveData()
+        return jsonify(drive_data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
