@@ -23,8 +23,16 @@ function fetchLogs() {
         });
 }
 
-// Function to handle API fetch requests
-function fetchFromApi(url, method, body = null) {
+/**
+ * Performs an API request using the Fetch API.
+ * This method is a refactored version designed to avoid code repetition
+ * by consolidating the fetch logic into a single function.
+ * @param {string} url - The URL endpoint for the API request.
+ * @param {string} method - The HTTP method for the request (e.g., 'GET', 'POST').
+ * @param {Object|null} body - The body of the request, to be sent as JSON. Defaults to null if no body is provided.
+ * @returns {Promise} - A promise that resolves to the JSON response from the server.
+ */
+function performApiRequest(url, method, body = null) {
     return fetch(url, {
         method: method,
         headers: {
@@ -48,29 +56,29 @@ function sendFrame() {
         alert('CAN ID and CAN Data cannot be empty.');
         return;
     }
-    fetchFromApi('/api/send_frame', 'POST', { can_id: canId, can_data: canData });
+    performApiRequest('/api/send_frame', 'POST', { can_id: canId, can_data: canData });
 }
 
 function requestIds() {
-    fetchFromApi('/api/request_ids', 'GET');
+    performApiRequest('/api/request_ids', 'GET');
 }
 
 function updateToVersion() {
     const ecuId = prompt('Enter ECU ID:');
     const version = prompt('Enter Version:');
-    fetchFromApi('/api/update_to_version', 'POST', { ecu_id: ecuId, version: version });
+    performApiRequest('/api/update_to_version', 'POST', { ecu_id: ecuId, version: version });
 }
 
 function readInfoBattery() {
-    fetchFromApi('/api/read_info_battery', 'GET');
+    performApiRequest('/api/read_info_battery', 'GET');
 }
 
 function readInfoEngine() {
-    fetchFromApi('/api/read_info_engine', 'GET');
+    performApiRequest('/api/read_info_engine', 'GET');
 }
 
 function readInfoDoors() {
-    fetchFromApi('/api/read_info_doors', 'GET');
+    performApiRequest('/api/read_info_doors', 'GET');
 }
 
 function writeInfoDoors() {
@@ -82,7 +90,7 @@ function writeInfoDoors() {
         belt: prompt('Enter Belt Card State:') || null,
         windows_closed: prompt('Enter Window Status:') || null,
     };
-    fetchFromApi('/api/write_info_doors', 'POST', data);
+    performApiRequest('/api/write_info_doors', 'POST', data);
 }
 
 function writeInfoBattery() {
@@ -91,12 +99,12 @@ function writeInfoBattery() {
         voltage: prompt('Enter Battery Voltage:') || null,
         battery_state_of_charge: prompt('Enter Battery State of Charge:') || null,
         percentage: prompt('Enter Battery Percentage:') || null,
-        temperature: prompt('Enter Battery Temperature:') || null,
-        life_cycle: prompt('Enter Battery Life Cycle:') || null,
-        fully_charged: prompt('Enter Battery Fully Charged Status:') || null,
-        range_battery: prompt('Enter Battery Range:') || null,
-        charging_time: prompt('Enter Battery Charging Time:') || null,
-        device_consumption: prompt('Enter Device Consumption:') || null
+        // temperature: prompt('Enter Battery Temperature:') || null,
+        // life_cycle: prompt('Enter Battery Life Cycle:') || null,
+        // fully_charged: prompt('Enter Battery Fully Charged Status:') || null,
+        // range_battery: prompt('Enter Battery Range:') || null,
+        // charging_time: prompt('Enter Battery Charging Time:') || null,
+        // device_consumption: prompt('Enter Device Consumption:') || null
     };
-    fetchFromApi('/api/write_info_battery', 'POST', data);
+    performApiRequest('/api/write_info_battery', 'POST', data);
 }
