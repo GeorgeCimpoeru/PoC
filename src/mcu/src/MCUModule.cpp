@@ -29,7 +29,12 @@ namespace MCU
     }
 
     /* Start the module */
-    void MCUModule::StartModule() { is_running = true; }
+    void MCUModule::StartModule() 
+    { 
+    is_running = true;
+    create_interface->setSocketBlocking(mcu_api_socket);
+    create_interface->setSocketBlocking(mcu_ecu_socket);
+    }
 
     int MCUModule::getMcuApiSocket() const 
     {
@@ -51,7 +56,13 @@ namespace MCU
     }
 
     /* Stop the module */
-    void MCUModule::StopModule() { is_running = false; }
+    void MCUModule::StopModule() 
+    { 
+    is_running = false;
+    receive_frames->stopProcessingQueue();            
+    receive_frames->stopListenAPI();
+    receive_frames->stopListenCANBus(); 
+    }
 
     /* Receive frames */
     void MCUModule::recvFrames() 

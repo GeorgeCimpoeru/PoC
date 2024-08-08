@@ -1,4 +1,5 @@
 #include "../include/ReceiveFrames.h"
+#include "ReceiveFrames.h"
 namespace MCU
 {
     ReceiveFrames::ReceiveFrames(int socket_canbus, int socket_api)
@@ -26,71 +27,97 @@ namespace MCU
      * Function to read frames from the CAN bus and add them to a queue.
      * This function runs in a loop and continually reads frames from the CAN bus.
      */
-    bool ReceiveFrames::receiveFramesFromCANBus()
+  bool ReceiveFrames::receiveFramesFromCANBus()
+{
+    struct can_frame frame;
+    while (listen_canbus)
     {
-        struct can_frame frame;
-        while(listen_canbus)
+        /* Read frames from the CAN socket */
+        int nbytes = read(socket_canbus, &frame, sizeof(frame));
+        
+        if (nbytes < 0) 
         {
-            /* Read frames from the CAN socket */
-            int nbytes = read(socket_canbus, &frame, sizeof(frame));
+            if (errno == EWOULDBLOCK || errno == EAGAIN) 
+            {
+                /* No data available, continue the loop */
+                continue;
+            } 
+            else 
+            {
+                LOG_ERROR(MCULogger->GET_LOGGER(), "Read error on CANBus socket: {}", strerror(errno));
+                return false;
+            }
+        } 
+        else if (nbytes == 0) 
+        {
+            /* Connection closed */
+            LOG_INFO(MCULogger->GET_LOGGER(), "CANBus connection closed.");
+            return false;
+        } 
+        else 
+        {
             LOG_INFO(MCULogger->GET_LOGGER(), "Captured a frame on the CANBus socket");
-            if (nbytes < 0)
+            /* Lock the queue before adding the frame to ensure thread safety */
             {
-                LOG_ERROR(MCULogger->GET_LOGGER(),"Read Error");
-                /* Return error if read fails */
-                return false;
-            }
-            else
-            {
+                std::lock_guard<std::mutex> lock(queue_mutex);
+                uint8_t receiver_id = frame.can_id & 0xFF;
+
+                /* If frame is for MCU module, for API or test frame */
+                if (receiver_id == hex_value_id || receiver_id == 0xFF || receiver_id == 0xFA) 
                 {
-                    /* Lock the queue before adding the frame to ensure thread safety */
-                    std::lock_guard<std::mutex> lock(queue_mutex);
-                    /* Take receiver_id */
-                    uint8_t receiver_id = frame.can_id & 0xFF;
-
-                    /* If frame is for MCU module, for API or test frame */
-                    if( receiver_id == hex_value_id || receiver_id == 0xFF || receiver_id == 0xFA)
-                    {
-                        frame_queue.push(frame);
-                        LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Pass a valid Module ID: 0x{:x} and frame added to the processing queue.", frame.can_id));
-
-                    }
-                }
-                /* Notify one waiting thread that a new frame has been added to the queue */
-                queue_cond_var.notify_one();
-            }
-        }
-        return true;
-    }
-
-    bool ReceiveFrames::receiveFramesFromAPI()
-    {
-        struct can_frame frame;
-        while(listen_api)
-        {
-            /* Read frames from the CAN socket */
-            int nbytes = read(socket_api, &frame, sizeof(frame));
-            LOG_INFO(MCULogger->GET_LOGGER(), "Captured a frame on the API socket");
-            if (nbytes < 0)
-            {
-                LOG_ERROR(MCULogger->GET_LOGGER(),"Read Error");
-                /* Return error if read fails */
-                return false;
-            }
-            else
-            {
-                {
-                    /* Lock the queue before adding the frame to ensure thread safety */
-                    std::lock_guard<std::mutex> lock(queue_mutex);
                     frame_queue.push(frame);
-                    LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Pass a valid Module ID: 0x{:x} and frame added to the processing queue.", frame.can_id));
+                    LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Passed a valid Module ID: 0x{:x} and frame added to the processing queue.", frame.can_id));
                 }
-                /* Notify one waiting thread that a new frame has been added to the queue */
-                queue_cond_var.notify_one();
             }
+            /* Notify one waiting thread that a new frame has been added to the queue */
+            queue_cond_var.notify_one();
         }
-        return true;
     }
+    return true;
+}
+
+bool ReceiveFrames::receiveFramesFromAPI()
+{
+    struct can_frame frame;
+    while (listen_api)
+    {
+        /* Read frames from the CAN socket */
+        int nbytes = read(socket_api, &frame, sizeof(frame));
+        
+        if (nbytes < 0) 
+        {
+            if (errno == EWOULDBLOCK || errno == EAGAIN) 
+            {
+                /* No data available, continue the loop */
+                continue;
+            } 
+            else 
+            {
+                LOG_ERROR(MCULogger->GET_LOGGER(), "Read error on API socket: {}", strerror(errno));
+                return false;
+            }
+        } 
+        else if (nbytes == 0) 
+        {
+            /* Connection closed */
+            LOG_INFO(MCULogger->GET_LOGGER(), "API connection closed.");
+            return false;
+        } 
+        else 
+        {
+            LOG_INFO(MCULogger->GET_LOGGER(), "Captured a frame on the API socket");
+            /* Lock the queue before adding the frame to ensure thread safety */
+            {
+                std::lock_guard<std::mutex> lock(queue_mutex);
+                frame_queue.push(frame);
+                LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Frame added to the processing queue: CAN ID 0x{:x}.", frame.can_id));
+            }
+            /* Notify one waiting thread that a new frame has been added to the queue */
+            queue_cond_var.notify_one();
+        }
+    }
+    return true;
+}
 
     /*
     * Function to process frames from the queue.
@@ -103,8 +130,11 @@ namespace MCU
         {
             /* Wait until the queue is not empty, then lock the queue */
             std::unique_lock<std::mutex> lock(queue_mutex);
-            queue_cond_var.wait(lock, [this]{ return !frame_queue.empty(); });
-
+            queue_cond_var.wait(lock, [this]{ return !frame_queue.empty()|| !process_queue; });
+            if (!process_queue && frame_queue.empty()) 
+            {
+                break;
+            }
             /* Extract the first element from the queue */
             struct can_frame frame = frame_queue.front();
             frame_queue.pop();
@@ -155,7 +185,8 @@ namespace MCU
                     handler.handleFrame(frame);
                 }
             }
-            else if (receiver_id == 0xFA) {
+            else if (receiver_id == 0xFA) 
+            {
                 LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Frame received from device with sender ID: 0x{:x} sent for API processing", sender_id));
                 std::vector<uint8_t> data(frame.data, frame.data + frame.can_dlc);
                 generate_frames.sendFrame(frame.can_id, data, socket_api, DATA_FRAME);
@@ -253,7 +284,12 @@ namespace MCU
         return ecus_up;
     }
 
-    void ReceiveFrames::startTimerThread() {
+    void ReceiveFrames::stopProcessingQueue()
+    {
+        process_queue = false;
+    }
+    void ReceiveFrames::startTimerThread()
+    {
         running = true;
         timer_thread = std::thread(&ReceiveFrames::timerCheck, this);
     }

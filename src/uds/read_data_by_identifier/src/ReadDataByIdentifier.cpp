@@ -18,6 +18,10 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t can_id, 
     /* Extract the first 8 bits of can_id */
     uint8_t lowerbits = can_id & 0xFF;
     uint8_t upperbits = can_id >> 8 & 0xFF;
+
+    /* Reverse IDs */
+    can_id = ((lowerbits << 8) | upperbits);
+
     /* Check if the request size is less than 4 */
     if (request.size() < 4) {
         /* Invalid request length - prepare a negative response */
@@ -38,9 +42,6 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t can_id, 
 
     /* Extract the data identifier from the request */
     uint16_t data_identifier = (request[2] << 8) | request[3];
-
-    /* Reverse IDs */
-    can_id = ((lowerbits << 8) | upperbits);
 
     /* Determine which ECU data storage to use based on the first 8 bits of can_id */
     if ((lowerbits == 0x10 && MCU::mcu->mcu_data.find(data_identifier) != MCU::mcu->mcu_data.end()) ||

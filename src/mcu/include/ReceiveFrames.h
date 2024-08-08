@@ -141,6 +141,11 @@ namespace MCU
      */
     const uint8_t* getECUsUp() const;
 
+    /**
+     * @brief set method used to set the processing flag to false in order to be able to stop mcu module.
+     * @return Returns ecus_up (the list of ECUs that are up). 
+     */
+    void stopProcessingQueue();
     std::map<uint8_t, std::chrono::steady_clock::time_point> ecu_timers;
     std::chrono::seconds timeout_duration;
     std::thread timer_thread;
@@ -160,6 +165,7 @@ namespace MCU
     GenerateFrames generate_frames;
     /* Vector contains all the ECUs up ids */
     uint8_t ecus_up[4] = {0};
+    bool process_queue = true;
 
     /**
      * @brief Starts timer_thread and sets running flag on true.

@@ -9,6 +9,13 @@ int main() {
     #endif /* UNIT_TESTING_MODE */
     MCU::mcu = new MCU::MCUModule(0x01);
     MCU::mcu->StartModule();
-    MCU::mcu->recvFrames();
+    std::thread receiveFrThread([]()
+    { 
+        MCU::mcu->recvFrames();
+    });
+    sleep(3);
+    /* commented this as we don't want it to stop, it was for test purposes */
+    /* MCU::mcu->StopModule(); */
+    receiveFrThread.join();
     return 0;
 }
