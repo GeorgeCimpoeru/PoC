@@ -216,7 +216,7 @@ OBJS_SECURITYACCESS_TEST = $(OBJ_DIR)/Logger_test.o \
 
 OBJS_TESTERPRESENT_TEST = $(OBJ_DIR)/Logger_test.o \
 						   $(OBJ_DIR)/GenerateFrames_test.o \
-			   			   $(OBJ_DIR)/TesterPresentTest.o
+			   			   $(OBJ_DIR)/TesterPresent_test.o
 
 OBJS_READDTC_TEST = $(OBJ_DIR)/Logger_test.o \
 			   		$(OBJ_DIR)/GenerateFrames_test.o \
@@ -296,8 +296,8 @@ $(OBJ_DIR)/EcuReset_test.o: $(UDS_DIR)/ecu_reset/src/EcuReset.cpp
 $(OBJ_DIR)/SecurityAccess_test.o: $(UDS_DIR)/authentication/src/SecurityAccess.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/authentication/src/SecurityAccess.cpp -o $(OBJ_DIR)/SecurityAccess_test.o $(CFLAGSTST2) $(LDFLAGS)
 
-$(OBJ_DIR)/TesterPresentTest.o: $(UDS_DIR)/tester_present/src/TesterPresent.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/tester_present/src/TesterPresent.cpp -o $(OBJ_DIR)/TesterPresentTest.o $(CFLAGSTST2) $(LDFLAGS)
+$(OBJ_DIR)/TesterPresent_test.o: $(UDS_DIR)/tester_present/src/TesterPresent.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/tester_present/src/TesterPresent.cpp -o $(OBJ_DIR)/TesterPresent_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 $(OBJ_DIR)/MCUModule_HandleFrames_test.o: $(MCU_DIR)/HandleFrames.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(MCU_DIR)/HandleFrames.cpp -o $(OBJ_DIR)/MCUModule_HandleFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
@@ -838,6 +838,20 @@ ecuReset_coverage: ecuResetTest
 	mv EcuReset.cpp.gcov coverage/out_EcuReset
 
 
+# TesterPresent Coverage - solo job
+testerPresentCoverage: testerPresent_coverage
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
+	lcov --remove coverage.info '/test/' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_TesterPresentTest
+	xdg-open coverage/out_TesterPresentTest/index.html
+# This job runs for allCoverage
+testerPresent_coverage: testerPresentTest
+	./$(UDS_DIR)/tester_present/utest/testerPresentTest.out
+	mkdir -p coverage/out_TesterPresent
+	gcov -o obj/TesterPresent_test.gcno obj/TesterPresent_test.gcda $(UDS_DIR)/tester_present/src/TesterPresent.cpp
+	mv TesterPresent.cpp.gcov coverage/out_TesterPresent
+
 
 # NegativeResponse Coverage - solo job
 negativeResponseCoverage: negativeResponse_coverage
@@ -916,7 +930,7 @@ accessTimingParameter_coverage: accessTimingParameterTest
 	mv AccessTimingParameter.cpp.gcov coverage/out_AccessTimingParameter
 
 
-allCoverage: securityAccess_coverage routineControl_coverage transferData_coverage requestDownload_coverage ecuReset_coverage memoryManager_coverage logger_coverage generateFrames_coverage receiveFrames_coverage handleFrames_coverage createInterface_coverage diagnosticSessionControl_coverage writeDataByIdentifier_coverage readDataByIdentifier_coverage requestTransferExit_coverage clearDtc_coverage readDtc_coverage requestUpdateStatus_coverage batteryModule_coverage accessTimingParameter_coverage
+allCoverage: securityAccess_coverage routineControl_coverage transferData_coverage requestDownload_coverage ecuReset_coverage memoryManager_coverage logger_coverage generateFrames_coverage receiveFrames_coverage handleFrames_coverage createInterface_coverage diagnosticSessionControl_coverage writeDataByIdentifier_coverage readDataByIdentifier_coverage requestTransferExit_coverage clearDtc_coverage readDtc_coverage requestUpdateStatus_coverage batteryModule_coverage testerPresent_coverage accessTimingParameter_coverage
 
 
 

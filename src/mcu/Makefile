@@ -873,7 +873,19 @@ requestDownload_coverage: requestDownloadTest
 	gcov -o obj/RequestDownload_test.gcno obj/RequestDownload_test.gcda $(OTA_DIR)/request_download/src/RequestDownload.cpp
 	mv RequestDownload.cpp.gcov coverage/out_RequestDownload
 
-
+# TesterPresent Coverage - solo job
+testerPresentCoverage: testerPresent_coverage
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
+	lcov --remove coverage.info '/test/' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_TesterPresentTest
+	xdg-open coverage/out_TesterPresentTest/index.html
+# This job runs for allCoverage
+testerPresent_coverage: testerPresentTest
+	./$(UDS_DIR)/tester_present/utest/testerPresentTest.out
+	mkdir -p coverage/out_TesterPresent
+	gcov -o obj/TesterPresent_test.gcno obj/TesterPresent_test.gcda $(UDS_DIR)/tester_present/src/TesterPresent.cpp
+	mv TesterPresent.cpp.gcov coverage/out_TesterPresent
 
 # TransferData Coverage - solo job
 transferDataCoverage: transferData_coverage
@@ -920,7 +932,7 @@ negativeResponse_coverage: negativeResponseTest
 	mv NegativeResponse.cpp.gcov coverage/out_NegativeResponse
 
 
-allCoverage: securityAccess_coverage routineControl_coverage transferData_coverage requestDownload_coverage ecuReset_coverage memoryManager_coverage logger_coverage generateFrames_coverage mcuModule_coverage receiveFrames_coverage handleFrames_coverage createInterface_coverage diagnosticSessionControl_coverage writeDataByIdentifier_coverage readDataByIdentifier_coverage requestTransferExit_coverage clearDtc_coverage readDtc_coverage requestUpdateStatus_coverage negativeResponse_coverage accessTimingParameter_coverage
+allCoverage: securityAccess_coverage routineControl_coverage transferData_coverage requestDownload_coverage ecuReset_coverage memoryManager_coverage logger_coverage generateFrames_coverage mcuModule_coverage receiveFrames_coverage handleFrames_coverage createInterface_coverage diagnosticSessionControl_coverage writeDataByIdentifier_coverage readDataByIdentifier_coverage testerPresent_coverage requestTransferExit_coverage clearDtc_coverage readDtc_coverage requestUpdateStatus_coverage negativeResponse_coverage accessTimingParameter_coverage
 
 
 allCoveragePostProcess:
