@@ -208,6 +208,8 @@ namespace MCU
                 else 
                 {
                     LOG_INFO(MCULogger->GET_LOGGER(), "TesterPresent called.");
+                    TesterPresent tester_present(*MCULogger, getMcuSocket(frame_id));
+                    tester_present.handleTesterPresent(frame_id, frame_data);
                 }
                 break;
             case 0x83:
