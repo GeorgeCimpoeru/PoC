@@ -4,14 +4,11 @@ from actions.update_action import Updates
 from actions.read_info_action import *
 from utils.logger import log_memory
 from actions.manual_send_frame import manual_send_frame
-from actions.write_info_action import WriteToDoors, WriteToBattery
+from actions.write_info_action import WriteInfo
+from configs.data_identifiers import *
 
 
 api_bp = Blueprint('api', __name__)
-
-
-API_ID = 0xFA
-ECU_IDS = [0x10, 0x11, 0x12]
 
 
 @api_bp.route('/request_ids', methods=['GET'])
@@ -34,21 +31,21 @@ def update_to_version():
 
 @api_bp.route('/read_info_battery', methods=['GET'])
 def read_info_bat():
-    reader = ReadInfo(API_ID, ECU_IDS)
+    reader = ReadInfo(API_ID, [0x10, 0x11, 0x12])
     response = reader.read_from_battery()
     return jsonify(response)
 
 
 @api_bp.route('/read_info_engine', methods=['GET'])
 def read_info_eng():
-    reader = ReadInfo(API_ID, ECU_IDS)
+    reader = ReadInfo(API_ID, [0x10, 0x11, 0x12])
     response = reader.read_from_engine()
     return jsonify(response)
 
 
 @api_bp.route('/read_info_doors', methods=['GET'])
 def read_info_doors():
-    reader = ReadInfo(API_ID, ECU_IDS)
+    reader = ReadInfo(API_ID, [0x10, 0x11, 0x12])
     response = reader.read_from_doors()
     return jsonify(response)
 
@@ -65,16 +62,16 @@ def send_frame():
 def write_info_doors():
     data = request.get_json()
 
-    writer = WriteToDoors(API_ID, ECU_IDS, data)
-    response = writer.run()
+    writer = WriteInfo(API_ID, [0x10, 0x11, 0x12], data)
+    response = writer.write_to_doors()
     return jsonify(response)
 
 
 @api_bp.route('/write_info_battery', methods=['POST'])
 def write_info_battery():
     data = request.get_json()
-    writer = WriteToBattery(API_ID, ECU_IDS, data)
-    response = writer.run()
+    writer = WriteInfo(API_ID, [0x10, 0x11, 0x12], data)
+    response = writer.write_to_battery()
     return jsonify(response)
 
 
