@@ -137,42 +137,49 @@ class ReadInfo(Action):
             id_battery = self.id_ecu[ECU_BATTERY]
             id = self.my_id * 0x100 + id_battery
 
-            identifiers = {
-                "level": IDENTIFIER_BATTERY_ENERGY_LEVEL,
-                "voltage": IDENTIFIER_BATTERY_VOLTAGE,
-                "percentage": IDENTIFIER_BATTERY_PERCENTAGE,
-                "state_of_charge": IDENTIFIER_BATTERY_STATE_OF_CHARGE,
-                "life_cycle": IDENTIFIER_BATTERY_LIFE_CYCLE,
-                "fully_charged": IDENTIFIER_BATTERY_FULLY_CHARGED,
-                "serial_number": IDENTIFIER_ECU_SERIAL_NUMBER,
-                "range_battery": IDENTIFIER_BATTERY_RANGE,
-                "charging_time": IDENTIFIER_BATTERY_CHARGING_TIME,
-                "device_consumption": IDENTIFIER_DEVICE_CONSUMPTION
-            }
+            level = None
+            voltage = None
+            percentage = None
+            state_of_charge = None
+            life_cycle = None
+            fully_charged = None
+            serial_number = None
+            range_battery = None
+            charging_time = None
+            device_consumption = None
 
-            # Read data from the identifiers
-            data = {key: self._read_by_identifier(id, identifier) for key, identifier in identifiers.items()}
+            level = self._read_by_identifier(id, IDENTIFIER_BATTERY_ENERGY_LEVEL)
+            voltage = self._read_by_identifier(id, IDENTIFIER_BATTERY_VOLTAGE)
+            percentage = self._read_by_identifier(id, IDENTIFIER_BATTERY_PERCENTAGE)
+            state_of_charge = self._read_by_identifier(id, IDENTIFIER_BATTERY_STATE_OF_CHARGE)
+            # life_cycle = self._read_by_identifier(id, IDENTIFIER_BATTERY_LIFE_CYCLE)
+            # fully_charged = self._read_by_identifier(id, IDENTIFIER_BATTERY_FULLY_CHARGED)
+            # serial_number = self._read_by_identifier(id, IDENTIFIER_ECU_SERIAL_NUMBER)
+            # range_battery = self._read_by_identifier(id, IDENTIFIER_BATTERY_RANGE)
+            # charging_time = self._read_by_identifier(id, IDENTIFIER_BATTERY_CHARGING_TIME)
+            # device_consumption = self._read_by_identifier(id, IDENTIFIER_DEVICE_CONSUMPTION)
 
-            # Handle missing values
-            data = {key: (value if value is not None else "No read") for key, value in data.items()}
+            life_cycle = life_cycle if life_cycle is not None else "No read"
+            fully_charged = fully_charged if fully_charged is not None else "No read"
+            serial_number = serial_number if serial_number is not None else "No read"
+            range_battery = range_battery if range_battery is not None else "No read"
+            charging_time = charging_time if charging_time is not None else "No read"
+            device_consumption = device_consumption if device_consumption is not None else "No read"
 
-            data["state_of_charge"] = self._get_battery_state_of_charge(data["state_of_charge"])
-            data["percentage"] = round(((int(data["percentage"], 16) / 255) * 100), 2)
+            battery_state_of_charge = self._get_battery_state_of_charge(state_of_charge)
 
-            json_data = [
-                str(int(data["level"], 16)),
-                int(data["voltage"], 16),
-                data["percentage"],
-                data["state_of_charge"],
-                data["life_cycle"],
-                data["fully_charged"],
-                data["serial_number"],
-                data["range_battery"],
-                data["charging_time"],
-                data["device_consumption"]
-            ]
+            data = [str(int(level, 16)),
+                    int(voltage, 16),
+                    round(((int(percentage, 16) / 255) * 100), 2),
+                    battery_state_of_charge,
+                    life_cycle,
+                    fully_charged,
+                    serial_number,
+                    range_battery,
+                    charging_time,
+                    device_consumption]
 
-            response_json = BatteryToJSON()._to_json(json_data)
+            response_json = BatteryToJSON()._to_json(data)
 
             self.bus.shutdown()
             log_info_message(logger, "Sending JSON")
@@ -183,57 +190,41 @@ class ReadInfo(Action):
             return e.message
 
     def read_from_engine(self):
+
         """
         Method to read information from the engine module.
 
         Returns:
-        - Data response in JSON format or error message.
+        - data response.
         """
         self._auth_mcu()
         id_engine = self.id_ecu[MCU]
         id = self.my_id * 0x100 + id_engine
 
         try:
+            id_battery = self.id_ecu[ECU_ENGINE]
+            id = self.my_id * 0x100 + id_battery
+
             log_info_message(logger, "Reading data from engine")
+            power_output = self._read_by_identifier(id, IDENTIFIER_ENGINE_POWER_OUTPUT)
+            weight = self._read_by_identifier(id, IDENTIFIER_ENGINE_WEIGHT)
+            fuel_consumption = self._read_by_identifier(id, IDENTIFIER_ENGINE_FUEL_CONSUMPTION)
+            torque = self._read_by_identifier(id, IDENTIFIER_ENGINE_TORQUE)
+            fuel_used = self._read_by_identifier(id, IDENTIFIER_ENGINE_FUEL_USED)
+            state_of_running = self._read_by_identifier(id, IDENTIFIER_ENGINE_STATE_OF_RUNNING)
+            current_speed = self._read_by_identifier(id, IDENTIFIER_ENGINE_CURRENT_SPEED)
+            engine_state = self._read_by_identifier(id, IDENTIFIER_ENGINE_STATE)
+            serial_number = self._read_by_identifier(id, IDENTIFIER_ENGINE_SERIAL_NUMBER)
 
-            id_engine = self.id_ecu[ECU_ENGINE]
-            id = self.my_id * 0x100 + id_engine
+            data = [power_output, weight, fuel_consumption, torque, fuel_used, state_of_running, current_speed, engine_state, serial_number]
+            module = EngineToJSON()
+            response = module._to_json(data)
 
-            identifiers = {
-                "power_output": IDENTIFIER_ENGINE_POWER_OUTPUT,
-                "weight": IDENTIFIER_ENGINE_WEIGHT,
-                "fuel_consumption": IDENTIFIER_ENGINE_FUEL_CONSUMPTION,
-                "torque": IDENTIFIER_ENGINE_TORQUE,
-                "fuel_used": IDENTIFIER_ENGINE_FUEL_USED,
-                "state_of_running": IDENTIFIER_ENGINE_STATE_OF_RUNNING,
-                "current_speed": IDENTIFIER_ENGINE_CURRENT_SPEED,
-                "engine_state": IDENTIFIER_ENGINE_STATE,
-                "serial_number": IDENTIFIER_ENGINE_SERIAL_NUMBER
-            }
-
-            # Read data from the identifiers
-            data = {key: self._read_by_identifier(id, identifier) for key, identifier in identifiers.items()}
-
-            # Handle missing values
-            data = {key: (value if value is not None else "No read") for key, value in data.items()}
-
-            json_data = [
-                data["power_output"],
-                data["weight"],
-                data["fuel_consumption"],
-                data["torque"],
-                data["fuel_used"],
-                data["state_of_running"],
-                data["current_speed"],
-                data["engine_state"],
-                data["serial_number"]
-            ]
-
-            response_json = EngineToJSON()._to_json(json_data)
-
+            # Shutdown the CAN bus interface
             self.bus.shutdown()
+
             log_info_message(logger, "Sending JSON")
-            return response_json
+            return response
 
         except CustomError as e:
             self.bus.shutdown()
@@ -248,6 +239,8 @@ class ReadInfo(Action):
             self.generate.session_control(id, 0x01)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
             log_info_message(logger, "Changing session to default")
+            self.generate.session_control(id, 0x01)
+            self._passive_response(SESSION_CONTROL, "Error changing session control")
             self._authentication(id)
 
             log_info_message(logger, "Reading data from doors")
