@@ -148,8 +148,9 @@ class ReadInfo(Action):
                 "range_battery": IDENTIFIER_BATTERY_RANGE,
                 "charging_time": IDENTIFIER_BATTERY_CHARGING_TIME,
                 "device_consumption": IDENTIFIER_DEVICE_CONSUMPTION
-        }
+            }
 
+            # Read data from the identifiers
             data = {key: self._read_by_identifier(id, identifier) for key, identifier in identifiers.items()}
 
             # Handle missing values
@@ -173,7 +174,6 @@ class ReadInfo(Action):
 
             response_json = BatteryToJSON()._to_json(json_data)
 
-            # Shutdown the CAN bus interface
             self.bus.shutdown()
             log_info_message(logger, "Sending JSON")
             return response_json
@@ -218,15 +218,15 @@ class ReadInfo(Action):
             data = {key: (value if value is not None else "No read") for key, value in data.items()}
 
             json_data = [
-            data["power_output"],
-            data["weight"],
-            data["fuel_consumption"],
-            data["torque"],
-            data["fuel_used"],
-            data["state_of_running"],
-            data["current_speed"],
-            data["engine_state"],
-            data["serial_number"]
+                data["power_output"],
+                data["weight"],
+                data["fuel_consumption"],
+                data["torque"],
+                data["fuel_used"],
+                data["state_of_running"],
+                data["current_speed"],
+                data["engine_state"],
+                data["serial_number"]
             ]
 
             response_json = EngineToJSON()._to_json(json_data)
@@ -238,7 +238,6 @@ class ReadInfo(Action):
         except CustomError as e:
             self.bus.shutdown()
             return e.message
-
 
     def read_from_doors(self):
         id_door = self.id_ecu[1]

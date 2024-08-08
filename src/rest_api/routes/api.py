@@ -13,6 +13,7 @@ api_bp = Blueprint('api', __name__)
 API_ID = 0xFA
 ECU_IDS = [0x10, 0x11, 0x12]
 
+
 @api_bp.route('/request_ids', methods=['GET'])
 def request_ids():
     requester = RequestIdAction(my_id=0xFA99)
