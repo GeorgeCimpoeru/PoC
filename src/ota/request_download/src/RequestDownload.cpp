@@ -166,7 +166,7 @@ void RequestDownloadService::requestDownloadResp89(int id, int memory_address, i
         LOG_INFO(RDSlogger.GET_LOGGER(), "Map memory in MCU and transfer data");
         /* Map memory in MCU -Set adress vector-> send to Install for mapping data */
         
-        MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, MCULogger);
+        MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, &RDSlogger);
         managerInstance->getAddress();
         /* routine for transfer first or second partition */
     }
@@ -292,7 +292,7 @@ void RequestDownloadService::requestDownloadResp(int id, int memory_address, int
     /* Check if frame is intended for MCU */
     if(frame_dest_id == 0x10)
     {
-        MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, MCULogger);
+        MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, &RDSlogger);
         managerInstance->getAddress();
         LOG_DEBUG(RDSlogger.GET_LOGGER(), "log in service");
         id = (frame_dest_id << 8) | (frame_sender_id);

@@ -242,7 +242,8 @@ OBJS_REQUESTTRANSFEREXIT_TEST = $(OBJ_DIR)/Logger_test.o \
 						
 OBJS_REQUESTDOWNLOAD_TEST = $(OBJ_DIR)/Logger_test.o \
 			   			  $(OBJ_DIR)/GenerateFrames_test.o \
-			   			  $(OBJ_DIR)/RequestDownload_test.o
+			   			  $(OBJ_DIR)/RequestDownload_test.o \
+						  $(OBJ_DIR)/MemoryManager_test.o
 
 OBJS_TRANSFERDATA_TEST = $(OBJ_DIR)/Logger_test.o \
 			   			  $(OBJ_DIR)/GenerateFrames_test.o \
