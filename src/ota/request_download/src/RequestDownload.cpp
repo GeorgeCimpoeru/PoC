@@ -117,11 +117,7 @@ void RequestDownloadService::requestDownloadRequest(int id, std::vector<uint8_t>
 
     int max_number_block = calculate_max_number_block(memory_size);
 
-    /* To be changed with actual values, these are used for test. */
-    uint8_t ecu_id = 0x10;
-    /* 0x24 => 0010 010 0* => v2.2, LSB not taken in consideration for versioning */
-    uint8_t sw_version_byte = 0x24;
-    downloadSoftwareVersion(ecu_id, sw_version_byte);
+    downloadSoftwareVersion("software_version_id");
 
     if (download_type == 0x88)
     {
@@ -166,7 +162,7 @@ void RequestDownloadService::requestDownloadResp89(int id, int memory_address, i
         LOG_INFO(RDSlogger.GET_LOGGER(), "Map memory in MCU and transfer data");
         /* Map memory in MCU -Set adress vector-> send to Install for mapping data */
         
-        MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, MCULogger);
+        MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, &RDSlogger);
         managerInstance->getAddress();
         /* routine for transfer first or second partition */
     }
@@ -292,7 +288,7 @@ void RequestDownloadService::requestDownloadResp(int id, int memory_address, int
     /* Check if frame is intended for MCU */
     if(frame_dest_id == 0x10)
     {
-        MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, MCULogger);
+        MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, &RDSlogger);
         managerInstance->getAddress();
         LOG_DEBUG(RDSlogger.GET_LOGGER(), "log in service");
         id = (frame_dest_id << 8) | (frame_sender_id);
