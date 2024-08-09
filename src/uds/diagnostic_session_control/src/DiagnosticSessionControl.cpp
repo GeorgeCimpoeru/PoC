@@ -1,6 +1,6 @@
 #include "src/uds/diagnostic_session_control/include/DiagnosticSessionControl.h"
 
-// Initialize current_session
+/* Initialize current_session */
 DiagnosticSession DiagnosticSessionControl::current_session = DEFAULT_SESSION;
 
 /* Default constructor, used in MCU */
