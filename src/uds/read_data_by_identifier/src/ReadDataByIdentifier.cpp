@@ -14,6 +14,7 @@ const uint8_t RDBI_SERVICE_ID = 0x22;
 /* Function to handle the Read Data By Identifier request */
 std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t can_id, const std::vector<uint8_t>& request, bool use_send_frame) {
     std::vector<uint8_t> response;
+    NegativeResponse nrc(socket, rdbi_logger);
 
     /* Extract the first 8 bits of can_id */
     uint8_t lowerbits = can_id & 0xFF;
@@ -32,8 +33,7 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t can_id, 
 
         if (use_send_frame) {
             /* Send the negative response frame */ 
-            /* this will be replaced by NegativeResponse when done */
-            generate_frames.readDataByIdentifier(can_id, 0, response);
+            nrc.sendNRC(can_id,RDBI_SERVICE_ID,13);
         }
 
         /* Return early as the request is invalid */
