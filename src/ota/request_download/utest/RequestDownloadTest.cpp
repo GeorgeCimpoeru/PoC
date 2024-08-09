@@ -85,18 +85,12 @@ class RequestDownloadTest : public ::testing::Test
 {
 protected:
     Logger logger;    
-    GenerateFrames* generate;
-    // DiagnosticSessionControl diagnostic_session;
-    // ReadDataByIdentifier software_version;
-    // SecurityAccess logged_in;
+    GenerateFrames* generate;    
     RequestDownloadService request_download;
     CreateInterface* create_interface;
 
-    RequestDownloadTest()
-        // : diagnostic_session(logger, socket_),
-        //   software_version(socket_, logger),
-        //logged_in(socket_, logger),
-          :request_download(socket_, logger)
+    RequestDownloadTest()                
+           :request_download(socket_, logger)
     {
     }
 
@@ -140,13 +134,13 @@ TEST_F(RequestDownloadTest, EncryptionType)
 
 TEST_F(RequestDownloadTest, ValidMemoryRange)
 {
-    int id = 0x11fa10;  
+    int id = 0x11fa10;
     std::vector<uint8_t> stored_data = { 0x07, 0x34, 0x00, 0x11, 0x12, 0x12, 0x88 };
     /* redirect stdout to capture the output */
     testing::internal::CaptureStdout();
     request_download.requestDownloadRequest(id, stored_data);
     std::string output = testing::internal::GetCapturedStdout();
-    /* check if the correct message is printed */   
+    /* check if the correct message is printed */
     std::string message = "Validated Memory Address: 0x12";
     std::string message1 = "Validated Memory Size: 0x12";
     EXPECT_NE(output.find(message), std::string::npos);
@@ -160,8 +154,8 @@ TEST_F(RequestDownloadTest, InvalidMemoryAddress)
     /* redirect stdout to capture the output */
     testing::internal::CaptureStdout();
     request_download.requestDownloadRequest(id, stored_data);
-    std::string output = testing::internal::GetCapturedStdout();    
-    /* check if the correct message is printed */  
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
     std::string message = "Error: Invalid memory address:";
     std::string message1 = "Error: Invalid memory range";
     EXPECT_NE(output.find(message), std::string::npos);
@@ -175,43 +169,68 @@ TEST_F(RequestDownloadTest, InvalidMemorySize)
     /* redirect stdout to capture the output */
     testing::internal::CaptureStdout();
     request_download.requestDownloadRequest(id, stored_data);
-    std::string output = testing::internal::GetCapturedStdout();    
-    /* check if the correct message is printed */  
-    std::string message = "Error: Invalid memory size:";    
-    std::string message1 = "Error: Invalid memory range";    
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    std::string message = "Error: Invalid memory size:";
+    std::string message1 = "Error: Invalid memory range";
     EXPECT_NE(output.find(message), std::string::npos);
     EXPECT_NE(output.find(message1), std::string::npos);
 }
 
+TEST_F(RequestDownloadTest, InvalidDownloadType)
+{
+    int id = 0x11fa10;
+    std::vector<uint8_t> stored_data = { 0x07, 0x34, 0x00, 0x11, 0x12, 0xFF, 0x12, 0x12, 0x88 };
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();
+    request_download.requestDownloadRequest(id, stored_data);
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    std::string message = "Error: Invalid download type: ";
+    EXPECT_NE(output.find(message), std::string::npos);
+}
+
+TEST_F(RequestDownloadTest, InvalidPayload)
+{
+    int id = 0x11fa10;
+    std::vector<uint8_t> stored_data = { 0x07, 0x34, 0x00 };
+    /* redirect stdout to capture the output */
+    testing::internal::CaptureStdout();
+    request_download.requestDownloadRequest(id, stored_data);
+    std::string output = testing::internal::GetCapturedStdout();
+    /* check if the correct message is printed */
+    std::string message = "Payload does not contain enough data for memory address and size";
+    EXPECT_NE(output.find(message), std::string::npos);
+}
+
 TEST_F(RequestDownloadTest, RequestDownloadResp)
 {
-    int id = 0x11fa10; 
+    int id = 0x11fa10;
     std::vector<uint8_t> stored_data = { 0x07, 0x34, 0x00, 0x11, 0x12, 0x12, 0x88 };
     /* redirect stdout to capture the output */
     testing::internal::CaptureStdout();
     request_download.requestDownloadRequest(id, stored_data);
     std::string output = testing::internal::GetCapturedStdout();
-    /* check if the correct message is printed */   
+    /* check if the correct message is printed */
     std::string message = "frame id dest: 0x10";
     std::string message1 = "log in service";
     std::string message2 = "frame id";
     std::string message3 = "max no block";
-    EXPECT_EQ(output,message1);
-    // EXPECT_NE(output.find(message), std::string::npos);
-    // EXPECT_NE(output.find(message1), std::string::npos);
-    // EXPECT_NE(output.find(message2), std::string::npos);
-    // EXPECT_NE(output.find(message3), std::string::npos);
+    EXPECT_NE(output.find(message), std::string::npos);
+    EXPECT_NE(output.find(message1), std::string::npos);
+    EXPECT_NE(output.find(message2), std::string::npos);
+    EXPECT_NE(output.find(message3), std::string::npos);
 }
 
 TEST_F(RequestDownloadTest, RequestDownloadRespElse)
 {
-    int id = 0x11fa11; 
+    int id = 0x11fa11;
     std::vector<uint8_t> stored_data = { 0x07, 0x34, 0x00, 0x11, 0x12, 0x12, 0x88 };
     /* redirect stdout to capture the output */
     testing::internal::CaptureStderr();
     request_download.requestDownloadRequest(id, stored_data);
     std::string output = testing::internal::GetCapturedStderr();
-    /* check if the correct message is printed */   
+    /* check if the correct message is printed */
     std::string message = "Create interface is nullptr";
     EXPECT_NE(output.find(message), std::string::npos);
 }
@@ -243,7 +262,9 @@ TEST_F(RequestDownloadTest, DonwloadFromDrivePart3else)
 }
 
 int main(int argc, char **argv)
-{    
+{  
+    socket_ = createSocket();
+    socket2_ = createSocket();  
 testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
