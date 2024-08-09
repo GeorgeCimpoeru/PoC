@@ -1,4 +1,4 @@
-#include "../include/GenerateFrames.h"
+#include "src/utils/include/GenerateFrames.h"
 
 GenerateFrames::GenerateFrames(Logger& logger)
     : logger(logger)

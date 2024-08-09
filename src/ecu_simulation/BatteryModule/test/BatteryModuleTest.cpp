@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../include/BatteryModule.h"
+#include "src/ecu_simulation/BatteryModule/include/BatteryModule.h"
 
 /* Helper function to create a socket for sending CAN frames */
 int createSocket()

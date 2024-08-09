@@ -8,9 +8,9 @@
 #include <sys/ioctl.h>
 #include <net/if.h>
 #include <gtest/gtest.h>
-#include "../include/RequestTransferExit.h"
-#include "../../../utils/include/Logger.h"
-#include "../../../mcu/include/MCUModule.h"
+#include "src/ota/request_transfer_exit/include/RequestTransferExit.h"
+#include "src/utils/include/Logger.h"
+#include "src/mcu/include/MCUModule.h"
 
 int socket_;
 int socket2_;

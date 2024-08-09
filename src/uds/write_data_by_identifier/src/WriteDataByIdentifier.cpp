@@ -1,6 +1,4 @@
-#include "../include/WriteDataByIdentifier.h"
-#include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
-#include "../../../mcu/include/MCUModule.h"
+#include "src/uds/write_data_by_identifier/include/WriteDataByIdentifier.h"
 
 WriteDataByIdentifier::WriteDataByIdentifier(Logger& wdbi_logger, int socket)
             : generate_frames(socket, wdbi_logger), wdbi_logger(wdbi_logger)

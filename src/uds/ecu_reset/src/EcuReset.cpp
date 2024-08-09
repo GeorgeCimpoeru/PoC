@@ -1,6 +1,4 @@
-#include "../include/EcuReset.h"
-#include "../../../mcu/include/MCUModule.h"
-#include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "src/uds/ecu_reset/include/EcuReset.h"
 
 EcuReset::EcuReset(uint32_t can_id, uint8_t sub_function, int socket, Logger &logger)
     : can_id(can_id), sub_function(sub_function), response_socket(socket), ECUResetLog(logger)

@@ -1,5 +1,4 @@
-#include "../include/SecurityAccess.h"
-#include "../../../mcu/include/MCUModule.h"
+#include "src/uds/authentication/include/SecurityAccess.h"
 
 /* Set the default security access to false. */
 bool SecurityAccess::mcu_state = false;

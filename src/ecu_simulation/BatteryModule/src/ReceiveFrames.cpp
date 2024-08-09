@@ -1,4 +1,4 @@
-#include "../include/ReceiveFrames.h"
+#include "src/ecu_simulation/BatteryModule/include/ReceiveFrames.h"
 
 ReceiveFrames::ReceiveFrames(int socket, int frame_id) : socket(socket), frame_id(frame_id), running(true) 
 {

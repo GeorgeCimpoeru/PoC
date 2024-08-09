@@ -17,19 +17,19 @@
 #include <linux/can.h>
 #include <iostream>
 #include <vector>
-#include "../include/MCULogger.h"
-#include "../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
-#include "../../uds/write_data_by_identifier/include/WriteDataByIdentifier.h"
-#include "../../uds/ecu_reset/include/EcuReset.h"
-#include "../../uds/authentication/include/SecurityAccess.h"
-#include "../../uds/diagnostic_session_control/include/DiagnosticSessionControl.h"
-#include "../../uds/read_dtc_information/include/ReadDtcInformation.h"
-#include "../../uds/routine_control/include/RoutineControl.h"
-#include "../../uds/access_timing_parameters/include/AccessTimingParameter.h"
-#include "../../ota/request_download/include/RequestDownload.h"
-#include "../../ota/request_update_status/include/RequestUpdateStatus.h"
-#include "../../ota/transfer_data/include/TransferData.h"
-#include "../../uds/clear_dtc/include/ClearDtc.h"
+#include "src/mcu/include/MCULogger.h"
+#include "src/uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
+#include "src/uds/write_data_by_identifier/include/WriteDataByIdentifier.h"
+#include "src/uds/ecu_reset/include/EcuReset.h"
+#include "src/uds/authentication/include/SecurityAccess.h"
+#include "src/uds/diagnostic_session_control/include/DiagnosticSessionControl.h"
+#include "src/uds/read_dtc_information/include/ReadDtcInformation.h"
+#include "src/uds/routine_control/include/RoutineControl.h"
+#include "src/uds/access_timing_parameters/include/AccessTimingParameter.h"
+#include "src/ota/request_download/include/RequestDownload.h"
+#include "src/ota/request_update_status/include/RequestUpdateStatus.h"
+#include "src/ota/transfer_data/include/TransferData.h"
+#include "src/uds/clear_dtc/include/ClearDtc.h"
 
 namespace MCU
 {

@@ -1,4 +1,4 @@
-#include "../include/ReadDtcInformation.h"
+#include "src/uds/read_dtc_information/include/ReadDtcInformation.h"
 
 ReadDTC::ReadDTC(Logger logger, std::string path_folder, int socket)
 {

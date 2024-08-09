@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * This test works if a sd simulated card exists in the /dev/loop21 of 300 Mb
  */
-#include "../include/MemoryManager.h"
+#include "src/utils/include/MemoryManager.h"
 
 #include <gtest/gtest.h>
 

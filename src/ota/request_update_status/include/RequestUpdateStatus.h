@@ -24,10 +24,10 @@
 #include <vector>
 #include <linux/can.h>
 #include <map>
-#include "../../../utils/include/Logger.h"
-#include "../../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
-#include "../../../utils/include/GenerateFrames.h"
-#include "../../../mcu/include/MCULogger.h"
+#include "src/mcu/include/MCULogger.h"
+#include "src/utils/include/Logger.h"
+#include "src/utils/include/GenerateFrames.h"
+#include "src/uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
 
 #define REQUEST_UPDATE_STATUS_REQUEST_SIZE      0x02
 #define REQUEST_UPDATE_STATUS_RESPONSE_SUCCESS_SIZE	    0x03

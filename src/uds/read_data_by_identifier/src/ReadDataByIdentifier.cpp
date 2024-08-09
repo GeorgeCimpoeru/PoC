@@ -1,6 +1,4 @@
-#include "../include/ReadDataByIdentifier.h"
-#include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
-#include "../../../mcu/include/MCUModule.h"
+#include "src/uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
 
 ReadDataByIdentifier::ReadDataByIdentifier(int socket, Logger* rdbi_logger) 
             : generate_frames(socket, *rdbi_logger), rdbi_logger(*rdbi_logger)

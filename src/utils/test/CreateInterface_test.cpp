@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include "../include/CreateInterface.h"
 #include <fstream>
 #include <iostream>
+#include "src/utils/include/CreateInterface.h"
 
 /* a method designed to check if the network interface (vcan0 is this case) has been successfully created */
 bool is_interface_created(const std::string& interface_name)

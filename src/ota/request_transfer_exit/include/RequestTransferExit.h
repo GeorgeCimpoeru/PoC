@@ -14,8 +14,8 @@
 #include <vector>
 #include <functional>
 
-#include "../../utils/include/Logger.h"
-#include "../../../utils/include/GenerateFrames.h"
+#include "src/utils/include/Logger.h"
+#include "src/utils/include/GenerateFrames.h"
 
 /* Define the callback function type */
 using transferCompleteCallBack = std::function<bool(bool)>;

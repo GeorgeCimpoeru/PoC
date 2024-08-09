@@ -26,17 +26,17 @@
 #include <cerrno>
 #include <thread>
 #include <sstream>
-#include "../include/BatteryModuleLogger.h"
-#include "../../../uds/diagnostic_session_control/include/DiagnosticSessionControl.h"
-#include "../../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
-#include "../../../uds/write_data_by_identifier/include/WriteDataByIdentifier.h"
-#include "../../../utils/include/CreateInterface.h"
-#include "../../../uds/ecu_reset/include/EcuReset.h"
-#include "../../uds/read_dtc_information/include/ReadDtcInformation.h"
-#include "../../uds/routine_control/include/RoutineControl.h"
-#include "../../uds/access_timing_parameters/include/AccessTimingParameter.h"
-#include "../../ota/request_transfer_exit/include/RequestTransferExit.h"
-#include "../../uds/clear_dtc/include/ClearDtc.h"
+#include "src/ecu_simulation/BatteryModule/include/BatteryModuleLogger.h"
+#include "src/uds/diagnostic_session_control/include/DiagnosticSessionControl.h"
+#include "src/uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
+#include "src/uds/write_data_by_identifier/include/WriteDataByIdentifier.h"
+#include "src/utils/include/CreateInterface.h"
+#include "src/uds/ecu_reset/include/EcuReset.h"
+#include "src/uds/read_dtc_information/include/ReadDtcInformation.h"
+#include "src/uds/routine_control/include/RoutineControl.h"
+#include "src/uds/access_timing_parameters/include/AccessTimingParameter.h"
+#include "src/ota/request_transfer_exit/include/RequestTransferExit.h"
+#include "src/uds/clear_dtc/include/ClearDtc.h"
 
 class HandleFrames 
 {

@@ -10,7 +10,7 @@
  */
 
 #include "gtest/gtest.h"
-#include "../include/Logger.h"
+#include "src/utils/include/Logger.h"
 
 class LoggerTest : public ::testing::Test
 {
