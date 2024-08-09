@@ -117,7 +117,11 @@ void RequestDownloadService::requestDownloadRequest(int id, std::vector<uint8_t>
 
     int max_number_block = calculate_max_number_block(memory_size);
 
-    downloadSoftwareVersion("software_version_id");
+    /* To be changed with actual values, these are used for test. */
+    uint8_t ecu_id = 0x10;
+    /* 0x24 => 0010 010 0* => v2.2, LSB not taken in consideration for versioning */
+    uint8_t sw_version_byte = 0x24;
+    downloadSoftwareVersion(ecu_id, sw_version_byte);
 
     if (download_type == 0x88)
     {
