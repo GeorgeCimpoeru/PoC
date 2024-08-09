@@ -1,48 +1,49 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 
 const Carousel = () => {
+    const [currentSlide, setCurrentSlide] = useState(0);
+    const slides = [
+        './resized.jpg',
+        './panoramic_cars.jpg',
+        './vector.jpg',
+        './4-car.jpg'
+    ];
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentSlide((prevSlide) => (prevSlide + 1) % slides.length);
+        }, 5000); 
+
+        return () => clearInterval(interval); 
+    }, [slides.length]);
+
     return (
         <div className="carousel w-full">
-            <div id="slide1" className="carousel-item relative w-full">
-                <img
-                    src="./resized.jpg"
-                    className="w-full" />
-                <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
-                    <a href="#slide4" className="btn btn-circle">❮</a>
-                    <a href="#slide2" className="btn btn-circle">❯</a>
+            {slides.map((slide, index) => (
+                <div
+                    key={index}
+                    className={`carousel-item relative w-full ${index === currentSlide ? 'block' : 'hidden'}`}
+                >
+                    <img src={slide} className="w-full" />
                 </div>
-            </div>
-            <div id="slide2" className="carousel-item relative w-full">
-                <img
-                    src="./panoramic_cars.jpg"
-                    className="w-full" />
-                <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
-                    <a href="#slide1" className="btn btn-circle">❮</a>
-                    <a href="#slide3" className="btn btn-circle">❯</a>
-                </div>
-            </div>
-            <div id="slide3" className="carousel-item relative w-full">
-                <img
-                    src="./vector.jpg"
-                    className="w-full" />
-                <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
-                    <a href="#slide2" className="btn btn-circle">❮</a>
-                    <a href="#slide4" className="btn btn-circle">❯</a>
-                </div>
-            </div>
-            <div id="slide4" className="carousel-item relative w-full">
-                <img
-                    src="./car-interior.jpg"
-                    className="w-full" />
-                <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
-                    <a href="#slide3" className="btn btn-circle">❮</a>
-                    <a href="#slide1" className="btn btn-circle">❯</a>
-                </div>
-            </div>
+            ))}
+            {/* <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
+                <button
+                    onClick={() => setCurrentSlide((prevSlide) => (prevSlide - 1 + slides.length) % slides.length)}
+                    className="btn btn-circle"
+                >
+                    ❮
+                </button>
+                <button
+                    onClick={() => setCurrentSlide((prevSlide) => (prevSlide + 1) % slides.length)}
+                    className="btn btn-circle"
+                >
+                    ❯
+                </button>
+            </div> */}
         </div>
-    )
+    );
 }
 
 export default Carousel;
