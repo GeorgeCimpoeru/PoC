@@ -19,6 +19,7 @@
 
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../utils/include/Logger.h"
+#include "../../../utils/include/NegativeResponse.h"
 
 class ReadDataByIdentifier
 {
