@@ -32,7 +32,7 @@ TEST_F(ReadDataByIdentifierTest, InvalidMessageLength) {
     std::vector<uint8_t> request = {0x22, 0x01, 0x12};
 
     std::vector<uint8_t> expected_response = {0x03, 0x7F, 0x22, 0x13};
-    std::vector<uint8_t> actual_response = rdbi->readDataByIdentifier(can_id, request, true);
+    std::vector<uint8_t> actual_response = rdbi->readDataByIdentifier(can_id, request, false);
 
     EXPECT_EQ(expected_response, actual_response);
 }
@@ -44,7 +44,7 @@ TEST_F(ReadDataByIdentifierTest, ValidRequestForMCUData) {
     std::vector<uint8_t> request = {0x22, 0x01, 0x12, 0x34};
 
     std::vector<uint8_t> expected_response = {0x01, 0x02, 0x03, 0x04};
-    std::vector<uint8_t> actual_response = rdbi->readDataByIdentifier(can_id, request, true);
+    std::vector<uint8_t> actual_response = rdbi->readDataByIdentifier(can_id, request, false);
 
     EXPECT_EQ(expected_response, actual_response);
 }
@@ -110,7 +110,7 @@ TEST_F(ReadDataByIdentifierTest, LongResponseForAPIFrame) {
     std::vector<uint8_t> long_data(10, 0xBB);
     MCU::mcu->mcu_data[0x1234] = long_data;
 
-    std::vector<uint8_t> actual_response = rdbi->readDataByIdentifier(can_id, request, true);
+    std::vector<uint8_t> actual_response = rdbi->readDataByIdentifier(can_id, request, false);
 
     std::vector<uint8_t> expected_response;
     expected_response.insert(expected_response.end(), long_data.begin(), long_data.end());

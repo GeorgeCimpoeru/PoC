@@ -20,10 +20,13 @@
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../utils/include/Logger.h"
 #include "../../../utils/include/NegativeResponse.h"
+#include "../../authentication/include/SecurityAccess.h"
 
 class ReadDataByIdentifier
 {
     public:
+    /* Define the service identifier for Read Data By Identifier */
+    static constexpr uint8_t RDBI_SERVICE_ID = 0x22;
     /**
     * @brief Default constructor
     */

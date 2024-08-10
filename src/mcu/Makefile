@@ -196,7 +196,7 @@ UDS_OBJS_TEST = $(OBJ_DIR)/DiagnosticSessionControl_test.o \
                 $(OBJ_DIR)/WriteDataByIdentifier_test.o \
                 $(OBJ_DIR)/EcuReset_test.o \
                 $(OBJ_DIR)/SecurityAccess_test.o \
-				$(OBJ_DIR)/TesterPresentTest.o \
+				$(OBJ_DIR)/TesterPresent_test.o \
                 $(OBJ_DIR)/ReadDtcInformation_test.o \
                 $(OBJ_DIR)/ClearDtc_test.o \
                 $(OBJ_DIR)/RoutineControl_test.o \
