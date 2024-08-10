@@ -228,7 +228,9 @@ OBJS_CLEARDTC_TEST = $(OBJ_DIR)/Logger_test.o \
 OBJS_ROUTINECONTROL_TEST = $(OBJ_DIR)/MemoryManager_test.o \
 						   $(OBJ_DIR)/Logger_test.o \
 			   			   $(OBJ_DIR)/GenerateFrames_test.o \
-			   			   $(OBJ_DIR)/RoutineControl_test.o
+			   			   $(OBJ_DIR)/RoutineControl_test.o \
+			   			   $(OBJ_DIR)/NegativeResponse_test.o \
+			   			   $(OBJ_DIR)/SecurityAccess_test.o
 					
 OBJS_ACCESSTIMINGPARAMETER_TEST = $(OBJ_DIR)/Logger_test.o \
 			   						 $(OBJ_DIR)/GenerateFrames_test.o \
