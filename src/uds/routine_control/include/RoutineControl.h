@@ -20,7 +20,7 @@
 class RoutineControl
 {
     public:
-    /* Define the service identifier for Read Data By Identifier */
+    /* Define the service identifier for Routine Control */
     static constexpr uint8_t ROUTINE_CONTROL_SID = 0x31;
     /**
     * @brief Default constructor

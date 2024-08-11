@@ -9,7 +9,7 @@ RoutineControl::RoutineControl(int socket, Logger& rc_logger)
 /* Function to handle the RoutineControl request */
 void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& request)
 {
-    uint16_t routine_identifier = request[3] << 8 | request[4]; 
+    uint16_t routine_identifier = request[3] << 8 | request[4];
     std::vector<uint8_t> response;
     NegativeResponse nrc(socket, rc_logger);
     uint8_t lowerbits = can_id & 0xFF;
