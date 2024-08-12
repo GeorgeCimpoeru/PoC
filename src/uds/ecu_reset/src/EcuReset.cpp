@@ -13,8 +13,22 @@ EcuReset::~EcuReset()
 
 void EcuReset::ecuResetRequest()
 {
+    uint8_t lowerbits = can_id & 0xFF;
+    uint8_t upperbits = can_id >> 8 & 0xFF;
+    can_id = ((lowerbits << 8) | upperbits);
+
+    NegativeResponse nrc(response_socket, ECUResetLog);
+
+    if (sub_function != 0x01 && sub_function != 0x02)
+    {
+        nrc.sendNRC(can_id,0x11,NegativeResponse::SFNS);
+    }
+    else if (!SecurityAccess::getMcuState())
+    {
+        nrc.sendNRC(can_id,0x11,NegativeResponse::SAD);
+    }
     /* Hard Reset case */
-    if (sub_function == 0x01) {
+    else if (sub_function == 0x01) {
         LOG_INFO(ECUResetLog.GET_LOGGER(), "Reset Mode: Hard Reset");
         this->hardReset();
     /* Keys off Reset case */
@@ -26,6 +40,8 @@ void EcuReset::ecuResetRequest()
 void EcuReset::hardReset()
 {
     uint8_t lowerbits = can_id & 0xFF;
+    /* Send response */
+    this->ecuResetResponse();
     CreateInterface* interface = CreateInterface::getInstance(0x00, ECUResetLog);
     /* Deletes the interface */
     uint8_t interface_name = interface->getInterfaceName();
@@ -72,14 +88,13 @@ void EcuReset::hardReset()
             break;
         }
     }
-
-    /* Send response */
-    this->ecuResetResponse();
 }
 
 void EcuReset::keyOffReset()
 {
     uint8_t lowerbits = can_id & 0xFF;
+    /* Sens response */
+    this->ecuResetResponse();
     CreateInterface* interface = CreateInterface::getInstance(0x00, ECUResetLog);
     /* Turns down the interface */
     uint8_t interface_name = interface->getInterfaceName();
@@ -126,9 +141,6 @@ void EcuReset::keyOffReset()
             break;
         }
     }
-
-    /* Sens response */
-    this->ecuResetResponse();
 }
 
 void EcuReset::ecuResetResponse()
