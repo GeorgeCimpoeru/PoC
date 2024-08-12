@@ -4,7 +4,7 @@ import LeftSideBar from "../components/OTAcomponents/LeftSideBar";
 import NavbarOta from "../components/OTAcomponents/NavbarOta";
 import TableOta from "../components/OTAcomponents/TableOta";
 import NavbarHistory from "../components/OTAcomponents/NavbarHistory";
-import NavbarOtaSlides from "../components/OTAcomponents/NavbarOtaSlides";
+import NavbarOtaSlides from "../components/OTAcomponents/OtaUpdatePage";
 
 
 const OTApage = () => {
