@@ -14,10 +14,14 @@
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../utils/include/Logger.h"
 #include "../../utils/include/MemoryManager.h"
+#include "../../../utils/include/NegativeResponse.h"
+#include "../../authentication/include/SecurityAccess.h"
 
 class RoutineControl
 {
     public:
+    /* Define the service identifier for Routine Control */
+    static constexpr uint8_t ROUTINE_CONTROL_SID = 0x31;
     /**
     * @brief Default constructor
     */

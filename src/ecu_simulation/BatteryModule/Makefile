@@ -197,7 +197,7 @@ UDS_OBJS_TEST = $(OBJ_DIR)/DiagnosticSessionControl_test.o \
                 $(OBJ_DIR)/WriteDataByIdentifier_test.o \
                 $(OBJ_DIR)/EcuReset_test.o \
                 $(OBJ_DIR)/SecurityAccess_test.o \
-				$(OBJ_DIR)/TesterPresentTest.o \
+				$(OBJ_DIR)/TesterPresent_test.o \
                 $(OBJ_DIR)/ReadDtcInformation_test.o \
                 $(OBJ_DIR)/ClearDtc_test.o \
                 $(OBJ_DIR)/RoutineControl_test.o \
@@ -229,7 +229,9 @@ OBJS_CLEARDTC_TEST = $(OBJ_DIR)/Logger_test.o \
 OBJS_ROUTINECONTROL_TEST = $(OBJ_DIR)/MemoryManager_test.o \
 						   $(OBJ_DIR)/Logger_test.o \
 			   			   $(OBJ_DIR)/GenerateFrames_test.o \
-			   			   $(OBJ_DIR)/RoutineControl_test.o
+			   			   $(OBJ_DIR)/RoutineControl_test.o \
+			   			   $(OBJ_DIR)/NegativeResponse_test.o \
+			   			   $(OBJ_DIR)/SecurityAccess_test.o
 
 OTA_OBJS_TEST = $(OBJ_DIR)/RequestUpdateStatus_test.o \
 				$(OBJ_DIR)/RequestTransferExit_test.o \
@@ -245,16 +247,16 @@ OBJS_REQUESTTRANSFEREXIT_TEST = $(OBJ_DIR)/Logger_test.o \
 			   			  $(OBJ_DIR)/RequestTransferExit_test.o
 						
 OBJS_REQUESTDOWNLOAD_TEST = $(OBJ_DIR)/Logger_test.o \
-			   			  $(OBJ_DIR)/GenerateFrames_test.o \
-			   			  $(OBJ_DIR)/RequestDownload_test.o
+			   			    $(OBJ_DIR)/GenerateFrames_test.o \
+			   			    $(OBJ_DIR)/RequestDownload_test.o
 
 OBJS_TRANSFERDATA_TEST = $(OBJ_DIR)/Logger_test.o \
 			   			  $(OBJ_DIR)/GenerateFrames_test.o \
 			   			  $(OBJ_DIR)/TransferData_test.o
 
 OBJS_ACCESSTIMINGPARAMETER_TEST = $(OBJ_DIR)/Logger_test.o \
-			   						 $(OBJ_DIR)/GenerateFrames_test.o \
-			   						 $(OBJ_DIR)/AccessTimingParameter_test.o
+			   					  $(OBJ_DIR)/GenerateFrames_test.o \
+			   					  $(OBJ_DIR)/AccessTimingParameter_test.o
 
 OBJS_TEST = $(MCU_OBJS_TEST) \
             $(BATTERY_OBJS_TEST) \
