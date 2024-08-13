@@ -1,6 +1,5 @@
-#include "../include/ReceiveFrames.h"
-#include "../include/HandleFrames.h"
-#include "../include/GenerateFrames.h"
+#include "src/ecu_simulation/BatteryModule/include/ReceiveFrames.h"
+#include "src/ecu_simulation/BatteryModule/include/HandleFrames.h"
 #include <gtest/gtest.h>
 #include <unistd.h>
 #include <linux/can.h>
