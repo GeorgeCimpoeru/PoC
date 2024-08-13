@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Verify version
-cansend vcan1 000011FA#0462101012
+cansend vcan1 000011FA#0462F1AD
 sleep 1
 
 # Session Control
