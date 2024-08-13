@@ -4,7 +4,7 @@ import LeftSideBar from "../components/OTAcomponents/LeftSideBar";
 import NavbarOta from "../components/OTAcomponents/NavbarOta";
 import TableOta from "../components/OTAcomponents/TableOta";
 import NavbarHistory from "../components/OTAcomponents/NavbarHistory";
-import NavbarOtaSlides from "../components/OTAcomponents/NavbarOtaSlides";
+import OtaUpdatePage from "../components/OTAcomponents/OtaUpdatePage";
 
 
 const OTApage = () => {
@@ -75,7 +75,7 @@ const OTApage = () => {
                 <LeftSideBar clickedIcon={clickedIcon} />
                 <div className="w-[94%] h-screen flex flex-col">
                     <NavbarOta />
-                    <NavbarOtaSlides />
+                    <OtaUpdatePage></OtaUpdatePage>
                 </div>
             </div>
 
