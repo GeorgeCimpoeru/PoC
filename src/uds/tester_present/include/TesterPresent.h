@@ -9,6 +9,7 @@
 
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../../utils/include/CreateInterface.h"
+#include "../../diagnostic_session_control/include/DiagnosticSessionControl.h"
 #include <iostream>
 #include <vector>
 #include <thread>
@@ -19,11 +20,12 @@ class TesterPresent
 {
 private:
     GenerateFrames* generate;
+    DiagnosticSessionControl* sessionControl;
+    Logger* logger;
     std::thread timerThread;
     std::atomic<bool> running;
-    Logger logger;
     int socket;
-    int timeout_duration = 5;
+    int timeout_duration;
 
 public:
     /**
@@ -32,8 +34,9 @@ public:
      * @param logger Logger instance
      * @param socket CAN socket
      * @param timeout_duration Duration for the S3 timer in seconds
+     * @param sessionControl DiagnosticSessionControl instance
      */
-    TesterPresent(Logger logger, int socket, int timeout_duration = 5);
+    TesterPresent(Logger* logger, DiagnosticSessionControl* sessionControl, int socket, int timeout_duration);
     TesterPresent();
 
     /**

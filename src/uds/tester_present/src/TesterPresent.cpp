@@ -1,9 +1,12 @@
 #include "../include/TesterPresent.h"
 
-TesterPresent::TesterPresent(Logger logger, int socket, int timeout_duration)
-    : logger(logger), socket(socket), timeout_duration(timeout_duration)
+TesterPresent::TesterPresent(Logger* logger, DiagnosticSessionControl* sessionControl, int socket, int timeout_duration)
 {
-    this->generate = new GenerateFrames(socket, logger);
+    this->logger = logger;
+    this->sessionControl = sessionControl;
+    this->timeout_duration = timeout_duration;
+    this->socket = socket;
+    this->generate = new GenerateFrames(socket, *logger);
     startTimerThread();
 }
 
@@ -22,7 +25,7 @@ void TesterPresent::handleTesterPresent(uint32_t can_id, std::vector<uint8_t> da
 {
     if (data.size() != 3)
     {
-        LOG_ERROR(logger.GET_LOGGER(), "Incorrect message length");
+        LOG_ERROR(logger->GET_LOGGER(), "Incorrect message length");
         this->generate->negativeResponse(can_id, 0x3E, 0x13);
         return;
     }
@@ -31,12 +34,12 @@ void TesterPresent::handleTesterPresent(uint32_t can_id, std::vector<uint8_t> da
 
     if (sub_function != 0x00)
     {
-        LOG_ERROR(logger.GET_LOGGER(), "Sub-function not supported");
+        LOG_ERROR(logger->GET_LOGGER(), "Sub-function not supported");
         this->generate->negativeResponse(can_id, 0x3E, 0x12);
         return;
     }
 
-    LOG_INFO(logger.GET_LOGGER(), "Tester Present Service Received");
+    LOG_INFO(logger->GET_LOGGER(), "Tester Present Service Received");
 
     /* Send positive response */
     this->generate->testerPresent(can_id, true);
@@ -44,6 +47,11 @@ void TesterPresent::handleTesterPresent(uint32_t can_id, std::vector<uint8_t> da
     /* Reset the S3 timer */
     running = false;
     startTimerThread();
+
+    if (sessionControl->getCurrentSession() != DEFAULT_SESSION)
+    {
+        LOG_INFO(logger->GET_LOGGER(), "Session maintained. Current session: {}", sessionControl->getCurrentSessionToString());
+    }
 }
 
 void TesterPresent::startTimerThread()
@@ -71,8 +79,10 @@ void TesterPresent::timerFunction()
 
         if (elapsed_seconds.count() >= timeout_duration)
         {
-            LOG_WARN(logger.GET_LOGGER(), "S3 timer expired. Returning to default session.");
+            LOG_WARN(logger->GET_LOGGER(), "S3 timer expired. Returning to default session.");
+            
             /* Handle returning to default session here */
+            sessionControl->sessionControl(0x3E, 0x01);
 
             running = false;
         }

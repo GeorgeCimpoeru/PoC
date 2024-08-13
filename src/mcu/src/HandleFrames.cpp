@@ -208,7 +208,7 @@ namespace MCU
                 else 
                 {
                     LOG_INFO(MCULogger->GET_LOGGER(), "TesterPresent called.");
-                    TesterPresent tester_present(*MCULogger, getMcuSocket(frame_id));
+                    TesterPresent tester_present(MCULogger, &mcuDiagnosticSessionControl, getMcuSocket(frame_id), 1000);
                     tester_present.handleTesterPresent(frame_id, frame_data);
                 }
                 break;
