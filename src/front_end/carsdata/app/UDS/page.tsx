@@ -1,5 +1,5 @@
 'use client'
-import LeftLeft from '../components/UDScomponents/DivLeft';
+import DivLeft from '../components/UDScomponents/DivLeft';
 import DivCenterMCU from '../components/UDScomponents/DivCenterMCU';
 import DivRight from '../components/UDScomponents/DivRight';
 import DivCenterBattery from '../components/UDScomponents/DivCenterBattery';
@@ -26,7 +26,7 @@ const UDSpage = () => {
 
     return (
         <div className="flex w-full h-full">
-            <LeftLeft selectedModule={selectedModule} changeSelectedModule={changeSelectedModule}></LeftLeft>
+            <DivLeft selectedModule={selectedModule} changeSelectedModule={changeSelectedModule}></DivLeft>
             {selectedModule === "1" ? <><DivCenterMCU image={"/carSketch2.svg"}/><DivRight></DivRight></> : 
             selectedModule === "2" ? <><DivCenterBattery image={"/car-battery.svg"}/><DivRight></DivRight></> :
             selectedModule === "3" ? <><DivCenterEngine image={"/motor.svg"}/><DivRight></DivRight></> : 

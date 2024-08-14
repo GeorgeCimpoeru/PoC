@@ -1,10 +1,24 @@
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
 
+interface batteryData {
+    battery_level: any,
+    voltage: any,
+    battery_state_of_charge: any,
+    percentage: any,
+    life_cycle: any,
+    fully_charged: any,
+    serial_number: any,
+    range_battery: any,
+    charging_time: any,
+    device_consumption: any,
+    time_stamp: any,
+}
+
 const SendRequests = () => {
     const [logs, setLogs] = useState<string[]>([]);
     const [data23, setData] = useState<{ecu_ids: [], mcu_id: any, status: string, time_stamp: string} | string | null>();
-    const [batteryData, setBatteryData] = useState();
+    const [batteryData, setBatteryData] = useState<batteryData | null>();
     const [canId, setCanId] = useState("");
     const [canData, setCanData] = useState("");
     const [disableFrameAndDtcBtns, setDisableFrameAndDtcBtns] = useState<boolean>(false);

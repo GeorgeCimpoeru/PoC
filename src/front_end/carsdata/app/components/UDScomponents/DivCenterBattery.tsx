@@ -4,8 +4,22 @@ import Image from 'next/image';
 import './style.css';
 import ModalUDS from '../sharedComponents/ModalUDS';
 
+interface batteryData {
+    battery_level: any,
+    voltage: any,
+    battery_state_of_charge: any,
+    percentage: any,
+    life_cycle: any,
+    fully_charged: any,
+    serial_number: any,
+    range_battery: any,
+    charging_time: any,
+    device_consumption: any,
+    time_stamp: any,
+}
+
 const DivCenterBattery = (props: any) => {
-    const [data, setData] = useState(null);
+    const [data, setData] = useState<batteryData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [batteryLevel, setBatteryLevel] = useState<string>('');
