@@ -15,10 +15,18 @@
 #include "../../uds/tester_present/include/TesterPresent.h"
 
 #include <thread>
+#include <future>
 namespace MCU
 {
     class MCUModule {
     public:
+        /* Static dictionary to store SID and processing time */
+        static std::map<uint8_t, double> timing_parameters;
+        /* Store active timers for SIDs */
+        static std::map<uint8_t, std::future<void>> active_timers;
+        /* Stop flags for each SID. */
+        static std::map<uint8_t, std::atomic<bool>> stop_flags;
+
         /* Variable to store mcu data */
         std::unordered_map<uint16_t, std::vector<uint8_t>> mcu_data;
         /** 

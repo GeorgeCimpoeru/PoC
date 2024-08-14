@@ -1,4 +1,5 @@
 #include "../include/ReceiveFrames.h"
+#include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 
 ReceiveFrames::ReceiveFrames(int socket, int frame_id) : socket(socket), frame_id(frame_id), running(true) 
 {
@@ -131,6 +132,14 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
 
         uint8_t frame_dest_id = frame.can_id & 0xFF;
         current_module_id = frame_id & 0xFF;
+
+        /* Starting frame processing timing if is it a frame request for MCU */
+        auto it = std::find(service_sids.begin(), service_sids.end(), frame.data[1]);
+
+        if (it != service_sids.end() && frame_dest_id == 0x11) {
+            startTimer(frame.data[1]);
+        }
+
         /* Check if the received frame is for your module */ 
         if (static_cast<int>(frame_dest_id) != current_module_id)
         {
@@ -173,6 +182,42 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
         if (!handle_frame.checkReceivedFrame(nbytes, frame)) {
             LOG_WARN(batteryModuleLogger->GET_LOGGER(), "Failed to process frame\n");
         }
+    }
+}
+
+void ReceiveFrames::startTimer(uint8_t sid) {
+    LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Started frame processing timing for frame with SID {:x}.", sid);
+    auto start_time = std::chrono::steady_clock::now();
+    battery->timing_parameters[sid] = start_time.time_since_epoch().count();
+
+    // Initialize stop flag for this SID
+    battery->stop_flags[sid] = true;
+
+    battery->active_timers[sid] = std::async(std::launch::async, [sid, this, start_time]() {
+        while (BatteryModule::stop_flags[sid]) {
+            auto now = std::chrono::steady_clock::now();
+            std::chrono::duration<double> elapsed = now - start_time;
+            if (elapsed.count() > AccessTimingParameter::p2_max_time / 20) {
+                stopTimer(sid);
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+    });
+}
+
+void ReceiveFrames::stopTimer(uint8_t sid) {
+    LOG_INFO(batteryModuleLogger->GET_LOGGER(), "stopTimer function called for frame with SID {:x}.", sid);
+    auto end_time = std::chrono::steady_clock::now();
+    auto start_time = std::chrono::steady_clock::time_point(std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::nanoseconds((long long)battery->timing_parameters[sid])));
+    std::chrono::duration<double> processing_time = end_time - start_time;
+
+    battery->timing_parameters[sid] = processing_time.count();
+
+    if (BatteryModule::active_timers.find(sid) != BatteryModule::active_timers.end()) {
+        // Set stop flag to false for this SID
+        battery->stop_flags[sid] = false;
+        battery->stop_flags.erase(sid);
+        battery->active_timers[sid].wait();
     }
 }
 

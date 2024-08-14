@@ -30,9 +30,29 @@
 #include <condition_variable>
 #include <atomic>
 #include <poll.h> 
+#include <future>
 #include "../include/HandleFrames.h"
 #include "../include/GenerateFrames.h"
 #include "../include/BatteryModuleLogger.h"
+
+  /* List of service we have implemented. */
+  const std::vector<uint8_t> service_sids = {
+    0x11, // ECU Reset
+    0x10, // Diagnostic Session Control
+    0x22, // Read Data By Identifier
+    0x29, // Authentication
+    0x31, // Routine Control (Testing) -> will be decided
+    0x3E, // Tester Present
+    0x23, // Read Memory By Address
+    0x2E, // Write Data By Identifier
+    0x19, // Read DTC Information
+    0x14, // Clear Diagnostic Information
+    0x83, // Access Timing Parameters
+    0x34, // Request Download
+    0x36, // Transfer Data
+    0x37, // Request Transfer Exit
+    0x32  // Request update status
+};
 
 class ReceiveFrames 
 {
@@ -65,11 +85,17 @@ private:
      * @param handle_frame HandleFrame object used for getting new frames.
      */
     void bufferFrameOut(HandleFrames &handle_frame);
+
+    /* Method that start time processing frame. */
+    void startTimer(uint8_t sid);
+    /* Method that stop time processing frame. */
+    void stopTimer(uint8_t sid);
     
 protected:
     HandleFrames handle_frame;
     
 public:
+
     /**
      * @brief Parameterized constructor.
      * 

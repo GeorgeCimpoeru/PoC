@@ -1,4 +1,6 @@
 #include "../include/RoutineControl.h"
+#include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "../../../mcu/include/MCUModule.h"
 
 RoutineControl::RoutineControl(int socket, Logger& rc_logger) 
             : generate_frames(socket, rc_logger), rc_logger(rc_logger)
@@ -46,14 +48,72 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
             case 0x0101:
                 /* Erase memory or specific data */
                 /* call eraseMemory routine */
-                generate_frames.routineControl(can_id, request[2], routine_identifier, true);
-                LOG_INFO(rc_logger.GET_LOGGER(), "eraseMemory routine called.");
+                switch(lowerbits)
+                {
+                    case 0x10:
+                        if (MCU::mcu->stop_flags.find(0x31) != MCU::mcu->stop_flags.end())
+                        {
+                            /* Send response frame */
+                            generate_frames.routineControl(can_id, request[2], routine_identifier, true);
+                            LOG_INFO(rc_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame: eraseMemory routine.", 0x31);
+                        } else
+                        {
+                            LOG_INFO(rc_logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x31);
+                            NegativeResponse negative_response(socket, rc_logger);
+                            negative_response.sendNRC(can_id, 0x31, 0x78);
+                        }
+                        break;
+                    case 0x11:
+                        if (battery->stop_flags.find(0x31) != battery->stop_flags.end())
+                        {
+                            /* Send response frame */
+                            generate_frames.routineControl(can_id, request[2], routine_identifier, true);
+                            LOG_INFO(rc_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame: eraseMemory routine.", 0x31);
+                        } else
+                        {
+                            LOG_INFO(rc_logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x31);
+                            NegativeResponse negative_response(socket, rc_logger);
+                            negative_response.sendNRC(can_id, 0x31, 0x78);
+                        }
+                        break;
+                    default:
+                        LOG_ERROR(rc_logger.GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);
+                }
                 break;
             case 0x0201:
                 /* Install updates */
                 /* call installUpdates routine*/
-                generate_frames.routineControl(can_id, request[2], routine_identifier, true);
-                LOG_INFO(rc_logger.GET_LOGGER(), "installUpdates routine called.");
+                switch(lowerbits)
+                {
+                    case 0x10:
+                        if (MCU::mcu->stop_flags.find(0x31) != MCU::mcu->stop_flags.end())
+                        {
+                            /* Send response frame */
+                            generate_frames.routineControl(can_id, request[2], routine_identifier, true);
+                            LOG_INFO(rc_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame: installUpdates routine.", 0x31);
+                        } else
+                        {
+                            LOG_INFO(rc_logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x31);
+                            NegativeResponse negative_response(socket, rc_logger);
+                            negative_response.sendNRC(can_id, 0x31, 0x78);
+                        }
+                        break;
+                    case 0x11:
+                        if (battery->stop_flags.find(0x31) != battery->stop_flags.end())
+                        {
+                            /* Send response frame */
+                            generate_frames.routineControl(can_id, request[2], routine_identifier, true);
+                            LOG_INFO(rc_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame: installUpdates routine.", 0x31);
+                        } else
+                        {
+                            LOG_INFO(rc_logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x31);
+                            NegativeResponse negative_response(socket, rc_logger);
+                            negative_response.sendNRC(can_id, 0x31, 0x78);
+                        }
+                        break;
+                    default:
+                        LOG_ERROR(rc_logger.GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);
+                }
                 break;
             default:
                 LOG_INFO(rc_logger.GET_LOGGER(), "Unknown routine.");

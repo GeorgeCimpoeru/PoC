@@ -1,5 +1,6 @@
 #include "../include/ReceiveFrames.h"
-#include "ReceiveFrames.h"
+#include "../include/MCUModule.h"
+
 namespace MCU
 {
     ReceiveFrames::ReceiveFrames(int socket_canbus, int socket_api)
@@ -108,9 +109,22 @@ bool ReceiveFrames::receiveFramesFromAPI()
             LOG_INFO(MCULogger->GET_LOGGER(), "Captured a frame on the API socket");
             /* Lock the queue before adding the frame to ensure thread safety */
             {
-                std::lock_guard<std::mutex> lock(queue_mutex);
-                frame_queue.push(frame);
-                LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Frame added to the processing queue: CAN ID 0x{:x}.", frame.can_id));
+                {
+                    /* Lock the queue before adding the frame to ensure thread safety */
+                    std::lock_guard<std::mutex> lock(queue_mutex);
+
+                    /* Take receiver_id */
+                    uint8_t receiver_id = frame.can_id & 0xFF;
+
+                    /* If frame is for MCU module, for API or test frame */
+                    if( receiver_id != 0xFA)
+                    {
+                        frame_queue.push(frame);
+                        LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Pass a valid Module ID: 0x{:x} and frame added to the processing queue.", frame.can_id));
+                    }
+                }
+                /* Notify one waiting thread that a new frame has been added to the queue */
+                queue_cond_var.notify_one();
             }
             /* Notify one waiting thread that a new frame has been added to the queue */
             queue_cond_var.notify_one();
@@ -151,6 +165,14 @@ bool ReceiveFrames::receiveFramesFromAPI()
             uint8_t sender_id = (frame.can_id >> 8) & 0xFF;
             /* First byte: id_receiver or id_api */
             uint8_t receiver_id = frame.can_id & 0xFF;
+
+            /* Starting frame processing timing if is it a frame request for MCU */
+            auto it = std::find(service_sids.begin(), service_sids.end(), frame.data[1]);
+
+            if (it != service_sids.end() && receiver_id == 0x10) {
+                startTimer(frame.data[1]);
+            }
+
             /* Compare the CAN ID with the expected hexValueId */
             if (receiver_id == hex_value_id) 
             {
@@ -177,7 +199,7 @@ bool ReceiveFrames::receiveFramesFromAPI()
                     }
 
                     resetTimer(sender_id);
-                } 
+                }
                 else 
                 {
                     LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Received frame for MCU to execute service with SID: 0x{:x}", frame.data[1]));
@@ -219,6 +241,42 @@ bool ReceiveFrames::receiveFramesFromAPI()
             {
                 break;
             }
+        }
+    }
+
+    void ReceiveFrames::startTimer(uint8_t sid) {
+        LOG_INFO(MCULogger->GET_LOGGER(), "Started frame processing timing for frame with SID {:x}.", sid);
+        auto start_time = std::chrono::steady_clock::now();
+        mcu->timing_parameters[sid] = start_time.time_since_epoch().count();
+
+        // Initialize stop flag for this SID
+        mcu->stop_flags[sid] = true;
+
+        mcu->active_timers[sid] = std::async(std::launch::async, [sid, this, start_time]() {
+            while (mcu->stop_flags[sid]) {
+                auto now = std::chrono::steady_clock::now();
+                std::chrono::duration<double> elapsed = now - start_time;
+                if (elapsed.count() > AccessTimingParameter::p2_max_time / 20) {
+                    stopTimer(sid);
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
+        });
+    }
+
+    void ReceiveFrames::stopTimer(uint8_t sid) {
+        LOG_INFO(MCULogger->GET_LOGGER(), "stopTimer function called for frame with SID {:x}.", sid);
+        auto end_time = std::chrono::steady_clock::now();
+        auto start_time = std::chrono::steady_clock::time_point(std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::nanoseconds((long long)mcu->timing_parameters[sid])));
+        std::chrono::duration<double> processing_time = end_time - start_time;
+
+        mcu->timing_parameters[sid] = processing_time.count();
+
+        if (mcu->active_timers.find(sid) != mcu->active_timers.end()) {
+            // Set stop flag to false for this SID
+            mcu->stop_flags[sid] = false;
+            mcu->stop_flags.erase(sid);
+            mcu->active_timers[sid].wait();
         }
     }
 
