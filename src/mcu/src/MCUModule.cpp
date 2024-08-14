@@ -4,6 +4,9 @@ Logger* MCULogger = nullptr;
 namespace MCU
 {
     MCUModule* mcu = nullptr;
+    std::map<uint8_t, double> MCUModule::timing_parameters;
+    std::map<uint8_t, std::future<void>> MCUModule::active_timers;
+    std::map<uint8_t, std::atomic<bool>> MCUModule::stop_flags;
     /* Constructor */
     MCUModule::MCUModule(uint8_t interfaces_number) : 
                     is_running(false),

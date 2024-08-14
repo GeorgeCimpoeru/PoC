@@ -19,7 +19,10 @@ const std::map<uint8_t, std::string> NegativeResponse::nrcMap =
     {GPF, "General Programming Failure"},
     {WBSC, "Wrong Block Sequence Counter"},
     {VTH, "Voltage Too High"},
-    {VTL, "Voltage Too Low"}
+    {VTL, "Voltage Too Low"},
+    {RCR_RP, "Request Correctly Received-Response Pending"},
+    {SFNSIAS, "SubFunction Not Supported In Active Session"},
+    {FNSIAS, "Function Not Supported In Active Session"}
 };
 
 NegativeResponse::NegativeResponse(int socket, Logger& nrc_logger)

@@ -157,6 +157,35 @@ void EcuReset::ecuResetResponse()
     can_id = (frame_sender_id << 8) | frame_dest_id;
     LOG_INFO(ECUResetLog.GET_LOGGER(), "can_id = 0x{0:x}", can_id);
 
-    generate_frames.ecuReset(can_id, sub_function, generate_frames.getSocket(), true);
-    LOG_INFO(ECUResetLog.GET_LOGGER(), "Response sent");
+    switch(frame_dest_id)
+    {
+        case 0x10:
+            if (MCU::mcu->stop_flags.find(0x11) != MCU::mcu->stop_flags.end())
+            {
+                /* Send response frame */
+                generate_frames.ecuReset(can_id, sub_function, generate_frames.getSocket(), true);
+                LOG_INFO(ECUResetLog.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x11);
+            } else
+            {
+                LOG_INFO(ECUResetLog.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x11);
+                NegativeResponse negative_response(response_socket, ECUResetLog);
+                negative_response.sendNRC(can_id, 0x11, 0x78);
+            }
+            break;
+        case 0x11:
+            if (battery->stop_flags.find(0x11) != battery->stop_flags.end())
+            {
+                /* Send response frame */
+                generate_frames.ecuReset(can_id, sub_function, generate_frames.getSocket(), true);
+                LOG_INFO(ECUResetLog.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x11);
+            } else
+            {
+                LOG_INFO(ECUResetLog.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x11);
+                NegativeResponse negative_response(response_socket, ECUResetLog);
+                negative_response.sendNRC(can_id, 0x11, 0x78);
+            }
+            break;
+        default:
+            LOG_ERROR(ECUResetLog.GET_LOGGER(), "Module with id {:x} not supported.", frame_dest_id);
+    }
 }

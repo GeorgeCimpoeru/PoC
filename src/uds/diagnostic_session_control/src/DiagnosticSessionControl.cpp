@@ -1,5 +1,6 @@
 #include "../include/DiagnosticSessionControl.h"
-#include <iostream>
+#include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "../../../mcu/include/MCUModule.h"
 
 // Initialize current_session
 DiagnosticSession DiagnosticSessionControl::current_session = DEFAULT_SESSION;
@@ -39,8 +40,8 @@ void DiagnosticSessionControl::sessionControl(canid_t frame_id, uint8_t sub_func
         break;
     default:
         LOG_ERROR(dsc_logger->GET_LOGGER(), "Unsupported sub-function");
-        sendNegativeResponse(NR_SUBFUNCION_NOT_SUPPORTED);
-        return;
+        NegativeResponse negative_response(socket, *dsc_logger);
+        negative_response.sendNRC(frame_id, 0x10, 0x12);
         break;
     }
 }
@@ -48,16 +49,6 @@ void DiagnosticSessionControl::sessionControl(canid_t frame_id, uint8_t sub_func
 /* Method to switch current session to Default Session */
 void DiagnosticSessionControl::switchToDefaultSession(canid_t frame_id)
 {
-    /** Simulate an authentication check (for demonstration)
-     * Replace with actual check */
-    bool authenticated = true;
-    if (!authenticated)
-    {
-        sendNegativeResponse(NR_AUTHENTICATION_FAILED);
-        LOG_WARN(dsc_logger->GET_LOGGER(), "Sent Negative Response with code {}", NR_AUTHENTICATION_FAILED);
-        return;
-    }
-
     /* Switch to Default Session */
     current_session = DEFAULT_SESSION;
 
@@ -70,39 +61,47 @@ void DiagnosticSessionControl::switchToDefaultSession(canid_t frame_id)
      * More ECUs can be added here in future.
      * If no module_id is provided, request of sessionControl was made from MCU
      */
-    if (this->module_id == 0x11)
-    {
-        /* Form the new id */
-        int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
 
-        /* Send response frame to ECU */
-        response_frame.sessionControl(id, 0x01, true);
-        LOG_INFO(dsc_logger->GET_LOGGER(), "Sent pozitive response frame to ECU");
-    }
-    else
-    {
-        /* Form the new id */
-        int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+    /* Form the new id */
+    int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+    uint8_t receiver_id = frame_id & 0xFF;
 
-        /* Send response frame to MCU */
-        response_frame.sessionControl(id, 0x01, true);
-        LOG_INFO(dsc_logger->GET_LOGGER(), "Sent pozitive response frame to MCU");
-    }
+    switch(receiver_id)
+    {
+        case 0x10:
+            if (MCU::mcu->stop_flags.find(0x10) != MCU::mcu->stop_flags.end())
+            {
+                /* Send response frame */
+                response_frame.sessionControl(id, 0x01, true);
+                LOG_INFO(dsc_logger->GET_LOGGER(), "Sent pozitive response");
+            } else
+            {
+                LOG_INFO(dsc_logger->GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x10);
+                NegativeResponse negative_response(socket, *dsc_logger);
+                negative_response.sendNRC(id, 0x10, 0x78);
+            }
+            break;
+        case 0x11:
+            if (battery->stop_flags.find(0x10) != battery->stop_flags.end())
+            {
+                /* Send response frame */
+                response_frame.sessionControl(id, 0x01, true);
+                LOG_INFO(dsc_logger->GET_LOGGER(), "Sent pozitive response");
+            } else
+            {
+                LOG_INFO(dsc_logger->GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x10);
+                NegativeResponse negative_response(socket, *dsc_logger);
+                negative_response.sendNRC(id, 0x10, 0x78);
+            }
+            break;
+        default:
+            LOG_ERROR(dsc_logger->GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
+    } 
 }
 
 /* Method to switch current session to Programming Session */
 void DiagnosticSessionControl::switchToProgrammingSession(canid_t frame_id)
 {
-    /** Simulate an authentication check (for demonstration)
-     * Replace with actual check */
-    bool authenticated = true;
-    if (!authenticated)
-    {
-        sendNegativeResponse(NR_AUTHENTICATION_FAILED);
-        LOG_WARN(dsc_logger->GET_LOGGER(), "Sent Negative Response with code {}", NR_AUTHENTICATION_FAILED);
-        return;
-    }
-
     /* Switch to Programming Session */
     current_session = PROGRAMMING_SESSION;
 
@@ -111,35 +110,41 @@ void DiagnosticSessionControl::switchToProgrammingSession(canid_t frame_id)
     /* Create instance of Generate Frames to send response frame */
     GenerateFrames response_frame(socket, *dsc_logger);
 
-    /** Check the module where the request was made from
-     * More ECUs can be added here in future.
-     * If no module_id is provided, request of sessionControl was made from MCU
-     */
-    if (this->module_id == 0x11)
+    /* Form the new id */
+    int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+    uint8_t receiver_id = frame_id & 0xFF;
+
+    switch(receiver_id)
     {
-        /* Form the new id */
-        int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
-
-        /* Send response frame to ECU */
-        response_frame.sessionControl(id, 0x02, true);
-        LOG_INFO(dsc_logger->GET_LOGGER(), "Sent pozitive response frame to ECU");
+        case 0x10:
+            if (MCU::mcu->stop_flags.find(0x10) != MCU::mcu->stop_flags.end())
+            {
+                /* Send response frame */
+                response_frame.sessionControl(id, 0x02, true);
+                LOG_INFO(dsc_logger->GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x10);
+            } else
+            {
+                LOG_INFO(dsc_logger->GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x10);
+                NegativeResponse negative_response(socket, *dsc_logger);
+                negative_response.sendNRC(id, 0x10, 0x78);
+            }
+            break;
+        case 0x11:
+            if (battery->stop_flags.find(0x10) != battery->stop_flags.end())
+            {
+                /* Send response frame */
+                response_frame.sessionControl(id, 0x02, true);
+                LOG_INFO(dsc_logger->GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x10);
+            } else
+            {
+                LOG_INFO(dsc_logger->GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x10);
+                NegativeResponse negative_response(socket, *dsc_logger);
+                negative_response.sendNRC(id, 0x10, 0x78);
+            }
+            break;
+        default:
+            LOG_ERROR(dsc_logger->GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
     }
-    else
-    {
-        /* Form the new id */
-        int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
-
-        /* Send response frame to MCU */
-        response_frame.sessionControl(id, 0x02, true);
-        LOG_INFO(dsc_logger->GET_LOGGER(), "Sent pozitive response frame to MCU");
-    }
-}
-
-/* Method for sending Negative Response */
-void DiagnosticSessionControl::sendNegativeResponse(uint8_t responseCode)
-{
-    /* Call negative response service */
-    LOG_INFO(dsc_logger->GET_LOGGER(), "Sending Negative Response: {}", static_cast<int>(responseCode));
 }
 
 /* Method to get the current session of module */

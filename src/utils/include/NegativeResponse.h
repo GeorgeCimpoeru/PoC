@@ -57,21 +57,25 @@ class NegativeResponse
         static constexpr uint8_t GPF = 0x72;
         /* Wrong Block Sequence Counter */
         static constexpr uint8_t WBSC = 0x73;
+        /* Request Correctly Received-Response Pending */
+        static constexpr uint8_t RCR_RP = 0x78;
+        /* SubFunction Not Supported In Active Session */
+        static constexpr uint8_t SFNSIAS = 0x7E;
+        /* Function Not Supported In Active Session */
+        static constexpr uint8_t FNSIAS = 0x7F;
         /* Voltage Too High */
         static constexpr uint8_t VTH = 0x92;
         /* Voltage Too Low */
         static constexpr uint8_t VTL = 0x93;
 
+        NegativeResponse(int socket, Logger& nrc_logger);
+        std::string getDescription(uint8_t code);
+        void sendNRC(int id, uint8_t sid, uint8_t nrc);
+
     private:
         GenerateFrames* generate_frames;
         Logger& nrc_logger;
         int socket = -1;
-
-    public:
-        NegativeResponse(int socket, Logger& nrc_logger);
-        std::string getDescription(uint8_t code);
-        void sendNRC(int id, uint8_t sid, uint8_t nrc);
- 
 };
 
 #endif

@@ -1,4 +1,6 @@
 #include "../include/TesterPresent.h"
+#include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "../../../mcu/include/MCUModule.h"
 
 TesterPresent::TesterPresent(Logger* logger, DiagnosticSessionControl* sessionControl, int socket, int timeout_duration)
 {
@@ -41,8 +43,38 @@ void TesterPresent::handleTesterPresent(uint32_t can_id, std::vector<uint8_t> da
 
     LOG_INFO(logger->GET_LOGGER(), "Tester Present Service Received");
 
-    /* Send positive response */
-    this->generate->testerPresent(can_id, true);
+    uint8_t receiver_id = can_id & 0xFF;
+    switch(receiver_id)
+    {
+        case 0x10:
+            if (MCU::mcu->stop_flags.find(0x3E) != MCU::mcu->stop_flags.end())
+            {
+                /* Send response frame */
+                this->generate->testerPresent(can_id, true);
+                LOG_INFO(logger->GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x3E);
+            } else
+            {
+                LOG_INFO(logger->GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x3E);
+                NegativeResponse negative_response(socket, *logger);
+                negative_response.sendNRC(can_id, 0x3E, 0x78);
+            }
+            break;
+        case 0x11:
+            if (battery->stop_flags.find(0x3E) != battery->stop_flags.end())
+            {
+                /* Send response frame */
+                this->generate->testerPresent(can_id, true);
+                LOG_INFO(logger->GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x3E);
+            } else
+            {
+                LOG_INFO(logger->GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x3E);
+                NegativeResponse negative_response(socket, *logger);
+                negative_response.sendNRC(can_id, 0x3E, 0x78);
+            }
+            break;
+        default:
+            LOG_ERROR(logger->GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
+    }
 
     /* Reset the S3 timer */
     running = false;
