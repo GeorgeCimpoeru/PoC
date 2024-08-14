@@ -477,7 +477,7 @@ void HandleFrames::handleCompleteData(int id,const std::vector<uint8_t>& stored_
                 LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Data size: {}", stored_data.size());
                 sub_function = stored_data[sid_position + 1];
                 LOG_INFO(batteryModuleLogger->GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
-                TesterPresent tester_present(*batteryModuleLogger, socket, 10000);
+                TesterPresent tester_present(batteryModuleLogger, &diagnosticSessionControl, socket, 10000);
                 tester_present.handleTesterPresent(id, stored_data);
 
                 if (stored_data[1] == 0x7F)
