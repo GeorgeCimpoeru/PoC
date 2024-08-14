@@ -186,18 +186,28 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
 }
 
 void ReceiveFrames::startTimer(uint8_t sid) {
-    LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Started frame processing timing for frame with SID {:x}.", sid);
+    /* Define the correct timer value based on SID */
+    uint16_t timer_value;
+    if (sids_using_p2_max_time.find(sid) != sids_using_p2_max_time.end())
+    {
+        timer_value = AccessTimingParameter::p2_max_time;
+    } else {
+        timer_value = AccessTimingParameter::p2_star_max_time;
+    }
+
+    LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Started frame processing timing for frame with SID {:x} with max_time = {}.", sid, timer_value);
+
     auto start_time = std::chrono::steady_clock::now();
     battery->timing_parameters[sid] = start_time.time_since_epoch().count();
 
     // Initialize stop flag for this SID
     battery->stop_flags[sid] = true;
 
-    battery->active_timers[sid] = std::async(std::launch::async, [sid, this, start_time]() {
+    battery->active_timers[sid] = std::async(std::launch::async, [sid, this, start_time, timer_value]() {
         while (BatteryModule::stop_flags[sid]) {
             auto now = std::chrono::steady_clock::now();
             std::chrono::duration<double> elapsed = now - start_time;
-            if (elapsed.count() > AccessTimingParameter::p2_max_time / 20) {
+            if (elapsed.count() > timer_value / 20.0) {
                 stopTimer(sid);
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -215,7 +225,14 @@ void ReceiveFrames::stopTimer(uint8_t sid) {
 
     if (BatteryModule::active_timers.find(sid) != BatteryModule::active_timers.end()) {
         // Set stop flag to false for this SID
-        battery->stop_flags[sid] = false;
+        if(battery->stop_flags[sid])
+        {
+            int id = ((sid & 0xFF) << 8) | ((sid >> 8) & 0xFF);
+            LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Service with SID {:x} sent the response pending frame.", 0x2E);
+            NegativeResponse negative_response(socket, *batteryModuleLogger);
+            negative_response.sendNRC(id, 0x2E, 0x78);
+            battery->stop_flags[sid] = false;
+        }
         battery->stop_flags.erase(sid);
         battery->active_timers[sid].wait();
     }

@@ -107,30 +107,16 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         switch(receiver_id)
         {
             case 0x10:
-                if (MCU::mcu->stop_flags.find(0x2E) != MCU::mcu->stop_flags.end())
-                {
-                    /* Send response frame */
-                    generate_frames.writeDataByIdentifier(id, did, {});
-                    LOG_INFO(wdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x2E);
-                } else
-                {
-                    LOG_INFO(wdbi_logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x2E);
-                    NegativeResponse negative_response(socket, wdbi_logger);
-                    negative_response.sendNRC(id, 0x2E, 0x78);
-                }
+                /* Send response frame */
+                generate_frames.writeDataByIdentifier(id, did, {});
+                LOG_INFO(wdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x2E);
+                MCU::mcu->stop_flags[0x2E] = false;
                 break;
             case 0x11:
-                if (battery->stop_flags.find(0x2E) != battery->stop_flags.end())
-                {
-                    /* Send response frame */
-                    generate_frames.writeDataByIdentifier(id, did, {});
-                    LOG_INFO(wdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x2E);
-                } else
-                {
-                    LOG_INFO(wdbi_logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x2E);
-                    NegativeResponse negative_response(socket, wdbi_logger);
-                    negative_response.sendNRC(id, 0x2E, 0x78);
-                }
+                /* Send response frame */
+                generate_frames.writeDataByIdentifier(id, did, {});
+                LOG_INFO(wdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x2E);
+                battery->stop_flags[0x2E] = false;
                 break;
             default:
                 LOG_ERROR(wdbi_logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);

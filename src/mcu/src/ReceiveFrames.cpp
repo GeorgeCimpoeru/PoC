@@ -245,18 +245,31 @@ bool ReceiveFrames::receiveFramesFromAPI()
     }
 
     void ReceiveFrames::startTimer(uint8_t sid) {
-        LOG_INFO(MCULogger->GET_LOGGER(), "Started frame processing timing for frame with SID {:x}.", sid);
+        /* Define the correct timer value based on SID */
+        uint16_t timer_value;
+        if (sids_using_p2_max_time.find(sid) != sids_using_p2_max_time.end())
+        {
+            timer_value = AccessTimingParameter::p2_max_time;
+        } else {
+            timer_value = AccessTimingParameter::p2_star_max_time;
+        }
+
+        LOG_INFO(MCULogger->GET_LOGGER(), "Started frame processing timing for frame with SID {:x} with max_time = {}.", sid, timer_value);
+
         auto start_time = std::chrono::steady_clock::now();
         mcu->timing_parameters[sid] = start_time.time_since_epoch().count();
 
-        // Initialize stop flag for this SID
+        /* Initialize stop flag for this SID */
         mcu->stop_flags[sid] = true;
 
-        mcu->active_timers[sid] = std::async(std::launch::async, [sid, this, start_time]() {
-            while (mcu->stop_flags[sid]) {
+        mcu->active_timers[sid] = std::async(std::launch::async, [sid, this, start_time, timer_value]()
+        {
+            while (mcu->stop_flags[sid])
+            {
                 auto now = std::chrono::steady_clock::now();
                 std::chrono::duration<double> elapsed = now - start_time;
-                if (elapsed.count() > AccessTimingParameter::p2_max_time / 20) {
+                if (elapsed.count() > timer_value / 20.0)
+                { 
                     stopTimer(sid);
                 }
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -266,15 +279,24 @@ bool ReceiveFrames::receiveFramesFromAPI()
 
     void ReceiveFrames::stopTimer(uint8_t sid) {
         LOG_INFO(MCULogger->GET_LOGGER(), "stopTimer function called for frame with SID {:x}.", sid);
+
         auto end_time = std::chrono::steady_clock::now();
         auto start_time = std::chrono::steady_clock::time_point(std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::nanoseconds((long long)mcu->timing_parameters[sid])));
         std::chrono::duration<double> processing_time = end_time - start_time;
 
         mcu->timing_parameters[sid] = processing_time.count();
 
-        if (mcu->active_timers.find(sid) != mcu->active_timers.end()) {
-            // Set stop flag to false for this SID
-            mcu->stop_flags[sid] = false;
+        if (mcu->active_timers.find(sid) != mcu->active_timers.end())
+        {
+            /* Set stop flag to false for this SID */
+            if(mcu->stop_flags[sid])
+            {
+                int id = ((sid & 0xFF) << 8) | ((sid >> 8) & 0xFF);
+                LOG_INFO(MCULogger->GET_LOGGER(), "Service with SID {:x} sent the response pending frame.", 0x2E);
+                NegativeResponse negative_response(socket_api, *MCULogger);
+                negative_response.sendNRC(id, 0x2E, 0x78);
+                mcu->stop_flags[sid] = false;
+            }
             mcu->stop_flags.erase(sid);
             mcu->active_timers[sid].wait();
         }
