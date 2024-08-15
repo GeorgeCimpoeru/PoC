@@ -69,7 +69,7 @@ OBJS = $(MCU_OBJS) \
        $(OTA_OBJS)
 
 # Target executables
-FINAL = main
+FINAL = main_battery
 
 .PHONY: all clean
 

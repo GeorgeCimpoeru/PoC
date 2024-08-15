@@ -71,7 +71,7 @@ OBJS = $(MCU_OBJS) \
 
 
 # Target executables
-FINAL = main
+FINAL = main_mcu
 
 .PHONY: all clean
 
