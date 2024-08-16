@@ -10,28 +10,45 @@ interface DeviceRecord {
     softVersionsAvailable: string[];
 }
 
-const VersionControl = () => {
+const TableVersionControl = () => {
     const columns = [
         {
-            title: <span style={{ fontSize: '20px', fontWeight: 'bold' }}>Device name</span>,
+            title: (
+                <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Device name</span>
+            ),
             dataIndex: 'deviceName',
             key: 'deviceName',
-            render: (text: string) => <span style={{ fontSize: '20px', fontWeight: 'normal' }}>{text}</span>,
+            render: (text: string) => (
+                <span style={{ fontSize: '1rem', fontWeight: 'normal' }}>{text}</span>
+            ),
         },
         {
-            title: <span style={{ fontSize: '20px', fontWeight: 'bold' }}>Current version</span>,
+            title: (
+                <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Current version</span>
+            ),
             dataIndex: 'currentVersion',
             key: 'currentVersion',
-            render: (text: string) => <span>{text}</span>,
+            render: (text: string) => <span style={{ fontSize: '1rem' }}>{text}</span>,
         },
         {
-            title: <span style={{ fontSize: '20px', fontWeight: 'bold' }}>Soft Versions Available</span>,
+            title: (
+                <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Soft Versions Available</span>
+            ),
             key: 'softVersionsAvailable',
             render: (_text: any, record: DeviceRecord) => {
                 const versionsWithSpaces = record.softVersionsAvailable.join(';   ');
                 return (
                     <Tooltip title={versionsWithSpaces}>
-                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-block', maxWidth: '200px' }}>
+                        <span
+                            style={{
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                display: 'inline-block',
+                                maxWidth: '200px',
+                                fontSize: '1rem',
+                            }}
+                        >
                             {versionsWithSpaces}
                         </span>
                     </Tooltip>
@@ -39,12 +56,14 @@ const VersionControl = () => {
             },
         },
         {
-            title: <span style={{ fontSize: '20px', fontWeight: 'bold' }}>Actions</span>,
+            title: (
+                <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Actions</span>
+            ),
             key: 'actions',
             render: (_text: any, record: DeviceRecord) => (
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <UpgradeButton/>
-                    <DowngradeButton/>
+                    <UpgradeButton />
+                    <DowngradeButton />
                 </div>
             ),
         },
@@ -57,7 +76,6 @@ const VersionControl = () => {
             currentVersion: '1.2.0',
             softVersionsAvailable: ['1.2.0', '1.2.1', '1.2.2'],
         },
-        
     ];
 
     return (
@@ -66,10 +84,11 @@ const VersionControl = () => {
                 columns={columns}
                 dataSource={data}
                 pagination={false}
-                style={{ marginRight: '33px', marginLeft: '20px' }}
+                style={{ marginRight: '33px', marginLeft: '20px', fontFamily: 'Arial, sans-serif' }} 
+                rowClassName="custom-table-row" 
             />
         </div>
     );
 };
 
-export default VersionControl;
+export default TableVersionControl;

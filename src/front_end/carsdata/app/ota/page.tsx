@@ -2,9 +2,8 @@
 import { useState } from "react";
 import LeftSideBar from "../components/OTAcomponents/LeftSideBar";
 import NavbarOta from "../components/OTAcomponents/NavbarOta";
-import TableOta from "../components/OTAcomponents/TableOta";
-import NavbarHistory from "../components/OTAcomponents/NavbarHistory";
-import OtaUpdatePage from "../components/OTAcomponents/OtaUpdatePage";
+import TableVersionControl from "../components/OTAcomponents/TableVersionControl";
+import TableHistory from "../components/OTAcomponents/TableHistory";
 
 
 const OTApage = () => {
@@ -45,52 +44,50 @@ const OTApage = () => {
     ];
     let [history6, setHistory6] = useState<{ id: number, artifact: string, status: string, startTime: string, size: string, uploadedBy: string }[]>([]);
 
-    const [icon, setIcon] = useState(true);
+    const [selectedDevice, setSelectedDevice] = useState(1);
+    const [selectedTable, setSelectedTable] = useState(1);
 
-    const clickedButton = (button: number) => {
-        if (button == 1) {
+    const clickedDevice = (icon: number) => {
+        setSelectedDevice(icon);
+        if (icon == 1) {
             setHistory6(history1);
-        } else if (button == 2) {
+        } else if (icon == 2) {
             setHistory6(history2);
-        } else if (button == 3) {
+        } else if (icon == 3) {
             setHistory6(history3);
-        } else if (button == 4) {
+        } else if (icon == 4) {
             setHistory6(history4);
-        } else if (button == 5) {
+        } else if (icon == 5) {
             setHistory6(history5);
         }
     }
 
-    const clickedIcon = (icon: number) => {
-        if (icon == 1) {
-            setIcon(true);
-        } else if (icon == 2) {
-            setIcon(false);
-        }
+    const clickedTable = (nrTable: number) => {
+        setSelectedTable(nrTable);
     }
 
-    if (icon) {
-        return (
-            <div className="flex w-full h-screen">
-                <LeftSideBar clickedIcon={clickedIcon} />
-                <div className="w-[94%] h-screen flex flex-col">
-                    <NavbarOta />
-                    <OtaUpdatePage></OtaUpdatePage>
-                </div>
+    return (
+        <div className="flex w-full h-screen" style={{ position: 'relative', zIndex: 1 }}>
+            <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
+                backgroundImage: 'url(/car1.jpg)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                opacity: 0.4,
+                zIndex: -1,
+            }}>
             </div>
-
-        );
-    } else {
-        return (
-            <div className="flex w-full h-screen">
-                <LeftSideBar clickedIcon={clickedIcon}></LeftSideBar>
-                <div className="w-[94%] h-screen flex flex-col">
-                    <NavbarHistory checkedButton={clickedButton}></NavbarHistory>
-                    <TableOta listOfUpdates={history6} ></TableOta>
-                </div>
+            <LeftSideBar clickedDevice={clickedDevice} />
+            <div className="w-[94%] h-screen flex flex-col">
+                <NavbarOta clickedTable={clickedTable} />
+                {selectedTable === 1 ? <TableVersionControl></TableVersionControl> : <TableHistory listOfUpdates={history6}></TableHistory>}
             </div>
-        );
-    }
+        </div>
+    );
 }
 
 export default OTApage

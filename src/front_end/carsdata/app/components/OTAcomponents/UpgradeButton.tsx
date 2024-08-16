@@ -21,7 +21,7 @@ const UpgradeButton = () => {
     const handleUpdate = async (version: string) => {
         console.log("test")
         try {
-            const response = await fetch('http://127.0.0.1:5000/api/update_to_version', { // trebuie incarcate probabil celelalte versiuni disponibile si schimbata ruta
+            const response = await fetch('http://127.0.0.1:5000/api/update_to_version', { 
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
