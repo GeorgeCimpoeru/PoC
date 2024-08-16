@@ -385,11 +385,7 @@ namespace MCU
                 else 
                 {
                     LOG_INFO(MCULogger->GET_LOGGER(), "Service 0x34 RequestDownload");
-                    LOG_INFO(MCULogger->GET_LOGGER(), "SID pos: {}", sid);
-                    LOG_INFO(MCULogger->GET_LOGGER(), "Data size: {}", frame_data.size());
                     RequestDownloadService requestDownload(getMcuSocket(frame_id), *MCULogger);
-                    ReadDataByIdentifier software_version(getMcuSocket(frame_id), MCULogger);
-                    SecurityAccess logged_in(getMcuSocket(frame_id), *MCULogger);
                     requestDownload.requestDownloadRequest(frame_id, frame_data);
                 }
                 break;
@@ -405,9 +401,9 @@ namespace MCU
                 }
                 else 
                 {
+                    LOG_INFO(MCULogger->GET_LOGGER(), "TransferData called with one frame.");
                     TransferData transfer_data(getMcuSocket(frame_id), *MCULogger);
                     transfer_data.transferData(frame_id, frame_data);
-                    LOG_INFO(MCULogger->GET_LOGGER(), "TransferData called with one frame.");
                 }
                 break;
             case 0x37:

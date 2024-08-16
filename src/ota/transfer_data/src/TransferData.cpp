@@ -1,9 +1,8 @@
 #include "../include/TransferData.h"
 
-TransferData::TransferData(int socket, Logger& transfer_data_logger)
+TransferData::TransferData(int socket, Logger transfer_data_logger)
                 : transfer_data_logger(transfer_data_logger), 
-                  generate_frames(socket, transfer_data_logger),
-                  memory_manager(MemoryManager::getInstance())
+                  generate_frames(socket, transfer_data_logger)
 {
     this->socket = socket;
 }
@@ -17,7 +16,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
 {
     uint8_t block_sequence_counter = transfer_request[2];
     std::vector<uint8_t> response;
-    if (transfer_request.size() < 4)
+    if (transfer_request.size() < 3)
     {
         /* Incorrect message length or invalid format - prepare a negative response */
         response.push_back(0x03); /* PCI */
@@ -41,9 +40,13 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
     }
     else
     {
-        response.insert(response.end(),transfer_request.begin() + 4, transfer_request.end());
         /* use memory manager class to transfer the data */
-        memory_manager->writeToAddress(response);
+        std::string project_path = PROJECT_PATH;
+        std::string path_to_main = project_path + "/src/mcu/main";
+        std::vector<uint8_t> data = MemoryManager::readBinary("/home/projectx/PoC/PoC/src/mcu/main.o", transfer_data_logger);
+        std::cout << "size is " << data.size() << std::endl;
+        MemoryManager* memory_manager = MemoryManager::getInstance(transfer_data_logger);
+        memory_manager->writeToAddress(data);
         /* clear vector after writing to adress */
         response.clear();
         /* prepare positive response */
