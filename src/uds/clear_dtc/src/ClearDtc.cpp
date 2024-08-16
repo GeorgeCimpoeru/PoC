@@ -47,30 +47,16 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
         switch(lowerbits)
         {
             case 0x10:
-                if (MCU::mcu->stop_flags.find(0x14) != MCU::mcu->stop_flags.end())
-                {
-                    /* Send response frame */
-                    this->generate->clearDiagnosticInformation(new_id,{}, true);
-                    LOG_INFO(logger->GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x14);
-                } else
-                {
-                    LOG_INFO(logger->GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x14);
-                    NegativeResponse negative_response(socket, *logger);
-                    negative_response.sendNRC(id, 0x14, 0x78);
-                }
+                /* Send response frame */
+                this->generate->clearDiagnosticInformation(new_id,{}, true);
+                LOG_INFO(logger->GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x14);
+                MCU::mcu->stop_flags[0x14] = false;
                 break;
             case 0x11:
-                if (battery->stop_flags.find(0x14) != battery->stop_flags.end())
-                {
-                    /* Send response frame */
-                    this->generate->clearDiagnosticInformation(new_id,{}, true);
-                    LOG_INFO(logger->GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x14);
-                } else
-                {
-                    LOG_INFO(logger->GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x14);
-                    NegativeResponse negative_response(socket, *logger);
-                    negative_response.sendNRC(id, 0x14, 0x78);
-                }
+                /* Send response frame */
+                this->generate->clearDiagnosticInformation(new_id,{}, true);
+                LOG_INFO(logger->GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x14);
+                battery->stop_flags[0x14] = false;
                 break;
             default:
                 LOG_ERROR(logger->GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);
@@ -111,30 +97,16 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
     switch(lowerbits)
     {
         case 0x10:
-            if (MCU::mcu->stop_flags.find(0x14) != MCU::mcu->stop_flags.end())
-            {
-                /* Send response frame */
-                LOG_INFO(logger->GET_LOGGER(), "DTCs cleared succesffuly");
-                this->generate->clearDiagnosticInformation(new_id,{}, true);
-            } else
-            {
-                LOG_INFO(logger->GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x14);
-                NegativeResponse negative_response(socket, *logger);
-                negative_response.sendNRC(id, 0x14, 0x78);
-            }
+            /* Send response frame */
+            LOG_INFO(logger->GET_LOGGER(), "DTCs cleared succesffuly");
+            this->generate->clearDiagnosticInformation(new_id,{}, true);
+            MCU::mcu->stop_flags[0x14] = false;
             break;
         case 0x11:
-            if (battery->stop_flags.find(0x14) != battery->stop_flags.end())
-            {
-                /* Send response frame */
-                LOG_INFO(logger->GET_LOGGER(), "DTCs cleared succesffuly");
-                this->generate->clearDiagnosticInformation(new_id,{}, true);
-            } else
-            {
-                LOG_INFO(logger->GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x14);
-                NegativeResponse negative_response(socket, *logger);
-                negative_response.sendNRC(id, 0x14, 0x78);
-            }
+            /* Send response frame */
+            LOG_INFO(logger->GET_LOGGER(), "DTCs cleared succesffuly");
+            this->generate->clearDiagnosticInformation(new_id,{}, true);
+            battery->stop_flags[0x14] = false;
             break;
         default:
             LOG_ERROR(logger->GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);

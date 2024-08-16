@@ -82,30 +82,16 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t can_id, 
             switch(lowerbits)
             {
                 case 0x10:
-                    if (MCU::mcu->stop_flags.find(0x22) != MCU::mcu->stop_flags.end())
-                    {
-                        /* Send response frame */
-                        generate_frames.readDataByIdentifierLongResponse(can_id, data_identifier, response, true);
-                        LOG_INFO(rdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x22);
-                    } else
-                    {
-                        LOG_INFO(rdbi_logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x22);
-                        NegativeResponse negative_response(socket, rdbi_logger);
-                        negative_response.sendNRC(can_id, 0x22, 0x78);
-                    }
+                    /* Send response frame */
+                    generate_frames.readDataByIdentifierLongResponse(can_id, data_identifier, response, true);
+                    LOG_INFO(rdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x22);
+                    MCU::mcu->stop_flags[0x22] = false;
                     break;
                 case 0x11:
-                    if (battery->stop_flags.find(0x22) != battery->stop_flags.end())
-                    {
-                        /* Send response frame */
-                        generate_frames.readDataByIdentifierLongResponse(can_id, data_identifier, response, true);
-                        LOG_INFO(rdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x22);
-                    } else
-                    {
-                        LOG_INFO(rdbi_logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x22);
-                        NegativeResponse negative_response(socket, rdbi_logger);
-                        negative_response.sendNRC(can_id, 0x22, 0x78);
-                    }
+                    /* Send response frame */
+                    generate_frames.readDataByIdentifierLongResponse(can_id, data_identifier, response, true);
+                    LOG_INFO(rdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x22);
+                    battery->stop_flags[0x22] = false;
                     break;
                 default:
                     LOG_ERROR(rdbi_logger.GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);
@@ -116,30 +102,16 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t can_id, 
             switch(lowerbits)
             {
                 case 0x10:
-                    if (MCU::mcu->stop_flags.find(0x22) != MCU::mcu->stop_flags.end())
-                    {
-                        /* Send response frame */
-                        generate_frames.readDataByIdentifier(can_id, data_identifier, response);
-                        LOG_INFO(rdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x22);
-                    } else
-                    {
-                        LOG_INFO(rdbi_logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x22);
-                        NegativeResponse negative_response(socket, rdbi_logger);
-                        negative_response.sendNRC(can_id, 0x22, 0x78);
-                    }
+                    /* Send response frame */
+                    generate_frames.readDataByIdentifier(can_id, data_identifier, response);
+                    LOG_INFO(rdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x22);
+                    MCU::mcu->stop_flags[0x22] = false;
                     break;
                 case 0x11:
-                    if (battery->stop_flags.find(0x22) != battery->stop_flags.end())
-                    {
-                        /* Send response frame */
-                        generate_frames.readDataByIdentifier(can_id, data_identifier, response);
-                        LOG_INFO(rdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x22);
-                    } else
-                    {
-                        LOG_INFO(rdbi_logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x22);
-                        NegativeResponse negative_response(socket, rdbi_logger);
-                        negative_response.sendNRC(can_id, 0x22, 0x78);
-                    }
+                    /* Send response frame */
+                    generate_frames.readDataByIdentifier(can_id, data_identifier, response);
+                    LOG_INFO(rdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x22);
+                    battery->stop_flags[0x22] = false;
                     break;
                 default:
                     LOG_ERROR(rdbi_logger.GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);

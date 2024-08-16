@@ -69,30 +69,16 @@ void DiagnosticSessionControl::switchToDefaultSession(canid_t frame_id)
     switch(receiver_id)
     {
         case 0x10:
-            if (MCU::mcu->stop_flags.find(0x10) != MCU::mcu->stop_flags.end())
-            {
-                /* Send response frame */
-                response_frame.sessionControl(id, 0x01, true);
-                LOG_INFO(dsc_logger->GET_LOGGER(), "Sent pozitive response");
-            } else
-            {
-                LOG_INFO(dsc_logger->GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x10);
-                NegativeResponse negative_response(socket, *dsc_logger);
-                negative_response.sendNRC(id, 0x10, 0x78);
-            }
+            /* Send response frame */
+            response_frame.sessionControl(id, 0x01, true);
+            LOG_INFO(dsc_logger->GET_LOGGER(), "Sent pozitive response");
+            MCU::mcu->stop_flags[0x10] = false;
             break;
         case 0x11:
-            if (battery->stop_flags.find(0x10) != battery->stop_flags.end())
-            {
-                /* Send response frame */
-                response_frame.sessionControl(id, 0x01, true);
-                LOG_INFO(dsc_logger->GET_LOGGER(), "Sent pozitive response");
-            } else
-            {
-                LOG_INFO(dsc_logger->GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x10);
-                NegativeResponse negative_response(socket, *dsc_logger);
-                negative_response.sendNRC(id, 0x10, 0x78);
-            }
+            /* Send response frame */
+            response_frame.sessionControl(id, 0x01, true);
+            LOG_INFO(dsc_logger->GET_LOGGER(), "Sent pozitive response");
+            battery->stop_flags[0x10] = false;
             break;
         default:
             LOG_ERROR(dsc_logger->GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
@@ -117,34 +103,20 @@ void DiagnosticSessionControl::switchToProgrammingSession(canid_t frame_id)
     switch(receiver_id)
     {
         case 0x10:
-            if (MCU::mcu->stop_flags.find(0x10) != MCU::mcu->stop_flags.end())
-            {
-                /* Send response frame */
-                response_frame.sessionControl(id, 0x02, true);
-                LOG_INFO(dsc_logger->GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x10);
-            } else
-            {
-                LOG_INFO(dsc_logger->GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x10);
-                NegativeResponse negative_response(socket, *dsc_logger);
-                negative_response.sendNRC(id, 0x10, 0x78);
-            }
+            /* Send response frame */
+            response_frame.sessionControl(id, 0x02, true);
+            LOG_INFO(dsc_logger->GET_LOGGER(), "Sent pozitive response");
+            MCU::mcu->stop_flags[0x10] = false;
             break;
         case 0x11:
-            if (battery->stop_flags.find(0x10) != battery->stop_flags.end())
-            {
-                /* Send response frame */
-                response_frame.sessionControl(id, 0x02, true);
-                LOG_INFO(dsc_logger->GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x10);
-            } else
-            {
-                LOG_INFO(dsc_logger->GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x10);
-                NegativeResponse negative_response(socket, *dsc_logger);
-                negative_response.sendNRC(id, 0x10, 0x78);
-            }
+            /* Send response frame */
+            response_frame.sessionControl(id, 0x02, true);
+            LOG_INFO(dsc_logger->GET_LOGGER(), "Sent pozitive response");
+            battery->stop_flags[0x10] = false;
             break;
         default:
             LOG_ERROR(dsc_logger->GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
-    }
+    } 
 }
 
 /* Method to get the current session of module */

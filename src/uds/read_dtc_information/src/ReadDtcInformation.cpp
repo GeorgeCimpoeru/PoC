@@ -89,30 +89,16 @@ void ReadDTC::number_of_dtc(int id, int dtc_status_mask)
     switch(lowerbits)
     {
         case 0x10:
-            if (MCU::mcu->stop_flags.find(0x19) != MCU::mcu->stop_flags.end())
-            {
-                /* Send response frame */
-                this->generate->readDtcInformationResponse01(id,status_availability_mask,dtc_format_identifier,number_of_dtc);
-                LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x19);
-            } else
-            {
-                LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x19);
-                NegativeResponse negative_response(socket, logger);
-                negative_response.sendNRC(id, 0x19, 0x78);
-            }
+            /* Send response frame */
+            this->generate->readDtcInformationResponse01(id,status_availability_mask,dtc_format_identifier,number_of_dtc);
+            LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x19);
+            MCU::mcu->stop_flags[0x19] = false;
             break;
         case 0x11:
-            if (battery->stop_flags.find(0x19) != battery->stop_flags.end())
-            {
-                /* Send response frame */
-                this->generate->readDtcInformationResponse01(id,status_availability_mask,dtc_format_identifier,number_of_dtc);
-                LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x19);
-            } else
-            {
-                LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x19);
-                NegativeResponse negative_response(socket, logger);
-                negative_response.sendNRC(id, 0x19, 0x78);
-            }
+            /* Send response frame */
+            this->generate->readDtcInformationResponse01(id,status_availability_mask,dtc_format_identifier,number_of_dtc);
+            LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x19);
+            battery->stop_flags[0x19] = false;
             break;
         default:
             LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);
@@ -162,30 +148,16 @@ void ReadDTC::report_dtcs(int id, int dtc_status_mask)
         switch(lowerbits)
         {
             case 0x10:
-                if (MCU::mcu->stop_flags.find(0x19) != MCU::mcu->stop_flags.end())
-                {
-                    /* Send response frame */
-                    this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,true);
-                    LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the first response frame.", 0x19);
-                } else
-                {
-                    LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x19);
-                    NegativeResponse negative_response(socket, logger);
-                    negative_response.sendNRC(id, 0x19, 0x78);
-                }
+                /* Send response frame */
+                this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,true);
+                LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the first response frame.", 0x19);
+                MCU::mcu->stop_flags[0x19] = false;
                 break;
             case 0x11:
-                if (battery->stop_flags.find(0x19) != battery->stop_flags.end())
-                {
-                    /* Send response frame */
-                    this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,true);
-                    LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the first response frame.", 0x19);
-                } else
-                {
-                    LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x19);
-                    NegativeResponse negative_response(socket, logger);
-                    negative_response.sendNRC(id, 0x19, 0x78);
-                }
+                /* Send response frame */
+                this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,true);
+                LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the first response frame.", 0x19);
+                battery->stop_flags[0x19] = false;
                 break;
             default:
                 LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);
@@ -197,30 +169,16 @@ void ReadDTC::report_dtcs(int id, int dtc_status_mask)
             switch(lowerbits)
             {
                 case 0x10:
-                    if (MCU::mcu->stop_flags.find(0x19) != MCU::mcu->stop_flags.end())
-                    {
-                        /* Send response frame */
-                        this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,false);
-                        LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent a consecutive response frame.", 0x19);
-                    } else
-                    {
-                        LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x19);
-                        NegativeResponse negative_response(socket, logger);
-                        negative_response.sendNRC(id, 0x19, 0x78);
-                    }
+                    /* Send response frame */
+                    this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,false);
+                    LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent a consecutive response frame.", 0x19);
+                    MCU::mcu->stop_flags[0x19] = false;
                     break;
                 case 0x11:
-                    if (battery->stop_flags.find(0x19) != battery->stop_flags.end())
-                    {
-                        /* Send response frame */
-                        this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,false);
-                        LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent a consecutive response frame.", 0x19);
-                    } else
-                    {
-                        LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x19);
-                        NegativeResponse negative_response(socket, logger);
-                        negative_response.sendNRC(id, 0x19, 0x78);
-                    }
+                    /* Send response frame */
+                    this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,false);
+                    LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent a consecutive response frame.", 0x19);
+                    battery->stop_flags[0x19] = false;
                     break;
                 default:
                     LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);
@@ -238,30 +196,16 @@ void ReadDTC::report_dtcs(int id, int dtc_status_mask)
         switch(lowerbits)
         {
             case 0x10:
-                if (MCU::mcu->stop_flags.find(0x19) != MCU::mcu->stop_flags.end())
-                {
-                    /* Send response frame */
-                    this->generate->readDtcInformationResponse02(id,status_availability_mask,dtc_and_status_list);
-                    LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the first response frame.", 0x19);
-                } else
-                {
-                    LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x19);
-                    NegativeResponse negative_response(socket, logger);
-                    negative_response.sendNRC(id, 0x19, 0x78);
-                }
+                /* Send response frame */
+                this->generate->readDtcInformationResponse02(id,status_availability_mask,dtc_and_status_list);
+                LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the first response frame.", 0x19);
+                MCU::mcu->stop_flags[0x19] = false;
                 break;
             case 0x11:
-                if (battery->stop_flags.find(0x19) != battery->stop_flags.end())
-                {
-                    /* Send response frame */
-                    this->generate->readDtcInformationResponse02(id,status_availability_mask,dtc_and_status_list);
-                    LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the first response frame.", 0x19);
-                } else
-                {
-                    LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x19);
-                    NegativeResponse negative_response(socket, logger);
-                    negative_response.sendNRC(id, 0x19, 0x78);
-                }
+                /* Send response frame */
+                this->generate->readDtcInformationResponse02(id,status_availability_mask,dtc_and_status_list);
+                LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the first response frame.", 0x19);
+                battery->stop_flags[0x19] = false;
                 break;
             default:
                 LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);
