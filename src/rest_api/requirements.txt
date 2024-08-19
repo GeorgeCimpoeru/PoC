@@ -38,3 +38,5 @@ zipp==3.19.2
 google-api-python-client==2.137.0
 google-auth-httplib2==0.2.0
 google-auth-oauthlib==1.2.1
+importlib_resources==6.4.0
+

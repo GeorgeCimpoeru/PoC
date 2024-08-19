@@ -1,6 +1,52 @@
+// Utility function to display JSON response in the output container
 function displayResponse(data) {
     const responseContainer = document.getElementById('response-output');
     responseContainer.textContent = JSON.stringify(data, null, 2);
+}
+
+// Utility function to fetch logs and update the log table
+function fetchLogs() {
+    fetch('/api/logs')
+        .then(response => response.json())
+        .then(data => {
+            const logBody = document.getElementById('log-body');
+            logBody.innerHTML = ''; 
+            
+            data.logs.reverse().forEach((log, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${index + 1}</td><td>${log}</td>`;
+                logBody.appendChild(row);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching logs:', error);
+        });
+}
+
+/**
+ * Performs an API request using the Fetch API.
+ * This method is a refactored version designed to avoid code repetition
+ * by consolidating the fetch logic into a single function.
+ * @param {string} url - The URL endpoint for the API request.
+ * @param {string} method - The HTTP method for the request (e.g., 'GET', 'POST').
+ * @param {Object|null} body - The body of the request, to be sent as JSON. Defaults to null if no body is provided.
+ * @returns {Promise} - A promise that resolves to the JSON response from the server.
+ */
+function performApiRequest(url, method, body = null) {
+    return fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: body ? JSON.stringify(body) : null,
+    }).then(response => response.json())
+      .then(data => {
+          displayResponse(data);
+          fetchLogs();
+      })
+      .catch(error => {
+          console.error('Error:', error);
+      });
 }
 
 function sendFrame() {
@@ -10,47 +56,33 @@ function sendFrame() {
         alert('CAN ID and CAN Data cannot be empty.');
         return;
     }
-    fetch('/api/send_frame', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ can_id: canId, can_data: canData }),
-    }).then(response => response.json())
-      .then(data => {
-          document.getElementById('response-output').textContent = JSON.stringify(data);
-          fetchLogs();
-      });
+
+    performApiRequest('/api/send_frame', 'POST', { can_id: canId, can_data: canData });
 }
 
 function requestIds() {
-    fetch('/api/request_ids', {
-        method: 'GET',
-    }).then(response => response.json())
-      .then(data => {
-          document.getElementById('response-output').textContent = JSON.stringify(data);
-          fetchLogs();
-      });
+    performApiRequest('/api/request_ids', 'GET');
 }
 
 function updateToVersion() {
     const ecuId = prompt('Enter ECU ID:');
     const version = prompt('Enter Version:');
-    fetch('/api/update_to_version', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ ecu_id: ecuId, version: version }),
-    }).then(response => response.json())
-      .then(data => {
-          document.getElementById('response-output').textContent = JSON.stringify(data);
-          fetchLogs();
-      });
+
+    performApiRequest('/api/update_to_version', 'POST', { ecu_id: ecuId, version: version });
 }
 
 function readInfoBattery() {
-    fetch('/api/read_info_battery', {
+    performApiRequest('/api/read_info_battery', 'GET');
+
+}
+
+function readInfoEngine() {
+    performApiRequest('/api/read_info_engine', 'GET');
+}
+
+
+function gDriveReadData() {
+    fetch('/api/drive_update_data', {
         method: 'GET',
     }).then(response => response.json())
       .then(data => {
@@ -59,120 +91,35 @@ function readInfoBattery() {
       });
 }
 
+function readInfoDoors() {
+    performApiRequest('/api/read_info_doors', 'GET');
+}
 
-function fetchLogs() {
-    fetch('/api/logs', {
-        method: 'GET',
-    }).then(response => response.json())
-      .then(data => {
-          const logBody = document.getElementById('log-body');
-          logBody.innerHTML = '';
+function writeInfoDoors() {
+    const data = {
+        door: prompt('Enter Door Parameter:') || null,
+        serial_number: prompt('Enter Serial Number:') || null,
+        lighter_voltage: prompt('Enter Cigarette Lighter Voltage:') || null,
+        light_state: prompt('Enter Light State:') || null,
+        belt: prompt('Enter Belt Card State:') || null,
+        windows_closed: prompt('Enter Window Status:') || null,
+    };
+    performApiRequest('/api/write_info_doors', 'POST', data);
+}
 
+function writeInfoBattery() {
+    const data = {
+        battery_level: prompt('Enter Battery Energy Level:') || null,
+        voltage: prompt('Enter Battery Voltage:') || null,
+        battery_state_of_charge: prompt('Enter Battery State of Charge:') || null,
+        percentage: prompt('Enter Battery Percentage:') || null,
+        // temperature: prompt('Enter Battery Temperature:') || null,
+        // life_cycle: prompt('Enter Battery Life Cycle:') || null,
+        // fully_charged: prompt('Enter Battery Fully Charged Status:') || null,
+        // range_battery: prompt('Enter Battery Range:') || null,
+        // charging_time: prompt('Enter Battery Charging Time:') || null,
+        // device_consumption: prompt('Enter Device Consumption:') || null
+    };
+    performApiRequest('/api/write_info_battery', 'POST', data);
+}
 
-          data.logs.reverse().forEach((log, index) => {
-              const row = document.createElement('tr');
-              row.innerHTML = `<td>${index + 1}</td><td>${log}</td>`;
-              logBody.appendChild(row);
-          });
-      })
-      .catch(error => {
-          console.error('Error fetching logs:', error);
-      });
-    }
-
-
-
-    function readInfoDoors() {
-        fetch('/api/read_info_doors', {
-            method: 'GET',
-        }).then(response => response.json())
-          .then(data => {
-              document.getElementById('response-output').textContent = JSON.stringify(data);
-              fetchLogs();
-          });
-    }
-
-    function writeInfoDoors() {
-        const door = prompt('Enter Door Parameter:');
-        const serial_number = prompt('Enter Serial Number:');
-        const lighter_voltage = prompt('Enter Cigarette Lighter Voltage:');
-        const light_state = prompt('Enter Light State:');
-        const belt = prompt('Enter Belt Card State:');
-        const windows_closed = prompt('Enter Window Status:');
-
-
-        const data = {
-            door: door || null,
-            serial_number: serial_number || null,
-            lighter_voltage: lighter_voltage || null,
-            light_state: light_state || null,
-            belt: belt || null,
-            windows_closed: windows_closed || null,
-         };
-
-        fetch('/api/write_info_doors', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-        }).then(response => response.json())
-          .then(data => {
-              displayResponse(data);
-              fetchLogs();
-          });
-    }
-
-    function writeInfoBattery() {
-        const battery_level = prompt('Enter Battery Energy Level:');
-        const voltage = prompt('Enter Battery Voltage:');
-        const stateOfCharge = prompt('Enter Battery State of Charge:');
-        const percentage = prompt('Enter Battery Percentage:');
-        const temperature = prompt('Enter Battery Temperature:');
-        const lifeCycle = prompt('Enter Battery Life Cycle:');
-        const fullyCharged = prompt('Enter Battery Fully Charged Status:');
-        const range = prompt('Enter Battery Range:');
-        const chargingTime = prompt('Enter Battery Charging Time:');
-        const deviceConsumption = prompt('Enter Device Consumption:');
-
-
-        const data = {
-            battery_level: battery_level || null,
-            voltage: voltage || null,
-            battery_state_of_charge: stateOfCharge || null,
-            percentage: percentage || null,
-            temperature: temperature || null,
-            life_cycle: lifeCycle || null,
-            fully_charged: fullyCharged || null,
-            range_battery: range || null,
-            charging_time: chargingTime || null,
-            device_consumption: deviceConsumption || null
-        };
-
-
-        fetch('/api/write_info_battery', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-        })
-        .then(response => response.json())
-        .then(data => {
-            displayResponse(data);
-            fetchLogs();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-    }
-
-    function gDriveReadData() {
-        fetch('/api/drive_update_data', {
-            method: 'GET',
-        }).then(response => response.json())
-          .then(data => {
-              document.getElementById('response-output').textContent = JSON.stringify(data);
-              fetchLogs();
-          });
-    }

@@ -24,7 +24,8 @@
     <div class="container">
         <h1 class="mb-4">CAN Interface Control</h1>
         <button type="button" class="btn btn-primary mb-3" onclick="window.open('/apidocs', '_blank');">Go to Docs</button>
-
+        <button type="button" class="btn btn-primary mb-3" onclick="window.open('/api/logs', '_blank');">Show Logs</button>
+ 
         <form id="can-form" class="mb-4">
             <div class="form-group">
                 <label for="can-id">CAN ID:</label>
@@ -43,9 +44,11 @@
             <button type="button" class="btn btn-info mb-3" onclick="readInfoBattery()">Read Info Battery</button>
             <button type="button" class="btn btn-info mb-3" onclick="readInfoEngine()">Read Info Engine</button>
             <button type="button" class="btn btn-info mb-3" onclick="readInfoDoors()">Read Info Doors</button>
-            <button type="button" class="btn btn-info mb-3" onclick="writeInfoDoors()">Write Doors Info</button>
-            <button type="button" class="btn btn-info mb-3" onclick="writeInfoBattery()">Write Battery Info</button>
             <button type="button" class="btn btn-info mb-3" onclick="gDriveReadData()">Google Drive Info</button>
+
+            <button type="button" class="btn btn-success mb-3" onclick="writeInfoDoors()">Write Doors Info</button>
+            <button type="button" class="btn btn-success mb-3" onclick="writeInfoBattery()">Write Battery Info</button>
+
         </div>
 
         <div class="mb-4">

@@ -16,6 +16,7 @@ api_bp = Blueprint('api', __name__)
 gDrive = GDriveAPI.getInstance()
 
 
+
 @api_bp.route('/request_ids', methods=['GET'])
 def request_ids():
     requester = RequestIdAction(my_id=0xFA99)
@@ -28,10 +29,6 @@ def update_to_version():
     data = request.get_json()
     ecu_id = data.get('ecu_id')
     version = data.get('version')
-    # updateid = data.get('update_id')
-    # swversion = data.get('version')
-    # size = data.get('size')
-    # type = data.get('type')
     updater = Updates(my_id=0xFA, id_ecu=[0x10, 0x11, 0x12])
     response = updater.update_to(ecu_id=ecu_id,
                                  version=version)
@@ -47,14 +44,14 @@ def read_info_bat():
 
 @api_bp.route('/read_info_engine', methods=['GET'])
 def read_info_eng():
-    reader = ReadInfo(0xFA, [0x10, 0x11, 0x12])
+    reader = ReadInfo(API_ID, [0x10, 0x11, 0x12])
     response = reader.read_from_engine()
     return jsonify(response)
 
 
 @api_bp.route('/read_info_doors', methods=['GET'])
 def read_info_doors():
-    reader = ReadInfo(0xFA, [0x10, 0x11, 0x12])
+    reader = ReadInfo(API_ID, [0x10, 0x11, 0x12])
     response = reader.read_from_doors()
     return jsonify(response)
 
@@ -71,16 +68,16 @@ def send_frame():
 def write_info_doors():
     data = request.get_json()
 
-    writer = WriteToDoors(0xFA, [0x10, 0x11, 0x12], data)
-    response = writer.run()
+    writer = WriteInfo(API_ID, [0x10, 0x11, 0x12], data)
+    response = writer.write_to_doors()
     return jsonify(response)
 
 
 @api_bp.route('/write_info_battery', methods=['POST'])
 def write_info_battery():
     data = request.get_json()
-    writer = WriteToBattery(0xFA, [0x10, 0x11, 0x12], data)
-    response = writer.run()
+    writer = WriteInfo(API_ID, [0x10, 0x11, 0x12], data)
+    response = writer.write_to_battery()
     return jsonify(response)
 
 
