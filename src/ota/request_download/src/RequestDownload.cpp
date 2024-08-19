@@ -117,30 +117,15 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
         }
 
         /* Calculate the position for manual update 0 or automatic update 1 */ 
-        size_t position_download_type = 4 + length_memory_address + length_memory_size;
-        uint8_t download_type = stored_data[position_download_type];
+        size_t position_software_version = 4 + length_memory_address + length_memory_size;
+        uint8_t software_version = stored_data[position_software_version];
         /* 0x24 => 0010 010 0* => v2.2, LSB not taken in consideration for versioning */
-        downloadSoftwareVersion(receiver_id, download_type);
-       
-        if (position_download_type < stored_data.size()) 
-        {
-            /* we take only the first bit from download_type */
-            download_type = stored_data[position_download_type] & 0x01;
-            LOG_INFO(RDSlogger.GET_LOGGER(), "download_type: 0x{:02X}", download_type);
-        }
+        downloadSoftwareVersion(receiver_id, software_version);
 
         int max_number_block = calculate_max_number_block(memory_size);
 
-        if (download_type == 0x00)
-        {
-            requestDownloadResponse(id, memory_address, max_number_block);
-            return;
-        }
-        else if (download_type == 0x01)
-        {
-            requestDownloadAutomatic(id, memory_address, max_number_block);
-            return;
-        }
+        requestDownloadResponse(id, memory_address, max_number_block);
+        return;
     }
 }
 

@@ -87,8 +87,8 @@ def validateSoftwareVersion(software_version):
     major_version = int(major_version)
     minor_version = int(minor_version)
 
-    if major_version < 1 or major_version > 8 or minor_version < 0 or minor_version > 15:
-        print("Version not valid. Valid versions are between 1.0 and 8.15")
+    if major_version < 1 or major_version > 16 or minor_version < 0 or minor_version > 15:
+        print("Version not valid. Valid versions are between 1.0 and 16.15")
         exit(-1)
     return software_version
 
