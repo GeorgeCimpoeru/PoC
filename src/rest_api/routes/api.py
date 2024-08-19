@@ -8,13 +8,12 @@ from actions.update_action import Updates  # noqa: E402
 from actions.read_info_action import *  # noqa: E402
 from utils.logger import log_memory  # noqa: E402
 from actions.manual_send_frame import manual_send_frame  # noqa: E402
-from actions.write_info_action import WriteToDoors, WriteToBattery  # noqa: E402
+from actions.write_info_action import WriteInfo  # noqa: E402
 from src.ota.google_drive_api.GoogleDriveApi import GDriveAPI  # noqa: E402
 
 
 api_bp = Blueprint('api', __name__)
 gDrive = GDriveAPI.getInstance()
-
 
 
 @api_bp.route('/request_ids', methods=['GET'])
