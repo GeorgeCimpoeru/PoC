@@ -116,7 +116,7 @@ class GDriveAPI:
 
         # Most significant 4 bits => major version, least significant 4 bits minor_version. Major version can't start with 0 => +1
         major_version = ((int_value & 0b11110000) >> 4) + 1
-        minor_version =  (int_value & 0b00001111)
+        minor_version = (int_value & 0b00001111)
 
         # Combine the parts into the version string
         software_version = f"{major_version}.{minor_version}"
