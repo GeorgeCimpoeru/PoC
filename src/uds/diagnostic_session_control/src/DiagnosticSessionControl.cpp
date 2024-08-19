@@ -3,7 +3,7 @@
 #include "../../../mcu/include/MCUModule.h"
 
 // Initialize current_session
-DiagnosticSession DiagnosticSessionControl::current_session = DEFAULT_SESSION;
+DiagnosticSession DiagnosticSessionControl::current_session;
 
 /* Default constructor, used in MCU */
 DiagnosticSessionControl::DiagnosticSessionControl(Logger* logger, int socket) : dsc_logger(logger)
