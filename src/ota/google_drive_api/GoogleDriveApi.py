@@ -73,7 +73,7 @@ class GDriveAPI:
             sw_version = self.__convertByteToSwVersion(hex(sw_version_byte))
             print('Searching for version ' + sw_version)
             file_to_download = [
-                data for data in self.__drive_data_array if data['type'] == ecu_map[ecu_id] and data['sw_version'] == str(sw_version)]
+                data for data in self.__drive_data_array if data['type'] == 'zip' and data['sw_version'] == str(sw_version)]
             if not file_to_download:
                 print(
                     f"No file found with type:{ecu_map[ecu_id]} and version {sw_version}")
@@ -99,8 +99,8 @@ class GDriveAPI:
 
     def __convertByteToSwVersion(self, software_version_byte):
         int_value = int(str(software_version_byte), 16)
-        major_version = ((int_value & 0b11100000) >> 5) + 1
-        minor_version = (int_value & 0b00011110) >> 1
+        major_version = ((int_value & 0b11110000) >> 4) + 1
+        minor_version = (int_value & 0b00001111)
         software_version = f"{major_version}.{minor_version}"
         return software_version
 

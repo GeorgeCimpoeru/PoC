@@ -41,10 +41,9 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
     else
     {
         /* use memory manager class to transfer the data */
-        std::string project_path = PROJECT_PATH;
-        std::string path_to_main = project_path + "/src/mcu/main";
-        std::vector<uint8_t> data = MemoryManager::readBinary("/home/projectx/PoC/PoC/src/mcu/main.o", transfer_data_logger);
-        std::cout << "size is " << data.size() << std::endl;
+        std::string path_to_main = std::string(PROJECT_PATH) + "/main_mcu_new";
+        std::vector<uint8_t> data = MemoryManager::readBinary(path_to_main, transfer_data_logger);
+        // LOG_ERROR(transfer_data_logger.GET_LOGGER(), "File size is: " + data.size());
         MemoryManager* memory_manager = MemoryManager::getInstance(transfer_data_logger);
         memory_manager->writeToAddress(data);
         /* clear vector after writing to adress */

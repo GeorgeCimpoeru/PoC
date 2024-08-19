@@ -97,7 +97,7 @@ bool MemoryManager::availableAddress(off_t address)
     std::string result = runCommand(verify_address_command);
     if (result.length() < 3)
     {
-        LOG_WARN(logger.GET_LOGGER(), "No boot partition found");
+        // LOG_WARN(logger.GET_LOGGER(), "No boot partition found");
         return true;
     }
     std::string::size_type pos = result.find(' ');
@@ -201,7 +201,7 @@ std::vector<uint8_t> MemoryManager::readBinary(std::string path_to_binary, Logge
     sd_card.open(path_to_binary, std::fstream::in | std::fstream::out | std::fstream::binary);
     if (!sd_card.is_open())
     {
-        LOG_ERROR(logger.GET_LOGGER(), "Error opening SD card device: {} ", path_to_binary);
+        // LOG_ERROR(logger.GET_LOGGER(), "Error opening SD card device: {} ", path_to_binary);
         return {};
     }
     sd_card.seekg(0, std::ios::end);

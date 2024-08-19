@@ -70,13 +70,13 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
         return;
     }
     /* Authenticate the request */
-    else if (!isRequestAuthenticated())
-    {
-        LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Authentication failed");
-        /* Authentication failed */
-        generate_frames.negativeResponse(id, 0x34, 0x34);
-        return;
-    }
+    // else if (!isRequestAuthenticated())
+    // {
+    //     LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Authentication failed");
+    //     /* Authentication failed */
+    //     generate_frames.negativeResponse(id, 0x34, 0x34);
+    //     return;
+    // }
     /* Check if software is at the latest version */ 
     else if (!isLatestSoftwareVersion())
     {
@@ -93,6 +93,18 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
         uint8_t encryption_type = data_format_identifier & 0x0F;
         LOG_INFO(RDSlogger.GET_LOGGER(), "Encryption Type: 0x{0:x}", static_cast<int>(encryption_type));
 
+        /* Calculate the position for software version*/ 
+        size_t position_software_version = 4 + length_memory_address + length_memory_size;
+        uint8_t software_version = stored_data[position_software_version];
+        /* 0x22 => 0010 0010* => v2.2*/
+        if(target_id != 0x00)
+        {
+            downloadSoftwareVersion(receiver_id, software_version);
+        }
+        else
+        {
+            downloadSoftwareVersion(target_id, software_version);
+        }
         /* Check for compression */ 
         if (compression_type == 0x0) 
         {
@@ -100,10 +112,23 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
         } 
         else 
         {
-            /** Decompress using tar
-             * Decompress stored_data from position 4 onwards (assuming position 2 is DFI)
-             * Process decompressed_data as needed
-             */ 
+            char buffer[5];  // 2 digits + '.' + 2 digits + null terminator
+
+            // Extract the high and low nibbles (4 bits each)
+            uint8_t highNibble = ((software_version >> 4) & 0x0F) + 1; // Map 0-15 to 1-16
+            uint8_t lowNibble = (software_version & 0x0F);         // Map 0-15 to 1-16
+
+            // Format the string as "X.Y"
+            std::sprintf(buffer, "%x.%x", highNibble, lowNibble);
+
+            std::string zipFilePath = std::string(PROJECT_PATH) + "/MCU_SW_VERSION_" + buffer + ".zip";
+            std::string outputDir = std::string(PROJECT_PATH);
+
+            if (extractZipFile(zipFilePath, outputDir)) {
+                LOG_INFO(RDSlogger.GET_LOGGER(), "Files extracted successfully");
+            } else {
+                LOG_ERROR(RDSlogger.GET_LOGGER(), "Failed to extract files from ZIP archive.");
+            }
         }
 
         /* Check for encryption */
@@ -116,15 +141,9 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
             /* check if encryption is needed */
         }
 
-        /* Calculate the position for manual update 0 or automatic update 1 */ 
-        size_t position_software_version = 4 + length_memory_address + length_memory_size;
-        uint8_t software_version = stored_data[position_software_version];
-        /* 0x24 => 0010 010 0* => v2.2, LSB not taken in consideration for versioning */
-        downloadSoftwareVersion(receiver_id, software_version);
-
         int max_number_block = calculate_max_number_block(memory_size);
-
         requestDownloadResponse(id, memory_address, max_number_block);
+
         return;
     }
 }
@@ -451,6 +470,67 @@ void RequestDownloadService::downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_
     /* Call the downloadFile method from GoogleDriveApi.py */
      gGdrive_object.attr("downloadFile")(ecu_id, sw_version);
 }
+
+bool RequestDownloadService::extractZipFile(const std::string &zipFilePath, const std::string &outputDir) {
+    int err = 0;
+    zip *archive = zip_open(zipFilePath.c_str(), 0, &err);
+
+    if (archive == nullptr) {
+        LOG_ERROR(RDSlogger.GET_LOGGER(), "Error opening ZIP file:" + zipFilePath);
+        return false;
+    }
+
+    zip_uint64_t numFiles = zip_get_num_entries(archive, 0);
+    for (zip_uint64_t i = 0; i < numFiles; ++i) {
+        const char *name = zip_get_name(archive, i, 0);
+        if (name == nullptr) {
+            LOG_ERROR(RDSlogger.GET_LOGGER(), "Error getting name of file #" + std::to_string(i) + " in ZIP archive.");
+            zip_close(archive);
+            return false;
+        }
+
+        struct zip_stat st;
+        zip_stat_init(&st);
+        zip_stat(archive, name, 0, &st);
+
+        zip_file *zf = zip_fopen(archive, name, 0);
+        if (!zf) {
+            LOG_ERROR(RDSlogger.GET_LOGGER(), "Error opening file inside ZIP: " + std::string(name));
+            zip_close(archive);
+            return false;
+        }
+
+        std::string outputFilePath = outputDir + "/" + name + "_mcu_new";
+
+        std::ofstream outFile(outputFilePath, std::ios::binary);
+        if (!outFile.is_open()) {
+            LOG_ERROR(RDSlogger.GET_LOGGER(), "Error creating output file: " + outputFilePath);
+            zip_fclose(zf);
+            zip_close(archive);
+            return false;
+        }
+
+        char buffer[8192];
+        zip_int64_t bytesRead;
+        while ((bytesRead = zip_fread(zf, buffer, sizeof(buffer))) > 0) {
+            outFile.write(buffer, bytesRead);
+        }
+
+        outFile.close();
+        zip_fclose(zf);
+
+        if (bytesRead < 0) {
+            LOG_ERROR(RDSlogger.GET_LOGGER(), "Error reading from ZIP file: " + std::string(name));
+            zip_close(archive);
+            return false;
+        }
+    }
+
+    zip_close(archive);
+    return true;
+}
+
+
 /** Use libraries for tar
  * #include <archive.h>
  * #include <archive_entry.h>

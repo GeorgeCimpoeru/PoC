@@ -412,8 +412,6 @@ namespace MCU
                     if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
                     {
                         RequestDownloadService requestDownload(getMcuSocket(frame_id), *MCULogger);
-                        ReadDataByIdentifier software_version(getMcuSocket(frame_id), MCULogger);
-                        SecurityAccess logged_in(getMcuSocket(frame_id), *MCULogger);
                         requestDownload.requestDownloadRequest(frame_id, frame_data);
                     }
                     else
@@ -445,7 +443,7 @@ namespace MCU
                     }
                     else
                     {
-                         int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+                        int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
                         NegativeResponse negative_response(getMcuSocket(frame_id), *MCULogger);
                         negative_response.sendNRC(new_id, 0x36, 0x7F);
                     }
