@@ -150,7 +150,7 @@ class Updates(Action):
                                        data_format_identifier=0x00,
                                        memory_address=0x01,
                                        memory_size=0xFFFF,
-                                       download_type=REQ_DOWNLOAD_TYPE_AUTO)
+                                       size=0x01)
         frame = self._passive_response(REQUEST_DOWNLOAD, "Error requesting download")
         # max_number_block = frame[9]
         log_info_message(logger, f"Max block: {frame[2]}")

@@ -5,7 +5,8 @@ import os
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from googleapiclient.errors import HttpError
-from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
+from googleapiclient.http import MediaIoBaseDownload
+from googleapiclient.http import MediaFileUpload
 
 PROJECT_PATH = os.path.abspath(os.path.join(os.getcwd(), "..", ".."))
 CREDS_PATH = os.path.join(PROJECT_PATH, 'key.json')
@@ -22,6 +23,7 @@ ecu_map = {
     0x10: "mcu",
     0x11: "battery"
 }
+
 
 class GDriveAPI:
     __creds = None
@@ -141,6 +143,7 @@ class GDriveAPI:
 
         self.__drive_data_array.append(json_file)
         return json_file
+
 
 # Object to be imported in other modules
 gDrive = GDriveAPI.getInstance(CREDS_PATH)
