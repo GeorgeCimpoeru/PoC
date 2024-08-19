@@ -28,6 +28,10 @@ def update_to_version():
     data = request.get_json()
     ecu_id = data.get('ecu_id')
     version = data.get('version')
+    # updateid = data.get('update_id')
+    # swversion = data.get('version')
+    # size = data.get('size')
+    # type = data.get('type')
     updater = Updates(my_id=0xFA, id_ecu=[0x10, 0x11, 0x12])
     response = updater.update_to(ecu_id=ecu_id,
                                  version=version)
@@ -36,39 +40,6 @@ def update_to_version():
 
 @api_bp.route('/read_info_battery', methods=['GET'])
 def read_info_bat():
-    """
-    Read information from the battery.
-    ---
-    responses:
-      200:
-        description: Information retrieved successfully
-        schema:
-          type: object
-          properties:
-            battery_level:
-              type: integer
-            voltage:
-              type: integer
-            battery_state_of_charge:
-              type: integer
-            temperature:
-              type: integer
-            life_cycle:
-              type: integer
-            fully_charged:
-              type: boolean
-            serial_number:
-              type: string
-            range_battery:
-              type: integer
-            charging_time:
-              type: integer
-            device_consumption:
-              type: integer
-            time_stamp:
-              type: string
-              format: date-time
-    """
     reader = ReadInfo(0xFA, [0x10, 0x11, 0x12])
     response = reader.read_from_battery()
     return jsonify(response)
