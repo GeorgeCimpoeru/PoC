@@ -56,6 +56,7 @@ function sendFrame() {
         alert('CAN ID and CAN Data cannot be empty.');
         return;
     }
+
     performApiRequest('/api/send_frame', 'POST', { can_id: canId, can_data: canData });
 }
 
@@ -66,15 +67,28 @@ function requestIds() {
 function updateToVersion() {
     const ecuId = prompt('Enter ECU ID:');
     const version = prompt('Enter Version:');
+
     performApiRequest('/api/update_to_version', 'POST', { ecu_id: ecuId, version: version });
 }
 
 function readInfoBattery() {
     performApiRequest('/api/read_info_battery', 'GET');
+
 }
 
 function readInfoEngine() {
     performApiRequest('/api/read_info_engine', 'GET');
+}
+
+
+function gDriveReadData() {
+    fetch('/api/drive_update_data', {
+        method: 'GET',
+    }).then(response => response.json())
+      .then(data => {
+          document.getElementById('response-output').textContent = JSON.stringify(data);
+          fetchLogs();
+      });
 }
 
 function readInfoDoors() {
@@ -108,3 +122,4 @@ function writeInfoBattery() {
     };
     performApiRequest('/api/write_info_battery', 'POST', data);
 }
+

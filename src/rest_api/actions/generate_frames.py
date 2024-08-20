@@ -144,13 +144,14 @@ class GenerateFrame:
         data = [2, 0x83, sub_function] if response is False else [2, 0xC3, sub_function]
         self.send_frame(id, data)
 
-    def request_download(self, id, data_format_identifier, memory_address, memory_size):
+    def request_download(self, id, data_format_identifier, memory_address, memory_size, size):
         address_length = (self.__count_digits(memory_address) + 1) // 2
         size_length = (self.__count_digits(memory_size) + 1) // 2
         memory_length = size_length * 0x10 + address_length
         data = [size_length + address_length + 3, 0x34, data_format_identifier, memory_length]
         self.__add_to_list(data, memory_address)
         self.__add_to_list(data, memory_size)
+        data.append(size)
         self.send_frame(id, data)
 
     def request_download_response(self, id, max_number_block):
