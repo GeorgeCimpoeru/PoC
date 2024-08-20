@@ -3,24 +3,40 @@ import React, { useState } from 'react';
 import { Button, Modal } from 'antd';
 
 const UpgradeButton = () => {
-    const [isPopupVisible, setIsPopupVisible] = useState(false);
     const [isVersionPopupVisible, setIsVersionPopupVisible] = useState(false);
+    const [isProgressModalVisible, setIsProgressModalVisible] = useState(false);
+    const [isStatusModalVisible, setIsStatusModalVisible] = useState(false);
     const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
     const [message, setMessage] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [progress, setProgress] = useState<number>(0); 
+    const [isOverlayVisible, setIsOverlayVisible] = useState(false); 
 
     const showVersionPopup = () => setIsVersionPopupVisible(true);
 
     const handleVersionSelect = (version: string) => {
-        console.log("TEST")
         setSelectedVersion(version);
         setIsVersionPopupVisible(false);
         handleUpdate(version);
     };
 
     const handleUpdate = async (version: string) => {
-        console.log("test")
         try {
+            setProgress(0);
+            setIsOverlayVisible(true);
+            setIsProgressModalVisible(true);
+
+            const simulateProgress = setInterval(() => {
+                setProgress(prev => {
+                    if (prev < 100) {
+                        return prev + 10; 
+                    } else {
+                        clearInterval(simulateProgress);
+                        return 100;
+                    }
+                });
+            }, 500);
+
             const response = await fetch('http://127.0.0.1:5000/api/update_to_version', { 
                 method: 'POST',
                 headers: {
@@ -28,10 +44,10 @@ const UpgradeButton = () => {
                 },
                 body: JSON.stringify({
                     ecu_id: "0x11",
-                    version: "1"
+                    version: version
                 })
             });
-            console.log(response)
+
             if (!response.ok) {
                 throw new Error(`Network response was not ok: ${response.statusText}`);
             }
@@ -52,11 +68,16 @@ const UpgradeButton = () => {
             setError(error instanceof Error ? error.message : 'An unknown error occurred');
             setMessage(null);
         } finally {
-            setIsPopupVisible(true);
+            setIsOverlayVisible(false);
+            setIsProgressModalVisible(false);
+            setIsStatusModalVisible(true);
         }
     };
 
-    const closePopup = () => setIsPopupVisible(false);
+    const closePopup = () => {
+        setIsStatusModalVisible(false);
+        setProgress(0); 
+    };
 
     return (
         <div>
@@ -87,19 +108,48 @@ const UpgradeButton = () => {
                 <p>Select one of the following versions for Upgrade:</p>
             </Modal>
 
-            <Modal
-                title="Update Status"
-                visible={isPopupVisible}
-                onCancel={closePopup}
-                footer={[
-                    <Button key="ok" onClick={closePopup}>
-                        OK
-                    </Button>
-                ]}
-            >
-                {message && <div className="text-green-700">{message}</div>}
-                {error && <div className="text-red-500">{error}</div>}
-            </Modal>
+            {isProgressModalVisible && (
+                <Modal
+                    title="Updating..."
+                    visible={true}
+                    footer={null}
+                    closable={false}
+                    maskClosable={false}
+                >
+                    <progress className="progress w-56" value={progress} max={100}></progress>
+                    <div>Wait for the response...</div>
+                </Modal>
+            )}
+
+            {isOverlayVisible && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        zIndex: 999,
+                    }}
+                />
+            )}
+
+            {isStatusModalVisible && (
+                <Modal
+                    title="Update Status"
+                    visible={true}
+                    onCancel={closePopup}
+                    footer={[
+                        <Button key="ok" onClick={closePopup}>
+                            OK
+                        </Button>
+                    ]}
+                >
+                    {message && <div className="text-green-700">{message}</div>}
+                    {error && <div className="text-red-500">{error}</div>}
+                </Modal>
+            )}
         </div>
     );
 };
