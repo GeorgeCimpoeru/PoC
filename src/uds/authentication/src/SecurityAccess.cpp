@@ -1,4 +1,5 @@
 #include "../include/SecurityAccess.h"
+#include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
 /* Set the default security access to false. */
@@ -58,7 +59,7 @@ std::vector<uint8_t> SecurityAccess::generateRandomBytes(size_t length)
 /* Function to convert the time value to a 5-byte representation in big-endian format */
 std::vector<uint8_t> SecurityAccess::convertTimeToCANFrame(uint32_t timeInSeconds)
 {
-    std::vector<uint8_t> frame = {0x07, 0x7F, SECURITY_ACCESS_SID, RTDNE};
+    std::vector<uint8_t> frame = {0x07, 0x7F, SECURITY_ACCESS_SID, NegativeResponse::RTDNE};
 
     /* Calculate number of non-zero bytes needed to represent timeInSeconds */
     std::vector<uint8_t> timeBytes;
@@ -121,7 +122,7 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
             (request[2] == 0x02 && request[0] == 2)
             || (request.size() != static_cast<size_t>(request[0] + 1)))
         {
-            nrc.sendNRC(can_id,SECURITY_ACCESS_SID,IMLOIF);
+            nrc.sendNRC(can_id,SECURITY_ACCESS_SID,NegativeResponse::IMLOIF);
         }
         else
         {
@@ -130,7 +131,7 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
             /* Subfunction not supported, we use only 1st lvl of security access. */
             if (sf != 0x01 && sf != 0x02)
             {
-                nrc.sendNRC(can_id,SECURITY_ACCESS_SID,SFNS);
+                nrc.sendNRC(can_id,SECURITY_ACCESS_SID,NegativeResponse::SFNS);
             }
             else if (sf == 0x01)
             {
@@ -164,7 +165,7 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                 if (security_access_seed.empty())
                 {
                     LOG_ERROR(security_logger.GET_LOGGER(), "Cannot have sendKey request before requestSeed.");
-                    nrc.sendNRC(can_id,SECURITY_ACCESS_SID,RSE);
+                    nrc.sendNRC(can_id,SECURITY_ACCESS_SID,NegativeResponse::RSE);
                 }
                 else if (time_left == 0)
                 {
@@ -194,7 +195,7 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                         if (nr_of_attempts > 0)
                         {
                             /* Invalid key, doesnt match with server's key. */
-                            nrc.sendNRC(can_id,SECURITY_ACCESS_SID,IK);
+                            nrc.sendNRC(can_id,SECURITY_ACCESS_SID,NegativeResponse::IK);
                             nr_of_attempts--;
                             LOG_INFO(security_logger.GET_LOGGER(), "{} attempts left.", nr_of_attempts);
                         }
@@ -206,7 +207,7 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                              * by this request(i.e. due to reaching the limit of false access attempts which activate
                              * the delay timer).
                             */
-                            nrc.sendNRC(can_id,SECURITY_ACCESS_SID,ENOA);
+                            nrc.sendNRC(can_id,SECURITY_ACCESS_SID,NegativeResponse::ENOA);
                                 
                             /* Start the delay timer clock. */
                             end_time = std::chrono::steady_clock::now() + std::chrono::seconds(TIMEOUT_IN_SECONDS);

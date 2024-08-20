@@ -26,6 +26,8 @@
 
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../../utils/include/Logger.h"
+#include "../../../utils/include/NegativeResponse.h"
+#include "../../authentication/include/SecurityAccess.h"
 
 class WriteDataByIdentifier
 {
@@ -35,6 +37,8 @@ private:
     Logger& wdbi_logger;
 
 public:
+    /* Define the service identifier for WriteDataByIdentifier*/
+    static constexpr uint8_t WDBI_SID = 0x2E;
     /**
      * @brief Construct a new Write Data By Identifier object
      * 

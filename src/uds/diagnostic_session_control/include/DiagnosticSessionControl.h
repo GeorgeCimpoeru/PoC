@@ -17,18 +17,15 @@
 #define DIAGNOSTICSESSIONCONTROL_H
 
 #include <cstdlib>
+#include <iostream>
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../../utils/include/Logger.h"
+#include "../../../utils/include/NegativeResponse.h"
+
 /* Diagnostic Control Session codes */
 const uint8_t SID_DIAGNOSTIC_SESSION_CONTROL = 0x10;
 const uint8_t SUB_FUNCTION_DEFAULT_SESSION = 1;
 const uint8_t SUB_FUNCTION_PROGRAMMING_SESSION = 2;
-
-/* Negative response codes */
-const uint8_t NR_SUBFUNCION_NOT_SUPPORTED = 0x12;
-const uint8_t NR_INCORRECT_MESSAGE_LENGTH = 0x13;
-const uint8_t NR_AUTHENTICATION_FAILED = 0x34;
-const uint8_t NR_RESOURCE_TEMP_UNAVAILABLE = 0x94;
 
 enum DiagnosticSession
 {

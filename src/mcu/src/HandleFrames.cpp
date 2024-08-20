@@ -141,7 +141,8 @@ namespace MCU
                     processNrc(frame_id, sid, frame_data[3]);
                 }
                 else 
-                {    
+                {   
+                    /* This service can be called in any session */
                     LOG_INFO(MCULogger->GET_LOGGER(), "DiagnosticSessionControl called.");
                     mcuDiagnosticSessionControl.sessionControl(frame_id, frame_data[2]);
                     LOG_INFO(MCULogger->GET_LOGGER(), "MCU Current session: {}", DiagnosticSessionControl::getCurrentSessionToString());
@@ -161,9 +162,10 @@ namespace MCU
                     uint8_t sub_function = frame_data[2];
                     LOG_INFO(MCULogger->GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
 
-                    /* Calls ECU Reset */                
+                    /* Calls ECU Reset */      
+                    /* This service can be called in any session. */
                     EcuReset ecu_reset(frame_id, sub_function, getMcuSocket(frame_id), *MCULogger);
-                    ecu_reset.ecuResetRequest();
+                    ecu_reset.ecuResetRequest();         
                 }
                 break;
             }
@@ -175,16 +177,26 @@ namespace MCU
                 }
                 else
                 {
-                    LOG_INFO(MCULogger->GET_LOGGER(), "SecurityAccess called.");
-                    SecurityAccess security_access(getMcuSocket(frame_id), *MCULogger);
-                    security_access.securityAccess(frame_id, frame_data);
-                    if (SecurityAccess::getMcuState())
+                    /* This service can be called in PROGRAMMING_SESSION */
+                    if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
                     {
-                        LOG_INFO(MCULogger->GET_LOGGER(), "Server is unlocked.");
+                        LOG_INFO(MCULogger->GET_LOGGER(), "SecurityAccess called.");
+                        SecurityAccess security_access(getMcuSocket(frame_id), *MCULogger);
+                        security_access.securityAccess(frame_id, frame_data);
+                        if (SecurityAccess::getMcuState())
+                        {
+                            LOG_INFO(MCULogger->GET_LOGGER(), "Server is unlocked.");
+                        }
+                        else
+                        {
+                            LOG_INFO(MCULogger->GET_LOGGER(), "Server is locked.");
+                        }
                     }
                     else
                     {
-                        LOG_INFO(MCULogger->GET_LOGGER(), "Server is locked.");
+                        int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+                        NegativeResponse negative_response(getMcuSocket(frame_id), *MCULogger);
+                        negative_response.sendNRC(new_id, 0x83, 0x7E);
                     }
                 }
                 break;
@@ -208,6 +220,8 @@ namespace MCU
                 else 
                 {
                     LOG_INFO(MCULogger->GET_LOGGER(), "TesterPresent called.");
+                    TesterPresent tester_present(MCULogger, &mcuDiagnosticSessionControl, getMcuSocket(frame_id), 1000);
+                    tester_present.handleTesterPresent(frame_id, frame_data);
                 }
                 break;
             case 0x83:
@@ -218,6 +232,7 @@ namespace MCU
                 }
                 else 
                 {
+                    /* This service can be called in any session. */
                     LOG_INFO(MCULogger->GET_LOGGER(), "AccessTimingParameters called.");
                     AccessTimingParameter access_timing_parameter(*MCULogger, getMcuSocket(frame_id));
                     if(frame_data.size() < 4)
@@ -239,6 +254,7 @@ namespace MCU
                 }
                 else 
                 {
+                    /* This service can be called in any session */
                     LOG_INFO(MCULogger->GET_LOGGER(), "ReadDataByIdentifier called.");
                     ReadDataByIdentifier read_data_by_identifier(getMcuSocket(frame_id), MCULogger);
                     read_data_by_identifier.readDataByIdentifier(frame_id, frame_data, true);
@@ -263,6 +279,7 @@ namespace MCU
                 }
                 else 
                 {
+                    /* This service can be called in any session. */
                     LOG_INFO(MCULogger->GET_LOGGER(), "WriteDataByIdentifier service called!");
                     WriteDataByIdentifier write_data_by_identifier(*MCULogger, getMcuSocket(frame_id));
                     write_data_by_identifier.WriteDataByIdentifierService(frame_id, frame_data);
@@ -276,6 +293,7 @@ namespace MCU
                 }
                 else 
                 {
+                    /* This service can be called in any session */
                     LOG_INFO(MCULogger->GET_LOGGER(), "ClearDiagnosticInformation called.");
                     ClearDtc clear_dtc("../uds/read_dtc_information/dtcs.txt", *MCULogger, getMcuSocket(frame_id));
                     clear_dtc.clearDtc(frame_id, frame_data);
@@ -289,6 +307,7 @@ namespace MCU
                 }
                 else 
                 {
+                    /* This service can be called in any session */
                     LOG_INFO(MCULogger->GET_LOGGER(), "ReadDtcInformation called.");
                     /* verify_frame() */
                     ReadDTC readDtc(*MCULogger, "../uds/read_dtc_information/dtcs.txt", getMcuSocket(frame_id));
@@ -303,6 +322,7 @@ namespace MCU
                 }
                 else 
                 {
+                    /* This service can be called in any session. */
                     RoutineControl routine_control(getMcuSocket(frame_id), *MCULogger);
                     routine_control.routineControl(frame_id, frame_data);
                     LOG_INFO(MCULogger->GET_LOGGER(), "RoutineControl called.");
@@ -387,10 +407,21 @@ namespace MCU
                     LOG_INFO(MCULogger->GET_LOGGER(), "Service 0x34 RequestDownload");
                     LOG_INFO(MCULogger->GET_LOGGER(), "SID pos: {}", sid);
                     LOG_INFO(MCULogger->GET_LOGGER(), "Data size: {}", frame_data.size());
-                    RequestDownloadService requestDownload(getMcuSocket(frame_id), *MCULogger);
-                    ReadDataByIdentifier software_version(getMcuSocket(frame_id), MCULogger);
-                    SecurityAccess logged_in(getMcuSocket(frame_id), *MCULogger);
-                    requestDownload.requestDownloadRequest(frame_id, frame_data);
+
+                    /* This service can be called in PROGRAMMING_SESSION */
+                    if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
+                    {
+                        RequestDownloadService requestDownload(getMcuSocket(frame_id), *MCULogger);
+                        ReadDataByIdentifier software_version(getMcuSocket(frame_id), MCULogger);
+                        SecurityAccess logged_in(getMcuSocket(frame_id), *MCULogger);
+                        requestDownload.requestDownloadRequest(frame_id, frame_data);
+                    }
+                    else
+                    {
+                        int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+                        NegativeResponse negative_response(getMcuSocket(frame_id), *MCULogger);
+                        negative_response.sendNRC(new_id, 0x34, 0x7F);
+                    }
                 }
                 break;
             case 0x36:
@@ -405,9 +436,19 @@ namespace MCU
                 }
                 else 
                 {
-                    TransferData transfer_data(getMcuSocket(frame_id), *MCULogger);
-                    transfer_data.transferData(frame_id, frame_data);
-                    LOG_INFO(MCULogger->GET_LOGGER(), "TransferData called with one frame.");
+                    /* This service can be called in PROGRAMMING_SESSION */
+                    if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
+                    {
+                        TransferData transfer_data(getMcuSocket(frame_id), *MCULogger);
+                        transfer_data.transferData(frame_id, frame_data);
+                        LOG_INFO(MCULogger->GET_LOGGER(), "TransferData called with one frame.");
+                    }
+                    else
+                    {
+                         int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+                        NegativeResponse negative_response(getMcuSocket(frame_id), *MCULogger);
+                        negative_response.sendNRC(new_id, 0x36, 0x7F);
+                    }
                 }
                 break;
             case 0x37:
@@ -418,10 +459,19 @@ namespace MCU
                 }
                 else 
                 {
-                    LOG_INFO(MCULogger->GET_LOGGER(), "Request Transfer Exit Service 0x37 called");
-                    RequestTransferExit request_transfer_exit(getMcuSocket(frame_id), *MCULogger);
-                    request_transfer_exit.requestTRansferExitRequest(frame_id, frame_data);
-                    LOG_INFO(MCULogger->GET_LOGGER(), "RequestTransferExit called.");
+                    /* This service can be called in PROGRAMMING_SESSION */
+                    if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
+                    {
+                        LOG_INFO(MCULogger->GET_LOGGER(), "Request Transfer Exit Service 0x37 called");
+                        RequestTransferExit request_transfer_exit(getMcuSocket(frame_id), *MCULogger);
+                        request_transfer_exit.requestTRansferExitRequest(frame_id, frame_data);
+                    }
+                    else
+                    {
+                        int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+                        NegativeResponse negative_response(getMcuSocket(frame_id), *MCULogger);
+                        negative_response.sendNRC(new_id, 0x37, 0x7F);
+                    }
                 }
                 break;
             case 0x32:
@@ -432,9 +482,19 @@ namespace MCU
                 }
                 else 
                 {
-                    LOG_INFO(MCULogger->GET_LOGGER(), "RequestUpdateStatus called.");
-                    RequestUpdateStatus RUS(getMcuSocket(frame_id));
-                    RUS.requestUpdateStatus(frame_id, frame_data);
+                    /* This service can be called in PROGRAMMING_SESSION */
+                    if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
+                    {
+                        LOG_INFO(MCULogger->GET_LOGGER(), "RequestUpdateStatus called.");
+                        RequestUpdateStatus RUS(getMcuSocket(frame_id));
+                        RUS.requestUpdateStatus(frame_id, frame_data);
+                    }
+                    else
+                    {
+                        int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+                        NegativeResponse negative_response(getMcuSocket(frame_id), *MCULogger);
+                        negative_response.sendNRC(new_id, 0x32, 0x7F);
+                    }
                 }
                 break;
             /* OTA Responses */

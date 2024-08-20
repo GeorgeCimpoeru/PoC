@@ -18,20 +18,19 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
 
     std::vector<uint8_t> response;
     std::vector<uint8_t> data_parameter = {};
+    NegativeResponse nrc(socket, wdbi_logger);
+
+    /* Form the new id */
+    int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+
     /* Checks if frame_data has the required minimum length */
     if (frame_data.size() < 3)
     {
-        LOG_ERROR(wdbi_logger.GET_LOGGER(), "Incorrect Message Length or Invalid Format");
-        response.clear();
-        /* PCI */
-        response.push_back(0x03);
-        /* Negative response */
-        response.push_back(0x7F);
-        /* WDBI sid */
-        response.push_back(0x2E);
-        /* Incorrect message length or invalid format */
-        response.push_back(0x13);
-        /* call NegativeResponseService */
+        nrc.sendNRC(id,WDBI_SID,NegativeResponse::IMLOIF);
+    }
+    else if (!SecurityAccess::getMcuState())
+    {
+        nrc.sendNRC(id,WDBI_SID,NegativeResponse::SAD);
     }
     else
     {
@@ -102,25 +101,25 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         else 
         {
             LOG_ERROR(wdbi_logger.GET_LOGGER(), "Request Out Of Range: Identifier not found in memory");
-            /* Construct the response data */
-            response.clear();
-            /* PCI */
-            response.push_back(0x03);
-            /** WDBI response sid*/
-            response.push_back(0x7F);
-            /* First Identifier */
-            response.push_back(0x2E);
-            /* Second Identifier */
-            response.push_back(0x31);
-            response.clear();
-            /* call NegativeResponseService */
-            return;
+            nrc.sendNRC(id,WDBI_SID,NegativeResponse::ROOR);
         }
 
-        /* Form the new id */
-        int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
-
-        /* Check on which socket to send the frame */
-        generate_frames.writeDataByIdentifier(id, did, {});
+        switch(receiver_id)
+        {
+            case 0x10:
+                /* Send response frame */
+                generate_frames.writeDataByIdentifier(id, did, {});
+                LOG_INFO(wdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x2E);
+                MCU::mcu->stop_flags[0x2E] = false;
+                break;
+            case 0x11:
+                /* Send response frame */
+                generate_frames.writeDataByIdentifier(id, did, {});
+                LOG_INFO(wdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x2E);
+                battery->stop_flags[0x2E] = false;
+                break;
+            default:
+                LOG_ERROR(wdbi_logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
+        }
     }
 };
