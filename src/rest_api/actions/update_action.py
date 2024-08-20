@@ -30,18 +30,6 @@ class ToJSON():
 
 
 class Updates(Action):
-    # def _auth_mcu(self):
-    #     id = self.my_id * 0x100 + self.id_ecu[0]
-    #     try:
-    #         log_info_message(logger, "Changing session to default")
-    #         self.generate.session_control(id, 0x02)
-    #         self._passive_response(SESSION_CONTROL, "Error changing session control")
-    #         self._authentication(id)
-
-    #     except CustomError as e:
-    #         self.bus.shutdown()
-    #         return e.message
-
     """
     Update class for managing software updates on an Electronic Control Unit (ECU).
 
@@ -51,7 +39,7 @@ class Updates(Action):
     - g: Instance of GenerateFrame for generating CAN bus frames.
     """
 
-    def update_to(self, ecu_id, version: str, data=[]):
+    def update_to(self, sw_id, sw_size, sw_version, module_id):
         """
         Method to update the software of the ECU to a specified version.
 
@@ -66,14 +54,13 @@ class Updates(Action):
         - CustomError: If the current software version matches the desired version,
           indicating that the latest version is already installed.
         """
-        # self.data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 
         try:
-            self.id = (self.my_id * 0x100) + int(ecu_id, 16)
+            self.id = (self.my_id * 0x100) + int(module_id, 16)
             log_info_message(logger, "Reading data from battery")
-            current_version = self._verify_version(version)
-            if current_version == version:
-                response_json = ToJSON()._to_json(f"Version {version} already installed", 0)
+            current_version = self._verify_version(sw_version)
+            if current_version == sw_version:
+                response_json = ToJSON()._to_json(f"Version {sw_version} already installed", 0)
                 self.bus.shutdown()
                 return response_json
 
@@ -83,7 +70,7 @@ class Updates(Action):
             self._authentication(self.my_id * 0x100 + self.id_ecu[0])
 
             log_info_message(logger, "Downloading... Please wait")
-            self._download_data(ecu_id, data)
+            self._download_data(sw_id=sw_id, sw_size=sw_size, sw_version=sw_version)
             log_info_message(logger, "Download finished, restarting ECU...")
 
             log_info_message(logger, "Changing session to default")
@@ -118,7 +105,7 @@ class Updates(Action):
             self.bus.shutdown()
             return e.message
 
-    def _download_data(self, ecu_id, data=[]):
+    def _download_data(self, sw_id, sw_size, sw_version):
         """
         Private method to handle the download process of software update data.
         Data format identifier:
@@ -152,15 +139,6 @@ class Updates(Action):
                                        memory_size=0xFFFF,
                                        size=0x01)
         frame = self._passive_response(REQUEST_DOWNLOAD, "Error requesting download")
-        # max_number_block = frame[9]
-        log_info_message(logger, f"Max block: {frame[2]}")
-        log_info_message(logger, f"Max block: {frame[3]}")
-        log_info_message(logger, f"Max block: {frame[4]}")
-        log_info_message(logger, f"Max block: {frame[5]}")
-        log_info_message(logger, f"Max block: {frame[6]}")
-        log_info_message(logger, f"Max block: {frame[7]}")
-        log_info_message(logger, f"Max block: {frame[8]}")
-        log_info_message(logger, f"Max block: {frame[9]}")
         # self.generate.transfer_data_long(self.id, 0x01, data)
         # self.generate.transfer_data_long(self.id, 0x01, data, False)
         # self._passive_response(TRANSFER_DATA, "Error transferring data")
@@ -181,7 +159,7 @@ class Updates(Action):
         """
         log_info_message(logger, "Reading current version")
         self._write_by_identifier(self.id, IDENTIFIER_SYSTEM_ECU_FLASH_SOFTWARE_VERSION_NUMBER, value=12)
-        current_version = self._read_by_identifier(self.id, IDENTIFIER_SYSTEM_ECU_FLASH_SOFTWARE_VERSION_NUMBER)
+        current_version = self._read_by_identifier(self.id, version)
         return current_version
 
     def _check_errors(self):
