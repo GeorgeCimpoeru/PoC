@@ -2,20 +2,21 @@
 
 MemoryManager* MemoryManager::instance = nullptr;
 
-MemoryManager* MemoryManager::getInstance()
+MemoryManager* MemoryManager::getInstance(Logger& logger)
 {
     if ( instance == nullptr)
     {
-        instance = new MemoryManager(-1, "", nullptr);
+        instance = new MemoryManager(-1, "", logger);
+        LOG_INFO(logger.GET_LOGGER(), "logger initialized 1 ");
     }
     if (instance->address == -1)
     {
-        LOG_WARN(instance->logger->GET_LOGGER(), "Warning: The addres/path/logger is not initialized");
+        LOG_WARN(logger.GET_LOGGER(), "Warning: The addres/path/logger is not initialized");
     }
     return instance;
 }
 
-MemoryManager* MemoryManager::getInstance(off_t address, std::string path, Logger* logger)
+MemoryManager* MemoryManager::getInstance(off_t address, std::string path, Logger& logger)
 {
     if (instance == nullptr)
     {
@@ -24,13 +25,12 @@ MemoryManager* MemoryManager::getInstance(off_t address, std::string path, Logge
     return instance;
 }
 
-MemoryManager::MemoryManager(off_t address, std::string path, Logger* logger)
+MemoryManager::MemoryManager(off_t address, std::string path, Logger& logger) : logger(logger)
 {
     this->address = address;
     this->address_continue_to_write = address;
     this->path = path;
-    this->logger = logger;
-}
+} 
 
 int MemoryManager::to_int(std::string number)
 {
@@ -87,17 +87,17 @@ std::string MemoryManager::runCommand(char command[])
 
 bool MemoryManager::availableAddress(off_t address)
 {
-    char verify_address_command[] = "sudo fdisk -l /dev/loop21 | grep '^/dev/' | grep '*' | awk '{print $3,$4}'";
+    char verify_address_command[] = "sudo fdisk -l /dev/loop25 | grep '^/dev/' | grep '*' | awk '{print $3,$4}'";
 
     if (address == -1)
     {
-        LOG_ERROR(instance->logger->GET_LOGGER(), "Error: the address was not initialize correctly.");
+        LOG_ERROR(logger.GET_LOGGER(), "Error: the address was not initialized correctly.");
         return false;
     }
     std::string result = runCommand(verify_address_command);
     if (result.length() < 3)
     {
-        LOG_WARN(instance->logger->GET_LOGGER(), "No boot partition found");
+        LOG_WARN(logger.GET_LOGGER(), "No boot partition found");
         return true;
     }
     std::string::size_type pos = result.find(' ');
@@ -109,7 +109,7 @@ bool MemoryManager::availableAddress(off_t address)
     off_t boot_end_byte = (end_position + 1) * SECTOR_SIZE - 1;
     if ( address <= boot_end_byte)
     {
-        LOG_ERROR(instance->logger->GET_LOGGER(), "Error:Address in boot partition.");
+        LOG_ERROR(logger.GET_LOGGER(), "Error:Address in boot partition.");
         return false;
     }
     return true;
@@ -119,17 +119,17 @@ bool MemoryManager::availableMemory(off_t size_of_data)
 {
     constexpr size_t SECTOR_SIZE = 512;
 
-    char verify_memory_command[] = "sudo fdisk -l /dev/loop21 | grep '^/dev/' | grep -v '*' | awk '{print $3}'";
+    char verify_memory_command[] = "sudo fdisk -l /dev/loop25 | grep '^/dev/' | grep -v '*' | awk '{print $3}'";
     std::string result = runCommand(verify_memory_command);
     if (result.length() < 3)
     {
-        LOG_WARN(instance->logger->GET_LOGGER(), "No partition found");
+        LOG_WARN(logger.GET_LOGGER(), "No partition found");
         return false;
     }
     off_t last_memory_address = to_int(result) * SECTOR_SIZE;
     if ( address + size_of_data >= last_memory_address)
     {
-        LOG_ERROR(instance->logger->GET_LOGGER(), "Error: Not enough memory.");
+        LOG_ERROR(logger.GET_LOGGER(), "Error: Not enough memory.");
         return false;
     }
     return true;
@@ -139,43 +139,45 @@ bool MemoryManager::writeToAddress(std::vector<uint8_t>& data)
 {
     if(!availableAddress(this->address_continue_to_write) || !availableMemory(data.size()))
     {
-        LOG_ERROR(instance->logger->GET_LOGGER(), "Error: Aborting.");
+        LOG_ERROR(logger.GET_LOGGER(), "Error: Aborting.");
         return false;
     }
     int sd_fd = open(path.c_str(), O_RDWR );
     if (sd_fd < 0)
     {
-        LOG_ERROR(instance->logger->GET_LOGGER(), "Error opening SD card device: " + path);
+        perror("Error opening SD card device");
+        LOG_ERROR(logger.GET_LOGGER(), "Error opening SD card device: {} ", path);
         return false;
     }
 
     if (lseek(sd_fd, address_continue_to_write, SEEK_SET) < 0)
     {
-       LOG_ERROR(instance->logger->GET_LOGGER(), "Error seeking to address: " + std::to_string(address_continue_to_write));
+       LOG_ERROR(logger.GET_LOGGER(), "Error seeking to address: " + std::to_string(address_continue_to_write));
         close(sd_fd);
         return false;
     }
 
     ssize_t bytes_written = write(sd_fd, data.data(), data.size());
+    std::cout << "bytes written" << bytes_written << std::endl;
     if (bytes_written != static_cast<ssize_t>(data.size()))
     {
-        LOG_ERROR(instance->logger->GET_LOGGER(), "Error writing data to address: " + std::to_string(address));
+        LOG_ERROR(logger.GET_LOGGER(), "Error writing data to address: " + std::to_string(address));
         close(sd_fd);
         return false;
     }
 
     close(sd_fd);
-    LOG_INFO(instance->logger->GET_LOGGER(), "Data successfully written to address " + std::to_string(address) + " on "+path);
+    LOG_INFO(logger.GET_LOGGER(), "Data successfully written to address " + std::to_string(address) + " on "+path);
     address_continue_to_write += data.size();
     return true;
 }
 
-bool MemoryManager::writeToFile(std::vector<uint8_t> &data, std::string path_file)
+bool MemoryManager::writeToFile(std::vector<uint8_t> &data, std::string path_file, Logger& logger)
 {
     std::ofstream sd_card(path_file, std::ios::out | std::ios::binary | std::ios::app);
     if (!sd_card.is_open())
     {
-        LOG_ERROR(instance->logger->GET_LOGGER(), "Error opening file: " + path_file);
+        LOG_ERROR(logger.GET_LOGGER(), "Error opening file: " + path_file);
         return false;
     }
 
@@ -183,29 +185,29 @@ bool MemoryManager::writeToFile(std::vector<uint8_t> &data, std::string path_fil
 
     if (sd_card.fail())
     {
-        LOG_ERROR(instance->logger->GET_LOGGER(), "Failed to write to file: " + path_file);
+        LOG_ERROR(logger.GET_LOGGER(), "Failed to write to file: " + path_file);
         sd_card.close();
         return false;
     }
 
     sd_card.close();
-    LOG_INFO(instance->logger->GET_LOGGER(), "Successfully written to file: " + path_file);
+    LOG_INFO(logger.GET_LOGGER(), "Successfully written to file: " + path_file);
     return true;
 }
 
-std::vector<uint8_t> MemoryManager::readBinary(std::string path_to_binary)
+std::vector<uint8_t> MemoryManager::readBinary(std::string path_to_binary, Logger& logger)
 {
     std::fstream sd_card;
     sd_card.open(path_to_binary, std::fstream::in | std::fstream::out | std::fstream::binary);
     if (!sd_card.is_open())
     {
-        LOG_ERROR(instance->logger->GET_LOGGER(), "Error opening SD card device: " + path_to_binary);
+        LOG_ERROR(logger.GET_LOGGER(), "Error opening SD card device: {} ", path_to_binary);
         return {};
     }
     sd_card.seekg(0, std::ios::end);
     if (sd_card.fail())
     {
-        LOG_ERROR(instance->logger->GET_LOGGER(), "Error: Could not seek the address");
+        LOG_ERROR(logger.GET_LOGGER(), "Error: Could not seek the address");
         sd_card.close();
         return {};
     }
@@ -215,32 +217,32 @@ std::vector<uint8_t> MemoryManager::readBinary(std::string path_to_binary)
     std::vector<char> buffer(size);
     if (!sd_card.read(buffer.data(),size))
     {
-        LOG_ERROR(instance->logger->GET_LOGGER(), "Failed to read from file " + path_to_binary);
+        LOG_ERROR(logger.GET_LOGGER(), "Failed to read from file " + path_to_binary);
         return {};
     }
     sd_card.close();
     std::vector<uint8_t> uint8Buffer(buffer.begin(), buffer.end());
-    LOG_INFO(instance->logger->GET_LOGGER(), "Successfully readed from file: " + path_to_binary);
+    LOG_INFO(logger.GET_LOGGER(), "Successfully readed from file: " + path_to_binary);
     return uint8Buffer;
 }
 
-std::vector<uint8_t> MemoryManager::readFromAddress(std::string path, off_t address_start, off_t size)
+std::vector<uint8_t> MemoryManager::readFromAddress(std::string path, off_t address_start, off_t size, Logger& logger)
 {
     if (! instance->availableAddress(address_start))
     {
-        LOG_ERROR(instance->logger->GET_LOGGER(), "Error trying to read from address: " + std::to_string(address_start));
+        LOG_ERROR(logger.GET_LOGGER(), "Error trying to read from address: " + std::to_string(address_start));
         return {};
     }
     int sd_fd = open(path.c_str(), O_RDWR );
     if (sd_fd < 0)
     {
-        LOG_ERROR(instance->logger->GET_LOGGER(), "Error opening SD card device: " + path);
+        LOG_ERROR(logger.GET_LOGGER(), "Error opening SD card device: " + path);
         return {};
     }
 
     if (lseek(sd_fd, address_start, SEEK_SET) < 0)
     {
-        LOG_ERROR(instance->logger->GET_LOGGER(), "Error seeking to address: " + std::to_string(address_start));
+        LOG_ERROR(logger.GET_LOGGER(), "Error seeking to address: " + std::to_string(address_start));
         close(sd_fd);
         return {};
     }
@@ -248,12 +250,12 @@ std::vector<uint8_t> MemoryManager::readFromAddress(std::string path, off_t addr
     auto bytes_readed = read(sd_fd, buffer.data(),size);
     if (bytes_readed != size)
     {
-         LOG_ERROR(instance->logger->GET_LOGGER(), "Failed to read the file " + path);
+         LOG_ERROR(logger.GET_LOGGER(), "Failed to read the file " + path);
         return {};
     }
 
     close(sd_fd);
-    LOG_INFO(instance->logger->GET_LOGGER(), "Data successfully readed from address " + std::to_string(address_start) + " on "+path );
+    LOG_INFO(logger.GET_LOGGER(), "Data successfully readed from address " + std::to_string(address_start) + " on "+path );
     std::vector<uint8_t> uint8Buffer(buffer.begin(), buffer.end());
     return uint8Buffer;
 }
