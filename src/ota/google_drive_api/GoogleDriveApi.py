@@ -109,7 +109,6 @@ class GDriveAPI:
         return self.__drive_service.files().list(q=query, pageSize=10, fields="nextPageToken, files(id, name, size)").execute()
 
     def __getFileType(self, file):
-        type = "folder"
         if '.' in file["name"]:
             if 'zip' in file["name"]:
                 return "zip"
@@ -117,7 +116,7 @@ class GDriveAPI:
                 return "tar"
             else:
                 return "file"
-        return type
+        return "folder"
 
     def __getSoftwareVersion(self, file_name):
         version_with_zip = file_name.split('_')[-1]

@@ -60,18 +60,24 @@ public:
      * @param id 
      * @param stored_data 
      */
-    void requestDownloadRequest(canid_t id, std::vector<uint8_t> stored_data);
+    void requestDownloadRequest(int id, std::vector<uint8_t> stored_data);
     /**
      * @brief Response method from manual Request Download service to start the download in MCU
      * 
      * @param id 
      * @param max_number_block 
      */
-    void requestDownloadResponse(canid_t id, int memory_address, int max_number_block);
+    void requestDownloadResp(int id, int memory_address, int max_number_block);
 
 private:
     int socket = -1;
-    GenerateFrames generate_frames;
+    GenerateFrames generateFrames;
+    /**
+     * @brief Method for checking if the MCU is in the programming session
+     * 
+     * @return true 
+     */
+    bool isInProgrammingSession();
     /**
      * @brief Method for validation of the provided memory address and size, ensuring they are within acceptable bounds and logical ranges.
      *
@@ -108,7 +114,7 @@ private:
      * @param stored_data 
      * @return std::pair<int,int> 
      */
-    std::pair<int,int> extractSizeAndAddressLength(canid_t id, std::vector<uint8_t> stored_data);
+    std::pair<int,int> extractSizeAndAddressLength( std::vector<uint8_t> stored_data);
     /**
      * @brief Response to request download
      * 
@@ -116,7 +122,7 @@ private:
      * @param memory_address 
      * @param max_number_block 
      */
-    void requestDownloadAutomatic(canid_t receiver_id, int memory_address, int max_number_block);
+    void requestDownloadResp89(int receiver_id, int memory_address, int max_number_block);
     /**
      * @brief Method to calculate max_number_block
      * 
@@ -145,7 +151,7 @@ private:
      * 
      * @param version_file_id 
      */
-    void downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_version);
+    void downloadSoftwareVersion(std::string version_file_id);
 };
 
 #endif /* REQUEST_DOWNLOAD_SERVICE_H */

@@ -62,7 +62,7 @@ class MemoryManager
         /*  Address to track where the last write was made */
         off_t address_continue_to_write = -1;
         static MemoryManager* instance;
-        Logger& logger;
+        Logger* logger;
 
         /**
          * @brief Construct a new Memory Manager object
@@ -71,7 +71,7 @@ class MemoryManager
          * @param path 
          * @param logger 
          */
-        MemoryManager(off_t address, std::string path, Logger& logger);
+        MemoryManager(off_t address, std::string path, Logger* logger);
 
         /**
          * @brief Method to transform a string number to type integer
@@ -111,7 +111,7 @@ class MemoryManager
          * 
          * @return MemoryManager*, the only instance
          */
-        static MemoryManager* getInstance(Logger& logger);
+        static MemoryManager* getInstance();
 
         /**
          * @brief Get the Instance object
@@ -121,7 +121,7 @@ class MemoryManager
          * @param logger 
          * @return MemoryManager*, the only instance
          */
-        static MemoryManager* getInstance(off_t address, std::string path, Logger& logger);
+        static MemoryManager* getInstance(off_t address, std::string path, Logger* logger);
 
         /**
          * @brief Singletons should not be cloneable.
@@ -164,7 +164,7 @@ class MemoryManager
          * @param path_to_binary 
          * @return std::vector<uint8_t> 
          */
-        static std::vector<uint8_t> readBinary(std::string path_to_binary, Logger& logger);
+        static std::vector<uint8_t> readBinary(std::string path_to_binary);
 
         /**
          * @brief Method to read from an address. This is a static method.
@@ -174,7 +174,7 @@ class MemoryManager
          * @param size Amount of size to read
          * @return std::vector<uint8_t> 
          */
-        static std::vector<uint8_t> readFromAddress(std::string path, off_t address_start, off_t size, Logger& logger);
+        static std::vector<uint8_t> readFromAddress(std::string path, off_t address_start, off_t size);
 
         /**
          * @brief Method to write data in a specific address. This method uses the address specified in the constructor.
@@ -191,7 +191,7 @@ class MemoryManager
          * @param path_file 
          * @return true or false
          */
-        static bool writeToFile(std::vector<uint8_t> &data, std::string path_file, Logger& logger);
+        static bool writeToFile(std::vector<uint8_t> &data, std::string path_file);
         /**
          * @brief Reset instance
          * 

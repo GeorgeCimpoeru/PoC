@@ -2,12 +2,12 @@
 #include "../include/RequestDownload.h"
 
 RequestDownloadService::RequestDownloadService(Logger& RDSlogger)
-                        : generate_frames(socket, RDSlogger)
+                        : generateFrames(socket, RDSlogger)
 {
    this->RDSlogger = RDSlogger;
 }
 RequestDownloadService::RequestDownloadService(int socket, Logger& RDSlogger)
-                        : socket(socket), generate_frames(socket, RDSlogger)
+                        : socket(socket), generateFrames(socket, RDSlogger)
 {
     this->RDSlogger = RDSlogger;
 }
@@ -17,116 +17,119 @@ RequestDownloadService::~RequestDownloadService()
 }
 
 /**RequestDownload- request method 
- * Expected request:  pci_l + sid + data_format_identifier  +  address_memory_length + memory_address[] +  memory_size[]               +          download_type
+ * Expected request:  pci_l + sid + data_format_identifier  +  address_memory_lenght + memory_address[] +  memory_size[]               +          download_type
  *  Index               [0]   [1]              [2]                  [3]             [3 + size(memory_adress)]  [3+size(memory_adress+memory_size)]  [3+size(memory_adress+memory_size)+1]
  */
-void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint8_t> stored_data)
+void RequestDownloadService::requestDownloadRequest(int id, std::vector<uint8_t> stored_data)
 {
     LOG_INFO(RDSlogger.GET_LOGGER(), "Service 0x34 RequestDownload");
-
     /* Extract and switch sender and receiver */
-    uint8_t receiver_id = id  & 0xFF;
-    uint8_t sender_id = (id >> 8) & 0xFF;
-    /* target id represents the ecu needed to be updated, if 0 then target will be mcu */
-    /* it is 1 byte and can be found between bit 16 and 23 in canid_t */
-    uint8_t target_id = (id >> 16) & 0xFF;
-    /* Reverse IDs, target id will be in same position but receiver will be switched with sender */
-    id = (target_id << 16) | (receiver_id << 8) | sender_id;
+    uint8_t frame_dest_id = (id >> 8) & 0xFF;
+    uint8_t frame_sender_id = id  & 0xFF;
+    int new_id = (frame_dest_id << 8) | frame_sender_id;
+    /* Extract and Log the DFI information */
+    uint8_t data_format_identifier = stored_data[2];
+    LOG_DEBUG(RDSlogger.GET_LOGGER(), "Data Format Identifier: 0x{0:x}", static_cast<int>(data_format_identifier));
+    uint8_t compression_type = (data_format_identifier & 0xF0) >> 4;
+    LOG_DEBUG(RDSlogger.GET_LOGGER(), "Compression Type: 0x{0:x}", static_cast<int>(compression_type));
+    uint8_t encryption_type = data_format_identifier & 0x0F;
+    LOG_DEBUG(RDSlogger.GET_LOGGER(), "Encryption Type: 0x{0:x}", static_cast<int>(encryption_type));
 
-    if (stored_data.size() < 7)
+    /* Authenticate the request */
+    if (!isRequestAuthenticated())
     {
-        /* Incorrect message length or invalid format - prepare a negative response */
-        generate_frames.negativeResponse(id, 0x34, 0x13);
+        LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Authentication failed");
+        id = new_id;
+        /* Not in programming session, authentication required*/
+        /* sendNegativeResponse(id, 0x34, 0x34); */
         return;
     }
-    /** data format identifier is 0x00 when no compression or encryption method is used 
-     * 0x11 when both compression and encryption are used
-     * 0x01 when only encryption is used
-     * 0x10 when only compression is used
-     * we can define more values later if needed
-     */
-    std::unordered_set<uint8_t> valid_data_format_indentifiers = {0x00, 0x01, 0x10, 0x11};
-    if (valid_data_format_indentifiers.find(stored_data[2]) == valid_data_format_indentifiers.end())
+
+    /* Check if in programming session */
+    if (!isInProgrammingSession())
     {
-        /* Request out of range - prepare a negative response */
-        generate_frames.negativeResponse(id, 0x34, 0x31);
+        LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Not in Programming Session");
+        id = new_id;
+        /* Security access denied */
+        /* sendNegativeResponse(id, 0x34, 0x33); */
         return;
     }
-    /* extract method returns IMLOIF if full length check fails */
-    std::pair<int,int> address_and_size_length = extractSizeAndAddressLength(id, stored_data);
+
+    /* Check if software is at the latest version */ 
+    if (!isLatestSoftwareVersion())
+    {
+        LOG_INFO(RDSlogger.GET_LOGGER(), "Software is not at the latest version");
+        id = new_id;
+        return;
+    }
+
+    /* Check for compression */ 
+    if (compression_type == 0x0) 
+    {
+        LOG_INFO(RDSlogger.GET_LOGGER(), "No compression method used");
+    } 
+    else 
+    {
+        /** Decompress using tar
+         * Decompress stored_data from position 4 onwards (assuming position 2 is DFI)
+         * Process decompressed_data as needed
+         */ 
+    }
+
+    /* Check for encryption */
+    if (encryption_type == 0x0)
+    {
+        LOG_INFO(RDSlogger.GET_LOGGER(), "No encryption method used");
+    }
+    else
+    {
+        /* check if encryption is needed */
+    }
+
+    std::pair<int,int> address_and_size_length = extractSizeAndAddressLength(stored_data);
     int length_memory_address = address_and_size_length.first;
     int length_memory_size = address_and_size_length.second;
 
-    std::pair<int,int> address_and_size = extractSizeAndAddress(stored_data, length_memory_address, length_memory_size);
+    
+    std::pair<int,int> address_and_size =extractSizeAndAddress(stored_data,length_memory_address,length_memory_size );
     int memory_address = address_and_size.first;
     int memory_size = address_and_size.second;
+    /* Calculate the position for manual update 88 or automatic update 89 */ 
+    size_t position_download_type = 4 + length_memory_address + length_memory_size;
+    uint8_t download_type = 0;
+    if (position_download_type < stored_data.size()) 
+    {
+        download_type = stored_data[position_download_type];
+        LOG_DEBUG(RDSlogger.GET_LOGGER(), "download_type: 0x{:02X}", download_type);
+        if (download_type != 0x88 && download_type != 0x89) {
+            LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Invalid download type: {}", static_cast<uint8_t>(download_type));
+        }
+    }  
 
     /* Validate memory address and size */
     if (!isValidMemoryRange(memory_address, memory_size))
     {
         LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Invalid memory range");
         /* Request out of range */
-        generate_frames.negativeResponse(id, 0x34, 0x31);
+        /* sendNegativeResponse(id, 0x34, 0x31); */
         return;
     }
-    /* Authenticate the request */
-    else if (!isRequestAuthenticated())
+
+    int max_number_block = calculate_max_number_block(memory_size);
+
+    downloadSoftwareVersion("software_version_id");
+
+    if (download_type == 0x88)
     {
-        LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Authentication failed");
-        /* Authentication failed */
-        generate_frames.negativeResponse(id, 0x34, 0x34);
+        requestDownloadResp(id, memory_address, max_number_block);
         return;
     }
-    /* Check if software is at the latest version */ 
-    else if (!isLatestSoftwareVersion())
+    else if ( download_type == 0x89 )
     {
-        LOG_INFO(RDSlogger.GET_LOGGER(), "Software is not at the latest version");
+        requestDownloadResp89(id, memory_address, max_number_block);
         return;
     }
-    else
-    {
-        /* Extract and Log the data_format_identifier information */
-        uint8_t data_format_identifier = stored_data[2];
-        LOG_INFO(RDSlogger.GET_LOGGER(), "Data Format Identifier: 0x{0:x}", static_cast<int>(data_format_identifier));
-        uint8_t compression_type = (data_format_identifier & 0xF0) >> 4;
-        LOG_INFO(RDSlogger.GET_LOGGER(), "Compression Type: 0x{0:x}", static_cast<int>(compression_type));
-        uint8_t encryption_type = data_format_identifier & 0x0F;
-        LOG_INFO(RDSlogger.GET_LOGGER(), "Encryption Type: 0x{0:x}", static_cast<int>(encryption_type));
-
-        /* Check for compression */ 
-        if (compression_type == 0x0) 
-        {
-            LOG_INFO(RDSlogger.GET_LOGGER(), "No compression method used");
-        } 
-        else 
-        {
-            /** Decompress using tar
-             * Decompress stored_data from position 4 onwards (assuming position 2 is DFI)
-             * Process decompressed_data as needed
-             */ 
-        }
-
-        /* Check for encryption */
-        if (encryption_type == 0x0)
-        {
-            LOG_INFO(RDSlogger.GET_LOGGER(), "No encryption method used");
-        }
-        else
-        {
-            /* check if encryption is needed */
-        }
-
-        /* Calculate the position for manual update 0 or automatic update 1 */ 
-        size_t position_software_version = 4 + length_memory_address + length_memory_size;
-        uint8_t software_version = stored_data[position_software_version];
-        /* 0x24 => 0010 010 0* => v2.2, LSB not taken in consideration for versioning */
-        downloadSoftwareVersion(receiver_id, software_version);
-
-        int max_number_block = calculate_max_number_block(memory_size);
-
-        requestDownloadResponse(id, memory_address, max_number_block);
-        return;
-    }
+    /* Send frame error */
 }
 
 int RequestDownloadService::calculate_max_number_block(int memory_size)
@@ -139,16 +142,16 @@ int RequestDownloadService::calculate_max_number_block(int memory_size)
     /* HOW IS CALCULATED 'max_number_block'??? */
     /* Calculate max_number_block as the maximum ceiling of memory_size divided by block_size */
     int blocks_needed = (memory_size + block_size - 1) / block_size;
-    LOG_INFO(RDSlogger.GET_LOGGER(), "blocks_needed:{}", blocks_needed);
+    LOG_DEBUG(RDSlogger.GET_LOGGER(), "blocks_needed:{}", blocks_needed);
     
-    /* Update max_number_block with the calculated blocks_needed */
+    // Update max_number_block with the calculated blocks_needed
     max_number_block = blocks_needed;
 
-    LOG_INFO(RDSlogger.GET_LOGGER(), "max_number_block:{}", max_number_block);
+    LOG_DEBUG(RDSlogger.GET_LOGGER(), "max_number_block:{}", max_number_block);
     return 1;
 }
 
-void RequestDownloadService::requestDownloadAutomatic(canid_t id, int memory_address, int max_number_block)
+void RequestDownloadService::requestDownloadResp89(int id, int memory_address, int max_number_block)
 {
     /*Download from drive- part 3*/
     std::string path = "";
@@ -159,7 +162,7 @@ void RequestDownloadService::requestDownloadAutomatic(canid_t id, int memory_add
         LOG_INFO(RDSlogger.GET_LOGGER(), "Map memory in MCU and transfer data");
         /* Map memory in MCU -Set adress vector-> send to Install for mapping data */
         
-        MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, RDSlogger);
+        MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, MCULogger);
         managerInstance->getAddress();
         /* routine for transfer first or second partition */
     }
@@ -178,9 +181,9 @@ void RequestDownloadService::downloadInEcu(int id, int memory_address)
 
     std::string path_download = "";
 
-    std::vector<uint8_t> data = MemoryManager::readBinary(path_download, RDSlogger);
+    std::vector<uint8_t> data = MemoryManager::readBinary(path_download);
 
-    generate_frames.requestDownload(new_id,0x00,memory_address,data.size(),0x88);
+    generateFrames.requestDownload(new_id,0x00,memory_address,data.size(),0x88);
     struct can_frame* frame = read_frame(new_id, 0x34);
     int max_number_block;
     if (frame != NULL)
@@ -198,23 +201,23 @@ void RequestDownloadService::downloadInEcu(int id, int memory_address)
         std::vector<uint8_t> data_to_send;
         data_to_send.insert(data_to_send.begin(), data.begin() + (max_number_block * block_sequence_counter), data.begin() + ((max_number_block * block_sequence_counter + 1)));
         /* Calculate block_sequence_counter for the current block */ 
-        LOG_INFO(RDSlogger.GET_LOGGER(), "block_sequence_counter: {}", block_sequence_counter);
+        LOG_DEBUG(RDSlogger.GET_LOGGER(), "block_sequence_counter: {}", block_sequence_counter);
         /* Call transferData with the current block_sequence_counter */ 
         if ( data_to_send.size() >  5)
         {
-            generate_frames.transferDataLong(new_id,block_sequence_counter,data_to_send);
-            /* read flow control frame */
+            generateFrames.transferDataLong(new_id,block_sequence_counter,data_to_send);
+            /* read flow controll frame */
             frame = read_frame(new_id, -0x10);
             if (frame == NULL)
             {
                 /* generate error frame*/
                 return;
             }
-            generate_frames.transferDataLong(new_id,block_sequence_counter,data_to_send, false);
+            generateFrames.transferDataLong(new_id,block_sequence_counter,data_to_send, false);
         }
         else
         {
-            generate_frames.transferData(new_id,block_sequence_counter,data_to_send);
+            generateFrames.transferData(new_id,block_sequence_counter,data_to_send);
         }
     }
     frame = read_frame(new_id, 0x36);
@@ -223,7 +226,7 @@ void RequestDownloadService::downloadInEcu(int id, int memory_address)
         /* generate error frame*/
         return;
     }
-    generate_frames.requestTransferExit(new_id);
+    generateFrames.requestTransferExit(new_id);
     frame = read_frame(new_id, 0x37);
     if (frame == NULL || frame->data[1] == 0x7F)
     {
@@ -275,44 +278,51 @@ can_frame* RequestDownloadService::read_frame(int id, uint8_t sid)
  *  Expected response: pci_l + sid +  length_max_number_block*0x10  +  max_number_block
  *  Index              [0]     [1]         [2]                       [3]
  */
-void RequestDownloadService::requestDownloadResponse(canid_t id, int memory_address, int max_number_block)
+void RequestDownloadService::requestDownloadResp(int id, int memory_address, int max_number_block)
 {
-    /* this path is temporary and differs on each VM */
-    std::string path = "/dev/loop25";
+    std::string path = "";
     /* Rename destination in sender and viceversa */
-    uint8_t frame_receiver_id = (id >> 8) & 0xFF;
-    LOG_INFO(RDSlogger.GET_LOGGER(), "memory adress: 0x{0:x}", static_cast<int>(memory_address));
+    uint8_t frame_sender_id = (id >> 8) & 0xFF;
+    uint8_t frame_dest_id = id & 0xFF;
+    LOG_DEBUG(RDSlogger.GET_LOGGER(), "frame id dest: 0x{0:x}", static_cast<int>(frame_dest_id));
     /* Check if frame is intended for MCU */
-    if(frame_receiver_id == 0x10)
+    if(frame_dest_id == 0x10)
     {
-        MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, RDSlogger);
+        MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, MCULogger);
         managerInstance->getAddress();
-        LOG_INFO(RDSlogger.GET_LOGGER(), "max number block {}", static_cast<int>(max_number_block));
-        /* Call response method from generate_frames */
-        generate_frames.requestDownloadResponse(id, max_number_block);
+        LOG_DEBUG(RDSlogger.GET_LOGGER(), "log in service");
+        id = (frame_dest_id << 8) | (frame_sender_id);
+        LOG_DEBUG(RDSlogger.GET_LOGGER(), "frame id 0x{0:x}", static_cast<int>(id));
+        LOG_DEBUG(RDSlogger.GET_LOGGER(), "max no block {}", static_cast<int>(max_number_block));
+        /* Call response method from GenerateFrames */
+        generateFrames.requestDownloadResponse(id, max_number_block);
         return;
+    }
+    else
+    {
+        std::cerr << "Create interface is nullptr" << std::endl;
     }
 }
 
-std::pair<int,int> RequestDownloadService::extractSizeAndAddressLength(canid_t id, std::vector<uint8_t> stored_data)
+std::pair<int,int> RequestDownloadService::extractSizeAndAddressLength( std::vector<uint8_t> stored_data)
 {
      /* Retrieve the address_memory_length */
     uint8_t address_memory_length = stored_data[3];
-    LOG_INFO(RDSlogger.GET_LOGGER(), "address_memory_length: 0x{0:x}", address_memory_length);
+    LOG_DEBUG(RDSlogger.GET_LOGGER(), "address_memory_length: 0x{0:x}", static_cast<int>(address_memory_length));
 
     /* Determine the length of memory address and memory size */
     /* High nibble */
     uint8_t length_memory_address = (address_memory_length & 0xF0) >> 4;
     /* Low nibble */
     uint8_t length_memory_size = address_memory_length & 0x0F;
-    LOG_INFO(RDSlogger.GET_LOGGER(), "length_memory_address: {}", length_memory_address);
-    LOG_INFO(RDSlogger.GET_LOGGER(), "length_memory_size: {}", length_memory_size);
+    LOG_DEBUG(RDSlogger.GET_LOGGER(), "length_memory_address: {}", static_cast<int>(length_memory_address));
+    LOG_DEBUG(RDSlogger.GET_LOGGER(), "length_memory_size: {}", static_cast<int>(length_memory_size));
     /* Ensure there are enough bytes for memory_address and memory_size */ 
     if (stored_data.size() < static_cast<std::vector<unsigned char>::size_type>(1 + length_memory_address + length_memory_size))
     {
         LOG_ERROR(RDSlogger.GET_LOGGER(), "Payload does not contain enough data for memory address and size");
         /* Incorrect message length or invalid format */
-        generate_frames.negativeResponse(id, 0x34, 0x13);
+        /* sendNegativeResponse(id, 0x34, 0x13); */
     }
     return {length_memory_address, length_memory_size};
 }
@@ -329,7 +339,7 @@ std::pair<int,int> RequestDownloadService::extractSizeAndAddress( std::vector<ui
     {
         dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
     }
-    LOG_INFO(RDSlogger.GET_LOGGER(), "{}", dataStream.str());
+    LOG_DEBUG(RDSlogger.GET_LOGGER(), "{}", dataStream.str());
 
     dataStream.str("");
     dataStream.clear();
@@ -339,7 +349,7 @@ std::pair<int,int> RequestDownloadService::extractSizeAndAddress( std::vector<ui
     {
         dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
     }
-    LOG_INFO(RDSlogger.GET_LOGGER(), "{}", dataStream.str());
+    LOG_DEBUG(RDSlogger.GET_LOGGER(), "{}", dataStream.str());
 
     /* Extract full memory address and size based on their combined byte values */
     int full_memory_address = 0;
@@ -359,6 +369,19 @@ std::pair<int,int> RequestDownloadService::extractSizeAndAddress( std::vector<ui
     return {full_memory_address, full_memory_size};
 }
 
+bool RequestDownloadService::isInProgrammingSession()
+{
+    /* Logic to check session state, return true until future implementation of DiagnosticSessionControl */
+    return true;
+    // DiagnosticSession current_session = DiagnosticSessionControl::getCurrentSession();
+    // LOG_INFO(RDSlogger.GET_LOGGER(), "The current session is:{}", DiagnosticSessionControl::getCurrentSessionToString());
+    // if (current_session == PROGRAMMING_SESSION)
+    // {
+    //    return true;
+    // }
+    // return false;
+} 
+
 bool RequestDownloadService::isValidMemoryRange(const int &memory_address, const int &memory_size)
 {
     /* Validate the full memory address */
@@ -366,6 +389,7 @@ bool RequestDownloadService::isValidMemoryRange(const int &memory_address, const
     {
         LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Invalid memory address: 0x{0:x}", memory_address);
         /* Request out of range -Invalid memory address */
+        /* sendNegativeResponse(id, 0x34, 0x31); */
         return false;
     }
 
@@ -374,11 +398,12 @@ bool RequestDownloadService::isValidMemoryRange(const int &memory_address, const
     {
         LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Invalid memory size: 0x{0:x}", memory_size);
         /* Request out of range -Invalid memory size*/
+        /* sendNegativeResponse(id, 0x34, 0x31); */
         return false;
     }
 
-    LOG_INFO(RDSlogger.GET_LOGGER(), "Validated Memory Address: 0x{0:x}", memory_address);
-    LOG_INFO(RDSlogger.GET_LOGGER(), "Validated Memory Size: 0x{0:x}", memory_size);
+    LOG_DEBUG(RDSlogger.GET_LOGGER(), "Validated Memory Address: 0x{0:x}", memory_address);
+    LOG_DEBUG(RDSlogger.GET_LOGGER(), "Validated Memory Size: 0x{0:x}", memory_size);
 
     return true;
 }
@@ -393,7 +418,7 @@ bool RequestDownloadService::isRequestAuthenticated()
     /* Check MCU state if unlocked */
     if (is_authenticated) 
     {
-        LOG_INFO(RDSlogger.GET_LOGGER(), "MCU authentication state: {}", is_authenticated);
+        LOG_DEBUG(RDSlogger.GET_LOGGER(), "MCU authentication state: {}", is_authenticated);
     }
     return is_authenticated;
 }
@@ -419,17 +444,13 @@ bool RequestDownloadService::isLatestSoftwareVersion()
     return false;
 }
 
-void RequestDownloadService::downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_version)
+void RequestDownloadService::downloadSoftwareVersion(std::string version_file_id)
 {
     namespace py = pybind11;
     py::scoped_interpreter guard{}; // start the interpreter and keep it alive
 
-    /* PROJECT_PATH defined in makefile to be the root folder path (POC)*/
-    std::string project_path = PROJECT_PATH;
-    std::string path_to_drive_api = project_path + "/src/ota/google_drive_api";
-
     auto sys = py::module::import("sys");
-    sys.attr("path").attr("append")(path_to_drive_api);
+    sys.attr("path").attr("append")("/home/projectx/accademyprojects/PoC/src/ota/google_drive_api");
 
     /* Get the created Python module */
     py::module python_module = py::module::import("GoogleDriveApi");
@@ -449,7 +470,7 @@ void RequestDownloadService::downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_
     */
 
     /* Call the downloadFile method from GoogleDriveApi.py */
-     gGdrive_object.attr("downloadFile")(ecu_id, sw_version);
+    gGdrive_object.attr("downloadFile")(version_file_id);
 }
 /** Use libraries for tar
  * #include <archive.h>
