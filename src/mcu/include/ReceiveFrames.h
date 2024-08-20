@@ -50,12 +50,87 @@
 #include<map>
 #include<chrono>
 #include<thread>
+#include <future>
+#include <atomic>
+#include <set>
 
-#include "HandleFrames.h"
+#include "../include/HandleFrames.h"
 #include "../../utils/include/GenerateFrames.h"
 #include "../include/MCULogger.h"
+
 namespace MCU
 {
+  /* List of service we have implemented. */
+  const std::vector<uint8_t> service_sids = {
+      /* ECU Reset */
+      0x11,
+      /* Diagnostic Session Control */
+      0x10,
+      /* Read Data By Identifier */
+      0x22,
+      /* Authentication */
+      0x29,
+      /* Routine Control (Testing) -> will be decided */
+      0x31,
+      /* Tester Present */
+      0x3E,
+      /* Read Memory By Address */
+      0x23,
+      /* Write Data By Identifier */
+      0x2E,
+      /* Read DTC Information */
+      0x19,
+      /* Clear Diagnostic Information */
+      0x14,
+      /* Access Timing Parameters */
+      0x83,
+      /* Request Download */
+      0x34,
+      /* Transfer Data */
+      0x36,
+      /* Request Transfer Exit */
+      0x37,
+      /* Request update status */
+      0x32
+  };
+
+  /* Define lists of SIDs using p2_max_time and p2_star_max_time */
+  static const std::set<uint8_t> sids_using_p2_max_time = {
+      /* ECU Reset */
+      0x11,
+      /* Diagnostic Session Control */
+      0x10,
+      /* Read Data By Identifier */
+      0x22,
+      /* Tester Present */
+      0x3E,
+      /* Read Memory By Address */
+      0x23,
+      /* Write Data By Identifier */
+      0x2E,
+      /* Read DTC Information */
+      0x19,
+      /* Clear Diagnostic Information */
+      0x14,
+      /* Access Timing Parameters */
+      0x83,
+      /* Request update status */
+      0x32
+  };
+
+  static const std::set<uint8_t> sids_using_p2_star_max_time = {
+      /* Routine Control */
+      0x31,
+      /* Request Download */
+      0x34,
+      /* Transfer Data */
+      0x36,
+      /* Request Transfer Exit */
+      0x37,
+      /* Authentication */
+      0x29
+  };
+
   class ReceiveFrames
   {
   public:
@@ -141,10 +216,20 @@ namespace MCU
      */
     const uint8_t* getECUsUp() const;
 
+    /**
+     * @brief set method used to set the processing flag to false in order to be able to stop mcu module.
+     * @return Returns ecus_up (the list of ECUs that are up). 
+     */
+    void stopProcessingQueue();
     std::map<uint8_t, std::chrono::steady_clock::time_point> ecu_timers;
     std::chrono::seconds timeout_duration;
     std::thread timer_thread;
     bool running;
+
+    /* Method that start time processing frame. */
+    void startTimer(uint8_t sid);
+    /* Method that stop time processing frame. */
+    void stopTimer(uint8_t sid);
     
   protected:
     /* The socket from where we read the frames */
@@ -160,6 +245,7 @@ namespace MCU
     GenerateFrames generate_frames;
     /* Vector contains all the ECUs up ids */
     uint8_t ecus_up[4] = {0};
+    bool process_queue = true;
 
     /**
      * @brief Starts timer_thread and sets running flag on true.

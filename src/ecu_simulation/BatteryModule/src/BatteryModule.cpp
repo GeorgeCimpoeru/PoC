@@ -3,6 +3,11 @@
 
 Logger* batteryModuleLogger = nullptr;
 BatteryModule* battery = nullptr;
+
+std::map<uint8_t, double> BatteryModule::timing_parameters;
+std::map<uint8_t, std::future<void>> BatteryModule::active_timers;
+std::map<uint8_t, std::atomic<bool>> BatteryModule::stop_flags;
+
 /** Constructor - initializes the BatteryModule with default values,
  * sets up the CAN interface, and prepares the frame receiver. */
 BatteryModule::BatteryModule() : moduleId(0x11),

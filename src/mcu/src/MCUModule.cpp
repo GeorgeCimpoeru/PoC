@@ -4,6 +4,9 @@ Logger* MCULogger = nullptr;
 namespace MCU
 {
     MCUModule* mcu = nullptr;
+    std::map<uint8_t, double> MCUModule::timing_parameters;
+    std::map<uint8_t, std::future<void>> MCUModule::active_timers;
+    std::map<uint8_t, std::atomic<bool>> MCUModule::stop_flags;
     /* Constructor */
     MCUModule::MCUModule(uint8_t interfaces_number) : 
                     is_running(false),
@@ -29,7 +32,12 @@ namespace MCU
     }
 
     /* Start the module */
-    void MCUModule::StartModule() { is_running = true; }
+    void MCUModule::StartModule() 
+    { 
+    is_running = true;
+    create_interface->setSocketBlocking(mcu_api_socket);
+    create_interface->setSocketBlocking(mcu_ecu_socket);
+    }
 
     int MCUModule::getMcuApiSocket() const 
     {
@@ -51,7 +59,13 @@ namespace MCU
     }
 
     /* Stop the module */
-    void MCUModule::StopModule() { is_running = false; }
+    void MCUModule::StopModule() 
+    { 
+    is_running = false;
+    receive_frames->stopProcessingQueue();            
+    receive_frames->stopListenAPI();
+    receive_frames->stopListenCANBus(); 
+    }
 
     /* Receive frames */
     void MCUModule::recvFrames() 

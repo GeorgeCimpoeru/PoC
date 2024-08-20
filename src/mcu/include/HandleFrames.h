@@ -21,6 +21,7 @@
 #include "../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
 #include "../../uds/write_data_by_identifier/include/WriteDataByIdentifier.h"
 #include "../../uds/ecu_reset/include/EcuReset.h"
+#include "../../uds/tester_present/include/TesterPresent.h"
 #include "../../uds/authentication/include/SecurityAccess.h"
 #include "../../uds/diagnostic_session_control/include/DiagnosticSessionControl.h"
 #include "../../uds/read_dtc_information/include/ReadDtcInformation.h"
@@ -39,6 +40,7 @@ namespace MCU
         int socket_api = -1;
         int socket_canbus = -1;
         DiagnosticSessionControl mcuDiagnosticSessionControl;
+        TesterPresent testerPresent;
     public:
         HandleFrames(int socket_api, int socket_canbus);
         /**
