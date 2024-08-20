@@ -181,7 +181,6 @@ class ReadInfo(Action):
 
             response_json = BatteryToJSON()._to_json(data)
 
-            # Shutdown the CAN bus interface
             self.bus.shutdown()
             log_info_message(logger, "Sending JSON")
             return response_json
