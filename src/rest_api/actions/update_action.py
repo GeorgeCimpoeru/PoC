@@ -78,7 +78,7 @@ class Updates(Action):
                 return response_json
 
             log_info_message(logger, "Changing session to programming")
-            self.generate.session_control(self.id, sub_funct=0x02)
+            self.generate.session_control(self.id, 0x02)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
             self._authentication(self.my_id * 0x100 + self.id_ecu[0])
 
