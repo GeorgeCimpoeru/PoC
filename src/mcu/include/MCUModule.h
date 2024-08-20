@@ -28,7 +28,10 @@ namespace MCU
         static std::map<uint8_t, std::atomic<bool>> stop_flags;
 
         /* Variable to store mcu data */
-        std::unordered_map<uint16_t, std::vector<uint8_t>> mcu_data;
+        std::unordered_map<uint16_t, std::vector<uint8_t>> mcu_data = 
+        {
+            {0x01E0, {IDLE}}
+        };
         /** 
          * @brief Constructor that takes the interface number as an argument.
          * When the constructor is called, it creates a new interface with the
