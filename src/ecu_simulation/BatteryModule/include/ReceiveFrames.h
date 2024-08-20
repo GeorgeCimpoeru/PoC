@@ -33,9 +33,9 @@
 #include <future>
 #include <set>
 
-#include "../include/HandleFrames.h"
-#include "../include/GenerateFrames.h"
-#include "../include/BatteryModuleLogger.h"
+#include "../../utils/include/HandleFrames.h"
+#include "../../utils/include/GenerateFrames.h"
+#include "BatteryModuleLogger.h"
 
 /* List of service we have implemented. */
 const std::vector<uint8_t> service_sids = {

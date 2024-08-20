@@ -5,7 +5,7 @@ namespace MCU
 {
     ReceiveFrames::ReceiveFrames(int socket_canbus, int socket_api)
         : timeout_duration(120), running(true), socket_canbus(socket_canbus), 
-        socket_api(socket_api), handler(socket_api, socket_canbus),
+        socket_api(socket_api), handler(socket_api, socket_canbus, MCULogger),
         generate_frames(socket_canbus, *MCULogger)
         
     {

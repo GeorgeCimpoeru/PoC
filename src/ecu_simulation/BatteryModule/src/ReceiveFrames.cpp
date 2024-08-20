@@ -1,7 +1,7 @@
 #include "../include/ReceiveFrames.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 
-ReceiveFrames::ReceiveFrames(int socket, int frame_id) : socket(socket), frame_id(frame_id), running(true) 
+ReceiveFrames::ReceiveFrames(int socket, int frame_id) : socket(socket), frame_id(frame_id), running(true), handle_frame(socket, batteryModuleLogger)
 {
     if (socket < 0) 
     {
@@ -125,7 +125,7 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
         lock.unlock();
 
         struct can_frame frame = std::get<0>(frameTuple);
-        int nbytes = std::get<1>(frameTuple);
+        // int nbytes = std::get<1>(frameTuple);
 
         /* Print the frame for debugging */ 
         printFrame(frame);
@@ -179,9 +179,9 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
 
         }
         /* Process the received frame */ 
-        if (!handle_frame.checkReceivedFrame(nbytes, frame)) {
-            LOG_WARN(batteryModuleLogger->GET_LOGGER(), "Failed to process frame\n");
-        }
+        // if (!handle_frame.proces(nbytes, frame)) {
+        //     LOG_WARN(batteryModuleLogger->GET_LOGGER(), "Failed to process frame\n");
+        // }
     }
 }
 

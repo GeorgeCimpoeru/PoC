@@ -180,7 +180,7 @@ void BatteryModule::receiveFrames()
     LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Battery module starts the frame receiver");
 
     /* Create a HandleFrames object to process received frames */
-    HandleFrames handleFrames(this->battery_socket);
+    HandleFrames handleFrames(this->battery_socket, batteryModuleLogger);
 
     /* Receive a CAN frame using the frame receiver and process it with handleFrames */
     frameReceiver->receive(handleFrames);
