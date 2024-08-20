@@ -30,9 +30,83 @@
 #include <condition_variable>
 #include <atomic>
 #include <poll.h> 
+#include <future>
+#include <set>
+
 #include "../include/HandleFrames.h"
 #include "../include/GenerateFrames.h"
 #include "../include/BatteryModuleLogger.h"
+
+/* List of service we have implemented. */
+const std::vector<uint8_t> service_sids = {
+    /* ECU Reset */
+    0x11,
+    /* Diagnostic Session Control */
+    0x10,
+    /* Read Data By Identifier */
+    0x22,
+    /* Authentication */
+    0x29,
+    /* Routine Control (Testing) -> will be decided */
+    0x31,
+    /* Tester Present */
+    0x3E,
+    /* Read Memory By Address */
+    0x23,
+    /* Write Data By Identifier */
+    0x2E,
+    /* Read DTC Information */
+    0x19,
+    /* Clear Diagnostic Information */
+    0x14,
+    /* Access Timing Parameters */
+    0x83,
+    /* Request Download */
+    0x34,
+    /* Transfer Data */
+    0x36,
+    /* Request Transfer Exit */
+    0x37,
+    /* Request update status */
+    0x32
+};
+
+/* Define lists of SIDs using p2_max_time and p2_star_max_time */
+static const std::set<uint8_t> sids_using_p2_max_time = {
+    /* ECU Reset */
+    0x11,
+    /* Diagnostic Session Control */
+    0x10,
+    /* Read Data By Identifier */
+    0x22,
+    /* Tester Present */
+    0x3E,
+    /* Read Memory By Address */
+    0x23,
+    /* Write Data By Identifier */
+    0x2E,
+    /* Read DTC Information */
+    0x19,
+    /* Clear Diagnostic Information */
+    0x14,
+    /* Access Timing Parameters */
+    0x83,
+    /* Request update status */
+    0x32
+};
+
+static const std::set<uint8_t> sids_using_p2_star_max_time = {
+    /* Routine Control */
+    0x31,
+    /* Request Download */
+    0x34,
+    /* Transfer Data */
+    0x36,
+    /* Request Transfer Exit */
+    0x37,
+    /* Authentication */
+    0x29
+};
 
 class ReceiveFrames 
 {
@@ -65,11 +139,17 @@ private:
      * @param handle_frame HandleFrame object used for getting new frames.
      */
     void bufferFrameOut(HandleFrames &handle_frame);
+
+    /* Method that start time processing frame. */
+    void startTimer(uint8_t sid);
+    /* Method that stop time processing frame. */
+    void stopTimer(uint8_t sid);
     
 protected:
     HandleFrames handle_frame;
     
 public:
+
     /**
      * @brief Parameterized constructor.
      * 
