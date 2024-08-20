@@ -5,7 +5,6 @@ import NavBarMain from '../components/mainPageComponents/NavBarMain';
 import Map from '../components/mainPageComponents/Map';
 
 const MainPage = () => {
-    // Initializează starea din localStorage dacă există
     const [isVinSubmitted, setIsVinSubmitted] = useState(() => {
         return localStorage.getItem('isVinSubmitted') === 'true';
     });
@@ -43,7 +42,6 @@ const MainPage = () => {
             const data = await response.json();
             console.log('VIN Submitted successfully:', data);
 
-            // Salvează starea în localStorage și actualizează starea componentei
             localStorage.setItem('isVinSubmitted', 'true');
             setIsVinSubmitted(true);
             setIsModalOpen(false);
