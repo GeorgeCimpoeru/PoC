@@ -117,7 +117,7 @@ class GDriveAPI:
                 return "tar"
             else:
                 return "file"
-        return "folder"
+        return type
 
     def __getSoftwareVersion(self, file_name):
         version_with_zip = file_name.split('_')[-1]
