@@ -1,4 +1,6 @@
 #include "../include/ReceiveFrames.h"
+#include "../include/MCUModule.h"
+
 namespace MCU
 {
     ReceiveFrames::ReceiveFrames(int socket_canbus, int socket_api)
@@ -26,71 +28,110 @@ namespace MCU
      * Function to read frames from the CAN bus and add them to a queue.
      * This function runs in a loop and continually reads frames from the CAN bus.
      */
-    bool ReceiveFrames::receiveFramesFromCANBus()
+  bool ReceiveFrames::receiveFramesFromCANBus()
+{
+    struct can_frame frame;
+    while (listen_canbus)
     {
-        struct can_frame frame;
-        while(listen_canbus)
+        /* Read frames from the CAN socket */
+        int nbytes = read(socket_canbus, &frame, sizeof(frame));
+        
+        if (nbytes < 0) 
         {
-            /* Read frames from the CAN socket */
-            int nbytes = read(socket_canbus, &frame, sizeof(frame));
-            LOG_INFO(MCULogger->GET_LOGGER(), "Captured a frame on the CANBus socket");
-            if (nbytes < 0)
+            if (errno == EWOULDBLOCK || errno == EAGAIN) 
             {
-                LOG_ERROR(MCULogger->GET_LOGGER(),"Read Error");
-                /* Return error if read fails */
+                /* No data available, continue the loop */
+                continue;
+            } 
+            else 
+            {
+                LOG_ERROR(MCULogger->GET_LOGGER(), "Read error on CANBus socket: {}", strerror(errno));
                 return false;
             }
-            else
+        } 
+        else if (nbytes == 0) 
+        {
+            /* Connection closed */
+            LOG_INFO(MCULogger->GET_LOGGER(), "CANBus connection closed.");
+            return false;
+        } 
+        else 
+        {
+            LOG_INFO(MCULogger->GET_LOGGER(), "Captured a frame on the CANBus socket");
+            /* Lock the queue before adding the frame to ensure thread safety */
+            {
+                std::lock_guard<std::mutex> lock(queue_mutex);
+                uint8_t receiver_id = frame.can_id & 0xFF;
+
+                /* If frame is for MCU module, for API or test frame */
+                if (receiver_id == hex_value_id || receiver_id == 0xFF || receiver_id == 0xFA) 
+                {
+                    frame_queue.push(frame);
+                    LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Passed a valid Module ID: 0x{:x} and frame added to the processing queue.", frame.can_id));
+                }
+            }
+            /* Notify one waiting thread that a new frame has been added to the queue */
+            queue_cond_var.notify_one();
+        }
+    }
+    return true;
+}
+
+bool ReceiveFrames::receiveFramesFromAPI()
+{
+    struct can_frame frame;
+    while (listen_api)
+    {
+        /* Read frames from the CAN socket */
+        int nbytes = read(socket_api, &frame, sizeof(frame));
+        
+        if (nbytes < 0) 
+        {
+            if (errno == EWOULDBLOCK || errno == EAGAIN) 
+            {
+                /* No data available, continue the loop */
+                continue;
+            } 
+            else 
+            {
+                LOG_ERROR(MCULogger->GET_LOGGER(), "Read error on API socket: {}", strerror(errno));
+                return false;
+            }
+        } 
+        else if (nbytes == 0) 
+        {
+            /* Connection closed */
+            LOG_INFO(MCULogger->GET_LOGGER(), "API connection closed.");
+            return false;
+        } 
+        else 
+        {
+            LOG_INFO(MCULogger->GET_LOGGER(), "Captured a frame on the API socket");
+            /* Lock the queue before adding the frame to ensure thread safety */
             {
                 {
                     /* Lock the queue before adding the frame to ensure thread safety */
                     std::lock_guard<std::mutex> lock(queue_mutex);
+
                     /* Take receiver_id */
                     uint8_t receiver_id = frame.can_id & 0xFF;
 
                     /* If frame is for MCU module, for API or test frame */
-                    if( receiver_id == hex_value_id || receiver_id == 0xFF || receiver_id == 0xFA)
+                    if( receiver_id != 0xFA)
                     {
                         frame_queue.push(frame);
                         LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Pass a valid Module ID: 0x{:x} and frame added to the processing queue.", frame.can_id));
-
                     }
                 }
                 /* Notify one waiting thread that a new frame has been added to the queue */
                 queue_cond_var.notify_one();
             }
+            /* Notify one waiting thread that a new frame has been added to the queue */
+            queue_cond_var.notify_one();
         }
-        return true;
     }
-
-    bool ReceiveFrames::receiveFramesFromAPI()
-    {
-        struct can_frame frame;
-        while(listen_api)
-        {
-            /* Read frames from the CAN socket */
-            int nbytes = read(socket_api, &frame, sizeof(frame));
-            LOG_INFO(MCULogger->GET_LOGGER(), "Captured a frame on the API socket");
-            if (nbytes < 0)
-            {
-                LOG_ERROR(MCULogger->GET_LOGGER(),"Read Error");
-                /* Return error if read fails */
-                return false;
-            }
-            else
-            {
-                {
-                    /* Lock the queue before adding the frame to ensure thread safety */
-                    std::lock_guard<std::mutex> lock(queue_mutex);
-                    frame_queue.push(frame);
-                    LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Pass a valid Module ID: 0x{:x} and frame added to the processing queue.", frame.can_id));
-                }
-                /* Notify one waiting thread that a new frame has been added to the queue */
-                queue_cond_var.notify_one();
-            }
-        }
-        return true;
-    }
+    return true;
+}
 
     /*
     * Function to process frames from the queue.
@@ -103,8 +144,11 @@ namespace MCU
         {
             /* Wait until the queue is not empty, then lock the queue */
             std::unique_lock<std::mutex> lock(queue_mutex);
-            queue_cond_var.wait(lock, [this]{ return !frame_queue.empty(); });
-
+            queue_cond_var.wait(lock, [this]{ return !frame_queue.empty()|| !process_queue; });
+            if (!process_queue && frame_queue.empty()) 
+            {
+                break;
+            }
             /* Extract the first element from the queue */
             struct can_frame frame = frame_queue.front();
             frame_queue.pop();
@@ -121,6 +165,14 @@ namespace MCU
             uint8_t sender_id = (frame.can_id >> 8) & 0xFF;
             /* First byte: id_receiver or id_api */
             uint8_t receiver_id = frame.can_id & 0xFF;
+
+            /* Starting frame processing timing if is it a frame request for MCU */
+            auto it = std::find(service_sids.begin(), service_sids.end(), frame.data[1]);
+
+            if (it != service_sids.end() && receiver_id == 0x10) {
+                startTimer(frame.data[1]);
+            }
+
             /* Compare the CAN ID with the expected hexValueId */
             if (receiver_id == hex_value_id) 
             {
@@ -147,7 +199,7 @@ namespace MCU
                     }
 
                     resetTimer(sender_id);
-                } 
+                }
                 else 
                 {
                     LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Received frame for MCU to execute service with SID: 0x{:x}", frame.data[1]));
@@ -155,7 +207,8 @@ namespace MCU
                     handler.handleFrame(frame);
                 }
             }
-            else if (receiver_id == 0xFA) {
+            else if (receiver_id == 0xFA) 
+            {
                 LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Frame received from device with sender ID: 0x{:x} sent for API processing", sender_id));
                 std::vector<uint8_t> data(frame.data, frame.data + frame.can_dlc);
                 generate_frames.sendFrame(frame.can_id, data, socket_api, DATA_FRAME);
@@ -188,6 +241,64 @@ namespace MCU
             {
                 break;
             }
+        }
+    }
+
+    void ReceiveFrames::startTimer(uint8_t sid) {
+        /* Define the correct timer value based on SID */
+        uint16_t timer_value;
+        if (sids_using_p2_max_time.find(sid) != sids_using_p2_max_time.end())
+        {
+            timer_value = AccessTimingParameter::p2_max_time;
+        } else {
+            timer_value = AccessTimingParameter::p2_star_max_time;
+        }
+
+        LOG_INFO(MCULogger->GET_LOGGER(), "Started frame processing timing for frame with SID {:x} with max_time = {}.", sid, timer_value);
+
+        auto start_time = std::chrono::steady_clock::now();
+        mcu->timing_parameters[sid] = start_time.time_since_epoch().count();
+
+        /* Initialize stop flag for this SID */
+        mcu->stop_flags[sid] = true;
+
+        mcu->active_timers[sid] = std::async(std::launch::async, [sid, this, start_time, timer_value]()
+        {
+            while (mcu->stop_flags[sid])
+            {
+                auto now = std::chrono::steady_clock::now();
+                std::chrono::duration<double> elapsed = now - start_time;
+                if (elapsed.count() > timer_value / 20.0)
+                { 
+                    stopTimer(sid);
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
+        });
+    }
+
+    void ReceiveFrames::stopTimer(uint8_t sid) {
+        LOG_INFO(MCULogger->GET_LOGGER(), "stopTimer function called for frame with SID {:x}.", sid);
+
+        auto end_time = std::chrono::steady_clock::now();
+        auto start_time = std::chrono::steady_clock::time_point(std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::nanoseconds((long long)mcu->timing_parameters[sid])));
+        std::chrono::duration<double> processing_time = end_time - start_time;
+
+        mcu->timing_parameters[sid] = processing_time.count();
+
+        if (mcu->active_timers.find(sid) != mcu->active_timers.end())
+        {
+            /* Set stop flag to false for this SID */
+            if(mcu->stop_flags[sid])
+            {
+                int id = ((sid & 0xFF) << 8) | ((sid >> 8) & 0xFF);
+                LOG_INFO(MCULogger->GET_LOGGER(), "Service with SID {:x} sent the response pending frame.", 0x2E);
+                NegativeResponse negative_response(socket_api, *MCULogger);
+                negative_response.sendNRC(id, 0x2E, 0x78);
+                mcu->stop_flags[sid] = false;
+            }
+            mcu->stop_flags.erase(sid);
+            mcu->active_timers[sid].wait();
         }
     }
 
@@ -253,7 +364,12 @@ namespace MCU
         return ecus_up;
     }
 
-    void ReceiveFrames::startTimerThread() {
+    void ReceiveFrames::stopProcessingQueue()
+    {
+        process_queue = false;
+    }
+    void ReceiveFrames::startTimerThread()
+    {
         running = true;
         timer_thread = std::thread(&ReceiveFrames::timerCheck, this);
     }

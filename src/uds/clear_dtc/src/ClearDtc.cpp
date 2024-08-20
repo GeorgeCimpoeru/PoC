@@ -1,4 +1,6 @@
 #include "../include/ClearDtc.h"
+#include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "../../../mcu/include/MCUModule.h"
 
 ClearDtc::ClearDtc(std::string path_to_dtc, Logger& logger, int socket)
 {
@@ -41,7 +43,24 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
         const char * p = path_to_dtc.c_str();
         remove(p);
         rename("temp_dtc.txt", p);
-        this->generate->clearDiagnosticInformation(new_id,{}, true);
+
+        switch(lowerbits)
+        {
+            case 0x10:
+                /* Send response frame */
+                this->generate->clearDiagnosticInformation(new_id,{}, true);
+                LOG_INFO(logger->GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x14);
+                MCU::mcu->stop_flags[0x14] = false;
+                break;
+            case 0x11:
+                /* Send response frame */
+                this->generate->clearDiagnosticInformation(new_id,{}, true);
+                LOG_INFO(logger->GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x14);
+                battery->stop_flags[0x14] = false;
+                break;
+            default:
+                LOG_ERROR(logger->GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);
+        }
         return;
     }
 
@@ -74,8 +93,24 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
     const char * p = path_to_dtc.c_str();
     remove(p);
     rename("temp_dtc.txt", p);
-    LOG_INFO(logger->GET_LOGGER(), "DTCs cleared succesffuly");
-    this->generate->clearDiagnosticInformation(new_id,{}, true);
+
+    switch(lowerbits)
+    {
+        case 0x10:
+            /* Send response frame */
+            LOG_INFO(logger->GET_LOGGER(), "DTCs cleared succesffuly");
+            this->generate->clearDiagnosticInformation(new_id,{}, true);
+            MCU::mcu->stop_flags[0x14] = false;
+            break;
+        case 0x11:
+            /* Send response frame */
+            LOG_INFO(logger->GET_LOGGER(), "DTCs cleared succesffuly");
+            this->generate->clearDiagnosticInformation(new_id,{}, true);
+            battery->stop_flags[0x14] = false;
+            break;
+        default:
+            LOG_ERROR(logger->GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);
+    }
 }
 
 uint32_t ClearDtc::extractGroup(std::string dtc)

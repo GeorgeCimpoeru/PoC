@@ -403,6 +403,7 @@ bool RequestDownloadService::isLatestSoftwareVersion()
     /* Logic to check version */
     return true;
     ReadDataByIdentifier software_version(this->socket, &RDSlogger);
+    ReadDataByIdentifier software_version(this->socket, &RDSlogger);
     LOG_INFO(RDSlogger.GET_LOGGER(), "Check software version");
     uint16_t IDENTIFIER_SOFTWARE = 0x1234; //dummy
     std::vector<uint8_t> current_version = software_version.readDataByIdentifier(0x0,{0x0,0x22, uint8_t(IDENTIFIER_SOFTWARE / 0x100), uint8_t(IDENTIFIER_SOFTWARE % 0x100)},false );

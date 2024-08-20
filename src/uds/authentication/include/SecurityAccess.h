@@ -28,18 +28,6 @@ class SecurityAccess
     public:
     /* SID for SecurityAccess */
     static constexpr uint8_t SECURITY_ACCESS_SID = 0x27;
-    /* SubFunctionNotSupported */
-    static constexpr uint8_t SFNS = 0x12;
-    /* IncorrectMesssageLengthOrInvalidFormat */
-    static constexpr uint8_t IMLOIF = 0x13;
-    /* RequestSequenceError */
-    static constexpr uint8_t RSE = 0x24;
-    /* Invalid key */
-    static constexpr uint8_t IK = 0x35;
-    /* Exceeded nr of attempts */
-    static constexpr uint8_t ENOA = 0x36;
-    /* Required time delay not expired */
-    static constexpr uint8_t RTDNE = 0x37;
     /* Adjust delay timer here. */
     static constexpr uint8_t TIMEOUT_IN_SECONDS = 0x05;
     /* Adjust nr of attempts here. */
