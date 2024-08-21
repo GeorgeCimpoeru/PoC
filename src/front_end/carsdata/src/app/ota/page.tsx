@@ -42,7 +42,7 @@ const OTApage = () => {
         { "id": 5, "artifact": "Software update 6", "status": "Incomplete", "startTime": "06 August 2024, 09:30", "size": "23kB", "uploadedBy": "user1" },
         { "id": 6, "artifact": "Software update 7", "status": "Succeded", "startTime": "07 August 2024, 09:30", "size": "23kB", "uploadedBy": "user1" },
     ];
-    let [history6, setHistory6] = useState<{ id: number, artifact: string, status: string, startTime: string, size: string, uploadedBy: string }[]>([]);
+    let [history6, setHistory6] = useState<{ id: number, artifact: string, status: string, startTime: string, size: string, uploadedBy: string }[]>(history1);
 
     const [selectedDevice, setSelectedDevice] = useState(1);
     const [selectedTable, setSelectedTable] = useState(1);
