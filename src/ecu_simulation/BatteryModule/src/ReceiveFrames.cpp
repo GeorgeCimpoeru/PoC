@@ -179,9 +179,7 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
 
         }
         /* Process the received frame */ 
-        // if (!handle_frame.proces(nbytes, frame)) {
-        //     LOG_WARN(batteryModuleLogger->GET_LOGGER(), "Failed to process frame\n");
-        // }
+        handle_frame.handleFrame(frame);
     }
 }
 
