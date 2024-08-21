@@ -144,14 +144,27 @@ class GenerateFrame:
         data = [2, 0x83, sub_function] if response is False else [2, 0xC3, sub_function]
         self.send_frame(id, data)
 
-    def request_download(self, id, data_format_identifier, memory_address, memory_size, size):
-        address_length = (self.__count_digits(memory_address) + 1) // 2
-        size_length = (self.__count_digits(memory_size) + 1) // 2
-        memory_length = size_length * 0x10 + address_length
-        data = [size_length + address_length + 3, 0x34, data_format_identifier, memory_length]
+    def request_download(self, id, data_format_identifier, memory_address, memory_size, version):
+        # Convert the data_format_identifier from string to the required byte
+        data_format_map = {
+            "none": 0x00,
+            "encryption": 0x01,
+            "compression": 0x10,
+            "both": 0x11,
+            "zip": 0x00  # ToDo check if this is correct
+        }
+        data_format_identifier_byte = data_format_map.get(data_format_identifier, 0x00)
+
+        address_length = (len(memory_address) + 1) // 2
+        size_length = (len(memory_size) + 1) // 2
+        memory_length = (size_length << 4) + address_length
+
+        data = [size_length + address_length + 3, 0x34, data_format_identifier_byte, memory_length]
         self.__add_to_list(data, memory_address)
         self.__add_to_list(data, memory_size)
-        data.append(size)
+        # Convert version to the appropriate byte and append
+        version_byte = self.__convert_version_to_byte(version)
+        data.append(version_byte)
         self.send_frame(id, data)
 
     def request_download_response(self, id, max_number_block):
@@ -224,3 +237,10 @@ class GenerateFrame:
             digits += 1
             number //= 10
         return digits
+
+    def __convert_version_to_byte(self, version):
+            # Converts the version string into its byte representation
+            # Example: "1" -> 0x01 for version 0.1
+            major_version = int(version) >> 4
+            minor_version = int(version) & 0x0F
+            return (major_version << 4) + minor_version

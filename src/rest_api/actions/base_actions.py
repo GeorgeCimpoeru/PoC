@@ -168,7 +168,6 @@ class Action:
         flag = False
         msg_ext = None
         msg = self.bus.recv(3)
-        print(msg)
         while msg is not None:
             # First Frame
             if msg.data[0] == 0x10:
