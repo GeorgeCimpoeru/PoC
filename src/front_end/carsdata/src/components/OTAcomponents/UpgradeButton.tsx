@@ -91,7 +91,7 @@ const UpgradeButton = () => {
 
             <Modal
                 title="Select Version"
-                visible={isVersionPopupVisible}
+                open={isVersionPopupVisible}
                 onCancel={() => setIsVersionPopupVisible(false)}
                 footer={[
                     <Button key="version1" onClick={() => handleVersionSelect('1')}>
@@ -111,7 +111,7 @@ const UpgradeButton = () => {
             {isProgressModalVisible && (
                 <Modal
                     title="Updating..."
-                    visible={true}
+                    open={true}
                     footer={null}
                     closable={false}
                     maskClosable={false}
@@ -138,7 +138,7 @@ const UpgradeButton = () => {
             {isStatusModalVisible && (
                 <Modal
                     title="Update Status"
-                    visible={true}
+                    open={true}
                     onCancel={closePopup}
                     footer={[
                         <Button key="ok" onClick={closePopup}>
