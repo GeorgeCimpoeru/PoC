@@ -1,4 +1,4 @@
-from flask import request, jsonify, Blueprint
+from flask import request, jsonify
 from actions.request_id_action import RequestIdAction
 from actions.update_action import Updates
 from actions.read_info_action import *
@@ -6,51 +6,48 @@ from utils.logger import log_memory
 from actions.manual_send_frame import manual_send_frame
 from actions.write_info_action import WriteInfo
 from configs.data_identifiers import *
+from utils.docs.api_doc import *
 
 
-api_bp = Blueprint('api', __name__)
-
-
-@api_bp.route('/request_ids', methods=['GET'])
+@route_with_swagger('/request_ids', methods=['GET'])
 def request_ids():
     requester = RequestIdAction(my_id=0xFA99)
     response = requester.read_ids()
     return jsonify(response)
 
 
-@api_bp.route('/update_to_version', methods=['POST'])
+@route_with_swagger('/update_to_version', methods=['POST'])
 def update_to_version():
     data = request.get_json()
     ecu_id = data.get('ecu_id')
     version = data.get('version')
     updater = Updates(my_id=API_ID, id_ecu=ecu_id)
-    response = updater.update_to(ecu_id=ecu_id,
-                                 version=version)
+    response = updater.update_to(ecu_id=ecu_id, version=version)
     return jsonify(response)
 
 
-@api_bp.route('/read_info_battery', methods=['GET'])
+@route_with_swagger('/read_info_battery', methods=['GET'])
 def read_info_bat():
     reader = ReadInfo(API_ID, [0x10, 0x11, 0x12])
     response = reader.read_from_battery()
     return jsonify(response)
 
 
-@api_bp.route('/read_info_engine', methods=['GET'])
+@route_with_swagger('/read_info_engine', methods=['GET'])
 def read_info_eng():
     reader = ReadInfo(API_ID, [0x10, 0x11, 0x12])
     response = reader.read_from_engine()
     return jsonify(response)
 
 
-@api_bp.route('/read_info_doors', methods=['GET'])
+@route_with_swagger('/read_info_doors', methods=['GET'])
 def read_info_doors():
     reader = ReadInfo(API_ID, [0x10, 0x11, 0x12])
     response = reader.read_from_doors()
     return jsonify(response)
 
 
-@api_bp.route('/send_frame', methods=['POST'])
+@route_with_swagger('/send_frame', methods=['POST'])
 def send_frame():
     data = request.get_json()
     can_id = data.get('can_id')
@@ -58,16 +55,15 @@ def send_frame():
     return jsonify(manual_send_frame(can_id, can_data))
 
 
-@api_bp.route('/write_info_doors', methods=['POST'])
+@route_with_swagger('/write_info_doors', methods=['POST'])
 def write_info_doors():
     data = request.get_json()
-
     writer = WriteInfo(API_ID, [0x10, 0x11, 0x12], data)
     response = writer.write_to_doors()
     return jsonify(response)
 
 
-@api_bp.route('/write_info_battery', methods=['POST'])
+@route_with_swagger('/write_info_battery', methods=['POST'])
 def write_info_battery():
     data = request.get_json()
     writer = WriteInfo(API_ID, [0x10, 0x11, 0x12], data)
@@ -75,6 +71,6 @@ def write_info_battery():
     return jsonify(response)
 
 
-@api_bp.route('/logs')
+@route_with_swagger('/logs', methods=['GET'])
 def get_logs():
     return jsonify({'logs': log_memory})
