@@ -1,10 +1,9 @@
 from flask import Flask
 from flasgger import Swagger
-from config import Config
+from config import *
 from routes.main import main_bp
 from flask_cors import CORS
-from utils.docs.api_doc import *
-from utils.docs.api_doc import YAML_FILE_PATH
+from routes.api import api_bp
 
 
 app = Flask(__name__)
