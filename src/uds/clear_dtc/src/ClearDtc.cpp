@@ -24,6 +24,11 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
     {
         LOG_ERROR(logger->GET_LOGGER(), "Incorrect message length or invalid format");
         this->generate->negativeResponse(new_id, 0x14, 0x13);
+        if (lowerbits == 0x10) {
+            MCU::mcu->stop_flags[0x14] = false;
+        } else if (lowerbits == 0x11) {
+            battery->stop_flags[0x14] = false;
+        }
         return;
     }
 
@@ -32,6 +37,13 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
     {
         LOG_ERROR(logger->GET_LOGGER(), "RequestOutOfRange NRC:Specified Group of DTC parameter is not supported");
         this->generate->negativeResponse(new_id, 0x14, 0x31);
+        if (lowerbits == 0x10)
+        {
+            MCU::mcu->stop_flags[0x14] = false;
+        } else if (lowerbits == 0x11)
+        {
+            battery->stop_flags[0x14] = false;
+        }
     }
 
     std::ofstream temp;
@@ -77,6 +89,13 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
     {
         LOG_ERROR(logger->GET_LOGGER(), "conditionsNotCorrect NRC: Error trying to open the DTC file");
         this->generate->negativeResponse(new_id, 0x14, 0x22);
+        if (lowerbits == 0x10)
+        {
+            MCU::mcu->stop_flags[0x14] = false;
+        } else if (lowerbits == 0x11)
+        {
+            battery->stop_flags[0x14] = false;
+        }
         return;
     }
     std::string line;

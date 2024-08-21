@@ -22,6 +22,13 @@ void EcuReset::ecuResetRequest()
     if (sub_function != 0x01 && sub_function != 0x02)
     {
         nrc.sendNRC(can_id,0x11,NegativeResponse::SFNS);
+        if (lowerbits == 0x10)
+        {
+            MCU::mcu->stop_flags[0x11] = false;
+        } else if (lowerbits == 0x11)
+        {
+            battery->stop_flags[0x11] = false;
+        }
     }
     // else if (!SecurityAccess::getMcuState())
     // {

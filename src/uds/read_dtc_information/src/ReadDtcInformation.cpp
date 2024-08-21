@@ -26,6 +26,13 @@ void ReadDTC::read_dtc(int id, std::vector<uint8_t> data)
     {
         LOG_ERROR(logger.GET_LOGGER(), "Incorrect message length or invalid format");
         this->generate->negativeResponse(new_id, 0x19, 0x13);
+        if (lowerbits == 0x10)
+        {
+            MCU::mcu->stop_flags[0x19] = false;
+        } else if (lowerbits == 0x11)
+        {
+            battery->stop_flags[0x19] = false;
+        }
         return;
     }
     int sub_function = data[2];
@@ -44,6 +51,13 @@ void ReadDTC::read_dtc(int id, std::vector<uint8_t> data)
         default:
             this->generate->negativeResponse(new_id, 0x19, 0x12);
             LOG_ERROR(logger.GET_LOGGER(), "Sub-function not supported");
+            if (lowerbits == 0x10)
+            {
+                MCU::mcu->stop_flags[0x19] = false;
+            } else if (lowerbits == 0x11)
+            {
+                battery->stop_flags[0x19] = false;
+            }
     }
 }
 
@@ -63,6 +77,14 @@ void ReadDTC::number_of_dtc(int id, int dtc_status_mask)
         LOG_ERROR(logger.GET_LOGGER(), "Unable to read DTCs");
         /* NRC Resource temporarily unavailable */
         this->generate->negativeResponse(id, 0x19, 0x94);
+        uint8_t lowerbits = id & 0xFF;
+        if (lowerbits == 0x10)
+        {
+            MCU::mcu->stop_flags[0x19] = false;
+        } else if (lowerbits == 0x11)
+        {
+            battery->stop_flags[0x19] = false;
+        }
         return;
     }
 
@@ -121,6 +143,14 @@ void ReadDTC::report_dtcs(int id, int dtc_status_mask)
         LOG_ERROR(logger.GET_LOGGER(), "Unable to read DTCs");
         /* NRC Resource temporarily unavailable */
         this->generate->negativeResponse(id, 0x19, 0x94);
+        uint8_t lowerbits = id & 0xFF;
+        if (lowerbits == 0x10)
+        {
+            MCU::mcu->stop_flags[0x19] = false;
+        } else if (lowerbits == 0x11)
+        {
+            battery->stop_flags[0x19] = false;
+        }
         return;
     }
     
