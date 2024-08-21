@@ -1,15 +1,3 @@
-'''
-Authot: Mujdei Ruben 6/2024
-Use class Update to update the software of an ECU
-Future implementations:
-    Download from cloud
-    Start Routines
-
-How to use?
-    u = Updates( 0x23, [0x11,0x12,0x13])
-    u.update_to(id_ecu, "12")
-'''
-
 from actions.base_actions import *  # Assuming this imports necessary actions
 import time
 
@@ -56,7 +44,8 @@ class Updates(Action):
         """
 
         try:
-            self.id = (self.my_id * 0x100) + int(module_id, 16)
+            self.id = (0x11 << 16) + (self.my_id << 8) + 0x10
+            # self.id = 0x11 + (self.my_id * 0x100) + 0x11#int(module_id)
             log_info_message(logger, "Reading data from battery")
             current_version = self._verify_version(sw_version)
             if current_version == sw_version:
@@ -78,10 +67,13 @@ class Updates(Action):
             self.generate.session_control(self.id, 0x01)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
 
+            # self.generate.routine_control(): # ToDO
+
+
             # Reset the ECU to apply the update
             # self.id = (self.my_id * 0x100) + int(ecu_id, 16)
             self.generate.ecu_reset(self.id)
-            self._passive_response(RESET_ECU, "Error trying to reset ECU")
+            # self._passive_response(RESET_ECU, "Error trying to reset ECU") # ToDo reactivate when using real hardware
 
             # Add a delay to wait until the ECU completes the reset process
             log_info_message(logger, "Waiting until ECU is up")
@@ -132,12 +124,18 @@ class Updates(Action):
         Raises:
         - CustomError: If any error occurs during the download process.
         """
-        id = self.my_id * 0x100 + self.id_ecu[0]
-        self.generate.request_download(id,
-                                       data_format_identifier=0x00,
-                                       memory_address=0x01,
-                                       memory_size=0xFFFF,
-                                       size=0x01)
+        # RequestDownload.cpp
+        # line 294 std::string path = "/dev/loop25";
+        # MemoryManager.cpp
+        # line 90 change loop21 or
+        # sudo losetup -a to list all loops
+        #
+        # id = self.my_id * 0x100 + self.id_ecu[0]
+        self.generate.request_download(self.id,
+                                       data_format_identifier="zip",
+                                       memory_address='1Wq3GQUMraXaukpe5T-SBN0_3uly2TaQW',
+                                       memory_size='4211322',
+                                       version='1')
         frame = self._passive_response(REQUEST_DOWNLOAD, "Error requesting download")
         # self.generate.transfer_data_long(self.id, 0x01, data)
         # self.generate.transfer_data_long(self.id, 0x01, data, False)
@@ -159,7 +157,7 @@ class Updates(Action):
         """
         log_info_message(logger, "Reading current version")
         self._write_by_identifier(self.id, IDENTIFIER_SYSTEM_ECU_FLASH_SOFTWARE_VERSION_NUMBER, value=12)
-        current_version = self._read_by_identifier(self.id, version)
+        current_version = self._read_by_identifier(self.id, IDENTIFIER_SYSTEM_ECU_FLASH_SOFTWARE_VERSION_NUMBER)
         return current_version
 
     def _check_errors(self):
