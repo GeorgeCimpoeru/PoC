@@ -1,13 +1,18 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Carousel from '../../components/mainPageComponents/Carousel';
 import NavBarMain from '../../components/mainPageComponents/NavBarMain';
 import Map from '../../components/mainPageComponents/Map';
 
 const MainPage = () => {
+    const [isVinSubmitted, setIsVinSubmitted] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [vin, setVin] = useState('');
-    const [isVinSubmitted, setIsVinSubmitted] = useState(false);
+
+    useEffect(() => {
+        const storedVinSubmitted = localStorage.getItem('isVinSubmitted') === 'true';
+        setIsVinSubmitted(storedVinSubmitted);
+    }, []);
 
     const handleOpenModal = () => {
         setIsModalOpen(true);
@@ -39,17 +44,17 @@ const MainPage = () => {
             const data = await response.json();
             console.log('VIN Submitted successfully:', data);
 
-            setIsModalOpen(false);
+            localStorage.setItem('isVinSubmitted', 'true');
             setIsVinSubmitted(true);
+            setIsModalOpen(false);
         } catch (error) {
             console.error('There was a problem with the fetch operation:', error);
         }
     };
 
     return (
-
         <div className="flex flex-col h-full w-full">
-            <NavBarMain isVinSubmitted={isVinSubmitted}/>
+            <NavBarMain isVinSubmitted={isVinSubmitted} />
             <div className="relative flex flex-1">
                 <Carousel />
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -61,7 +66,6 @@ const MainPage = () => {
                     </button>
                 </div>
             </div>
-
 
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
