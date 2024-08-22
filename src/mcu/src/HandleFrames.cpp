@@ -220,8 +220,10 @@ namespace MCU
                 else 
                 {
                     LOG_INFO(MCULogger->GET_LOGGER(), "TesterPresent called.");
-                    TesterPresent tester_present(MCULogger, &mcuDiagnosticSessionControl, getMcuSocket(frame_id), 1000);
-                    tester_present.handleTesterPresent(frame_id, frame_data);
+                    TesterPresent tester_present(MCULogger, &mcuDiagnosticSessionControl, getMcuSocket(frame_id), 10);
+                    std::thread timerThread(&TesterPresent::handleTesterPresent, &tester_present, frame_id, frame_data);
+                    timerThread.join();
+                    // tester_present.handleTesterPresent(frame_id, frame_data);
                 }
                 break;
             case 0x83:

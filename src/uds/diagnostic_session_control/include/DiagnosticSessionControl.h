@@ -86,11 +86,11 @@ public:
      * @param response_code 
      */
     void sendNegativeResponse(uint8_t response_code);
+    static DiagnosticSession current_session;
 
 private:
     int module_id;
     Logger* dsc_logger;
-    static DiagnosticSession current_session;
     int socket = -1;
     void switchToDefaultSession(canid_t frame_id);
     void switchToProgrammingSession(canid_t frame_id);
