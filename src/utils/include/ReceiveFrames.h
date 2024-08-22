@@ -33,9 +33,9 @@
 #include <future>
 #include <set>
 
-#include "../include/HandleFrames.h"
-#include "../include/GenerateFrames.h"
-#include "../include/BatteryModuleLogger.h"
+#include "../../ecu_simulation/BatteryModule/include/HandleFrames.h"
+#include "GenerateFrames.h"
+#include "Logger.h"
 
 /* List of service we have implemented. */
 const std::vector<uint8_t> service_sids = {
@@ -112,11 +112,9 @@ class ReceiveFrames
 {
 private:
     /* Descriptor for the socket connection */
-    int socket = -1;            
-    /* Module ID for filtering incoming frames */  
-    int frame_id;    
+    int socket = -1;             
     /* Battery Module ID for filtering frames for this module */              
-    uint8_t current_module_id = 0x11;                 
+    int current_module_id;                 
     /* Define frame_buffer as a deque of tuples */ 
     std::deque<std::tuple<can_frame, int>> frame_buffer; 
     /* Mutex for ensuring thread safety when accessing the frame buffer */   
@@ -126,7 +124,9 @@ private:
     /* Flag indicating whether the receive threads should continue running */     
     std::atomic<bool> running;                
     /* Thread for buffering in receiving frames */                
-    std::thread bufferFrameInThread;    
+    std::thread bufferFrameInThread;
+    /* The logger used to write the logs. */
+    Logger& receive_logger;
 
     /**
      * @brief bufferFrameIn thread function that reads frames from the socket and adds them to the buffer.
@@ -141,9 +141,9 @@ private:
     void bufferFrameOut(HandleFrames &handle_frame);
 
     /* Method that start time processing frame. */
-    void startTimer(uint8_t sid);
+    void startTimer(uint8_t frame_dest_id, uint8_t sid);
     /* Method that stop time processing frame. */
-    void stopTimer(uint8_t sid);
+    void stopTimer(uint8_t frame_dest_id, uint8_t sid);
     
 protected:
     HandleFrames handle_frame;
@@ -156,7 +156,7 @@ public:
      * @param socket The socket file descriptor.
      * @param frame_id Frame identifier.
      */
-    ReceiveFrames(int socket, int frame_id);
+    ReceiveFrames(int socket, int current_module_id, Logger& receive_logger);
 
     /**
      * @brief Destructor.

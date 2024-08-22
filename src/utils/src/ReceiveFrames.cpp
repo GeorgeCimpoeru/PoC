@@ -1,7 +1,10 @@
 #include "../include/ReceiveFrames.h"
-#include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 
-ReceiveFrames::ReceiveFrames(int socket, int frame_id) : socket(socket), frame_id(frame_id), running(true) 
+ReceiveFrames::ReceiveFrames(int socket, int current_module_id, Logger& receive_logger) : socket(socket),
+                                                                                            current_module_id(current_module_id),
+                                                                                            running(true), 
+                                                                                            receive_logger(receive_logger)
 {
     if (socket < 0) 
     {
@@ -13,7 +16,7 @@ ReceiveFrames::ReceiveFrames(int socket, int frame_id) : socket(socket), frame_i
     const int MIN_VALID_ID = 0x00000000;
     const int MAX_VALID_ID = 0x7FFFFFFF;
 
-    if (frame_id < MIN_VALID_ID || frame_id > MAX_VALID_ID) 
+    if (current_module_id < MIN_VALID_ID || current_module_id > MAX_VALID_ID) 
     {
         /* std::cerr << "Error: Pass a valid Module ID\n"; */
         LOG_WARN(batteryModuleLogger->GET_LOGGER(), "Error: Pass a valid Module ID\n");
@@ -21,7 +24,7 @@ ReceiveFrames::ReceiveFrames(int socket, int frame_id) : socket(socket), frame_i
     }
 
     /* Print the frame_id for debugging */ 
-    LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Module ID: 0x{0:x}", this->frame_id);
+    LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Module ID: 0x{0:x}", this->current_module_id);
 }
 
 ReceiveFrames::~ReceiveFrames() 
@@ -131,13 +134,13 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
         printFrame(frame);
 
         uint8_t frame_dest_id = frame.can_id & 0xFF;
-        current_module_id = frame_id & 0xFF;
 
         /* Starting frame processing timing if is it a frame request for MCU */
         auto it = std::find(service_sids.begin(), service_sids.end(), frame.data[1]);
 
-        if (it != service_sids.end() && frame_dest_id == 0x11) {
-            startTimer(frame.data[1]);
+        if (it != service_sids.end() && frame_dest_id == 0x11)
+        {
+            startTimer(frame_dest_id, frame.data[1]);
         }
 
         /* Check if the received frame is for your module */ 
@@ -154,7 +157,7 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
         }
 
         /* Check if the frame is a request of type 'Up-Notification' from MCU */
-        if (frame_dest_id == 0x11 && frame.data[0] == 0x01)
+        if (frame.data[0] == 0x01)
         {
             LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Request received from MCU");
             /* Create and instance of GenerateFrames with the CAN socket */
@@ -162,21 +165,13 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
 
             /* Create a vector of uint8_t (bytes) containing the data to be sent */
             std::vector<uint8_t> data = {0x0, 0xff, 0x11, 0x3};
-
-            /* Send the CAN frame with ID 0x2210 and the data vector*/
-            frame.sendFrame(0x1110, data);
+            
+            uint16_t id = (0x10 << 8) | frame_dest_id;
+            frame.sendFrame(id, data);
             LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Response sent to MCU");
 
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             goto label1;
-        }
-        if (frame.data[1] == 0xAA)
-        {
-            current_module_id = frame_id & 0xFF;
-            GenerateFrames test =GenerateFrames(this->socket, *batteryModuleLogger);
-            std::vector<uint8_t> data = {0x00, 0xAA};
-            test.sendFrame(0x1110,data);
-
         }
         /* Process the received frame */ 
         if (!handle_frame.checkReceivedFrame(nbytes, frame)) {
@@ -185,7 +180,7 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
     }
 }
 
-void ReceiveFrames::startTimer(uint8_t sid) {
+void ReceiveFrames::startTimer(uint8_t frame_dest_id, uint8_t sid) {
     /* Define the correct timer value based on SID */
     uint16_t timer_value;
     if (sids_using_p2_max_time.find(sid) != sids_using_p2_max_time.end())
@@ -195,46 +190,80 @@ void ReceiveFrames::startTimer(uint8_t sid) {
         timer_value = AccessTimingParameter::p2_star_max_time;
     }
 
-    LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Started frame processing timing for frame with SID {:x} with max_time = {}.", sid, timer_value);
+    LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Started frame processing timing for frame with SID {:x} with max_time = {} on ECU with id {}.", sid, timer_value, frame_dest_id);
 
     auto start_time = std::chrono::steady_clock::now();
-    battery->timing_parameters[sid] = start_time.time_since_epoch().count();
+    switch(frame_dest_id)
+    {
+    case 0x11:
+        battery->timing_parameters[sid] = start_time.time_since_epoch().count();
 
-    // Initialize stop flag for this SID
-    battery->stop_flags[sid] = true;
+        // Initialize stop flag for this SID
+        battery->stop_flags[sid] = true;
 
-    battery->active_timers[sid] = std::async(std::launch::async, [sid, this, start_time, timer_value]() {
-        while (BatteryModule::stop_flags[sid]) {
-            auto now = std::chrono::steady_clock::now();
-            std::chrono::duration<double> elapsed = now - start_time;
-            if (elapsed.count() > timer_value / 20.0) {
-                stopTimer(sid);
+        battery->active_timers[sid] = std::async(std::launch::async, [sid, this, start_time, timer_value, frame_dest_id]() {
+            while (BatteryModule::stop_flags[sid]) {
+                auto now = std::chrono::steady_clock::now();
+                std::chrono::duration<double> elapsed = now - start_time;
+                if (elapsed.count() > timer_value / 20.0) {
+                    stopTimer(frame_dest_id, sid);
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
             }
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        }
-    });
+        });
+        break;
+    case 0x12:
+        break;
+    case 0x13:
+        break;
+    case 0x14:
+        break;
+    default:
+        break;
+    }
 }
 
-void ReceiveFrames::stopTimer(uint8_t sid) {
+void ReceiveFrames::stopTimer(uint8_t frame_dest_id, uint8_t sid) {
     LOG_INFO(batteryModuleLogger->GET_LOGGER(), "stopTimer function called for frame with SID {:x}.", sid);
+    
     auto end_time = std::chrono::steady_clock::now();
-    auto start_time = std::chrono::steady_clock::time_point(std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::nanoseconds((long long)battery->timing_parameters[sid])));
-    std::chrono::duration<double> processing_time = end_time - start_time;
 
-    battery->timing_parameters[sid] = processing_time.count();
+    std::chrono::time_point<std::chrono::steady_clock> start_time;
+    std::chrono::duration<double> processing_time;
 
-    if (BatteryModule::active_timers.find(sid) != BatteryModule::active_timers.end()) {
-        // Set stop flag to false for this SID
-        if(battery->stop_flags[sid])
-        {
-            int id = ((sid & 0xFF) << 8) | ((sid >> 8) & 0xFF);
-            LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Service with SID {:x} sent the response pending frame.", 0x2E);
-            NegativeResponse negative_response(socket, *batteryModuleLogger);
-            negative_response.sendNRC(id, 0x2E, 0x78);
-            battery->stop_flags[sid] = false;
+    switch (frame_dest_id) {
+    case 0x11:
+        start_time = std::chrono::steady_clock::time_point(
+            std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+                std::chrono::nanoseconds((long long)battery->timing_parameters[sid])
+            )
+        );
+        processing_time = end_time - start_time;
+
+        battery->timing_parameters[sid] = processing_time.count();
+
+        if (BatteryModule::active_timers.find(sid) != BatteryModule::active_timers.end()) {
+            /* Set stop flag to false for this SID */
+            if (battery->stop_flags[sid]) {
+                int id = ((sid & 0xFF) << 8) | ((sid >> 8) & 0xFF);
+                LOG_INFO(batteryModuleLogger->GET_LOGGER(), 
+                         "Service with SID {:x} sent the response pending frame.", 0x2E);
+                
+                NegativeResponse negative_response(socket, *batteryModuleLogger);
+                negative_response.sendNRC(id, 0x2E, 0x78);
+                battery->stop_flags[sid] = false;
+            }
+            battery->stop_flags.erase(sid);
+            battery->active_timers[sid].wait();
         }
-        battery->stop_flags.erase(sid);
-        battery->active_timers[sid].wait();
+        break;
+
+    case 0x12:
+    case 0x13:
+    case 0x14:
+    default:
+        LOG_INFO(batteryModuleLogger->GET_LOGGER(), "stopTimer function called with an ecu id unknown {:x}.", frame_dest_id);
+        break;
     }
 }
 

@@ -396,7 +396,8 @@ bool ReceiveFrames::receiveFramesFromAPI()
                             ecus_up[i] = 0;
                         }/* Send request frame */
                         std::vector<uint8_t> data = {0x01};
-                        ReceiveFrames::generate_frames.sendFrame(0x1011, data);
+                        uint16_t id = (0x10 << 8) | it->first;
+                        ReceiveFrames::generate_frames.sendFrame(id, data);
                         it = ecu_timers.erase(it);
                     } else {
                         ++it;

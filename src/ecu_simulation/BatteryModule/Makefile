@@ -31,20 +31,20 @@ OBJ_DIR = obj
 # Object files
 BATTERY_OBJS = $(OBJ_DIR)/main.o \
 			   $(OBJ_DIR)/BatteryModule.o \
-			   $(OBJ_DIR)/HandleFrames.o \
-			   $(OBJ_DIR)/ReceiveFrames.o
+			   $(OBJ_DIR)/HandleFrames.o 
 
 # MCU object files
 MCU_OBJS = $(OBJ_DIR)/MCUModule.o \
 		   $(OBJ_DIR)/MCUModule_HandleFrames.o \
-		   $(OBJ_DIR)/MCUModule_ReceiveFrames.o \
+		   $(OBJ_DIR)/MCUModule_ReceiveFrames.o 
 		   
 # Utils object files
 UTILS_OBJS = $(OBJ_DIR)/MemoryManager.o \
              $(OBJ_DIR)/Logger.o \
              $(OBJ_DIR)/GenerateFrames.o \
              $(OBJ_DIR)/CreateInterface.o \
-             $(OBJ_DIR)/NegativeResponse.o
+             $(OBJ_DIR)/NegativeResponse.o \
+			 $(OBJ_DIR)/ReceiveFrames.o
 
 # UDS object files
 UDS_OBJS = $(OBJ_DIR)/DiagnosticSessionControl.o \
@@ -109,8 +109,8 @@ $(OBJ_DIR)/CreateInterface.o: $(UTILS_DIR)/CreateInterface.cpp
 $(OBJ_DIR)/DiagnosticSessionControl.o: $(UDS_DIR)/diagnostic_session_control/src/DiagnosticSessionControl.cpp
 	$(CXX) $(CFLAGS) -c $(UDS_DIR)/diagnostic_session_control/src/DiagnosticSessionControl.cpp -o $(OBJ_DIR)/DiagnosticSessionControl.o
 
-$(OBJ_DIR)/ReceiveFrames.o: $(SRC_DIR)/ReceiveFrames.cpp
-	$(CXX) $(CFLAGS) -c $(SRC_DIR)/ReceiveFrames.cpp -o $(OBJ_DIR)/ReceiveFrames.o
+$(OBJ_DIR)/ReceiveFrames.o: $(UTILS_DIR)/ReceiveFrames.cpp
+	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/ReceiveFrames.cpp -o $(OBJ_DIR)/ReceiveFrames.o
 
 $(OBJ_DIR)/ReadDataByIdentifier.o: $(UDS_DIR)/read_data_by_identifier/src/ReadDataByIdentifier.cpp
 	$(CXX) $(CFLAGS) -c $(UDS_DIR)/read_data_by_identifier/src/ReadDataByIdentifier.cpp -o $(OBJ_DIR)/ReadDataByIdentifier.o
@@ -175,13 +175,13 @@ MCU_OBJS_TEST = $(OBJ_DIR)/MCUModule_test.o \
 
 BATTERY_OBJS_TEST = $(OBJ_DIR)/BatteryModule_test.o \
                     $(OBJ_DIR)/HandleFrames_test.o \
-                    $(OBJ_DIR)/ReceiveFrames_test.o
 
 UTILS_OBJS_TEST = $(OBJ_DIR)/MemoryManager_test.o \
                   $(OBJ_DIR)/Logger_test.o \
                   $(OBJ_DIR)/CreateInterface_test.o \
                   $(OBJ_DIR)/GenerateFrames_test.o \
-                  $(OBJ_DIR)/NegativeResponse_test.o
+                  $(OBJ_DIR)/NegativeResponse_test.o \
+				  $(OBJ_DIR)/ReceiveFrames_test.o
 
 OBJS_GENERATE_TEST = $(OBJ_DIR)/Logger_test.o \
                   	 $(OBJ_DIR)/GenerateFrames_test.o
@@ -289,8 +289,8 @@ $(OBJ_DIR)/CreateInterface_test.o: $(UTILS_DIR)/CreateInterface.cpp
 $(OBJ_DIR)/DiagnosticSessionControl_test.o: $(UDS_DIR)/diagnostic_session_control/src/DiagnosticSessionControl.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/diagnostic_session_control/src/DiagnosticSessionControl.cpp -o $(OBJ_DIR)/DiagnosticSessionControl_test.o $(CFLAGSTST2) $(LDFLAGS)
 
-$(OBJ_DIR)/ReceiveFrames_test.o: $(SRC_DIR)/ReceiveFrames.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(SRC_DIR)/ReceiveFrames.cpp -o $(OBJ_DIR)/ReceiveFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
+$(OBJ_DIR)/ReceiveFrames_test.o: $(UTILS_DIR)/ReceiveFrames.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_DIR)/ReceiveFrames.cpp -o $(OBJ_DIR)/ReceiveFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 $(OBJ_DIR)/ReadDataByIdentifier_test.o: $(UDS_DIR)/read_data_by_identifier/src/ReadDataByIdentifier.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/read_data_by_identifier/src/ReadDataByIdentifier.cpp -o $(OBJ_DIR)/ReadDataByIdentifier_test.o $(CFLAGSTST2) $(LDFLAGS)
