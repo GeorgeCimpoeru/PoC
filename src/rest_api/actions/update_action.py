@@ -44,8 +44,10 @@ class Updates(Action):
         """
 
         try:
-            self.id = (0x11 << 16) + (self.my_id << 8) + 0x10
-            # self.id = 0x11 + (self.my_id * 0x100) + 0x11#int(module_id)
+            self._authentication(self.my_id * 0x100 + self.id_ecu[0])
+
+            # self.id = (0x11 << 16) + (self.my_id << 8) + 0x10
+            self.id = (self.my_id * 0x100) + 0x10
             log_info_message(logger, "Reading data from battery")
             current_version = self._verify_version(sw_version)
             if current_version == sw_version:
@@ -56,7 +58,6 @@ class Updates(Action):
             log_info_message(logger, "Changing session to programming")
             self.generate.session_control(self.id, 0x02)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
-            self._authentication(self.my_id * 0x100 + self.id_ecu[0])
 
             log_info_message(logger, "Downloading... Please wait")
             self._download_data(sw_id=sw_id, sw_size=sw_size, sw_version=sw_version)
@@ -128,7 +129,7 @@ class Updates(Action):
         # line 294 std::string path = "/dev/loop25";
         # MemoryManager.cpp
         # line 90 change loop21 or
-        # sudo losetup -a to list all loops
+        # sudo losetup -a # to list all loops
         #
         # id = self.my_id * 0x100 + self.id_ecu[0]
         self.generate.request_download(self.id,
