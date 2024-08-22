@@ -16,6 +16,9 @@
 #include <vector>
 #include <unordered_map>
 #include <bitset>
+#include <fstream>
+#include <sstream>
+#include <string>
 
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../utils/include/Logger.h"

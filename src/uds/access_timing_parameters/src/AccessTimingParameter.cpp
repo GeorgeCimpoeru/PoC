@@ -23,7 +23,8 @@ AccessTimingParameter::~AccessTimingParameter()
 
 void AccessTimingParameter::handleRequest(canid_t frame_id, uint8_t sub_function, std::vector<uint8_t> frame_data)
 {
-    LOG_INFO(atp_logger.GET_LOGGER(), "Function that handle frames in ATP service called with subfunction 0x{:x}.", sub_function);
+    LOG_INFO(atp_logger.GET_LOGGER(), "Function that handle frames in ATP service called with subfunction 0x{:x}.", sub_function);\
+    uint8_t receiver_id = frame_id & 0xFF;
     switch (sub_function)
     {
         case 0x01:
@@ -44,12 +45,29 @@ void AccessTimingParameter::handleRequest(canid_t frame_id, uint8_t sub_function
             {
                 /* Call negative response service with NRC 0x13 */
                 LOG_ERROR(atp_logger.GET_LOGGER(), "Incorrect Message Length Or Invalid Format");
+                NegativeResponse negative_response(socket, atp_logger);
+                negative_response.sendNRC(frame_id, 0x83, 0x13);
+                if (receiver_id == 0x10)
+                {
+                    MCU::mcu->stop_flags[0x83] = false;
+                } else if (receiver_id == 0x11)
+                {
+                    battery->stop_flags[0x83] = false;
+                }
             }
             break;
         default:
             /* Call negative response service with NRC 0x12 */
             LOG_ERROR(atp_logger.GET_LOGGER(), "Unsupported sub-function");
-            return;
+            NegativeResponse negative_response(socket, atp_logger);
+            negative_response.sendNRC(frame_id, 0x83, 0x12);
+            if (receiver_id == 0x10)
+            {
+                MCU::mcu->stop_flags[0x83] = false;
+            } else if (receiver_id == 0x11)
+            {
+                battery->stop_flags[0x83] = false;
+            }
             break;
     }
 }
@@ -114,6 +132,11 @@ void AccessTimingParameter::readExtendedTimingParameters(canid_t frame_id)
             default:
                 LOG_ERROR(atp_logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
         }
+        if (receiver_id == 0x10) {
+            MCU::mcu->stop_flags[0x83] = false;
+        } else if (receiver_id == 0x11) {
+            battery->stop_flags[0x83] = false;
+        }
 }
 
 void AccessTimingParameter::setTimingParametersToDefault(canid_t frame_id)
@@ -163,6 +186,11 @@ void AccessTimingParameter::setTimingParametersToDefault(canid_t frame_id)
                 break;
             default:
                 LOG_ERROR(atp_logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
+        }
+        if (receiver_id == 0x10) {
+            MCU::mcu->stop_flags[0x83] = false;
+        } else if (receiver_id == 0x11) {
+            battery->stop_flags[0x83] = false;
         }
 }
 
@@ -225,6 +253,11 @@ void AccessTimingParameter::readCurrentlyActiveTimingParameters(canid_t frame_id
                 break;
             default:
                 LOG_ERROR(atp_logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
+        }
+        if (receiver_id == 0x10) {
+            MCU::mcu->stop_flags[0x83] = false;
+        } else if (receiver_id == 0x11) {
+            battery->stop_flags[0x83] = false;
         }
 }
 

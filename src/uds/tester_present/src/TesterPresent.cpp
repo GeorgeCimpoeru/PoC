@@ -29,6 +29,14 @@ void TesterPresent::handleTesterPresent(uint32_t can_id, std::vector<uint8_t> da
     {
         LOG_ERROR(logger->GET_LOGGER(), "Incorrect message length");
         this->generate->negativeResponse(can_id, 0x3E, 0x13);
+        uint8_t receiver_id = can_id & 0xFF;
+        if (receiver_id == 0x10)
+        {
+            MCU::mcu->stop_flags[0x3E] = false;
+        } else if (receiver_id == 0x11)
+        {
+            battery->stop_flags[0x3E] = false;
+        }
         return;
     }
 
@@ -38,6 +46,14 @@ void TesterPresent::handleTesterPresent(uint32_t can_id, std::vector<uint8_t> da
     {
         LOG_ERROR(logger->GET_LOGGER(), "Sub-function not supported");
         this->generate->negativeResponse(can_id, 0x3E, 0x12);
+                uint8_t receiver_id = can_id & 0xFF;
+        if (receiver_id == 0x10)
+        {
+            MCU::mcu->stop_flags[0x3E] = false;
+        } else if (receiver_id == 0x11)
+        {
+            battery->stop_flags[0x3E] = false;
+        }
         return;
     }
 

@@ -42,6 +42,14 @@ void DiagnosticSessionControl::sessionControl(canid_t frame_id, uint8_t sub_func
         LOG_ERROR(dsc_logger->GET_LOGGER(), "Unsupported sub-function");
         NegativeResponse negative_response(socket, *dsc_logger);
         negative_response.sendNRC(frame_id, 0x10, 0x12);
+        uint8_t receiver_id = frame_id & 0xFF;
+        if (receiver_id == 0x10)
+        {
+            MCU::mcu->stop_flags[0x10] = false;
+        } else if (receiver_id == 0x11)
+        {
+            battery->stop_flags[0x10] = false;
+        }
         break;
     }
 }
