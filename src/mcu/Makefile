@@ -13,7 +13,7 @@ CFLAGS = -std=c++17 -g -Wall -Werror -pthread -I./include -I../utils/include ${P
 LDFLAGS = -lspdlog -lfmt ${PYTHON_LDFLAGS}
 
 # Test flags
-CFLAGSTST = -std=c++17 -I/include -fprofile-arcs -ftest-coverage
+CFLAGSTST = -std=c++17 -I/include -I/usr/include/python3.8 -fprofile-arcs -ftest-coverage
 CFLAGSTST2 = -lgtest -lgtest_main -lpthread
 CFLAGSTST += -DUNIT_TESTING_MODE
 
@@ -515,6 +515,8 @@ $(UDS_DIR)/authentication/utest/securityAccessTest.out: $(OBJ_DIR) $(OBJS_SECURI
 $(UDS_DIR)/authentication/utest/SecurityAccess_test.o: $(UDS_DIR)/authentication/utest/SecurityAccessTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/authentication/utest/SecurityAccessTest.cpp -o $(UDS_DIR)/authentication/utest/SecurityAccess_test.o $(CFLAGSTST2) $(LDFLAGS)
 
+
+
 # TesterPresent Unit tests
 testerPresentTest: $(OBJ_DIR) $(UDS_DIR)/tester_present/utest/testerPresentTest.out
 
@@ -523,6 +525,8 @@ $(UDS_DIR)/tester_present/utest/testerPresentTest.out: $(OBJ_DIR) $(OBJS_TESTERP
 
 $(UDS_DIR)/tester_present/utest/TesterPresent_test.o: $(UDS_DIR)/tester_present/utest/TesterPresentTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/tester_present/utest/TesterPresentTest.cpp -o $(UDS_DIR)/tester_present/utest/TesterPresent_test.o $(CFLAGSTST2) $(LDFLAGS)
+
+
 
 # RoutineControl Unit tests
 routineControlTest: $(OBJ_DIR) $(UDS_DIR)/routine_control/utest/routineControlTest.out
@@ -565,6 +569,7 @@ $(OTA_DIR)/transfer_data/utest/transferDataTest.out: $(OBJ_DIR) $(OBJS_TRANSFERD
 
 $(OTA_DIR)/transfer_data/utest/TransferData_test.o: $(OTA_DIR)/transfer_data/utest/TransferDataTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(OTA_DIR)/transfer_data/utest/TransferDataTest.cpp -o $(OTA_DIR)/transfer_data/utest/TransferData_test.o $(CFLAGSTST2) $(LDFLAGS)
+
 
 
 # AccessTimingParameter Unit tests
@@ -753,6 +758,7 @@ createInterface_coverage: createInterfaceTest
 	mv CreateInterface.cpp.gcov coverage/out_CreateInterface
 
 
+
 # HandleFrames Coverage - solo job
 handleFramesCoverage: handleFrames_coverage
 	lcov --capture --directory . --output-file coverage.info
@@ -784,6 +790,7 @@ receiveFrames_coverage: receiveFramesTest
 	mv ReceiveFrames.cpp.gcov coverage/out_ReceiveFrames
 
 
+
 # MCUModule Coverage - solo job
 mcuModuleCoverage: mcuModule_coverage
 	lcov --capture --directory . --output-file coverage.info
@@ -797,6 +804,7 @@ mcuModule_coverage: mcuModuleTest
 	mkdir -p coverage/out_MCUModuleTest
 	gcov -o obj/MCUModule_test.gcno obj/MCUModule_test.gcda $(SRC_TEST)/MCUModule.cpp
 	mv MCUModule.cpp.gcov coverage/out_MCUModule
+
 
 
 # GenerateFrames Coverage - solo job
@@ -877,6 +885,8 @@ requestDownload_coverage: requestDownloadTest
 	gcov -o obj/RequestDownload_test.gcno obj/RequestDownload_test.gcda $(OTA_DIR)/request_download/src/RequestDownload.cpp
 	mv RequestDownload.cpp.gcov coverage/out_RequestDownload
 
+
+
 # TesterPresent Coverage - solo job
 testerPresentCoverage: testerPresent_coverage
 	lcov --capture --directory . --output-file coverage.info
@@ -891,6 +901,8 @@ testerPresent_coverage: testerPresentTest
 	gcov -o obj/TesterPresent_test.gcno obj/TesterPresent_test.gcda $(UDS_DIR)/tester_present/src/TesterPresent.cpp
 	mv TesterPresent.cpp.gcov coverage/out_TesterPresent
 
+
+
 # TransferData Coverage - solo job
 transferDataCoverage: transferData_coverage
 	lcov --capture --directory . --output-file coverage.info
@@ -904,6 +916,7 @@ transferData_coverage: transferDataTest
 	mkdir -p coverage/out_TransferData
 	gcov -o obj/TransferData_test.gcno obj/TransferData_test.gcda $(OTA_DIR)/transfer_data/src/TransferData.cpp
 	mv TransferData.cpp.gcov coverage/out_TransferData
+
 
 
 # AccessTimingParameter Coverage - solo job
@@ -921,6 +934,7 @@ accessTimingParameter_coverage: accessTimingParameterTest
 	mv AccessTimingParameter.cpp.gcov coverage/out_AccessTimingParameter
 
 
+
 # NegativeResponse Coverage - solo job
 negativeResponseCoverage: negativeResponse_coverage
 	lcov --capture --directory . --output-file coverage.info
@@ -934,6 +948,7 @@ negativeResponse_coverage: negativeResponseTest
 	mkdir -p coverage/out_NegativeResponse
 	gcov -o obj/NegativeResponse_test.gcno obj/NegativeResponse_test.gcda $(UTILS_DIR)/NegativeResponse.cpp
 	mv NegativeResponse.cpp.gcov coverage/out_NegativeResponse
+
 
 
 allCoverage: securityAccess_coverage routineControl_coverage transferData_coverage requestDownload_coverage ecuReset_coverage memoryManager_coverage logger_coverage generateFrames_coverage mcuModule_coverage receiveFrames_coverage handleFrames_coverage createInterface_coverage diagnosticSessionControl_coverage writeDataByIdentifier_coverage readDataByIdentifier_coverage testerPresent_coverage requestTransferExit_coverage clearDtc_coverage readDtc_coverage requestUpdateStatus_coverage negativeResponse_coverage accessTimingParameter_coverage
@@ -1015,5 +1030,4 @@ clean:
 	find . -name '*.info' -delete
 	find ./test -name '*.out' -delete
 	find ./test -name '*.o' -delete
-	find ./coverage -name '*' -delete
-
+	if [ -d "./coverage" ]; then find ./coverage -name '*' -delete; fi
