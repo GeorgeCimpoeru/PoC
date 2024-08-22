@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Base path for executables
 BASE_PATH="./"
@@ -26,6 +26,7 @@ kill_processes() {
 
         if [ $? -eq 0 ]; then
             echo "Successfully killed process with PID $PID"
+            sleep 1
         else
             echo "Failed to kill process with PID $PID"
             exit 1

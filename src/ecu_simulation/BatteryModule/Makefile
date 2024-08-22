@@ -2,7 +2,7 @@
 ######### Author: Theodor Stoica (contact theodor.stoica@randstaddigital.com for any help)
 
 #POC Project root path
-PROJECT_PATH := $(shell cd $(shell pwd)/../../ && pwd)
+PROJECT_PATH := $(shell cd $(shell pwd)/../../../ && pwd)
 #Python flags
 PYTHON_INCL_DIR=-I/usr/include/python3.8
 PYTHON_LDFLAGS = -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -lcrypt -ldl -lutil -lm -lpthread

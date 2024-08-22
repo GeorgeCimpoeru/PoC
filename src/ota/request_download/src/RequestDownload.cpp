@@ -70,13 +70,13 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
         return;
     }
     /* Authenticate the request */
-    // else if (!isRequestAuthenticated())
-    // {
-    //     LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Authentication failed");
-    //     /* Authentication failed */
-    //     generate_frames.negativeResponse(id, 0x34, 0x34);
-    //     return;
-    // }
+    else if (!isRequestAuthenticated())
+    {
+        LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Authentication failed");
+        /* Authentication failed */
+        generate_frames.negativeResponse(id, 0x34, 0x34);
+        return;
+    }
     /* Check if software is at the latest version */ 
     else if (!isLatestSoftwareVersion())
     {
@@ -97,14 +97,9 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
         size_t position_software_version = 4 + length_memory_address + length_memory_size;
         uint8_t software_version = stored_data[position_software_version];
         /* 0x22 => 0010 0010* => v2.2*/
-        if(target_id != 0x00)
-        {
-            downloadSoftwareVersion(receiver_id, software_version);
-        }
-        else
-        {
-            downloadSoftwareVersion(target_id, software_version);
-        }
+        std::cout << "id is" << static_cast<int>(target_id) << std::endl;
+        downloadSoftwareVersion(target_id, software_version);
+
         /* Check for compression */ 
         if (compression_type == 0x0) 
         {
@@ -112,19 +107,42 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
         } 
         else 
         {
-            char buffer[5];  // 2 digits + '.' + 2 digits + null terminator
+            /* 2 digits + '.' + 2 digits + null terminator */
+            char buffer[5];
+            /* Map 0-15 to 1-16 */
+            uint8_t highNibble = ((software_version >> 4) & 0x0F) + 1;
+            /* Map 0-15 to 1-16 */
+            uint8_t lowNibble = (software_version & 0x0F);
 
-            // Extract the high and low nibbles (4 bits each)
-            uint8_t highNibble = ((software_version >> 4) & 0x0F) + 1; // Map 0-15 to 1-16
-            uint8_t lowNibble = (software_version & 0x0F);         // Map 0-15 to 1-16
-
-            // Format the string as "X.Y"
+            /* Format the string as "X.Y" */
             std::sprintf(buffer, "%x.%x", highNibble, lowNibble);
 
-            std::string zipFilePath = std::string(PROJECT_PATH) + "/MCU_SW_VERSION_" + buffer + ".zip";
+            std::string zipFilePath;
+                                std::cout << "status is: " << std::string(PROJECT_PATH) << std::endl;
+
+            if (access((std::string(PROJECT_PATH) + "/MCU_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x10) {
+                zipFilePath = std::string(PROJECT_PATH) + "/MCU_SW_VERSION_" + buffer + ".zip";
+            }
+            else if (access((std::string(PROJECT_PATH) + "/ECU_BATTERY_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x11) {
+                zipFilePath = std::string(PROJECT_PATH) + "/ECU_BATTERY_SW_VERSION_" + buffer + ".zip";
+            }
+            else if (access((std::string(PROJECT_PATH) + "/ECU_DOORS_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x12) {
+                zipFilePath = std::string(PROJECT_PATH) + "/ECU_DOORS_SW_VERSION_" + buffer + ".zip";
+            }
+            else if (access((std::string(PROJECT_PATH) + "/ECU_ENGINE_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x13) {
+                zipFilePath = std::string(PROJECT_PATH) + "/ECU_ENGINE_SW_VERSION_" + buffer + ".zip";
+            }
+            else if (access((std::string(PROJECT_PATH) + "/ECU_HVAC_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x14) {
+                zipFilePath = std::string(PROJECT_PATH) + "/ECU_HVAC_SW_VERSION_" + buffer + ".zip";
+            }
+            else
+            {
+                LOG_ERROR(RDSlogger.GET_LOGGER(), "No valid zip file file found in PROJECT_PATH.");
+                return;
+            }
             std::string outputDir = std::string(PROJECT_PATH);
 
-            if (extractZipFile(zipFilePath, outputDir)) {
+            if (extractZipFile(target_id, zipFilePath, outputDir)) {
                 LOG_INFO(RDSlogger.GET_LOGGER(), "Files extracted successfully");
             } else {
                 LOG_ERROR(RDSlogger.GET_LOGGER(), "Failed to extract files from ZIP archive.");
@@ -471,7 +489,7 @@ void RequestDownloadService::downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_
      gGdrive_object.attr("downloadFile")(ecu_id, sw_version);
 }
 
-bool RequestDownloadService::extractZipFile(const std::string &zipFilePath, const std::string &outputDir) {
+bool RequestDownloadService::extractZipFile(uint8_t target_id, const std::string &zipFilePath, const std::string &outputDir) {
     int err = 0;
     zip *archive = zip_open(zipFilePath.c_str(), 0, &err);
 
@@ -500,8 +518,27 @@ bool RequestDownloadService::extractZipFile(const std::string &zipFilePath, cons
             return false;
         }
 
-        std::string outputFilePath = outputDir + "/" + name + "_mcu_new";
-
+        std::string outputFilePath;
+        if (target_id == 0x10) {
+            outputFilePath = outputDir + "/" + name + "_mcu_new";
+        }
+        else if (target_id == 0x11) {
+            outputFilePath = outputDir + "/" + name + "_battery_new";
+        }
+        else if (target_id == 0x12) {
+            outputFilePath = outputDir + "/" + name + "_doors_new";
+        }
+        else if (target_id == 0x13) {
+            outputFilePath = outputDir + "/" + name + "_engine_new";
+        }
+        else if (target_id == 0x14) {
+            outputFilePath = outputDir + "/" + name + "_hvac_new";
+        }
+        else
+        {
+            LOG_ERROR(RDSlogger.GET_LOGGER(), "No valid id to match main file.");
+            return false;
+        }
         std::ofstream outFile(outputFilePath, std::ios::binary);
         if (!outFile.is_open()) {
             LOG_ERROR(RDSlogger.GET_LOGGER(), "Error creating output file: " + outputFilePath);

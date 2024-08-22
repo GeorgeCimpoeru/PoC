@@ -30,10 +30,10 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SFNS);
         return;
     }
-    // else if (!SecurityAccess::getMcuState())
-    // {
-    //     nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
-    // }
+    else if (!SecurityAccess::getMcuState())
+    {
+        nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
+    }
     /* when our identifiers will be defined, this range should be smaller */
     else if (routine_identifier < 0x0100 || routine_identifier > 0xEFFF)
     {
@@ -43,22 +43,30 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     }
     else
     {   
-        std::string command = "./../../config/installUpdates.sh";
-        std::string path_to_main = std::string(PROJECT_PATH);
+        std::string command;
+        std::string path_to_main;
+        std::cout << "status is: " << std::string(PROJECT_PATH) << std::endl;
         if (access((std::string(PROJECT_PATH) + "/main_mcu_new").c_str(), F_OK) == 0 && lowerbits == 0x10) {
             path_to_main = std::string(PROJECT_PATH) + "/main_mcu_new";
+            command = "./../../config/installUpdates.sh";
         }
         else if (access((std::string(PROJECT_PATH) + "/main_battery_new").c_str(), F_OK) == 0 && lowerbits == 0x11) {
             path_to_main = std::string(PROJECT_PATH) + "/main_battery_new";
+            command = "./../../../config/installUpdates.sh";
+            MemoryManager* managerInstance = MemoryManager::getInstance(0x0801, "/dev/loop25", rc_logger);
+            managerInstance->getAddress();
         }
         else if (access((std::string(PROJECT_PATH) + "/main_doors_new").c_str(), F_OK) == 0 && lowerbits == 0x12) {
             path_to_main = std::string(PROJECT_PATH) + "/main_doors_new";
+            command = "./../../../config/installUpdates.sh";
         }
         else if (access((std::string(PROJECT_PATH) + "/main_engine_new").c_str(), F_OK) == 0 && lowerbits == 0x13) {
             path_to_main = std::string(PROJECT_PATH) + "/main_engine_new";
+            command = "./../../../config/installUpdates.sh";
         }
         else if (access((std::string(PROJECT_PATH) + "/main_hvac_new").c_str(), F_OK) == 0 && lowerbits == 0x14) {
             path_to_main = std::string(PROJECT_PATH) + "/main_hvac_new";
+            command = "./../../../config/installUpdates.sh";
         }
         else
         {

@@ -16,6 +16,14 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
 {
     uint8_t block_sequence_counter = transfer_request[2];
     std::vector<uint8_t> response;
+    /* Extract and switch sender and receiver */
+    uint8_t receiver_id = can_id  & 0xFF;
+    uint8_t sender_id = (can_id >> 8) & 0xFF;
+    /* target id represents the ecu needed to be updated, if 0 then target will be mcu */
+    /* it is 1 byte and can be found between bit 16 and 23 in canid_t */
+    uint8_t target_id = (can_id >> 16) & 0xFF;
+    /* Reverse IDs, target id will be in same position but receiver will be switched with sender */
+    can_id = (target_id << 16) | (receiver_id << 8) | sender_id;
     if (transfer_request.size() < 3)
     {
         /* Incorrect message length or invalid format - prepare a negative response */
@@ -41,9 +49,28 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
     else
     {
         /* use memory manager class to transfer the data */
-        std::string path_to_main = std::string(PROJECT_PATH) + "/main_mcu_new";
+        std::string path_to_main;
+        if (access((std::string(PROJECT_PATH) + "/main_mcu_new").c_str(), F_OK) == 0 && target_id == 0x10) {
+            path_to_main = std::string(PROJECT_PATH) + "/main_mcu_new";
+        }
+        else if (access((std::string(PROJECT_PATH) + "/main_battery_new").c_str(), F_OK) == 0 && target_id == 0x11) {
+            path_to_main = std::string(PROJECT_PATH) + "/main_battery_new";
+        }
+        else if (access((std::string(PROJECT_PATH) + "/main_doors_new").c_str(), F_OK) == 0 && target_id == 0x12) {
+            path_to_main = std::string(PROJECT_PATH) + "/main_doors_new";
+        }
+        else if (access((std::string(PROJECT_PATH) + "/main_engine_new").c_str(), F_OK) == 0 && target_id == 0x13) {
+            path_to_main = std::string(PROJECT_PATH) + "/main_engine_new";
+        }
+        else if (access((std::string(PROJECT_PATH) + "/main_hvac_new").c_str(), F_OK) == 0 && target_id == 0x14) {
+            path_to_main = std::string(PROJECT_PATH) + "/main_hvac_new";
+        }
+        else
+        {
+            return;
+        }
+
         std::vector<uint8_t> data = MemoryManager::readBinary(path_to_main, transfer_data_logger);
-        // LOG_ERROR(transfer_data_logger.GET_LOGGER(), "File size is: " + data.size());
         MemoryManager* memory_manager = MemoryManager::getInstance(transfer_data_logger);
         memory_manager->writeToAddress(data);
         /* clear vector after writing to adress */

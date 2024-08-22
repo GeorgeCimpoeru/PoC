@@ -151,10 +151,11 @@ private:
     /**
      * @brief Method to extract the zipped file.
      * 
+     * @param target_id targeted ecu for file unzipping.
      * @param zipFilePath path to zip file
      * @param outputDir path for the extracted file
      */
-    bool extractZipFile(const std::string &zipFilePath, const std::string &outputDir);
+    bool extractZipFile(uint8_t target_id, const std::string &zipFilePath, const std::string &outputDir);
 };
 
 #endif /* REQUEST_DOWNLOAD_SERVICE_H */

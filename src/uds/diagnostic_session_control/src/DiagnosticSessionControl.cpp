@@ -97,20 +97,20 @@ void DiagnosticSessionControl::switchToProgrammingSession(canid_t frame_id)
     GenerateFrames response_frame(socket, *dsc_logger);
 
     /* Form the new id */
-    // int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+    int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
     uint8_t receiver_id = frame_id & 0xFF;
 
     switch(receiver_id)
     {
         case 0x10:
             /* Send response frame */
-            // response_frame.sessionControl(id, 0x02, true);
+            response_frame.sessionControl(id, 0x02, true);
             LOG_INFO(dsc_logger->GET_LOGGER(), "Sent pozitive response");
             MCU::mcu->stop_flags[0x10] = false;
             break;
         case 0x11:
             /* Send response frame */
-            // response_frame.sessionControl(id, 0x02, true);
+            response_frame.sessionControl(id, 0x02, true);
             LOG_INFO(dsc_logger->GET_LOGGER(), "Sent pozitive response");
             battery->stop_flags[0x10] = false;
             break;
