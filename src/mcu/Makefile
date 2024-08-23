@@ -32,12 +32,10 @@ OBJ_DIR = obj
 # Object files
 MCU_OBJS = $(OBJ_DIR)/main.o \
            $(OBJ_DIR)/MCUModule.o \
-           $(OBJ_DIR)/HandleFrames.o \
            $(OBJ_DIR)/ReceiveFrames.o
 
 # Battery object files
 BATTERY_OBJS = $(OBJ_DIR)/BatteryModule.o \
-               $(OBJ_DIR)/BatteryModule_HandleFrames.o 
 
 # Utils object files
 UTILS_OBJS = $(OBJ_DIR)/MemoryManager.o \
@@ -45,7 +43,8 @@ UTILS_OBJS = $(OBJ_DIR)/MemoryManager.o \
              $(OBJ_DIR)/GenerateFrames.o \
              $(OBJ_DIR)/CreateInterface.o \
              $(OBJ_DIR)/NegativeResponse.o \
-			 $(OBJ_DIR)/BatteryModule_ReceiveFrames.o
+			 $(OBJ_DIR)/BatteryModule_ReceiveFrames.o \
+			 $(OBJ_DIR)/HandleFrames.o
 
 # UDS object files
 UDS_OBJS = $(OBJ_DIR)/DiagnosticSessionControl.o \
@@ -98,8 +97,8 @@ $(OBJ_DIR)/BatteryModule.o: $(BATTERY_DIR)/BatteryModule.cpp
 $(OBJ_DIR)/GenerateFrames.o: $(UTILS_DIR)/GenerateFrames.cpp
 	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/GenerateFrames.cpp -o $(OBJ_DIR)/GenerateFrames.o
 
-$(OBJ_DIR)/HandleFrames.o: $(SRC_DIR)/HandleFrames.cpp
-	$(CXX) $(CFLAGS) -c $(SRC_DIR)/HandleFrames.cpp -o $(OBJ_DIR)/HandleFrames.o
+$(OBJ_DIR)/HandleFrames.o: $(UTILS_DIR)/HandleFrames.cpp
+	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/HandleFrames.cpp -o $(OBJ_DIR)/HandleFrames.o
 
 $(OBJ_DIR)/CreateInterface.o: $(UTILS_DIR)/CreateInterface.cpp
 	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/CreateInterface.cpp -o $(OBJ_DIR)/CreateInterface.o
@@ -169,18 +168,17 @@ $(OBJ_DIR)/NegativeResponse.o: $(UTILS_DIR)/NegativeResponse.cpp
 #----------------------------------------------------UNIT TESTS-----------------------------------------------------
 
 MCU_OBJS_TEST = $(OBJ_DIR)/MCUModule_test.o \
-                $(OBJ_DIR)/HandleFrames_test.o \
                 $(OBJ_DIR)/ReceiveFrames_test.o
 
 BATTERY_OBJS_TEST = $(OBJ_DIR)/BatteryModule_test.o \
-                    $(OBJ_DIR)/BatteryModule_HandleFrames_test.o \
                     $(OBJ_DIR)/BatteryModule_ReceiveFrames_test.o
 
 UTILS_OBJS_TEST = $(OBJ_DIR)/MemoryManager_test.o \
                   $(OBJ_DIR)/Logger_test.o \
                   $(OBJ_DIR)/CreateInterface_test.o \
                   $(OBJ_DIR)/GenerateFrames_test.o \
-                  $(OBJ_DIR)/NegativeResponse_test.o
+                  $(OBJ_DIR)/NegativeResponse_test.o \
+				  $(OBJ_DIR)/HandleFrames_test.o
 
 OBJS_GENERATE_TEST = $(OBJ_DIR)/Logger_test.o \
                   	 $(OBJ_DIR)/GenerateFrames_test.o
@@ -279,8 +277,8 @@ $(OBJ_DIR)/BatteryModule_test.o: $(BATTERY_DIR)/BatteryModule.cpp
 $(OBJ_DIR)/GenerateFrames_test.o: $(UTILS_DIR)/GenerateFrames.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_DIR)/GenerateFrames.cpp -o $(OBJ_DIR)/GenerateFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
 
-$(OBJ_DIR)/HandleFrames_test.o: $(SRC_DIR)/HandleFrames.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(SRC_DIR)/HandleFrames.cpp -o $(OBJ_DIR)/HandleFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
+$(OBJ_DIR)/HandleFrames_test.o: $(UTILS_DIR)/HandleFrames.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_DIR)/HandleFrames.cpp -o $(OBJ_DIR)/HandleFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 $(OBJ_DIR)/CreateInterface_test.o: $(UTILS_DIR)/CreateInterface.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_DIR)/CreateInterface.cpp -o $(OBJ_DIR)/CreateInterface_test.o $(CFLAGSTST2) $(LDFLAGS)
@@ -353,14 +351,13 @@ allTests: mcuModuleTest handleFramesTest receiveFramesTest generateFramesTest lo
 
 
 # HandleFrames Unit tests
-handleFramesTest: $(OBJ_DIR) $(SRC_TEST)/handleFramesTest.out
+handleFramesTest: $(OBJ_DIR) $(UTILS_TEST)/handleFramesTest.out
 
-$(SRC_TEST)/handleFramesTest.out: $(OBJ_DIR) $(OBJS_TEST) $(SRC_TEST)/HandleFrames_test.o
-	$(CXX) $(CFLAGSTST) -o $(SRC_TEST)/handleFramesTest.out $(SRC_TEST)/HandleFrames_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
+$(UTILS_TEST)/handleFramesTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UTILS_TEST)/HandleFrames_test.o
+	$(CXX) $(CFLAGSTST) -o $(UTILS_TEST)/handleFramesTest.out $(UTILS_TEST)/HandleFrames_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
 
-$(SRC_TEST)/HandleFrames_test.o: $(SRC_TEST)/HandleFrames_test.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(SRC_TEST)/HandleFrames_test.cpp -o $(SRC_TEST)/HandleFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
-
+$(UTILS_TEST)/HandleFrames_test.o: $(UTILS_TEST)/HandleFrames_test.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/HandleFrames_test.cpp -o $(UTILS_TEST)/HandleFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 
 # ReceiveFrames Unit tests
@@ -768,9 +765,9 @@ handleFramesCoverage: handleFrames_coverage
 	xdg-open coverage/out_HandleFramesTest/index.html
 # This job runs for allCoverage
 handleFrames_coverage: handleFramesTest
-	./$(SRC_TEST)/handleFramesTest.out
+	./$(UTILS_TEST)/handleFramesTest.out
 	mkdir -p coverage/out_HandleFrames
-	gcov -o obj/HandleFrames_test.gcno obj/HandleFrames_test.gcda $(SRC_TEST)/HandleFrames.cpp
+	gcov -o obj/HandleFrames_test.gcno obj/HandleFrames_test.gcda $(UTILS_TEST)/HandleFrames.cpp
 	mv HandleFrames.cpp.gcov coverage/out_HandleFrames
 
 
