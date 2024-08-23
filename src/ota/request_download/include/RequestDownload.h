@@ -24,6 +24,7 @@
 #include <sys/ioctl.h>
 #include <linux/can.h>
 #include <net/if.h>
+#include <zip.h>
 #include "../../../utils/include/CreateInterface.h"
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../utils/include/Logger.h"
@@ -146,6 +147,15 @@ private:
      * @param version_file_id 
      */
     void downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_version);
+
+    /**
+     * @brief Method to extract the zipped file.
+     * 
+     * @param target_id targeted ecu for file unzipping.
+     * @param zipFilePath path to zip file
+     * @param outputDir path for the extracted file
+     */
+    bool extractZipFile(uint8_t target_id, const std::string &zipFilePath, const std::string &outputDir);
 };
 
 #endif /* REQUEST_DOWNLOAD_SERVICE_H */
