@@ -37,15 +37,15 @@ MCU_OBJS = $(OBJ_DIR)/main.o \
 
 # Battery object files
 BATTERY_OBJS = $(OBJ_DIR)/BatteryModule.o \
-               $(OBJ_DIR)/BatteryModule_HandleFrames.o \
-               $(OBJ_DIR)/BatteryModule_ReceiveFrames.o
+               $(OBJ_DIR)/BatteryModule_HandleFrames.o 
 
 # Utils object files
 UTILS_OBJS = $(OBJ_DIR)/MemoryManager.o \
              $(OBJ_DIR)/Logger.o \
              $(OBJ_DIR)/GenerateFrames.o \
              $(OBJ_DIR)/CreateInterface.o \
-             $(OBJ_DIR)/NegativeResponse.o
+             $(OBJ_DIR)/NegativeResponse.o \
+			 $(OBJ_DIR)/BatteryModule_ReceiveFrames.o
 
 # UDS object files
 UDS_OBJS = $(OBJ_DIR)/DiagnosticSessionControl.o \
@@ -128,8 +128,8 @@ $(OBJ_DIR)/TesterPresent.o: $(UDS_DIR)/tester_present/src/TesterPresent.cpp
 $(OBJ_DIR)/BatteryModule_HandleFrames.o: $(BATTERY_DIR)/HandleFrames.cpp
 	$(CXX) $(CFLAGS) -c $(BATTERY_DIR)/HandleFrames.cpp -o $(OBJ_DIR)/BatteryModule_HandleFrames.o
 
-$(OBJ_DIR)/BatteryModule_ReceiveFrames.o: $(BATTERY_DIR)/ReceiveFrames.cpp
-	$(CXX) $(CFLAGS) -c $(BATTERY_DIR)/ReceiveFrames.cpp -o $(OBJ_DIR)/BatteryModule_ReceiveFrames.o
+$(OBJ_DIR)/BatteryModule_ReceiveFrames.o: $(UTILS_DIR)/ReceiveFrames.cpp
+	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/ReceiveFrames.cpp -o $(OBJ_DIR)/BatteryModule_ReceiveFrames.o
 
 $(OBJ_DIR)/ReadDtcInformation.o: $(UDS_DIR)/read_dtc_information/src/ReadDtcInformation.cpp
 	$(CXX) $(CFLAGS) -c $(UDS_DIR)/read_dtc_information/src/ReadDtcInformation.cpp -o $(OBJ_DIR)/ReadDtcInformation.o

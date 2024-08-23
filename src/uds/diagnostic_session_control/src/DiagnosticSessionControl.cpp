@@ -57,10 +57,12 @@ void DiagnosticSessionControl::sessionControl(canid_t frame_id, uint8_t sub_func
 /* Method to switch current session to Default Session */
 void DiagnosticSessionControl::switchToDefaultSession(canid_t frame_id)
 {
+    LOG_INFO(dsc_logger->GET_LOGGER(), "Session before change: {}", getCurrentSessionToString());
+
     /* Switch to Default Session */
     current_session = DEFAULT_SESSION;
 
-    LOG_INFO(dsc_logger->GET_LOGGER(), "Switched to Default Session. Current session: {}", getCurrentSessionToString());
+    LOG_INFO(dsc_logger->GET_LOGGER(), "Current session: {}", getCurrentSessionToString());
 
     /* Create instance of Generate Frames to send response frame */
     GenerateFrames response_frame(socket, *dsc_logger);
@@ -96,10 +98,12 @@ void DiagnosticSessionControl::switchToDefaultSession(canid_t frame_id)
 /* Method to switch current session to Programming Session */
 void DiagnosticSessionControl::switchToProgrammingSession(canid_t frame_id)
 {
+    
+    LOG_INFO(dsc_logger->GET_LOGGER(), "Session before change: {}", getCurrentSessionToString());
     /* Switch to Programming Session */
     current_session = PROGRAMMING_SESSION;
 
-    LOG_INFO(dsc_logger->GET_LOGGER(), "Switched to Programming Session. Current session: {}", getCurrentSessionToString());
+    LOG_INFO(dsc_logger->GET_LOGGER(), "Current session: {}", getCurrentSessionToString());
 
     /* Create instance of Generate Frames to send response frame */
     GenerateFrames response_frame(socket, *dsc_logger);
