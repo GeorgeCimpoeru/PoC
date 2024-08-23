@@ -6,7 +6,7 @@ class HandleFramesTest : public ::testing::Test{
     public:
     HandleFramesTest(){}
     protected:
-    MCU::HandleFrames handler;
+    HandleFrames handler;
     struct can_frame testFrame;
 };
 
