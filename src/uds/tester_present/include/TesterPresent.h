@@ -15,17 +15,23 @@
 #include <thread>
 #include <chrono>
 #include <atomic>
+// #include <condition_variable>
+// #include <mutex>
 
 class TesterPresent
 {
 private:
     GenerateFrames* generate;
-    DiagnosticSessionControl* sessionControl;
     Logger* logger;
+    DiagnosticSessionControl* sessionControl;
     std::thread timerThread;
-    std::atomic<bool> running;
+    bool running;
     int socket;
     int timeout_duration;
+    // std::chrono::steady_clock::time_point last_timer_reset_time;
+    // std::condition_variable cv;
+    // std::mutex mtx;
+    // bool reset_timer = false;
 
 public:
     /**
@@ -52,6 +58,12 @@ public:
      * @param data Request data
      */
     void handleTesterPresent(uint32_t can_id, std::vector<uint8_t> data);
+
+    /**
+     * @brief Method to check the S3 timer
+     * 
+     */
+    void checkTimer();
 
     /**
      * @brief Method to check if the tester is present
