@@ -77,6 +77,18 @@ def handle_negative_response(nrc, service_id):
 
         # Access Timing Parameter Service (0x83)
         0x83: {0x12, 0x13, 0x78},
+
+        # Clear Diagnostic Information (0x14)
+        0x14: {0x13, 0x31},
+
+        # Read DTC Information (0x19)
+        0x19: {0x12, 0x13},
+
+        # Routine Control (0x31)
+        0x31: {0x12, 0x31},
+
+        # Tester Present (0x3E)
+        0x3E: {0x12, 0x13}
     }
 
     # General negative response codes
