@@ -33,6 +33,7 @@ BATTERY_OBJS = $(OBJ_DIR)/main.o \
 			   $(OBJ_DIR)/BatteryModule.o \
 
 # MCU object files
+
 MCU_OBJS = $(OBJ_DIR)/MCUModule.o \
 		   $(OBJ_DIR)/MCUModule_ReceiveFrames.o 
 		   
