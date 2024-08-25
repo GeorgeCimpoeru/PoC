@@ -189,6 +189,7 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                         generate_frames->sendFrame(can_id,response,DATA_FRAME);
                         LOG_INFO(security_logger.GET_LOGGER(), "Security Access granted successfully.");
                         mcu_state = true;
+                        generate_frames->sendFrame(can_id,response,DATA_FRAME);
                     }
                     else
                     {   
