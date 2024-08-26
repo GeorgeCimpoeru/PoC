@@ -179,7 +179,7 @@ class GenerateFrame:
         address_and_length_format_identifier = (size_length << 4) | address_length
 
         # Constructing the data list
-        data = [pci, sid, data_format_identifier, address_and_length_format_identifier]
+        data = [pci, sid, data_format_identifier, 0x21]
         data.extend(memory_address_bytes)
         data.extend(memory_size_bytes)
         data.append(version)
@@ -257,10 +257,3 @@ class GenerateFrame:
             digits += 1
             number //= 10
         return digits
-
-    def __convert_version_to_byte(self, version):
-            # Converts the version string into its byte representation
-            # Example: "1" -> 0x01 for version 0.1
-            major_version = int(version) >> 4
-            minor_version = int(version) & 0x0F
-            return (major_version << 4) + minor_version
