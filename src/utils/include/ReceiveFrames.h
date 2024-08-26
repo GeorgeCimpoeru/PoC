@@ -33,7 +33,7 @@
 #include <future>
 #include <set>
 
-#include "../../ecu_simulation/BatteryModule/include/HandleFrames.h"
+#include "HandleFrames.h"
 #include "GenerateFrames.h"
 #include "Logger.h"
 
@@ -126,7 +126,7 @@ private:
     /* Thread for buffering in receiving frames */                
     std::thread bufferFrameInThread;
     /* The logger used to write the logs. */
-    Logger& receive_logger;
+    Logger *receive_logger;
 
     /**
      * @brief bufferFrameIn thread function that reads frames from the socket and adds them to the buffer.
@@ -156,7 +156,7 @@ public:
      * @param socket The socket file descriptor.
      * @param frame_id Frame identifier.
      */
-    ReceiveFrames(int socket, int current_module_id, Logger& receive_logger);
+    ReceiveFrames(int socket, int current_module_id, Logger *receive_logger);
 
     /**
      * @brief Destructor.

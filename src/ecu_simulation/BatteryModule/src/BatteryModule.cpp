@@ -37,7 +37,7 @@ BatteryModule::BatteryModule() : moduleId(0x11),
 
     battery_socket = canInterface->createSocket(0x00);
     /* Initialize the Frame Receiver */
-    frameReceiver = new ReceiveFrames(battery_socket, moduleId, *batteryModuleLogger);
+    frameReceiver = new ReceiveFrames(battery_socket, moduleId, batteryModuleLogger);
 
     LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Battery object created successfully, ID : 0x{:X}", this->moduleId);
 
@@ -73,7 +73,7 @@ BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_mo
 
     battery_socket = canInterface->createSocket(0x00);
     /* Initialize the Frame Receiver */
-    frameReceiver = new ReceiveFrames(battery_socket, moduleId, *batteryModuleLogger);
+    frameReceiver = new ReceiveFrames(battery_socket, moduleId, batteryModuleLogger);
 
     LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Battery object created successfully using Parameterized Constructor, ID : 0x{:X}", this->moduleId);
 
@@ -255,7 +255,7 @@ void BatteryModule::receiveFrames()
     LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Battery module starts the frame receiver");
 
     /* Create a HandleFrames object to process received frames */
-    HandleFrames handleFrames(this->battery_socket);
+    HandleFrames handleFrames(this->battery_socket, batteryModuleLogger);
 
     /* Receive a CAN frame using the frame receiver and process it with handleFrames */
     frameReceiver->receive(handleFrames);
