@@ -144,27 +144,47 @@ class GenerateFrame:
         data = [2, 0x83, sub_function] if response is False else [2, 0xC3, sub_function]
         self.send_frame(id, data)
 
+
     def request_download(self, id, data_format_identifier, memory_address, memory_size, version):
-        # Convert the data_format_identifier from string to the required byte
-        data_format_map = {
-            "none": 0x00,
-            "encryption": 0x01,
-            "compression": 0x10,
-            "both": 0x11,
-            "zip": 0x00  # ToDo check if this is correct
+        # Define the data format identifier mapping
+        DATA_FORMAT_IDENTIFIER_MAP = {
+            0x00: "No compression/encryption",
+            0x01: "Only encryption",
+            0x10: "Only compression",
+            0x11: "Both encryption and compression"
         }
-        data_format_identifier_byte = data_format_map.get(data_format_identifier, 0x00)
 
-        address_length = (len(memory_address) + 1) // 2
-        size_length = (len(memory_size) + 1) // 2
-        memory_length = (size_length << 4) + address_length
+        # Constants
+        sid = 0x34  # Service Identifier for Request Download
+        pci = 0x07  # Protocol Control Information (PCI) - 1 byte
 
-        data = [size_length + address_length + 3, 0x34, data_format_identifier_byte, memory_length]
-        self.__add_to_list(data, memory_address)
-        self.__add_to_list(data, memory_size)
-        # Convert version to the appropriate byte and append
-        version_byte = self.__convert_version_to_byte(version)
-        data.append(version_byte)
+        # Ensure the data_format_identifier is valid
+        if data_format_identifier not in DATA_FORMAT_IDENTIFIER_MAP:
+            raise ValueError("Invalid data format identifier")
+
+        # Calculate the number of bytes for memory address and memory size
+        if isinstance(memory_address, int):
+            memory_address_bytes = memory_address.to_bytes((memory_address.bit_length() + 7) // 8, byteorder='big')
+        else:
+            memory_address_bytes = memory_address
+
+        if isinstance(memory_size, int):
+            memory_size_bytes = memory_size.to_bytes((memory_size.bit_length() + 7) // 8, byteorder='big')
+        else:
+            memory_size_bytes = memory_size
+
+        # Calculate the Address and Length Format Identifier
+        address_length = len(memory_address_bytes)
+        size_length = len(memory_size_bytes)
+        address_and_length_format_identifier = (size_length << 4) | address_length
+
+        # Constructing the data list
+        data = [pci, sid, data_format_identifier, address_and_length_format_identifier]
+        data.extend(memory_address_bytes)
+        data.extend(memory_size_bytes)
+        data.append(version)
+
+        # Sending the frame using the send_frame function
         self.send_frame(id, data)
 
     def request_download_response(self, id, max_number_block):

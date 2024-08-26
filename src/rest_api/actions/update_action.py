@@ -44,10 +44,20 @@ class Updates(Action):
         """
 
         try:
-            self._authentication(self.my_id * 0x100 + self.id_ecu[0])
+            self.id = (self.id_ecu[1] << 16) + (self.my_id << 8) + self.id_ecu[0]
+
+            # self.id = self.my_id * 0x100 + self.id_ecu[0]
+            log_info_message(logger, "Changing session to programming")
+            self.generate.session_control(self.id, 0x02)
+            self._passive_response(SESSION_CONTROL, "Error changing session control")
+
+            self._authentication(self.id)
+
+            log_info_message(logger, "Changing session to default")
+            self.generate.session_control(self.id, 0x01)
+            self._passive_response(SESSION_CONTROL, "Error changing session control")
 
             # self.id = (0x11 << 16) + (self.my_id << 8) + 0x10
-            self.id = (self.my_id * 0x100) + 0x10
             log_info_message(logger, "Reading data from battery")
             current_version = self._verify_version(sw_version)
             if current_version == sw_version:
@@ -55,21 +65,15 @@ class Updates(Action):
                 self.bus.shutdown()
                 return response_json
 
-            log_info_message(logger, "Changing session to programming")
-            self.generate.session_control(self.id, 0x02)
-            self._passive_response(SESSION_CONTROL, "Error changing session control")
-
             log_info_message(logger, "Downloading... Please wait")
             self._download_data(sw_id=sw_id, sw_size=sw_size, sw_version=sw_version)
             log_info_message(logger, "Download finished, restarting ECU...")
 
             log_info_message(logger, "Changing session to default")
-            # self.id = self.my_id * 0x100 + self.id_ecu[0]
             self.generate.session_control(self.id, 0x01)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
 
             # self.generate.routine_control(): # ToDO
-
 
             # Reset the ECU to apply the update
             # self.id = (self.my_id * 0x100) + int(ecu_id, 16)
@@ -131,12 +135,14 @@ class Updates(Action):
         # line 90 change loop21 or
         # sudo losetup -a # to list all loops
         #
-        # id = self.my_id * 0x100 + self.id_ecu[0]
+        # self.id = self.my_id * 0x100 + self.id_ecu[0]
+        # self.id = (self.id_ecu[1] << 16) + (self.my_id << 8) + self.id_ecu[0]
+
         self.generate.request_download(self.id,
-                                       data_format_identifier="zip",
-                                       memory_address='1Wq3GQUMraXaukpe5T-SBN0_3uly2TaQW',
-                                       memory_size='4211322',
-                                       version='1')
+                                       data_format_identifier=0x00,  # No compression/encryption
+                                       memory_address=0x8001,  # Memory address starting from 2049
+                                       memory_size=0x01,  # Memory size
+                                       version=0x24)  # Version 2.4
         frame = self._passive_response(REQUEST_DOWNLOAD, "Error requesting download")
         # self.generate.transfer_data_long(self.id, 0x01, data)
         # self.generate.transfer_data_long(self.id, 0x01, data, False)
