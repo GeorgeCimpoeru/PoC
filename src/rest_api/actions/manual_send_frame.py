@@ -40,7 +40,6 @@ def manual_send_frame(can_id, can_data):
                 service_id = received_frame.data[2]
                 error_text = handle_negative_response(nrc, service_id)
 
-                received_data['auth_status'] = 'failed'
                 received_data['error_text'] = error_text
 
                 if nrc == 0x37:  # Specific handling for "RequiredTimeDelayNotExpired"
