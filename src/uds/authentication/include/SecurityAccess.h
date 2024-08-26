@@ -32,6 +32,8 @@ class SecurityAccess
     static constexpr uint8_t TIMEOUT_IN_SECONDS = 0x05;
     /* Adjust nr of attempts here. */
     static constexpr uint8_t MAX_NR_OF_ATTEMPTS = 3;
+    /* Adjust timer until security access will expire here. */
+    static constexpr uint8_t SECURITY_TIMEOUT_IN_SECONDS = 0x0A;
 
     private:
         GenerateFrames* generate_frames;
@@ -40,8 +42,23 @@ class SecurityAccess
         int socket_canbus = -1;
         static uint8_t nr_of_attempts;
         static bool mcu_state;
+        /**
+         * Time left until the delay timer will expire.
+        */
         static uint32_t time_left;
         static std::vector<uint8_t> security_access_seed;
+        /**
+         * end_time is the total time until the delay timer will expire.
+         * Set end_time to a distant future point. This ensures that it is always.
+         * greater than the current time unless a specific delay timer is activated.
+        */
+        static std::chrono::steady_clock::time_point end_time;
+        /**
+         * end_time_security is total the time until the security will expire.
+         * Set end_time to a distant future point. This ensures that it is always.
+         * greater than the current time unless a specific delay timer is activated.
+        */
+        static std::chrono::steady_clock::time_point end_time_security;
     
     public:
         /**
