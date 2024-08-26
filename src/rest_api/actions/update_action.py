@@ -65,6 +65,10 @@ class Updates(Action):
                 self.bus.shutdown()
                 return response_json
 
+            log_info_message(logger, "Changing session to programming")
+            self.generate.session_control(self.id, 0x02)
+            self._passive_response(SESSION_CONTROL, "Error changing session control")
+
             log_info_message(logger, "Downloading... Please wait")
             self._download_data(sw_id=sw_id, sw_size=sw_size, sw_version=sw_version)
             log_info_message(logger, "Download finished, restarting ECU...")
