@@ -20,8 +20,8 @@ uint32_t SecurityAccess::time_left = 0;
 static std::chrono::steady_clock::time_point end_time = std::chrono::steady_clock::now() + \
                                                         std::chrono::hours(24 * 365);
 
-SecurityAccess::SecurityAccess(int socket, Logger& security_logger)
-                :  security_logger(security_logger), socket(socket)
+SecurityAccess::SecurityAccess(int socket_api, int socket_canbus, Logger& security_logger)
+                :  security_logger(security_logger), socket_api(socket_api), socket_canbus(socket_canbus)
 {}
 
 bool SecurityAccess::getMcuState()
@@ -94,13 +94,14 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
     /* Extract the first 8 bits of can_id. */
     uint8_t lowerbits = can_id & 0xFF;
     uint8_t upperbits = can_id >> 8 & 0xFF;
-    NegativeResponse nrc(socket, security_logger);
+    NegativeResponse nrc(socket_api, security_logger);
 
     /* Reverse ids */
     can_id = ((lowerbits << 8) | upperbits);
     if (upperbits == 0xFA) 
     {
-        generate_frames = new GenerateFrames(socket, security_logger);
+        generate_frames = new GenerateFrames(socket_api, security_logger);
+        GenerateFrames generate_frames_ECU(socket_canbus, security_logger);
         /** 
          * Check if the delay timer has expired.
          * Set the nr of attempts to default. Delay timer will be 0.
@@ -137,9 +138,9 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
             {
                 /* Adjust the seed length between 1 and 5.*/
                 std::srand(static_cast<uint8_t>(std::time(nullptr)));
-                size_t seed_length = std::rand() % 5 + 1;
+                size_t seed_length = 1;//std::rand() % 5 + 1;
 
-                std::vector<uint8_t> seed = generateRandomBytes(seed_length);
+                std::vector<uint8_t> seed = {0xCB};//generateRandomBytes(seed_length);
 
                 /* PCI length = seed_length + 2(0x67 and 0x01)*/
                 response.push_back(static_cast<uint8_t>(2 + seed_length));
@@ -189,7 +190,28 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                         generate_frames->sendFrame(can_id,response,DATA_FRAME);
                         LOG_INFO(security_logger.GET_LOGGER(), "Security Access granted successfully.");
                         mcu_state = true;
-                        generate_frames->sendFrame(can_id,response,DATA_FRAME);
+                        response.clear();
+                        /* Create a frame to notify each ECU that MCU state is unlocked */
+                        response.push_back(0x01);
+                        response.push_back(0xCE);
+                        /* Set sender to MCU ID */
+                        lowerbits = 0x10;
+                        /* Receiver battery */
+                        upperbits = 0x11;
+                        generate_frames_ECU.sendFrame(static_cast<uint8_t>(
+                                (lowerbits << 8) | upperbits),response,DATA_FRAME);
+                        /* Receiver engine */
+                        upperbits = 0x12;
+                        generate_frames_ECU.sendFrame(static_cast<uint8_t>(
+                                (lowerbits << 8) | upperbits),response,DATA_FRAME);
+                        /* Receiver doors */
+                        upperbits = 0x13;
+                        generate_frames_ECU.sendFrame(static_cast<uint8_t>(
+                                (lowerbits << 8) | upperbits),response,DATA_FRAME);
+                        /* Receiver HVAC */
+                        upperbits = 0x14;
+                        generate_frames_ECU.sendFrame(static_cast<uint8_t>(
+                                (lowerbits << 8) | upperbits),response,DATA_FRAME);
                     }
                     else
                     {   

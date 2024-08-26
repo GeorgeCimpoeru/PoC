@@ -36,7 +36,8 @@ class SecurityAccess
     private:
         GenerateFrames* generate_frames;
         Logger& security_logger;
-        int socket = -1;
+        int socket_api = -1;
+        int socket_canbus = -1;
         static uint8_t nr_of_attempts;
         static bool mcu_state;
         static uint32_t time_left;
@@ -49,10 +50,11 @@ class SecurityAccess
          * socket for communication and a reference to a Logger object for logging 
          * security-related events.
          *
-         * @param socket The socket descriptor used for communication.
+         * @param socket_api The api socket descriptor used for communication.
+         * @param socket_canbus The canbus socket descriptor used for communication.
          * @param security_logger Reference to a Logger object for logging security events.
         */
-        SecurityAccess(int socket, Logger& security_logger);
+        SecurityAccess(int socket_api, int socket_canbus, Logger& security_logger);
         /**
          * @brief Main method to the 0x27 Security Access UDS service.
          * Processes security access using the specified CAN ID and data.

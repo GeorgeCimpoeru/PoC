@@ -181,7 +181,7 @@ namespace MCU
                     if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
                     {
                         LOG_INFO(MCULogger->GET_LOGGER(), "SecurityAccess called.");
-                        SecurityAccess security_access(getMcuSocket(frame_id), *MCULogger);
+                        SecurityAccess security_access(socket_api,socket_canbus,*MCULogger);
                         security_access.securityAccess(frame_id, frame_data);
                         if (SecurityAccess::getMcuState())
                         {
@@ -415,7 +415,6 @@ namespace MCU
                     {
                         RequestDownloadService requestDownload(getMcuSocket(frame_id), *MCULogger);
                         ReadDataByIdentifier software_version(getMcuSocket(frame_id), MCULogger);
-                        SecurityAccess logged_in(getMcuSocket(frame_id), *MCULogger);
                         requestDownload.requestDownloadRequest(frame_id, frame_data);
                     }
                     else
