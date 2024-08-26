@@ -23,8 +23,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <vector>
-#include "../../../utils/include/GenerateFrames.h"
-#include "../../../utils/include/CreateInterface.h"
+#include "../../../utils/include/ECU.h"
 #include "HVACModuleLogger.h"
 
 #define HVAC_ECU_ID 0x14
@@ -32,9 +31,8 @@
 class HVACModule
 {
 private:
-    Logger *logger = hvacModuleLogger;
-    uint8_t module_id = HVAC_ECU_ID;
-    int hvac_socket = -1;
+    Logger *_logger = hvacModuleLogger;
+    ECU *_ecu;
     std::unordered_map<uint16_t, std::vector<uint8_t>> hvac_data =
     {
         {0x01A0, {0}}, /* Ambient temperature */
@@ -46,9 +44,9 @@ private:
 
 public:
     HVACModule();
-    HVACModule(int interfaceNumber, int moduleId);
     ~HVACModule();
 
+    int getSocket();
 };
 
 extern HVACModule *hvac;
