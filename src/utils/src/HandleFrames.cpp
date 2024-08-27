@@ -218,7 +218,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             else 
             {
                 LOG_INFO(_logger->GET_LOGGER(), "TesterPresent called.");
-                TesterPresent tester_present(_logger, &mcuDiagnosticSessionControl, getMcuSocket(frame_id), 1000);
+                TesterPresent tester_present(*_logger, &mcuDiagnosticSessionControl, getMcuSocket(frame_id), 1000);
                 tester_present.handleTesterPresent(frame_id, frame_data);
             }
             break;

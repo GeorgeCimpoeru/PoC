@@ -21,8 +21,8 @@
 class TesterPresent
 {
 private:
+    Logger& logger;
     GenerateFrames* generate;
-    Logger* logger;
     DiagnosticSessionControl* sessionControl;
     std::thread timerThread;
     bool running;
@@ -42,8 +42,7 @@ public:
      * @param timeout_duration Duration for the S3 timer in seconds
      * @param sessionControl DiagnosticSessionControl instance
      */
-    TesterPresent(Logger* logger, DiagnosticSessionControl* sessionControl, int socket, int timeout_duration);
-    TesterPresent();
+    TesterPresent(Logger &logger, DiagnosticSessionControl* sessionControl, int socket, int timeout_duration);
 
     /**
      * @brief Destroy the Tester Present object

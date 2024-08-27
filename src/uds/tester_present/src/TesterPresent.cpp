@@ -2,16 +2,11 @@
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
-TesterPresent::TesterPresent(Logger* logger, DiagnosticSessionControl* sessionControl, int socket, int timeout_duration):
+TesterPresent::TesterPresent(Logger& logger, DiagnosticSessionControl* sessionControl, int socket, int timeout_duration):
     logger(logger), sessionControl(sessionControl), socket(socket), timeout_duration(timeout_duration)
 {
-    this->generate = new GenerateFrames(socket, *logger);
+    this->generate = new GenerateFrames(socket, logger);
     startTimerThread();
-}
-
-TesterPresent::TesterPresent()
-{
-
 }
 
 TesterPresent::~TesterPresent()
@@ -24,7 +19,7 @@ void TesterPresent::handleTesterPresent(uint32_t can_id, std::vector<uint8_t> da
 {
     if (data.size() != 3)
     {
-        LOG_ERROR(logger->GET_LOGGER(), "Incorrect message length");
+        LOG_ERROR(logger.GET_LOGGER(), "Incorrect message length");
         this->generate->negativeResponse(can_id, 0x3E, 0x13);
         uint8_t receiver_id = can_id & 0xFF;
         if (receiver_id == 0x10)
@@ -41,7 +36,7 @@ void TesterPresent::handleTesterPresent(uint32_t can_id, std::vector<uint8_t> da
 
     if (sub_function != 0x00)
     {
-        LOG_ERROR(logger->GET_LOGGER(), "Sub-function not supported");
+        LOG_ERROR(logger.GET_LOGGER(), "Sub-function not supported");
         this->generate->negativeResponse(can_id, 0x3E, 0x12);
                 uint8_t receiver_id = can_id & 0xFF;
         if (receiver_id == 0x10)
@@ -57,7 +52,7 @@ void TesterPresent::handleTesterPresent(uint32_t can_id, std::vector<uint8_t> da
     /* set the session to programming session */
     sessionControl->sessionControl(can_id, 2);
 
-    LOG_INFO(logger->GET_LOGGER(), "Tester Present Service Received");
+    LOG_INFO(logger.GET_LOGGER(), "Tester Present Service Received");
 
     uint8_t receiver_id = can_id & 0xFF;
     switch(receiver_id)
@@ -69,19 +64,19 @@ void TesterPresent::handleTesterPresent(uint32_t can_id, std::vector<uint8_t> da
                 {
                     /* Send response frame */
                     this->generate->testerPresent(can_id, true);
-                    LOG_INFO(logger->GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x3E);
+                    LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x3E);
                     MCU::mcu->stop_flags[0x3E] = false;
                 } 
                 else
                 {
-                    LOG_INFO(logger->GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x3E);
-                    NegativeResponse negative_response(socket, *logger);
+                    LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x3E);
+                    NegativeResponse negative_response(socket, logger);
                     negative_response.sendNRC(can_id, 0x3E, 0x78);
                 }
             } 
             else
             {
-                LOG_ERROR(logger->GET_LOGGER(), "MCU::mcu is null or flag not found.");
+                LOG_ERROR(logger.GET_LOGGER(), "MCU::mcu is null or flag not found.");
             }
             break;
         case 0x11:
@@ -91,23 +86,23 @@ void TesterPresent::handleTesterPresent(uint32_t can_id, std::vector<uint8_t> da
                 {
                     /* Send response frame */
                     this->generate->testerPresent(can_id, true);
-                    LOG_INFO(logger->GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x3E);
+                    LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x3E);
                     battery->stop_flags[0x3E] = false;
                 } 
                 else
                 {
-                    LOG_INFO(logger->GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x3E);
-                    NegativeResponse negative_response(socket, *logger);
+                    LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x3E);
+                    NegativeResponse negative_response(socket, logger);
                     negative_response.sendNRC(can_id, 0x3E, 0x78);
                 }
             } 
             else
             {
-                LOG_ERROR(logger->GET_LOGGER(), "MCU::mcu is null or flag not found.");
+                LOG_ERROR(logger.GET_LOGGER(), "MCU::mcu is null or flag not found.");
             }
             break;
         default:
-            LOG_ERROR(logger->GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
+            LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
     }
 
     /* Reset the S3 timer */
@@ -116,17 +111,17 @@ void TesterPresent::handleTesterPresent(uint32_t can_id, std::vector<uint8_t> da
 
     if (sessionControl->getCurrentSession() != DEFAULT_SESSION)
     {
-        LOG_INFO(logger->GET_LOGGER(), "Session maintained. Current session: {}", sessionControl->getCurrentSessionToString());
+        LOG_INFO(logger.GET_LOGGER(), "Session maintained. Current session: {}", sessionControl->getCurrentSessionToString());
     }
 }
 
 void TesterPresent::startTimerThread()
 {
-    LOG_INFO(logger->GET_LOGGER(), "Attempting to start the timer thread.");
+    LOG_INFO(logger.GET_LOGGER(), "Attempting to start the timer thread.");
 
     if (running)
     {
-        LOG_WARN(logger->GET_LOGGER(), "Timer thread already running. Aborting start.");
+        LOG_WARN(logger.GET_LOGGER(), "Timer thread already running. Aborting start.");
         return;
     }
 
@@ -135,16 +130,16 @@ void TesterPresent::startTimerThread()
         running = true;
         timerThread = std::thread(&TesterPresent::timerFunction, this);
 
-        LOG_INFO(logger->GET_LOGGER(), "Timer thread started successfully.");
+        LOG_INFO(logger.GET_LOGGER(), "Timer thread started successfully.");
     }
     catch (const std::exception &ex)
     {
-        LOG_ERROR(logger->GET_LOGGER(), "Failed to start timer thread: {}", ex.what());
+        LOG_ERROR(logger.GET_LOGGER(), "Failed to start timer thread: {}", ex.what());
         running = false;
     }
     catch (...)
     {
-        LOG_ERROR(logger->GET_LOGGER(), "Unknown error occurred while starting timer thread.");
+        LOG_ERROR(logger.GET_LOGGER(), "Unknown error occurred while starting timer thread.");
         running = false;
     }
 }
@@ -154,7 +149,7 @@ void TesterPresent::timerFunction()
     try
     {
         auto start = std::chrono::steady_clock::now();
-        LOG_WARN(logger->GET_LOGGER(), "Starting S3 timer for {} seconds.", timeout_duration);
+        LOG_WARN(logger.GET_LOGGER(), "Starting S3 timer for {} seconds.", timeout_duration);
         while (running)
         {
             auto now = std::chrono::steady_clock::now();
@@ -162,7 +157,7 @@ void TesterPresent::timerFunction()
 
             if (elapsed_seconds.count() >= timeout_duration)
             {
-                LOG_WARN(logger->GET_LOGGER(), "S3 timer expired. Returning to default session.");
+                LOG_WARN(logger.GET_LOGGER(), "S3 timer expired. Returning to default session.");
 
                 /* Handle returning to default session here */
                 sessionControl->sessionControl(0x3E, 1);         
@@ -174,19 +169,19 @@ void TesterPresent::timerFunction()
     }
     catch (const std::exception &ex)
     {
-        LOG_ERROR(logger->GET_LOGGER(), "Exception in timer thread: {}", ex.what());
+        LOG_ERROR(logger.GET_LOGGER(), "Exception in timer thread: {}", ex.what());
         running = false;
     }
     catch (...)
     {
-        LOG_ERROR(logger->GET_LOGGER(), "Unknown exception in timer thread.");
+        LOG_ERROR(logger.GET_LOGGER(), "Unknown exception in timer thread.");
         running = false;
     }
 }
 
 void TesterPresent::stopTimerThread()
 {
-    LOG_INFO(logger->GET_LOGGER(), "Attempting to stop the timer thread.");
+    LOG_INFO(logger.GET_LOGGER(), "Attempting to stop the timer thread.");
 
     running = false;
 
@@ -195,19 +190,19 @@ void TesterPresent::stopTimerThread()
         if (timerThread.joinable())
         {
             timerThread.join();
-            LOG_INFO(logger->GET_LOGGER(), "Timer thread stopped successfully.");
+            LOG_INFO(logger.GET_LOGGER(), "Timer thread stopped successfully.");
         }
         else
         {
-            LOG_WARN(logger->GET_LOGGER(), "Timer thread was not joinable, skipping join.");
+            LOG_WARN(logger.GET_LOGGER(), "Timer thread was not joinable, skipping join.");
         }
     }
     catch (const std::exception &ex)
     {
-        LOG_ERROR(logger->GET_LOGGER(), "Failed to stop timer thread: {}", ex.what());
+        LOG_ERROR(logger.GET_LOGGER(), "Failed to stop timer thread: {}", ex.what());
     }
     catch (...)
     {
-        LOG_ERROR(logger->GET_LOGGER(), "Unknown error occurred while stopping timer thread.");
+        LOG_ERROR(logger.GET_LOGGER(), "Unknown error occurred while stopping timer thread.");
     }
 }

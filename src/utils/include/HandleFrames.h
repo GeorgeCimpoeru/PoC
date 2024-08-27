@@ -42,7 +42,6 @@ private:
     int socket_canbus = -1;
     Logger *_logger;
     DiagnosticSessionControl mcuDiagnosticSessionControl;
-    TesterPresent testerPresent;
 public:
     /**
      * @brief Default constructor for Handle Frames object.
