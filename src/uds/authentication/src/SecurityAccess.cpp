@@ -13,15 +13,14 @@ std::vector<uint8_t> SecurityAccess::security_access_seed;
 /* By default we dont have delay timer */
 uint32_t SecurityAccess::time_left = 0;
 
-/**
- * Set end_time to a distant future point. This ensures that it is always
- * greater than the current time unless a specific delay timer is activated.
-*/
-static std::chrono::steady_clock::time_point end_time = std::chrono::steady_clock::now() + \
-                                                        std::chrono::hours(24 * 365);
+std::chrono::steady_clock::time_point SecurityAccess::end_time =
+        std::chrono::steady_clock::now() + std::chrono::hours(24 * 365);
 
-SecurityAccess::SecurityAccess(int socket, Logger& security_logger)
-                :  security_logger(security_logger), socket(socket)
+std::chrono::steady_clock::time_point SecurityAccess::end_time_security =
+        std::chrono::steady_clock::now() + std::chrono::hours(24 * 365);
+
+SecurityAccess::SecurityAccess(int socket_api, int socket_canbus, Logger& security_logger)
+                :  security_logger(security_logger), socket_api(socket_api), socket_canbus(socket_canbus)
 {}
 
 bool SecurityAccess::getMcuState()
@@ -94,13 +93,14 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
     /* Extract the first 8 bits of can_id. */
     uint8_t lowerbits = can_id & 0xFF;
     uint8_t upperbits = can_id >> 8 & 0xFF;
-    NegativeResponse nrc(socket, security_logger);
+    NegativeResponse nrc(socket_api, security_logger);
 
     /* Reverse ids */
     can_id = ((lowerbits << 8) | upperbits);
     if (upperbits == 0xFA) 
     {
-        generate_frames = new GenerateFrames(socket, security_logger);
+        generate_frames = new GenerateFrames(socket_api, security_logger);
+        GenerateFrames generate_frames_ECU(socket_canbus, security_logger);
         /** 
          * Check if the delay timer has expired.
          * Set the nr of attempts to default. Delay timer will be 0.
@@ -137,9 +137,9 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
             {
                 /* Adjust the seed length between 1 and 5.*/
                 std::srand(static_cast<uint8_t>(std::time(nullptr)));
-                size_t seed_length = std::rand() % 5 + 1;
+                size_t seed_length = 1;//std::rand() % 5 + 1;
 
-                std::vector<uint8_t> seed = generateRandomBytes(seed_length);
+                std::vector<uint8_t> seed = {0xCB};//generateRandomBytes(seed_length);
 
                 /* PCI length = seed_length + 2(0x67 and 0x01)*/
                 response.push_back(static_cast<uint8_t>(2 + seed_length));
@@ -189,6 +189,40 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                         generate_frames->sendFrame(can_id,response,DATA_FRAME);
                         LOG_INFO(security_logger.GET_LOGGER(), "Security Access granted successfully.");
                         mcu_state = true;
+                        response.clear();
+                        /* Create a frame to notify each ECU that MCU state is unlocked */
+                        response.push_back(0x01);
+                        response.push_back(0xCE);
+                        /* Set sender to MCU ID */
+                        lowerbits = 0x10;
+                        /* Receiver battery */
+                        upperbits = 0x11;
+                        generate_frames_ECU.sendFrame((lowerbits << 8) | upperbits,response,DATA_FRAME);
+                        /* Receiver engine */
+                        upperbits = 0x12;
+                        generate_frames_ECU.sendFrame((lowerbits << 8) | upperbits,response,DATA_FRAME);
+                        /* Receiver doors */
+                        upperbits = 0x13;
+                        generate_frames_ECU.sendFrame((lowerbits << 8) | upperbits,response,DATA_FRAME);
+                        /* Receiver HVAC */
+                        upperbits = 0x14;
+                        generate_frames_ECU.sendFrame((lowerbits << 8) | upperbits,response,DATA_FRAME);
+                        end_time_security = std::chrono::steady_clock::now() +
+                                    std::chrono::seconds(SECURITY_TIMEOUT_IN_SECONDS);
+                        auto security_now = std::chrono::steady_clock::now();
+                        uint32_t time_left_security = static_cast<uint32_t>
+                        (
+                            std::chrono::duration_cast<std::chrono::milliseconds>
+                            (
+                                end_time_security - security_now
+                            ).count()
+                        );
+                        uint32_t seconds = time_left_security / 1000;
+                        uint32_t milliseconds = time_left_security % 1000;
+                        LOG_INFO(security_logger.GET_LOGGER(), "Security timer activated." \
+                            " {} seconds and {} milliseconds until the security expires.",
+                        seconds,milliseconds);
+                        
                     }
                     else
                     {   
@@ -212,13 +246,19 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                             /* Start the delay timer clock. */
                             end_time = std::chrono::steady_clock::now() + std::chrono::seconds(TIMEOUT_IN_SECONDS);
                             now = std::chrono::steady_clock::now();
-                            time_left = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(end_time - now).count());
+                            time_left = static_cast<uint32_t>
+                            (
+                                std::chrono::duration_cast<std::chrono::milliseconds>
+                                (
+                                    end_time - now
+                                ).count()
+                            );
                             LOG_INFO(security_logger.GET_LOGGER(), "Delay timer activated.");
                             uint32_t time_left_copy = time_left;
                             uint32_t seconds = time_left_copy / 1000;
                             uint32_t milliseconds = time_left_copy % 1000;
                             LOG_ERROR(security_logger.GET_LOGGER(), "Please wait {} seconds and {} milliseconds" \
-                                "before sending key again.", seconds,milliseconds);
+                                " before sending key again.", seconds,milliseconds);
                         }
                     }
                 }
@@ -228,12 +268,18 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                      * for the requested security level.
                     */
                     now = std::chrono::steady_clock::now();
-                    time_left = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(end_time - now).count());
+                    time_left = static_cast<uint32_t>
+                    (
+                        std::chrono::duration_cast<std::chrono::milliseconds>
+                        (
+                            end_time - now
+                        ).count()
+                    );
                     uint32_t time_left_copy = time_left;
                     uint32_t seconds = time_left_copy / 1000;
                     uint32_t milliseconds = time_left_copy % 1000;
                     LOG_ERROR(security_logger.GET_LOGGER(), "Please wait {} seconds and {} milliseconds" \
-                        "before sending key again.", seconds,milliseconds);
+                        " before sending key again.", seconds,milliseconds);
                     response = convertTimeToCANFrame(time_left);
                     generate_frames->sendFrame(can_id,response,DATA_FRAME);
                 }
