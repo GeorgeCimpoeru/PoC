@@ -144,7 +144,6 @@ class GenerateFrame:
         data = [2, 0x83, sub_function] if response is False else [2, 0xC3, sub_function]
         self.send_frame(id, data)
 
-
     def request_download(self, id, data_format_identifier, memory_address, memory_size, version):
         # Define the data format identifier mapping
         DATA_FORMAT_IDENTIFIER_MAP = {
@@ -179,7 +178,7 @@ class GenerateFrame:
         address_and_length_format_identifier = (size_length << 4) | address_length
 
         # Constructing the data list
-        data = [pci, sid, data_format_identifier, 0x21]
+        data = [pci, sid, data_format_identifier, address_and_length_format_identifier]
         data.extend(memory_address_bytes)
         data.extend(memory_size_bytes)
         data.append(version)

@@ -208,6 +208,8 @@ class Action:
         if msg.data[1] == 0x7F:
             self.__handle_negative_response(msg)
             return False
+        if msg.data[1] == 0x7F and msg.data[3] == 0x78:
+            return True
         if msg.data[0] != 0x10:
             if msg.data[1] == 0x67 and msg.data[2] == 0x00:
                 log_info_message(logger, "Authentication successful")
@@ -302,7 +304,6 @@ class Action:
         self._passive_response(WRITE_BY_IDENTIFIER, f"Operation complete for identifier {identifier}")
 
         return True
-
 
     def __algorithm(self, seed: list):
         """
