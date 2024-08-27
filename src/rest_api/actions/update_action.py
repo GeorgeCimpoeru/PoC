@@ -27,7 +27,7 @@ class Updates(Action):
     - g: Instance of GenerateFrame for generating CAN bus frames.
     """
 
-    def update_to(self, sw_id, sw_size, sw_version, module_id):
+    def update_to(self, type, version):
         """
         Method to update the software of the ECU to a specified version.
 
@@ -44,9 +44,9 @@ class Updates(Action):
         """
 
         try:
+            # self.id = (module_id[0] << 16) + (self.my_id << 8) + self.id_ecu[0]
             self.id = (self.id_ecu[1] << 16) + (self.my_id << 8) + self.id_ecu[0]
 
-            # self.id = self.my_id * 0x100 + self.id_ecu[0]
             log_info_message(logger, "Changing session to programming")
             self.generate.session_control(self.id, 0x02)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
@@ -57,11 +57,10 @@ class Updates(Action):
             self.generate.session_control(self.id, 0x01)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
 
-            # self.id = (0x11 << 16) + (self.my_id << 8) + 0x10
             log_info_message(logger, "Reading data from battery")
-            current_version = self._verify_version(sw_version)
-            if current_version == sw_version:
-                response_json = ToJSON()._to_json(f"Version {sw_version} already installed", 0)
+            current_version = self._verify_version(version)
+            if current_version == version:
+                response_json = ToJSON()._to_json(f"Version {version} already installed", 0)
                 self.bus.shutdown()
                 return response_json
 
@@ -70,7 +69,7 @@ class Updates(Action):
             self._passive_response(SESSION_CONTROL, "Error changing session control")
 
             log_info_message(logger, "Downloading... Please wait")
-            self._download_data(sw_id=sw_id, sw_size=sw_size, sw_version=sw_version)
+            self._download_data(type, version)
             log_info_message(logger, "Download finished, restarting ECU...")
 
             log_info_message(logger, "Changing session to default")
@@ -106,48 +105,52 @@ class Updates(Action):
             self.bus.shutdown()
             return e.message
 
-    def _download_data(self, sw_id, sw_size, sw_version):
+    def _download_data(self, type, version):
         """
-        Private method to handle the download process of software update data.
-        Data format identifier:
-            0x00 means that no compression/encryption method is used
-            0x01 means that only encryption is used
-            0x10 means that only compression is used
-            0x11 means that both encryption and compression are used
-        Download_type = 1 byte
-            0x00 => 0b 000 0000 0
-                                ^ this bit is used to determine the download type(0-> manual, 1-> auto)
-                           ^^^^ these bits are used to determine update iteration(ranges between 0 and 15)
-                       ^^^ these bits are used to determine update version(ranges between 0 and 7)
-            -> for example 0x00 -> 0b 000 0000 0 -> this value represents manual update because the first bit is 0,
-                the next 4 bits are representing the iteration of update like 1.x, and the next 3 bits are representing the version, in this case 1.0
-            -> 000 0000 -> version 1.0
-            -> 000 0001 -> version 1.1
-            …
-            -> 001 0000 -> version 2.0
-            -> 001 0001 -> version 2.1
-            …
-        Args:
-        - data: Data to be transferred during the download process.
+        Request Sid = 0x34
+        Response Sid = 0x74
 
-        Raises:
-        - CustomError: If any error occurs during the download process.
+        Request frame format:
+        { pci, sid, data_format_identifier, adress_and_length_format_identifier, memory_adress, memory_size, version}
+
+        Pci = 1 byte
+        Sid = 1 byte
+        Data_format_identifier = 1 byte
+        0x00 means that no compression/encryption method is used
+        0x01 means that only encryption is used
+        0x10 means that only compression is used
+        0x11 means that both encryption and compression are used
+            -> for now use 0x00 because compression/encryption are not defined
+            -> we can define more values if needed
+        Address and Length format identifier 1-byte
+        (bit 4- bit 7) denotes the number of bytes of the memory size parameter and the lower nibble
+        (bit 0- bit 3) denotes the number of bytes of the memory address parameter.
+        Memory address = min 1 byte -  max 16 bytes
+        Memory size = min 1 byte - max 16 bytes
+        Version = 1 byte
+        0x00 => 0b 0000 0000
+                                    ^^^^ these bits are used to determine update
+                    iteration(ranges between 0 and 15)
+                            ^^^^ these bits are used to determine update
+            version(ranges between 0 and 15)
+            -> 0000 0000 -> version 0.0
+            -> 0000 0001 -> version 0.1
+            …
+            -> 0010 0000 -> version 2.0
+            -> 0010 0001 -> version 2.1
+            …
+
+        Important note: This action requires to have the mcu module running in python virtual env and
+        create locally a virtual partition used for download.
+        -> search/change "/dev/loopXX" in RequestDownload.cpp, MemoryManager.cpp; (Depends which partition is attributed)
         """
-        # RequestDownload.cpp
-        # line 294 std::string path = "/dev/loop25";
-        # MemoryManager.cpp
-        # line 90 change loop21 or
-        # sudo losetup -a # to list all loops
-        #
-        # self.id = self.my_id * 0x100 + self.id_ecu[0]
-        # self.id = (self.id_ecu[1] << 16) + (self.my_id << 8) + self.id_ecu[0]
 
         self.generate.request_download(self.id,
                                        data_format_identifier=0x00,  # No compression/encryption
                                        memory_address=0x8001,  # Memory address starting from 2049
                                        memory_size=0x01,  # Memory size
-                                       version=0x24)  # Version 2.4
-        frame = self._passive_response(REQUEST_DOWNLOAD, "Error requesting download")
+                                       version=0x10)  # Version 2
+        self._passive_response(REQUEST_DOWNLOAD, "Error requesting download")
         # self.generate.transfer_data_long(self.id, 0x01, data)
         # self.generate.transfer_data_long(self.id, 0x01, data, False)
         # self._passive_response(TRANSFER_DATA, "Error transferring data")

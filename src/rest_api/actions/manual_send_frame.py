@@ -19,36 +19,42 @@ def manual_send_frame(can_id, can_data):
 
         message = can.Message(arbitration_id=can_id, data=can_data, is_extended_id=True)
         bus.send(message)
-        received_frame = bus.recv(timeout=15)
 
-        if received_frame is not None:
+        received_frames = []  # List to store all received frames
+
+        while True:
+            received_frame = bus.recv(timeout=15)  # Adjust timeout as needed
+
+            if received_frame is None:
+                break
+
             received_data = {
                 'can_id': hex(received_frame.arbitration_id),
                 'can_data': [hex(byte) for byte in received_frame.data]
             }
 
             if received_frame.data[1] == 0x67 and \
-                received_frame.data[2] == 0x01 and \
-                    received_frame.data[3] == 0x00 or \
-                    received_frame.data[1] == 0x67 and received_frame.data[2] == 0x02:
+               received_frame.data[2] == 0x01 and \
+               received_frame.data[3] == 0x00 or \
+               received_frame.data[1] == 0x67 and received_frame.data[2] == 0x02:
                 log_info_message(logger, "Authentication successful")
                 received_data['auth_status'] = 'success'
 
-            if received_frame.data[1] == 0x7F:  # Diagnostic negative response
+            elif received_frame.data[1] == 0x7F:  # Diagnostic negative response
                 nrc = received_frame.data[3]
                 if nrc == 0x37:
                     time_delay_ms = int.from_bytes(received_frame.data[4:8], byteorder='big')
                     time_delay_s = time_delay_ms / 1000
-                    log_info_message(logger, f"Retries exceeded. Try again in : {time_delay_s} s")
+                    log_info_message(logger, f"Retries exceeded. Try again in: {time_delay_s} s")
                     received_data['retry_timeout_ms'] = time_delay_ms
                 else:
                     error_text = handle_negative_response(received_frame.data)
                     received_data['auth_status'] = 'failed'
                     received_data['error_text'] = error_text
-        else:
-            received_data = None
 
-        return {'response': received_data}
+            received_frames.append(received_data)
+
+        return {'response': received_frames}
 
     except ValueError as e:
         return {'status': 'Error', 'message': str(e)}, 400
