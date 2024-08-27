@@ -32,11 +32,11 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     uint8_t target_id = (id >> 16) & 0xFF;
     /* Reverse IDs, target id will be in same position but receiver will be switched with sender */
     id = (target_id << 16) | (receiver_id << 8) | sender_id;
-
+    NegativeResponse nrc(socket, RDSlogger);
     if (stored_data.size() < 7)
     {
         /* Incorrect message length or invalid format - prepare a negative response */
-        generate_frames.negativeResponse(id, 0x34, 0x13);
+        nrc.sendNRC(id, RDS_SID, NegativeResponse::IMLOIF);
         return;
     }
     /** data format identifier is 0x00 when no compression or encryption method is used 
@@ -49,7 +49,7 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     if (valid_data_format_indentifiers.find(stored_data[2]) == valid_data_format_indentifiers.end())
     {
         /* Request out of range - prepare a negative response */
-        generate_frames.negativeResponse(id, 0x34, 0x31);
+        nrc.sendNRC(id, RDS_SID, NegativeResponse::ROOR);
         return;
     }
     /* extract method returns IMLOIF if full length check fails */
@@ -61,20 +61,21 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     int memory_address = address_and_size.first;
     int memory_size = address_and_size.second;
 
-    /* Validate memory address and size */
-    if (!isValidMemoryRange(memory_address, memory_size))
-    {
-        LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Invalid memory range");
-        /* Request out of range */
-        generate_frames.negativeResponse(id, 0x34, 0x31);
-        return;
-    }
+
     /* Authenticate the request */
-    else if (!isRequestAuthenticated())
+    if (!isRequestAuthenticated())
     {
         LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Authentication failed");
         /* Authentication failed */
-        generate_frames.negativeResponse(id, 0x34, 0x34);
+        nrc.sendNRC(id, RDS_SID, NegativeResponse::SAD);
+        return;
+    }
+    /* Validate memory address and size */
+    else if (!isValidMemoryRange(memory_address, memory_size))
+    {
+        LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Invalid memory range");
+        /* Request out of range */
+        nrc.sendNRC(id, RDS_SID, NegativeResponse::ROOR);
         return;
     }
     /* Check if software is at the latest version */ 
@@ -96,8 +97,7 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
         /* Calculate the position for software version*/ 
         size_t position_software_version = 4 + length_memory_address + length_memory_size;
         uint8_t software_version = stored_data[position_software_version];
-        /* 0x22 => 0010 0010* => v2.2*/
-        std::cout << "id is" << static_cast<int>(target_id) << std::endl;
+        /* 0x12 => 0001 0010* => v2.2, offset 1 */
         downloadSoftwareVersion(target_id, software_version);
 
         /* Check for compression */ 
@@ -116,9 +116,7 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
 
             /* Format the string as "X.Y" */
             std::sprintf(buffer, "%x.%x", highNibble, lowNibble);
-
             std::string zipFilePath;
-                                std::cout << "status is: " << std::string(PROJECT_PATH) << std::endl;
 
             if (access((std::string(PROJECT_PATH) + "/MCU_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x10) {
                 zipFilePath = std::string(PROJECT_PATH) + "/MCU_SW_VERSION_" + buffer + ".zip";
@@ -140,6 +138,7 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
                 LOG_ERROR(RDSlogger.GET_LOGGER(), "No valid zip file file found in PROJECT_PATH.");
                 return;
             }
+
             std::string outputDir = std::string(PROJECT_PATH);
 
             if (extractZipFile(target_id, zipFilePath, outputDir)) {
@@ -173,7 +172,6 @@ int RequestDownloadService::calculate_max_number_block(int memory_size)
     /* Initialize max_number_block with a value that ensures it will be updated */
     int max_number_block = 0;
 
-    /* HOW IS CALCULATED 'max_number_block'??? */
     /* Calculate max_number_block as the maximum ceiling of memory_size divided by block_size */
     int blocks_needed = (memory_size + block_size - 1) / block_size;
     LOG_INFO(RDSlogger.GET_LOGGER(), "blocks_needed:{}", blocks_needed);
@@ -187,7 +185,7 @@ int RequestDownloadService::calculate_max_number_block(int memory_size)
 
 void RequestDownloadService::requestDownloadAutomatic(canid_t id, int memory_address, int max_number_block)
 {
-    /*Download from drive- part 3*/
+    /* Download from drive- part 3 */
     std::string path = "";
 
     int receiver_id = id & 0xFF;
@@ -349,7 +347,8 @@ std::pair<int,int> RequestDownloadService::extractSizeAndAddressLength(canid_t i
     {
         LOG_ERROR(RDSlogger.GET_LOGGER(), "Payload does not contain enough data for memory address and size");
         /* Incorrect message length or invalid format */
-        generate_frames.negativeResponse(id, 0x34, 0x13);
+        NegativeResponse nrc(socket, RDSlogger);
+        nrc.sendNRC(id, RDS_SID, NegativeResponse::IMLOIF);
     }
     return {length_memory_address, length_memory_size};
 }

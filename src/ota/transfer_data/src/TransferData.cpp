@@ -14,6 +14,7 @@ uint8_t TransferData::expected_block_sequence_number = 0x01;  /* Start from 1 */
 /* frame format = {PCI_L, SID(0x36), block_sequence_counter, transfer_request_parameter_record}*/
 void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_request)
 {
+    NegativeResponse nrc(socket, transfer_data_logger);
     uint8_t block_sequence_counter = transfer_request[2];
     std::vector<uint8_t> response;
     /* Extract and switch sender and receiver */
@@ -27,23 +28,13 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
     if (transfer_request.size() < 3)
     {
         /* Incorrect message length or invalid format - prepare a negative response */
-        response.push_back(0x03); /* PCI */
-        response.push_back(0x7F); /* Negative response */
-        response.push_back(0x36); /* Service ID */
-        response.push_back(0x13); /* Incorrect message length or invalid format */
-        /* Send the negative response frame */ 
-        generate_frames.sendFrame(can_id, response);
+        nrc.sendNRC(can_id, TD_SID, NegativeResponse::IMLOIF);
         return;
     }
     else if (expected_block_sequence_number != block_sequence_counter)
     {
         /* Wrong block sequence counter - prepare a negative response */
-        response.push_back(0x03); /* PCI */
-        response.push_back(0x7F); /* Negative response */
-        response.push_back(0x36); /* Service ID */
-        response.push_back(0x73); /* Wrong block sequence counter */
-        /* Send the negative response frame */ 
-        generate_frames.sendFrame(can_id, response);
+        nrc.sendNRC(can_id, TD_SID, NegativeResponse::WBSC);
         return;
     }
     else

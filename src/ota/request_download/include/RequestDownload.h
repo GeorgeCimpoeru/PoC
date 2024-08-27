@@ -29,6 +29,7 @@
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../utils/include/Logger.h"
 #include "../../uds/diagnostic_session_control/include/DiagnosticSessionControl.h"
+#include "../../../utils/include/NegativeResponse.h"
 #include "../../uds/authentication/include/SecurityAccess.h"
 #include "../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
 #include "../../utils/include/MemoryManager.h"
@@ -36,6 +37,7 @@
 class RequestDownloadService
 {
 public:
+    static constexpr uint8_t RDS_SID = 0x34;
     Logger RDSlogger;
     /**
      * @brief Construct a new Request Download Service object
