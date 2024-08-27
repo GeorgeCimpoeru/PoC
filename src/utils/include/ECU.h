@@ -26,9 +26,9 @@ public:
     uint8_t _module_id;
     ReceiveFrames *_frame_receiver = nullptr;
     CreateInterface *_can_interface;
-    Logger *_logger;
+    Logger& _logger;
 
-    ECU(uint8_t module_id, Logger *logger);
+    ECU(uint8_t module_id, Logger& logger);
     ~ECU();
 
     void sendNotificationToMCU();
