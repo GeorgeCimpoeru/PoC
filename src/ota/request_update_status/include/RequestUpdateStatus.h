@@ -49,7 +49,7 @@
 #define NEGATIVE_RESPONSE 0x7F
 #define REQUEST_OUT_OF_RANGE 0x31
 
-#define MCU_ID 0x10
+#define MCU_ID ((uint8_t)0x10)
 #define API_ID 0xFA
 
 /**

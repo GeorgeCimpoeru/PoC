@@ -23,6 +23,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <vector>
+#include <thread>
 #include "../../../utils/include/ECU.h"
 #include "HVACModuleLogger.h"
 
@@ -31,18 +32,19 @@
 class HVACModule
 {
 private:
-    Logger *_logger = hvacModuleLogger;
-    ECU *_ecu;
+    Logger& _logger = *hvacModuleLogger;
     std::unordered_map<uint16_t, std::vector<uint8_t>> hvac_data =
     {
-        {0x01A0, {0}}, /* Ambient temperature */
-        {0x01B0, {0}}, /* Cabin temperature */
+        {0x0140, {0}}, /* Ambient temperature */
+        {0x0150, {0}}, /* Cabin temperature */
         {0x01C0, {0}}, /* HVAC temperature */
         {0x01D0, {0}}, /* Fan speed (Duty cycle)*/
         {0x01F0, {0}}  /* HVAC modes */
     };
 
 public:
+    ECU *_ecu;
+
     HVACModule();
     ~HVACModule();
 

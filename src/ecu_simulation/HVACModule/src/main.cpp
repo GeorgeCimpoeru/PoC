@@ -9,6 +9,10 @@ int main()
     #endif
 
     HVACModule hvac;
-    
+    std::thread receiveFrThread([&hvac]()
+                               { hvac._ecu->startFrames(); });
+    sleep(200);
+    hvac._ecu->stopFrames();
+    receiveFrThread.join();
     return 0;
 }
