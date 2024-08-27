@@ -82,17 +82,7 @@ public:
      * @brief Function to notify MCU if the module is Up & Running.
      */
     void sendNotificationToMCU();
-
-    /**
-     * @brief Helper function to execute shell commands and fetch output
-     * in order to read System Information about Doors.
-     * This method is currently 'virtual' in order to be overridden in Test.
-     * 
-     * @param cmd Shell command to be executed.
-     * @return Output returned by the shell command. 
-     */
-    virtual std::string exec(char *cmd);
-
+   
     /**
      * @brief This function will parse the data from the system about doors,
      * and will store all values in separate variables

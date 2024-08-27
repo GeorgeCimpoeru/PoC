@@ -15,7 +15,7 @@ DoorsModule::DoorsModule() : moduleId(0x13),
                                  doorDriverLocked(false),
                                  doorPassengerLocked(false),
                                  ajarWarning(false),
-                                 canInterface(CreateInterface::getInstance(0x00, *doorsModuleLogger)),
+                                 canInterface(CreateInterface::getInstance(0x13, *doorsModuleLogger)),
                                  frameReceiver(nullptr)
 {
     /* Insert the default DID values in the file */
@@ -35,10 +35,10 @@ DoorsModule::DoorsModule() : moduleId(0x13),
         outfile << "\n";
     }
     outfile.close();
-
-    doors_socket = canInterface->createSocket(0x00);
+    
+    doors_socket = canInterface->createSocket(0x13);
     /* Initialize the Frame Receiver */
-    frameReceiver = new ReceiveFrames(doors_socket, moduleId, *doorsModuleLogger);
+    frameReceiver = new ReceiveFrames(doors_socket, moduleId, doorsModuleLogger);
 
     LOG_INFO(doorsModuleLogger->GET_LOGGER(), "Doors object created successfully, ID : 0x{:X}", this->moduleId);
 
@@ -74,9 +74,9 @@ DoorsModule::DoorsModule(int _interfaceNumber, int _moduleId) : moduleId(_module
     }
     outfile.close();
 
-    doors_socket = canInterface->createSocket(0x00);
+    doors_socket = canInterface->createSocket(0x13);
     /* Initialize the Frame Receiver */
-    frameReceiver = new ReceiveFrames(doors_socket, moduleId, *doorsModuleLogger);
+    frameReceiver = new ReceiveFrames(doors_socket, moduleId, doorsModuleLogger);
 
     LOG_INFO(doorsModuleLogger->GET_LOGGER(), "Doors object created successfully using Parameterized Constructor, ID : 0x{:X}", this->moduleId);
 
@@ -106,122 +106,70 @@ void DoorsModule::sendNotificationToMCU()
     LOG_INFO(doorsModuleLogger->GET_LOGGER(), "Doors module sent UP notification to MCU");
 }
 
-/* Helper function to execute shell commands and fetch output */
-std::string DoorsModule::exec(char *cmd)
-{
-    std::array<char, 128> buffer;
-    std::string result;
-    std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
-
-    if (!pipe)
-    {
-        throw std::runtime_error("popen() failed!");
-    }
-
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
-    {
-        result += buffer.data();
-    }
-
-    return result;
-}
-
-/* Helper function to parse doors info */
-void DoorsModule::parseDoorsInfo(const std::string &data, bool &doorDriverOpen, bool &doorPassengerOpen, bool &doorDriverLocked, bool &doorPassengerLocked, bool &ajarWarning)
-{
-    std::istringstream stream(data);
-    std::string line;
-    std::unordered_map<uint16_t, std::string> updated_values;
-
-    while (std::getline(stream, line))
-    {
-        if (line.find("doorDriverOpen:") != std::string::npos)
-        {
-            doorDriverOpen = line.substr(line.find(":") + 1) == "true";            
-            updated_values[0x03A0] = std::to_string(static_cast<uint8_t>(doorDriverOpen));
-        }
-        else if (line.find("doorPassengerOpen:") != std::string::npos)
-        {
-            doorPassengerOpen = line.substr(line.find(":") + 1) == "true";            
-            updated_values[0x03B0] = std::to_string(static_cast<uint8_t>(doorPassengerOpen));
-        }
-        else if (line.find("doorDriverLocked:") != std::string::npos)
-        {
-            doorDriverLocked = line.substr(line.find(":") + 1) == "true";            
-            updated_values[0x03C0] = std::to_string(static_cast<uint8_t>(doorDriverLocked));
-        }
-        else if (line.find("doorPassengerLocked:") != std::string::npos)
-        {
-            doorPassengerLocked = line.substr(line.find(":") + 1) == "true";            
-            updated_values[0x03D0] = std::to_string(static_cast<uint8_t>(doorPassengerLocked));
-        }
-        else if (line.find("ajarWarning:") != std::string::npos)
-        {
-            ajarWarning = line.substr(line.find(":") + 1) == "true";            
-            updated_values[0x03E0] = std::to_string(static_cast<uint8_t>(ajarWarning));
-        }
-    }
-
-    /* Path to doors data file */
-    std::string file_path = "doors_data.txt";
-
-    /* Read the current file contents into memory */
-    std::ifstream infile(file_path);
-    std::stringstream buffer;
-    buffer << infile.rdbuf();
-    infile.close();
-
-    std::string file_contents = buffer.str();
-    std::istringstream file_stream(file_contents);
-    std::string updated_file_contents;
-    std::string file_line;
-
-    /* Update the relevant DID values in the file contents */
-    while (std::getline(file_stream, file_line))
-    {
-        bool updated = false;
-        for (const auto &pair : updated_values)
-        {
-            std::stringstream did_ss;
-            did_ss << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << pair.first;
-            if (file_line.find(did_ss.str()) != std::string::npos)
-            {
-                updated_file_contents += did_ss.str() + " " + pair.second + "\n";
-                updated = true;
-                break;
-            }
-        }
-        if (!updated)
-        {
-            updated_file_contents += file_line + "\n";
-        }
-    }
-
-    /* Write the updated contents back to the file */
-    std::ofstream outfile(file_path);
-    outfile << updated_file_contents;
-    outfile.close();
-}
-
-/* Function to fetch data from system about doors */
+/* Function to fetch data with simulated door data */
 void DoorsModule::fetchDoorsData()
 {
     try
-    {
-        /* Execute the shell command to read System Info about Doors */
-        char* path = strdup("upower -i /org/freedesktop/UPower/devices/doors_BAT0");
-        std::string data = exec(path);
-        /* Call the function in order to parse the datas */
-        parseDoorsInfo(data, doorDriverOpen, doorPassengerOpen, doorDriverLocked, doorPassengerLocked, ajarWarning);
+    {       
+        /* Assign predefined values for the doors states: 0:closed; 1:open; 0:unlocked; 1:locked; 0:no warning; 1: warning */        
+        doorDriverOpen = 0;
+        doorPassengerOpen = 1;
+        doorDriverLocked = 1;
+        doorPassengerLocked = 0;
+        ajarWarning = 1;
 
-        /* Update class member variables with fetched data */
-        this->doorDriverOpen = doorDriverOpen;
-        this->doorPassengerOpen = doorPassengerOpen;
-        this->doorDriverLocked = doorDriverLocked;
-        this->doorPassengerLocked = doorPassengerLocked;
-        this->ajarWarning = ajarWarning;
+        /* Path to battery data file */
+        std::unordered_map<uint16_t,std::string> updated_values = 
+        {
+            {0x03A0, std::to_string(doorDriverOpen)},
+            {0x03B0, std::to_string(doorPassengerOpen)},
+            {0x03C0, std::to_string(doorDriverLocked)},
+            {0x03D0, std::to_string(doorPassengerLocked)},
+            {0x03E0, std::to_string(ajarWarning)}
+        };
 
-        LOG_INFO(doorsModuleLogger->GET_LOGGER(), "Doors Data : Door Driver Open: {} Wh, Door Passenger Open: {}, Door Driver Locked: {}, Door Passenger Locked: {},  Ajar Warning: {}", doorDriverOpen, doorPassengerOpen, doorPassengerLocked, ajarWarning);
+        /* Write the mapped values to the file */
+        std::string file_path = "doors_data.txt";
+
+        /* Read the current file contents into memory */
+        std::ifstream infile(file_path);
+        std::stringstream buffer;
+        buffer << infile.rdbuf();
+        infile.close();
+
+        std::string file_contents = buffer.str();
+        std::istringstream file_stream(file_contents);
+        std::string updated_file_contents;
+        std::string file_line;
+        
+        /* Update the relevant DID values in the file contents */
+        while (std::getline(file_stream, file_line))
+        {
+            bool updated = false;
+
+            for (const auto &pair : updated_values)
+            {
+                std::stringstream did_ss;
+                did_ss << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << pair.first;
+                if (file_line.find(did_ss.str()) != std::string::npos)
+                {
+                    updated_file_contents += did_ss.str() + " " + pair.second + "\n";
+                    updated = true;
+                    break;
+                }
+            }
+            if (!updated)
+            {
+                updated_file_contents += file_line + "\n";
+            }
+        }
+
+        /* Write the updated contents back to the file */
+        std::ofstream outfile(file_path);
+        outfile << updated_file_contents;
+        outfile.close();
+
+        LOG_INFO(doorsModuleLogger->GET_LOGGER(), "Doors Data : Door Driver Open: {}, Door Passenger Open: {}, Door Driver Locked: {}, Door Passenger Locked: {},  Ajar Warning: {}", doorDriverOpen, doorPassengerOpen, doorDriverLocked, doorPassengerLocked, ajarWarning);
     }
     catch (const std::exception &e)
     {
@@ -236,7 +184,7 @@ void DoorsModule::receiveFrames()
     LOG_INFO(doorsModuleLogger->GET_LOGGER(), "Doors module starts the frame receiver");
 
     /* Create a HandleFrames object to process received frames */
-    HandleFrames handleFrames(this->doors_socket);
+    HandleFrames handleFrames(this->doors_socket, doorsModuleLogger);
 
     /* Receive a CAN frame using the frame receiver and process it with handleFrames */
     frameReceiver->receive(handleFrames);
