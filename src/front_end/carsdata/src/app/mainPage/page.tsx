@@ -1,8 +1,8 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-import Carousel from '../../components/mainPageComponents/Carousel';
-import NavBarMain from '../../components/mainPageComponents/NavBarMain';
-import Map from '../../components/mainPageComponents/Map';
+import React, { useState } from 'react';
+import Carousel from '../components/mainPageComponents/Carousel';
+import NavBarMain from '../components/mainPageComponents/NavBarMain';
+import Map from '../components/mainPageComponents/Map';
 
 const MainPage = () => {
     const [isVinSubmitted, setIsVinSubmitted] = useState(false);
