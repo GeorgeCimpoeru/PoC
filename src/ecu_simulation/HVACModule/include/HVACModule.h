@@ -46,6 +46,7 @@ public:
     HVACModule();
     ~HVACModule();
 
+    void initHVAC();
     int getSocket();
 };
 
