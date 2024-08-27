@@ -16,13 +16,14 @@
 
 #include "../../utils/include/Logger.h"
 #include "../../../utils/include/GenerateFrames.h"
+#include "../../../utils/include/NegativeResponse.h"
 
 /* Define the callback function type */
 using transferCompleteCallBack = std::function<bool(bool)>;
 
 class RequestTransferExit
 {
-public:    
+public:  
     /**
     * @brief Constructor for transfer exit object
     * @param RTESLogger local reference to the parent logger

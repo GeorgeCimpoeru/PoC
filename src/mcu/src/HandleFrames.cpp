@@ -484,7 +484,7 @@ namespace MCU
                     if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
                     {
                         LOG_INFO(MCULogger->GET_LOGGER(), "RequestUpdateStatus called.");
-                        RequestUpdateStatus RUS(getMcuSocket(frame_id));
+                        RequestUpdateStatus RUS(getMcuSocket(frame_id), *MCULogger);
                         RUS.requestUpdateStatus(frame_id, frame_data);
                     }
                     else
