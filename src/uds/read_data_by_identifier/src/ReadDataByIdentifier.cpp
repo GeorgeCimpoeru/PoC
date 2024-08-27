@@ -42,8 +42,8 @@ std::vector<uint8_t> readDataFromFile(const std::string& file_name, uint16_t dat
     return response;
 }
 
-ReadDataByIdentifier::ReadDataByIdentifier(int socket, Logger* rdbi_logger) 
-            : generate_frames(socket, *rdbi_logger), rdbi_logger(*rdbi_logger)
+ReadDataByIdentifier::ReadDataByIdentifier(int socket, Logger& rdbi_logger) 
+            : generate_frames(socket, rdbi_logger), rdbi_logger(rdbi_logger)
 {
     this->socket = socket;
 }

@@ -40,14 +40,14 @@ private:
     int module_id = -1;
     int socket_api = -1;
     int socket_canbus = -1;
-    Logger *_logger;
+    Logger& _logger;
     DiagnosticSessionControl mcuDiagnosticSessionControl;
 public:
     /**
      * @brief Default constructor for Handle Frames object.
     */
-    HandleFrames(int socket_canbus, Logger *logger);
-    HandleFrames(int socket_api, int socket_canbus, Logger *logger);
+    HandleFrames(int socket_canbus, Logger& logger);
+    HandleFrames(int socket_api, int socket_canbus, Logger& logger);
     /**
      * @brief Method used to handle a can frame received from the ReceiveFrame class.
      * Takes a can_frame as parameter, checks if the frame is complete and then calls

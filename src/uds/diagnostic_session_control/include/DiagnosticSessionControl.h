@@ -42,7 +42,7 @@ public:
      * this will be used in MCU module.
      * 
      */
-    DiagnosticSessionControl(Logger* logger, int socket);
+    DiagnosticSessionControl(Logger& logger, int socket);
     /**
      * @brief Construct a new Diagnostic Session Control object
      * with a parameter given for 'module_id'. For example, battery
@@ -50,7 +50,7 @@ public:
      * 
      * @param module_id 
      */
-    DiagnosticSessionControl(int module_id, Logger* logger, int socket);
+    DiagnosticSessionControl(int module_id, Logger& logger, int socket);
 
     /**
      * @brief Destroy the Diagnostic Session Control object
@@ -90,7 +90,7 @@ public:
 
 private:
     int module_id;
-    Logger* dsc_logger;
+    Logger& dsc_logger;
     int socket = -1;
     void switchToDefaultSession(canid_t frame_id);
     void switchToProgrammingSession(canid_t frame_id);
