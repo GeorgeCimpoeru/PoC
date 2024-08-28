@@ -28,7 +28,7 @@ def manual_send_frame(can_id, can_data):
         received_frames = []  # List to store all received frames
         log_info_message(logger, "Starting to receive CAN frames")
         while True:
-            received_frame = bus.recv(timeout=15)  # Adjust timeout as needed
+            received_frame = bus.recv(timeout=35)  # Adjust timeout as needed
             if received_frame is None:
                 log_info_message(logger, "No more frames received, exiting receive loop")
                 break
@@ -39,15 +39,22 @@ def manual_send_frame(can_id, can_data):
                 'can_data': [hex(byte) for byte in received_frame.data]
             }
 
+            # Authentication success case
             if received_frame.data[1] == 0x67 and \
-               received_frame.data[2] == 0x01 and \
-               received_frame.data[3] == 0x00 or \
-               received_frame.data[1] == 0x67 and received_frame.data[2] == 0x02:
+                (received_frame.data[2] in {0x01, 0x02}) and \
+                    received_frame.data[3] == 0x00:
                 log_info_message(logger, "Authentication successful")
                 received_data['auth_status'] = 'success'
-            elif received_frame.data[1] == 0x7F:  # Diagnostic negative response
+
+            # Handle negative response codes
+            elif received_frame.data[1] == 0x7F:
                 nrc = received_frame.data[3]
-                if nrc == 0x37:
+                service_id = received_frame.data[2]
+                error_text = handle_negative_response(nrc, service_id)
+
+                received_data['error_text'] = error_text
+
+                if nrc == 0x37:  # Specific handling for "RequiredTimeDelayNotExpired"
                     time_delay_ms = int.from_bytes(received_frame.data[4:8], byteorder='big')
                     time_delay_s = time_delay_ms / 1000
                     log_info_message(logger, f"Retries exceeded. Try again in: {time_delay_s} s")
@@ -74,19 +81,54 @@ def manual_send_frame(can_id, can_data):
         bus.shutdown()
 
 
-def handle_negative_response(frame_response):
+def handle_negative_response(nrc, service_id):
     """
-    Handles the negative response scenarios.
+    Handles the negative response scenarios for various services.
     """
+    service_error_mapping = {
+        # Write Data by Identifier (0x2E)
+        0x2E: {0x13, 0x31, 0x33},
+
+        # Security Access (0x27)
+        0x27: {0x12, 0x24, 0x35, 0x36},
+
+        # Diagnostic Session Control Service (0x10)
+        0x10: {0x12},
+
+        # Access Timing Parameter Service (0x83)
+        0x83: {0x12, 0x13, 0x78},
+
+        # Clear Diagnostic Information (0x14)
+        0x14: {0x13, 0x31},
+
+        # Read DTC Information (0x19)
+        0x19: {0x12, 0x13},
+
+        # Routine Control (0x31)
+        0x31: {0x12, 0x31},
+
+        # Tester Present (0x3E)
+        0x3E: {0x12, 0x13}
+    }
+
+    # General negative response codes
     negative_responses = {
         0x12: "SubFunctionNotSupported",
         0x13: "IncorrectMessageLengthOrInvalidFormat",
         0x24: "RequestSequenceError",
+        0x31: "RequestOutOfRange",
+        0x33: "SecurityAccessDenied",
         0x35: "InvalidKey",
         0x36: "ExceededNumberOfAttempts",
-        0x37: "RequiredTimeDelayNotExpired"
+        0x37: "RequiredTimeDelayNotExpired",
+        0x78: "ResponsePending"
     }
-    nrc = frame_response[3]
-    error_message = negative_responses.get(nrc, "Unknown error")
-    log_error_message(logger, f"Negative response received: NRC={hex(nrc)}, Error={error_message}")
+
+    # Check if the NRC is within the allowed list for the service
+    if service_id in service_error_mapping and nrc in service_error_mapping[service_id]:
+        error_message = negative_responses.get(nrc, "Unknown error")
+    else:
+        error_message = "Unknown service or error"
+
+    log_error_message(logger, f"Negative response received: NRC={hex(nrc)}, Error={error_message} (Code: {hex(nrc)})")
     return error_message
