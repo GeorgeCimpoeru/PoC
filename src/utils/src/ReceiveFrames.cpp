@@ -174,7 +174,7 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
             goto label1;
         }
         /* Process the received frame */ 
-        handle_frame.handleFrame(frame);
+        handle_frame.handleFrame(socket, frame);
     }
 }
 

@@ -5,7 +5,7 @@ namespace MCU
 {
     ReceiveFrames::ReceiveFrames(int socket_canbus, int socket_api)
         : timeout_duration(120), running(true), socket_canbus(socket_canbus), 
-        socket_api(socket_api), handler(socket_api, socket_canbus, *MCULogger),
+        socket_api(socket_api), handler(socket_api, *MCULogger),
         generate_frames(socket_canbus, *MCULogger)
         
     {
@@ -204,7 +204,7 @@ bool ReceiveFrames::receiveFramesFromAPI()
                 {
                     LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Received frame for MCU to execute service with SID: 0x{:x}", frame.data[1]));
                     LOG_INFO(MCULogger->GET_LOGGER(), "Calling HandleFrames module to execute the service and parse the frame.");
-                    handler.handleFrame(frame);
+                    handler.handleFrame(getMcuSocket(sender_id), frame);
                 }
             }
             else if (receiver_id == 0xFA) 
@@ -408,6 +408,18 @@ bool ReceiveFrames::receiveFramesFromAPI()
             std::cerr << "Exception in timerCheck: " << e.what() << std::endl;
         } catch (...) {
             std::cerr << "Unknown exception in timerCheck" << std::endl;
+        }
+    }
+
+    int ReceiveFrames::getMcuSocket(uint8_t sender_id)
+    {
+        if(sender_id == API_ID)
+        {
+            return socket_api;
+        }
+        else
+        {
+            return socket_canbus;
         }
     }
 }

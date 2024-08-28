@@ -1,19 +1,14 @@
 
 #include "../include/HandleFrames.h"
 
-HandleFrames::HandleFrames(int socket_canbus, Logger& logger)
-            : _logger(logger), mcuDiagnosticSessionControl(_logger, socket_canbus)
+HandleFrames::HandleFrames(int socket, Logger& logger)
+            : _socket(socket), _logger(logger), mcuDiagnosticSessionControl(_logger, _socket)
 {
-    this->socket_canbus = socket_canbus;
+
 }
-HandleFrames::HandleFrames(int socket_api, int socket_canbus, Logger& logger) 
-            : _logger(logger), mcuDiagnosticSessionControl(_logger, socket_api)
-{
-    this->socket_api = socket_api;
-    this->socket_canbus = socket_canbus;
-}
+
 /* Method to handle a can frame */
-void HandleFrames::handleFrame(const struct can_frame &frame) 
+void HandleFrames::handleFrame(canid_t can_socket, const struct can_frame &frame) 
 {
     /* Indicates whether the first frame has been received */
     static bool first_frame_received = false;
@@ -49,7 +44,7 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
         std::cout << std::endl;
         is_multi_frame = false;
         /* Enter the switch case */
-        processFrameData(frame.can_id, sid, frame_data, is_multi_frame);
+        processFrameData(can_socket, frame.can_id, sid, frame_data, is_multi_frame);
         /* clear data to be used by a future frame */
         frame_data.clear();
     /* id == 0x10 == first frame */
@@ -112,7 +107,7 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
             std::cout << std::endl;
             is_multi_frame = true;
             /* Enter the switch case */
-            processFrameData(frame.can_id, sid, frame_data, is_multi_frame);
+            processFrameData(can_socket, frame.can_id, sid, frame_data, is_multi_frame);
             /* Reset sequenceNumber for the next sequence */
             expected_sequence_number = 0x21;
             /* Reset variables */
@@ -128,7 +123,7 @@ void HandleFrames::handleFrame(const struct can_frame &frame)
 }
 
 /* Method to call the service or handle the response*/
-void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<uint8_t> frame_data, bool is_multi_frame) 
+void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t sid, std::vector<uint8_t> frame_data, bool is_multi_frame) 
 {
 
     switch (sid) {
@@ -162,7 +157,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
 
                 /* Calls ECU Reset */      
                 /* This service can be called in any session. */
-                EcuReset ecu_reset(frame_id, sub_function, getMcuSocket(frame_id), _logger);
+                EcuReset ecu_reset(frame_id, sub_function, can_socket, _logger);
                 ecu_reset.ecuResetRequest();         
             }
             break;
@@ -179,7 +174,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
                 if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
                 {
                     LOG_INFO(_logger.GET_LOGGER(), "SecurityAccess called.");
-                    SecurityAccess security_access(getMcuSocket(frame_id), _logger);
+                    SecurityAccess security_access(can_socket, _logger);
                     security_access.securityAccess(frame_id, frame_data);
                     if (SecurityAccess::getMcuState())
                     {
@@ -193,7 +188,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
                 else
                 {
                     int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
-                    NegativeResponse negative_response(getMcuSocket(frame_id), _logger);
+                    NegativeResponse negative_response(can_socket, _logger);
                     negative_response.sendNRC(new_id, 0x83, 0x7E);
                 }
             }
@@ -218,7 +213,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             else 
             {
                 LOG_INFO(_logger.GET_LOGGER(), "TesterPresent called.");
-                TesterPresent tester_present(_logger, &mcuDiagnosticSessionControl, getMcuSocket(frame_id), 1000);
+                TesterPresent tester_present(_logger, &mcuDiagnosticSessionControl, can_socket, 1000);
                 tester_present.handleTesterPresent(frame_id, frame_data);
             }
             break;
@@ -232,7 +227,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             {
                 /* This service can be called in any session. */
                 LOG_INFO(_logger.GET_LOGGER(), "AccessTimingParameters called.");
-                AccessTimingParameter access_timing_parameter(_logger, getMcuSocket(frame_id));
+                AccessTimingParameter access_timing_parameter(_logger, can_socket);
                 if(frame_data.size() < 4)
                 {
                     access_timing_parameter.handleRequest(frame_id, frame_data[2], {});
@@ -254,7 +249,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             {
                 /* This service can be called in any session */
                 LOG_INFO(_logger.GET_LOGGER(), "ReadDataByIdentifier called.");
-                ReadDataByIdentifier read_data_by_identifier(getMcuSocket(frame_id), _logger);
+                ReadDataByIdentifier read_data_by_identifier(can_socket, _logger);
                 read_data_by_identifier.readDataByIdentifier(frame_id, frame_data, true);
             }
             break;
@@ -279,7 +274,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             {
                 /* This service can be called in any session. */
                 LOG_INFO(_logger.GET_LOGGER(), "WriteDataByIdentifier service called!");
-                WriteDataByIdentifier write_data_by_identifier(_logger, getMcuSocket(frame_id));
+                WriteDataByIdentifier write_data_by_identifier(_logger, can_socket);
                 write_data_by_identifier.WriteDataByIdentifierService(frame_id, frame_data);
             }
             break;
@@ -293,7 +288,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             {
                 /* This service can be called in any session */
                 LOG_INFO(_logger.GET_LOGGER(), "ClearDiagnosticInformation called.");
-                ClearDtc clear_dtc("../uds/read_dtc_information/dtcs.txt", _logger, getMcuSocket(frame_id));
+                ClearDtc clear_dtc("../uds/read_dtc_information/dtcs.txt", _logger, can_socket);
                 clear_dtc.clearDtc(frame_id, frame_data);
             }
             break;
@@ -308,7 +303,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
                 /* This service can be called in any session */
                 LOG_INFO(_logger.GET_LOGGER(), "ReadDtcInformation called.");
                 /* verify_frame() */
-                ReadDTC readDtc(_logger, "../uds/read_dtc_information/dtcs.txt", getMcuSocket(frame_id));
+                ReadDTC readDtc(_logger, "../uds/read_dtc_information/dtcs.txt", can_socket);
                 readDtc.read_dtc(frame_id, frame_data);
             }
             break;
@@ -321,7 +316,7 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
             else 
             {
                 /* This service can be called in any session. */
-                RoutineControl routine_control(getMcuSocket(frame_id), _logger);
+                RoutineControl routine_control(can_socket, _logger);
                 routine_control.routineControl(frame_id, frame_data);
                 LOG_INFO(_logger.GET_LOGGER(), "RoutineControl called.");
             }
@@ -409,15 +404,15 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
                 /* This service can be called in PROGRAMMING_SESSION */
                 if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
                 {
-                    RequestDownloadService requestDownload(getMcuSocket(frame_id), _logger);
-                    ReadDataByIdentifier software_version(getMcuSocket(frame_id), _logger);
-                    SecurityAccess logged_in(getMcuSocket(frame_id), _logger);
+                    RequestDownloadService requestDownload(can_socket, _logger);
+                    ReadDataByIdentifier software_version(can_socket, _logger);
+                    SecurityAccess logged_in(can_socket, _logger);
                     requestDownload.requestDownloadRequest(frame_id, frame_data);
                 }
                 else
                 {
                     int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
-                    NegativeResponse negative_response(getMcuSocket(frame_id), _logger);
+                    NegativeResponse negative_response(can_socket, _logger);
                     negative_response.sendNRC(new_id, 0x34, 0x7F);
                 }
             }
@@ -437,14 +432,14 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
                 /* This service can be called in PROGRAMMING_SESSION */
                 if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
                 {
-                    TransferData transfer_data(getMcuSocket(frame_id), _logger);
+                    TransferData transfer_data(can_socket, _logger);
                     transfer_data.transferData(frame_id, frame_data);
                     LOG_INFO(_logger.GET_LOGGER(), "TransferData called with one frame.");
                 }
                 else
                 {
                         int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
-                    NegativeResponse negative_response(getMcuSocket(frame_id), _logger);
+                    NegativeResponse negative_response(can_socket, _logger);
                     negative_response.sendNRC(new_id, 0x36, 0x7F);
                 }
             }
@@ -461,13 +456,13 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
                 if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
                 {
                     LOG_INFO(_logger.GET_LOGGER(), "Request Transfer Exit Service 0x37 called");
-                    RequestTransferExit request_transfer_exit(getMcuSocket(frame_id), _logger);
+                    RequestTransferExit request_transfer_exit(can_socket, _logger);
                     request_transfer_exit.requestTRansferExitRequest(frame_id, frame_data);
                 }
                 else
                 {
                     int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
-                    NegativeResponse negative_response(getMcuSocket(frame_id), _logger);
+                    NegativeResponse negative_response(can_socket, _logger);
                     negative_response.sendNRC(new_id, 0x37, 0x7F);
                 }
             }
@@ -484,13 +479,13 @@ void HandleFrames::processFrameData(canid_t frame_id, uint8_t sid, std::vector<u
                 if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
                 {
                     LOG_INFO(_logger.GET_LOGGER(), "RequestUpdateStatus called.");
-                    RequestUpdateStatus RUS(getMcuSocket(frame_id), _logger);
+                    RequestUpdateStatus RUS(can_socket, _logger);
                     RUS.requestUpdateStatus(frame_id, frame_data);
                 }
                 else
                 {
                     int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
-                    NegativeResponse negative_response(getMcuSocket(frame_id), _logger);
+                    NegativeResponse negative_response(can_socket, _logger);
                     negative_response.sendNRC(new_id, 0x32, 0x7F);
                 }
             }
@@ -567,17 +562,5 @@ void HandleFrames::processNrc(canid_t frame_id, uint8_t sid, uint8_t nrc)
             /* GenerateFrames::negativeResponse(can_id, sid, nrc); */
             LOG_ERROR(_logger.GET_LOGGER(), "Error: Unknown negative response code for service: {0:x}", (int)sid);
             break;
-    }
-}
-int HandleFrames::getMcuSocket(canid_t frame_id)
-{
-    uint8_t sender_id = (frame_id >> 8) & 0xFF;
-    if(sender_id == 0xFA)
-    {
-        return this->socket_api;
-    }
-    else
-    {
-        return this->socket_canbus;
     }
 }

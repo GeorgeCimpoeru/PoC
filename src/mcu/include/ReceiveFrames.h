@@ -267,6 +267,13 @@ namespace MCU
      * @param ecu_id The identifier of the ECU (will be added to the list).
      */
     void resetTimer(uint8_t ecu_id);
+
+    /**
+     * @brief return the socket, either vcan1 socket or vcan0 socket
+     * @param[in] sender_id The sender id.
+     * @return int 
+     */
+    int getMcuSocket(uint8_t sender_id);
   };
 }
 #endif /* POC_SRC_MCU_RECEIVE_FRAME_MODULE_H */
