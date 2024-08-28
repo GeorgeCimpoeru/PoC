@@ -44,7 +44,6 @@ class Updates(Action):
         """
 
         try:
-            # self.id = (module_id[0] << 16) + (self.my_id << 8) + self.id_ecu[0]
             self.id = (self.id_ecu[1] << 16) + (self.my_id << 8) + self.id_ecu[0]
 
             log_info_message(logger, "Changing session to programming")
@@ -146,10 +145,10 @@ class Updates(Action):
         """
 
         self.generate.request_download(self.id,
-                                       data_format_identifier=0x00,  # No compression/encryption
+                                       data_format_identifier=type,  # No compression/encryption
                                        memory_address=0x8001,  # Memory address starting from 2049
                                        memory_size=0x01,  # Memory size
-                                       version=0x10)  # Version 2
+                                       version=version)  # Version 2
         self._passive_response(REQUEST_DOWNLOAD, "Error requesting download")
         # self.generate.transfer_data_long(self.id, 0x01, data)
         # self.generate.transfer_data_long(self.id, 0x01, data, False)

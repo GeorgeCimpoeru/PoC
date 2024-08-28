@@ -10,8 +10,8 @@ function fetchLogs() {
         .then(response => response.json())
         .then(data => {
             const logBody = document.getElementById('log-body');
-            logBody.innerHTML = ''; 
-            
+            logBody.innerHTML = '';
+
             data.logs.reverse().forEach((log, index) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `<td>${index + 1}</td><td>${log}</td>`;
@@ -65,10 +65,10 @@ function requestIds() {
 }
 
 function updateToVersion() {
-    const ecuId = prompt('Enter ECU ID:');
-    const version = prompt('Enter Version:');
+    const type = prompt('Enter file type:');
+    const version = prompt('Enter sw version:');
 
-    performApiRequest('/api/update_to_version', 'POST', { ecu_id: ecuId, version: version });
+    performApiRequest('/api/update_to_version', 'POST', { update_file_type: type, update_file_version: version });
 }
 
 function readInfoBattery() {
