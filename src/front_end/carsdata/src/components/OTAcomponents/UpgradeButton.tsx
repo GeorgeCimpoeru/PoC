@@ -12,48 +12,46 @@ const UpgradeButton = () => {
     const showVersionPopup = () => setIsVersionPopupVisible(true);
 
     const handleVersionSelect = (version: string) => {
-        console.log("TEST")
         setSelectedVersion(version);
         setIsVersionPopupVisible(false);
         handleUpdate(version);
     };
 
     const handleUpdate = async (version: string) => {
-        console.log("test")
-        try {
-            const response = await fetch('http://127.0.0.1:5000/api/update_to_version', { 
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    ecu_id: "0x11",
-                    version: "1"
-                })
-            });
-            console.log(response)
-            if (!response.ok) {
-                throw new Error(`Network response was not ok: ${response.statusText}`);
-            }
+        // try {
+        //     const response = await fetch('http://127.0.0.1:5000/api/update_to_version', { 
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json'
+        //         },
+        //         body: JSON.stringify({
+        //             ecu_id: "0x11",
+        //             version: "1"
+        //         })
+        //     });
+        //     console.log(response)
+        //     if (!response.ok) {
+        //         throw new Error(`Network response was not ok: ${response.statusText}`);
+        //     }
 
-            const result = await response.json();
+        //     const result = await response.json();
 
-            if (result.ERROR || result["No of errors"] > 0) {
-                setError(`Update failed: ${result.ERROR} - Number of errors: ${result["No of errors"]}`);
-                setMessage(null);
-            } else if (result["already_installed"] === true) {
-                setMessage('Already installed');
-                setError(null);
-            } else {
-                setMessage('Downloaded successfully!');
-                setError(null);
-            }
-        } catch (error: unknown) {
-            setError(error instanceof Error ? error.message : 'An unknown error occurred');
-            setMessage(null);
-        } finally {
-            setIsPopupVisible(true);
-        }
+        //     if (result.ERROR || result["No of errors"] > 0) {
+        //         setError(`Update failed: ${result.ERROR} - Number of errors: ${result["No of errors"]}`);
+        //         setMessage(null);
+        //     } else if (result["already_installed"] === true) {
+        //         setMessage('Already installed');
+        //         setError(null);
+        //     } else {
+        //         setMessage('Downloaded successfully!');
+        //         setError(null);
+        //     }
+        // } catch (error: unknown) {
+        //     setError(error instanceof Error ? error.message : 'An unknown error occurred');
+        //     setMessage(null);
+        // } finally {
+        //     setIsPopupVisible(true);
+        // }
     };
 
     const closePopup = () => setIsPopupVisible(false);
@@ -89,7 +87,7 @@ const UpgradeButton = () => {
 
             <Modal
                 title="Update Status"
-                visible={isPopupVisible}
+                open={isPopupVisible}
                 onCancel={closePopup}
                 footer={[
                     <Button key="ok" onClick={closePopup}>

@@ -11,14 +11,14 @@ const MainPage = () => {
     const [vin, setVin] = useState('');
 
     useEffect(() => {
-        fetch('/api/runscript')
-            .then((response) => response.json())
-            .then((data) => {
-                console.log('Script output:', data.output);
-            })
-            .catch((error) => {
-                console.error('Error running script:', error);
-            });
+        // fetch('/api/runscript')
+        //     .then((response) => response.json())
+        //     .then((data) => {
+        //         console.log('Script output:', data.output);
+        //     })
+        //     .catch((error) => {
+        //         console.error('Error running script:', error);
+        //     });
         const storedVinSubmitted = localStorage.getItem('isVinSubmitted') === 'true';
         setIsVinSubmitted(storedVinSubmitted);
     }, []);
