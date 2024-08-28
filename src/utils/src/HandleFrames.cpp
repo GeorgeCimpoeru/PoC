@@ -125,207 +125,141 @@ void HandleFrames::handleFrame(int can_socket, const struct can_frame &frame)
 /* Method to call the service or handle the response*/
 void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t sid, std::vector<uint8_t> frame_data, bool is_multi_frame) 
 {
-
     switch (sid) {
         case 0x10:
+        {
             /* DiagnosticSessionControl(sid, frame_data[2]); */
-            if(frame_data[1] == 0x7F)
-            {
-                processNrc(frame_id, sid, frame_data[3]);
-            }
-            else 
-            {   
-                /* This service can be called in any session */
-                LOG_INFO(_logger.GET_LOGGER(), "DiagnosticSessionControl called.");
-                mcuDiagnosticSessionControl.sessionControl(frame_id, frame_data[2]);
-                LOG_INFO(_logger.GET_LOGGER(), "MCU Current session: {}", DiagnosticSessionControl::getCurrentSessionToString());
-            } 
+            /* This service can be called in any session */
+            LOG_INFO(_logger.GET_LOGGER(), "DiagnosticSessionControl called.");
+            mcuDiagnosticSessionControl.sessionControl(frame_id, frame_data[2]);
             break;
+        }
         case 0x11:
         {
             /* Negative response */
-            if(frame_data[1] == 0x7F)
-            {
-                processNrc(frame_id, sid, frame_data[3]);
-            }
-            else 
-            {
-                LOG_INFO(_logger.GET_LOGGER(), "Service 0x11 EcuReset");
-                LOG_INFO(_logger.GET_LOGGER(), "Data size: {}", frame_data.size());
-                uint8_t sub_function = frame_data[2];
-                LOG_INFO(_logger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
+            LOG_INFO(_logger.GET_LOGGER(), "Service 0x11 EcuReset called");
+            uint8_t sub_function = frame_data[2];
+            LOG_INFO(_logger.GET_LOGGER(), "sub_function: {}", static_cast<int>(sub_function));
 
-                /* Calls ECU Reset */      
-                /* This service can be called in any session. */
-                EcuReset ecu_reset(frame_id, sub_function, can_socket, _logger);
-                ecu_reset.ecuResetRequest();         
-            }
+            /* Calls ECU Reset */      
+            /* This service can be called in any session. */
+            EcuReset ecu_reset(frame_id, sub_function, can_socket, _logger);
+            ecu_reset.ecuResetRequest();       
             break;
         }
         case 0x27:
+        {
             /* SecurityAccess(sid, frame_data[2], key?); */
-            if(frame_data[1] == 0x7F)
+            /* This service can be called in PROGRAMMING_SESSION */
+            if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
             {
-                processNrc(frame_id, sid, frame_data[3]);
+                LOG_INFO(_logger.GET_LOGGER(), "SecurityAccess called.");
+                SecurityAccess security_access(can_socket, _logger);
+                security_access.securityAccess(frame_id, frame_data);
+                if (SecurityAccess::getMcuState())
+                {
+                    LOG_INFO(_logger.GET_LOGGER(), "Server is unlocked.");
+                }
+                else
+                {
+                    LOG_INFO(_logger.GET_LOGGER(), "Server is locked.");
+                }
             }
             else
             {
-                /* This service can be called in PROGRAMMING_SESSION */
-                if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
-                {
-                    LOG_INFO(_logger.GET_LOGGER(), "SecurityAccess called.");
-                    SecurityAccess security_access(can_socket, _logger);
-                    security_access.securityAccess(frame_id, frame_data);
-                    if (SecurityAccess::getMcuState())
-                    {
-                        LOG_INFO(_logger.GET_LOGGER(), "Server is unlocked.");
-                    }
-                    else
-                    {
-                        LOG_INFO(_logger.GET_LOGGER(), "Server is locked.");
-                    }
-                }
-                else
-                {
-                    int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
-                    NegativeResponse negative_response(can_socket, _logger);
-                    negative_response.sendNRC(new_id, 0x83, 0x7E);
-                }
+                int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+                NegativeResponse negative_response(can_socket, _logger);
+                negative_response.sendNRC(new_id, 0x83, 0x7E);
             }
             break;
+        }
         case 0x29:
+        {
             /* Authentication(); */
-            if(frame_data[1] == 0x7F)
-            {
-                processNrc(frame_id, sid, frame_data[3]);
-            }
-            else 
-            {
-                LOG_INFO(_logger.GET_LOGGER(), "Authentication called.");
-            }
+            LOG_INFO(_logger.GET_LOGGER(), "Authentication called.");
             break;
+        }
         case 0x3E:
-            /* TesterPresent(sid, frame_data[2]); */
-            if(frame_data[1] == 0x7F)
-            {
-                processNrc(frame_id, sid, frame_data[3]);
-            }
-            else 
-            {
-                LOG_INFO(_logger.GET_LOGGER(), "TesterPresent called.");
-                TesterPresent tester_present(_logger, &mcuDiagnosticSessionControl, can_socket, 1000);
-                tester_present.handleTesterPresent(frame_id, frame_data);
-            }
+        {
+            LOG_INFO(_logger.GET_LOGGER(), "TesterPresent called.");
+            TesterPresent tester_present(_logger, &mcuDiagnosticSessionControl, can_socket, 1000);
+            tester_present.handleTesterPresent(frame_id, frame_data);
             break;
+        }
         case 0x83:
-            /* AccessTimingParameters(sid, frame_data[2]); */
-            if(frame_data[1] == 0x7F)
+        {
+            LOG_INFO(_logger.GET_LOGGER(), "AccessTimingParameters called.");
+             AccessTimingParameter access_timing_parameter(_logger, can_socket);
+            if(frame_data.size() < 4)
             {
-                processNrc(frame_id, sid, frame_data[3]);
+                access_timing_parameter.handleRequest(frame_id, frame_data[2], {});
             }
-            else 
+            else
             {
-                /* This service can be called in any session. */
-                LOG_INFO(_logger.GET_LOGGER(), "AccessTimingParameters called.");
-                AccessTimingParameter access_timing_parameter(_logger, can_socket);
-                if(frame_data.size() < 4)
-                {
-                    access_timing_parameter.handleRequest(frame_id, frame_data[2], {});
-                }
-                else
-                {
-                    std::vector<uint8_t> timing_parameters(frame_data.begin() + 3, frame_data.end());
-                    access_timing_parameter.handleRequest(frame_id, frame_data[2], timing_parameters);
-                }
+                std::vector<uint8_t> timing_parameters(frame_data.begin() + 3, frame_data.end());
+                access_timing_parameter.handleRequest(frame_id, frame_data[2], timing_parameters);
             }
             break;
+        }
         case 0x22:
+        {
             /* ReadDataByIdentifier(sid, frame_data[2] << 8) | frame_data[3]); */
-            if(frame_data[1] == 0x7F)
-            {
-                processNrc(frame_id, sid, frame_data[3]);
-            }
-            else 
-            {
-                /* This service can be called in any session */
-                LOG_INFO(_logger.GET_LOGGER(), "ReadDataByIdentifier called.");
-                ReadDataByIdentifier read_data_by_identifier(can_socket, _logger);
-                read_data_by_identifier.readDataByIdentifier(frame_id, frame_data, true);
-            }
+            /* This service can be called in any session */
+            LOG_INFO(_logger.GET_LOGGER(), "ReadDataByIdentifier called.");
+            ReadDataByIdentifier read_data_by_identifier(can_socket, _logger);
+            read_data_by_identifier.readDataByIdentifier(frame_id, frame_data, true);
             break;
+        }
         case 0x23:
+        {
             /* ReadMemoryByAddress(frame_data[2], frame_data[3] << 8) | frame_data[4], frame_data[5] << 8) | frame_data[6]); */
-            if(frame_data[1] == 0x7F)
-            {
-                processNrc(frame_id, sid, frame_data[3]);
-            }
-            else 
-            {
-                LOG_INFO(_logger.GET_LOGGER(), "ReadMemoryByAddress called.");
-            }
+            LOG_INFO(_logger.GET_LOGGER(), "ReadMemoryByAddress called.");
             break;
+        }
         case 0x2E:
+        {
             /* WriteDataByIdentifier(sid, frame_data[2] << 8) | frame_data[3], data_parameter?); */
-            if(frame_data[1] == 0x7F)
-            {
-                processNrc(frame_id, sid, frame_data[3]);
-            }
-            else 
-            {
-                /* This service can be called in any session. */
-                LOG_INFO(_logger.GET_LOGGER(), "WriteDataByIdentifier service called!");
-                WriteDataByIdentifier write_data_by_identifier(_logger, can_socket);
-                write_data_by_identifier.WriteDataByIdentifierService(frame_id, frame_data);
-            }
+            /* This service can be called in any session. */
+            LOG_INFO(_logger.GET_LOGGER(), "WriteDataByIdentifier service called!");
+            WriteDataByIdentifier write_data_by_identifier(_logger, can_socket);
+            write_data_by_identifier.WriteDataByIdentifierService(frame_id, frame_data);
             break;
+        }
         case 0x14:
+        {
             /* ClearDiagnosticInformation(); */
-            if(frame_data[1] == 0x7F)
-            {
-                processNrc(frame_id, sid, frame_data[3]);
-            }
-            else 
-            {
-                /* This service can be called in any session */
-                LOG_INFO(_logger.GET_LOGGER(), "ClearDiagnosticInformation called.");
-                ClearDtc clear_dtc("../uds/read_dtc_information/dtcs.txt", _logger, can_socket);
-                clear_dtc.clearDtc(frame_id, frame_data);
-            }
-            break;
+            /* This service can be called in any session */
+            LOG_INFO(_logger.GET_LOGGER(), "ClearDiagnosticInformation called.");
+            ClearDtc clear_dtc("../uds/read_dtc_information/dtcs.txt", _logger, can_socket);
+            clear_dtc.clearDtc(frame_id, frame_data);
+            break;  
+        }
         case 0x19:
+        {
             /* ReadDtcInformation(); */
-            if(frame_data[1] == 0x7F)
-            {
-                processNrc(frame_id, sid, frame_data[3]);
-            }
-            else 
-            {
-                /* This service can be called in any session */
-                LOG_INFO(_logger.GET_LOGGER(), "ReadDtcInformation called.");
-                /* verify_frame() */
-                ReadDTC readDtc(_logger, "../uds/read_dtc_information/dtcs.txt", can_socket);
-                readDtc.read_dtc(frame_id, frame_data);
-            }
+            /* This service can be called in any session */
+            LOG_INFO(_logger.GET_LOGGER(), "ReadDtcInformation called.");
+            /* verify_frame() */
+            ReadDTC readDtc(_logger, "../uds/read_dtc_information/dtcs.txt", can_socket);
+            readDtc.read_dtc(frame_id, frame_data);
             break;
+        }
         case 0x31:
+        {
             /* RoutineControl(sid, frame_data[2], frame_data[3] << 8) | frame_data[4]); */
-            if(frame_data[1] == 0x7F)
-            {
-                processNrc(frame_id, sid, frame_data[3]);
-            }
-            else 
-            {
-                /* This service can be called in any session. */
-                RoutineControl routine_control(can_socket, _logger);
-                routine_control.routineControl(frame_id, frame_data);
-                LOG_INFO(_logger.GET_LOGGER(), "RoutineControl called.");
-            }
+            /* This service can be called in any session. */
+            LOG_INFO(_logger.GET_LOGGER(), "RoutineControl called.");
+            RoutineControl routine_control(can_socket, _logger);
+            routine_control.routineControl(frame_id, frame_data);
             break;
+        }
         /* UDS Responses */
         case 0x50:
+        {
             /* Response for DiagnosticSessionControl */
             LOG_INFO(_logger.GET_LOGGER(), "Response for DiagnosticSessionControl received.");
             break;
+        }
         case 0x51:
         {
             /* Response from ECU Reset service */
@@ -333,22 +267,31 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
             break;
         }
         case 0x67:
+        {
             /* Response from SecurityAccess() service */
             LOG_INFO(_logger.GET_LOGGER(), "Response from SecurityAccess received.");
             break;
+        }
         case 0x69:
+        {
             /* Response from Authentication() service */
             LOG_INFO(_logger.GET_LOGGER(), "Response from Authentication received.");
             break;
+        }
         case 0x7E:
+        {
             /* Response from TesterPresent() service */
             LOG_INFO(_logger.GET_LOGGER(), "Response from TesterPresent received.");
             break;
+        }
         case 0xC3:
+        {
             /* Response from AccessTimingParameters() service */
             LOG_INFO(_logger.GET_LOGGER(), "Response from AccessTimingParameters received.");
             break;
+        }
         case 0x62:
+        {
             /* Response from ReadDataByIdentifier() service */
             if(is_multi_frame)
             {
@@ -360,7 +303,9 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
                 LOG_INFO(_logger.GET_LOGGER(),"Response from ReadDataByIdentifier received in one frame.");
             }
             break;
+        }
         case 0x63:
+        {
             /* Response from ReadMemoryByAddress() service */
             if(is_multi_frame)
             {
@@ -372,58 +317,54 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
                 LOG_INFO(_logger.GET_LOGGER(),"Response from ReadMemoryByAdress received in one frame.");
             }
             break;
+        }
         case 0x6E:
+        {
             /* Response from WriteDataByIdentifier() service */
             LOG_INFO(_logger.GET_LOGGER(), "Response from WriteDataByIdentifier received.");
             break;
+        }
         case 0x54:
+        {
             /* Response from ClearDiagnosticInformation() service */
             LOG_INFO(_logger.GET_LOGGER(), "Response from ClearDiagnosticInformation received.");
             break;
+        }
         case 0x59:
+        {
             /* Response from ReadDtcInformation() service */
             LOG_INFO(_logger.GET_LOGGER(), "Response from ReadDtcInformation received.");
             break;
+        }
         case 0x71:
+        {
             /* Response from RoutineControl() service */
             LOG_INFO(_logger.GET_LOGGER(), "Response from RoutineControl received.");
             break;
+        }
         /* OTA Requests */
         case 0x34:
-            /* RequestDownload(sid, frame_data[2], frame_data[3], frame_data[4], frame_data[5]); */
-            if(frame_data[1] == 0x7F)
+        {
+            /* This service can be called in PROGRAMMING_SESSION */
+            if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
             {
-                processNrc(frame_id, sid, frame_data[3]);
+                RequestDownloadService requestDownload(can_socket, _logger);
+                ReadDataByIdentifier software_version(can_socket, _logger);
+                SecurityAccess logged_in(can_socket, _logger);
+                requestDownload.requestDownloadRequest(frame_id, frame_data);
             }
-            else 
+            else
             {
-                LOG_INFO(_logger.GET_LOGGER(), "Service 0x34 RequestDownload");
-                LOG_INFO(_logger.GET_LOGGER(), "SID pos: {}", sid);
-                LOG_INFO(_logger.GET_LOGGER(), "Data size: {}", frame_data.size());
-
-                /* This service can be called in PROGRAMMING_SESSION */
-                if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
-                {
-                    RequestDownloadService requestDownload(can_socket, _logger);
-                    ReadDataByIdentifier software_version(can_socket, _logger);
-                    SecurityAccess logged_in(can_socket, _logger);
-                    requestDownload.requestDownloadRequest(frame_id, frame_data);
-                }
-                else
-                {
-                    int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
-                    NegativeResponse negative_response(can_socket, _logger);
-                    negative_response.sendNRC(new_id, 0x34, 0x7F);
-                }
+                int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+                NegativeResponse negative_response(can_socket, _logger);
+                negative_response.sendNRC(new_id, 0x34, 0x7F);
             }
             break;
+        }
         case 0x36:
+        {
             /* TransferData(sid, frame_data[2], frame_data[3], frame_data[4]); */
-            if(frame_data[1] == 0x7F)
-            {
-                processNrc(frame_id, sid, frame_data[3]);
-            }
-            else if(is_multi_frame)
+            if(is_multi_frame)
             {
                 LOG_INFO(_logger.GET_LOGGER(), "TransferData called with multiple frames.");
             }
@@ -438,129 +379,79 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
                 }
                 else
                 {
-                        int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+                    int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
                     NegativeResponse negative_response(can_socket, _logger);
                     negative_response.sendNRC(new_id, 0x36, 0x7F);
                 }
             }
             break;
+        }
         case 0x37:
+        {
             /* RequestTransferExit(sid, frame_data[2]); */
-            if(frame_data[1] == 0x7F)
+            /* This service can be called in PROGRAMMING_SESSION */
+            if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
             {
-                processNrc(frame_id, sid, frame_data[3]);
+                LOG_INFO(_logger.GET_LOGGER(), "Request Transfer Exit Service 0x37 called");
+                RequestTransferExit request_transfer_exit(can_socket, _logger);
+                request_transfer_exit.requestTRansferExitRequest(frame_id, frame_data);
             }
-            else 
+            else
             {
-                /* This service can be called in PROGRAMMING_SESSION */
-                if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
-                {
-                    LOG_INFO(_logger.GET_LOGGER(), "Request Transfer Exit Service 0x37 called");
-                    RequestTransferExit request_transfer_exit(can_socket, _logger);
-                    request_transfer_exit.requestTRansferExitRequest(frame_id, frame_data);
-                }
-                else
-                {
-                    int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
-                    NegativeResponse negative_response(can_socket, _logger);
-                    negative_response.sendNRC(new_id, 0x37, 0x7F);
-                }
+                int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+                NegativeResponse negative_response(can_socket, _logger);
+                negative_response.sendNRC(new_id, 0x37, 0x7F);
             }
             break;
+        }
         case 0x32:
+        {
             /* RequestUpdateStatus(); */
-            if(frame_data[1] == 0x7F)
+            /* This service can be called in PROGRAMMING_SESSION */
+            if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
             {
-                processNrc(frame_id, sid, frame_data[3]);
+                LOG_INFO(_logger.GET_LOGGER(), "RequestUpdateStatus called.");
+                RequestUpdateStatus RUS(can_socket, _logger);
+                RUS.requestUpdateStatus(frame_id, frame_data);
             }
-            else 
+            else
             {
-                /* This service can be called in PROGRAMMING_SESSION */
-                if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
-                {
-                    LOG_INFO(_logger.GET_LOGGER(), "RequestUpdateStatus called.");
-                    RequestUpdateStatus RUS(can_socket, _logger);
-                    RUS.requestUpdateStatus(frame_id, frame_data);
-                }
-                else
-                {
-                    int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
-                    NegativeResponse negative_response(can_socket, _logger);
-                    negative_response.sendNRC(new_id, 0x32, 0x7F);
-                }
+                int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+                NegativeResponse negative_response(can_socket, _logger);
+                negative_response.sendNRC(new_id, 0x32, 0x7F);
             }
             break;
+        }
         /* OTA Responses */
         case 0x74:
+        {
             /* Response from RequestDownload() service */
             LOG_INFO(_logger.GET_LOGGER(), "Response from RequestDownload received.");
             break;
+        }
         case 0x76:
+        {
             /* Response from TransferData() service */
             LOG_INFO(_logger.GET_LOGGER(), "Response from TransferData received.");
             break;
+        }
         case 0x77:
+        {
             /* Response from RequestTransferExit() service */
             LOG_INFO(_logger.GET_LOGGER(), "Response from RequestTransferExit received.");
             break;
+        }
         case 0x72:
+        {
             /* Response from RequestUpdateStatus() service */
             LOG_INFO(_logger.GET_LOGGER(), "Response from RequestUpdateStatus received.");
             break;
+        }
         default:
+        {
             /* Unknown request/response */
             LOG_INFO(_logger.GET_LOGGER(), "Unknown request/response received.");
             break;
-    }
-}
-void HandleFrames::processNrc(canid_t frame_id, uint8_t sid, uint8_t nrc)
-{
-    switch(nrc)
-    {
-        case 0x11:
-            /* Service not supported */
-            /* GenerateFrames::negativeResponse(can_id, sid, nrc); */
-            LOG_ERROR(_logger.GET_LOGGER(), "Error: Service not supported for service: {0:x}", (int)sid);
-            break;
-        case 0x13:
-            /* Incorrect message length or invalid format */
-            /* GenerateFrames::negativeResponse(can_id, sid, nrc); */
-            LOG_ERROR(_logger.GET_LOGGER(), "Error: Incorrect message length or invalid format for service: {0:x}", (int)sid);
-            break;
-        case 0x14:
-            /*  Response too long */
-            /* GenerateFrames::negativeResponse(can_id, sid, nrc); */
-            LOG_ERROR(_logger.GET_LOGGER(), "Error: Response too long for service: {0:x}", (int)sid);
-            break;
-        case 0x25:
-            /* No response from subnet component */
-            /* GenerateFrames::negativeResponse(can_id, sid, nrc); */
-            LOG_ERROR(_logger.GET_LOGGER(), "Error: No response from subnet component for service: {0:x}", (int)sid);
-            break;
-        case 0x34:
-            /* Authentication failed */
-            /* GenerateFrames::negativeResponse(can_id, sid, nrc); */
-            LOG_ERROR(_logger.GET_LOGGER(), "Error: Authentication failed for service: {0:x}", (int)sid);
-            break;
-        case 0x94:
-            /* Resource temporarily unavailable */
-            /* GenerateFrames::negativeResponse(can_id, sid, nrc); */
-            LOG_ERROR(_logger.GET_LOGGER(), "Error: Resource temporarily unavailable for service: {0:x}", (int)sid);
-            break;
-        case 0x70:
-            /* Upload download not accepted */
-            /* GenerateFrames::negativeResponse(can_id, sid, nrc); */
-            LOG_ERROR(_logger.GET_LOGGER(), "Error: Upload download not accepted for service: {0:x}", (int)sid);
-            break;
-        case 0x71:
-            /* Transfer data suspended */
-            /* GenerateFrames::negativeResponse(can_id, sid, nrc); */
-            LOG_ERROR(_logger.GET_LOGGER(), "Error: Transfer data suspended for service: {0:x}", (int)sid);
-            break;
-        default:
-            /* Unknown negative response code */
-            /* GenerateFrames::negativeResponse(can_id, sid, nrc); */
-            LOG_ERROR(_logger.GET_LOGGER(), "Error: Unknown negative response code for service: {0:x}", (int)sid);
-            break;
+        }
     }
 }

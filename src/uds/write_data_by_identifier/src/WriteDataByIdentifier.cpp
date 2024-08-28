@@ -1,5 +1,6 @@
 #include "../include/WriteDataByIdentifier.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
 /* Helper function to load data from a file into a map */
@@ -87,6 +88,9 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         } else if (receiver_id == 0x11)
         {
             battery->stop_flags[0x2E] = false;
+        } else if (receiver_id == 0x12)
+        {
+            engine->stop_flags[0x2E] = false;
         }
     }
     else if (!SecurityAccess::getMcuState())
@@ -99,6 +103,9 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         } else if (receiver_id == 0x11)
         {
             battery->stop_flags[0x2E] = false;
+        } else if (receiver_id == 0x12)
+        {
+            engine->stop_flags[0x2E] = false;
         }
     }
     else
@@ -129,6 +136,9 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
             } else if (receiver_id == 0x11)
             {
                 battery->stop_flags[0x2E] = false;
+            } else if (receiver_id == 0x12)
+            {
+                engine->stop_flags[0x2E] = false;
             }
             return;
         }
@@ -144,9 +154,22 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         } else if (receiver_id == 0x11)
         {
             file_name = "battery_data.txt";
-        } 
+        } else if (receiver_id == 0x12)
+        {
+            file_name = "engine_data.txt";
+        }
         else
         {
+            if (receiver_id == 0x10)
+            {
+                MCU::mcu->stop_flags[0x2E] = false;
+            } else if (receiver_id == 0x11)
+            {
+                battery->stop_flags[0x2E] = false;
+            } else if (receiver_id == 0x12)
+            {
+                engine->stop_flags[0x2E] = false;
+            }
             LOG_ERROR(wdbi_logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
             nrc.sendNRC(id, WDBI_SID, NegativeResponse::ROOR);
             return;
@@ -166,6 +189,16 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
             LOG_INFO(wdbi_logger.GET_LOGGER(), "Data written to DID 0x{:x} in {}.", did, (receiver_id == 0x10 ? "MCUModule" : "BatteryModule"));
         } catch (const std::exception& e) 
         {
+            if (receiver_id == 0x10)
+            {
+                MCU::mcu->stop_flags[0x2E] = false;
+            } else if (receiver_id == 0x11)
+            {
+                battery->stop_flags[0x2E] = false;
+            } else if (receiver_id == 0x12)
+            {
+                engine->stop_flags[0x2E] = false;
+            }
             LOG_ERROR(wdbi_logger.GET_LOGGER(), "Error processing file: {}", e.what());
             nrc.sendNRC(id, WDBI_SID, NegativeResponse::ROOR);
             return;
@@ -180,6 +213,9 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         } else if (receiver_id == 0x11)
         {
             battery->stop_flags[0x2e] = false;
+        } else if (receiver_id == 0x12)
+        {
+            engine->stop_flags[0x2E] = false;
         }
     }
 };

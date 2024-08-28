@@ -1,5 +1,6 @@
 #include "../include/DiagnosticSessionControl.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
 // Initialize current_session
@@ -90,6 +91,12 @@ void DiagnosticSessionControl::switchToDefaultSession(canid_t frame_id)
             LOG_INFO(dsc_logger.GET_LOGGER(), "Sent pozitive response");
             battery->stop_flags[0x10] = false;
             break;
+        case 0x12:
+            /* Send response frame */
+            response_frame.sessionControl(id, 0x01, true);
+            LOG_INFO(dsc_logger.GET_LOGGER(), "Sent positive response");
+            engine->stop_flags[0x10] = false;
+            break;
         default:
             LOG_ERROR(dsc_logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
     } 
@@ -125,6 +132,12 @@ void DiagnosticSessionControl::switchToProgrammingSession(canid_t frame_id)
             response_frame.sessionControl(id, 0x02, true);
             LOG_INFO(dsc_logger.GET_LOGGER(), "Sent pozitive response");
             battery->stop_flags[0x10] = false;
+            break;
+        case 0x12:
+            /* Send response frame */
+            response_frame.sessionControl(id, 0x02, true);
+            LOG_INFO(dsc_logger.GET_LOGGER(), "Sent positive response");
+            engine->stop_flags[0x10] = false;
             break;
         default:
             LOG_ERROR(dsc_logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);

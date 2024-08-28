@@ -1,5 +1,6 @@
 #include "../include/AccessTimingParameter.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
 // Define static constants
@@ -53,6 +54,9 @@ void AccessTimingParameter::handleRequest(canid_t frame_id, uint8_t sub_function
                 } else if (receiver_id == 0x11)
                 {
                     battery->stop_flags[0x83] = false;
+                } else if (receiver_id == 0x12)
+                {
+                    engine->stop_flags[0x83] = false;
                 }
             }
             break;
@@ -67,6 +71,9 @@ void AccessTimingParameter::handleRequest(canid_t frame_id, uint8_t sub_function
             } else if (receiver_id == 0x11)
             {
                 battery->stop_flags[0x83] = false;
+            } else if (receiver_id == 0x12)
+            {
+                engine->stop_flags[0x83] = false;
             }
             break;
     }
@@ -117,7 +124,20 @@ void AccessTimingParameter::readExtendedTimingParameters(canid_t frame_id)
                 }
                 break;
             case 0x11:
-                if (battery->stop_flags.find(0x2E) != battery->stop_flags.end())
+                if (battery->stop_flags.find(0x83) != battery->stop_flags.end())
+                {
+                    /* Send response frame */
+                    LOG_INFO(atp_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x83);
+                    response_frame.accessTimingParameters(id, 0x01, response, true);
+                } else
+                {
+                    LOG_INFO(atp_logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x83);
+                    NegativeResponse negative_response(socket, atp_logger);
+                    negative_response.sendNRC(id, 0x83, 0x78);
+                }
+                break;
+            case 0x12:
+                if (engine->stop_flags.find(0x83) != engine->stop_flags.end())
                 {
                     /* Send response frame */
                     LOG_INFO(atp_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x83);
@@ -136,6 +156,8 @@ void AccessTimingParameter::readExtendedTimingParameters(canid_t frame_id)
             MCU::mcu->stop_flags[0x83] = false;
         } else if (receiver_id == 0x11) {
             battery->stop_flags[0x83] = false;
+        } else if (receiver_id == 0x12) {
+            engine->stop_flags[0x83] = false;
         }
 }
 
@@ -172,7 +194,20 @@ void AccessTimingParameter::setTimingParametersToDefault(canid_t frame_id)
                 }
                 break;
             case 0x11:
-                if (battery->stop_flags.find(0x2E) != battery->stop_flags.end())
+                if (battery->stop_flags.find(0x83) != battery->stop_flags.end())
+                {
+                    /* Send response frame */
+                    LOG_INFO(atp_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x83);
+                    response_frame.accessTimingParameters(id, 0x02, {}, true);
+                } else
+                {
+                    LOG_INFO(atp_logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x83);
+                    NegativeResponse negative_response(socket, atp_logger);
+                    negative_response.sendNRC(id, 0x83, 0x78);
+                }
+                break;
+            case 0x12:
+                if (engine->stop_flags.find(0x83) != engine->stop_flags.end())
                 {
                     /* Send response frame */
                     LOG_INFO(atp_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x83);
@@ -191,6 +226,8 @@ void AccessTimingParameter::setTimingParametersToDefault(canid_t frame_id)
             MCU::mcu->stop_flags[0x83] = false;
         } else if (receiver_id == 0x11) {
             battery->stop_flags[0x83] = false;
+        } else if (receiver_id == 0x12) {
+            engine->stop_flags[0x83] = false;
         }
 }
 
@@ -251,6 +288,19 @@ void AccessTimingParameter::readCurrentlyActiveTimingParameters(canid_t frame_id
                     negative_response.sendNRC(id, 0x83, 0x78);
                 }
                 break;
+            case 0x12:
+                if (engine->stop_flags.find(0x83) != engine->stop_flags.end())
+                {
+                    /* Send response frame */
+                    LOG_INFO(atp_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x83);
+                    response_frame.accessTimingParameters(id, 0x03, response, true);
+                } else
+                {
+                    LOG_INFO(atp_logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x83);
+                    NegativeResponse negative_response(socket, atp_logger);
+                    negative_response.sendNRC(id, 0x83, 0x78);
+                }
+                break;
             default:
                 LOG_ERROR(atp_logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
         }
@@ -258,6 +308,8 @@ void AccessTimingParameter::readCurrentlyActiveTimingParameters(canid_t frame_id
             MCU::mcu->stop_flags[0x83] = false;
         } else if (receiver_id == 0x11) {
             battery->stop_flags[0x83] = false;
+        } else if (receiver_id == 0x12) {
+            engine->stop_flags[0x83] = false;
         }
 }
 
@@ -301,6 +353,12 @@ void AccessTimingParameter::setTimingParameters(canid_t frame_id, std::vector<ui
                 LOG_INFO(atp_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x83);
                 response_frame.accessTimingParameters(id, 0x04, response, true);
                 battery->stop_flags[0x83] = false;
+                break;
+            case 0x12:
+                /* Send response frame */
+                LOG_INFO(atp_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x83);
+                response_frame.accessTimingParameters(id, 0x04, response, true);
+                engine->stop_flags[0x83] = false;
                 break;
             default:
                 LOG_ERROR(atp_logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
