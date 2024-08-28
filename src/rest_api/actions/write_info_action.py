@@ -49,7 +49,7 @@ class WriteInfo(Action):
         Returns:
         - JSON response.
         """
-        
+
         auth_result = self._auth_mcu()
         if isinstance(auth_result, str):  # If authentication fails and returns a message
             return auth_result
@@ -110,7 +110,7 @@ class WriteInfo(Action):
         log_info_message(logger, "Changing session to programming")
         self.generate.session_control(self.id, 0x02)
         self._passive_response(SESSION_CONTROL, "Error changing session control")
-        
+
         auth_result = self._auth_mcu()
         if isinstance(auth_result, str):  # If authentication fails and returns a message
             return auth_result
