@@ -145,9 +145,10 @@ class GenerateFrame:
         self.send_frame(id, data)
 
     def request_download(self, id, data_format_identifier, memory_address, memory_size, version):
-        # Define the data format identifier mapping
+    # Define the data format identifier mapping
         DATA_FORMAT_IDENTIFIER_MAP = {
             0x00: "No compression/encryption",
+            "zip": 0x00,
             0x01: "Only encryption",
             0x10: "Only compression",
             0x11: "Both encryption and compression"
@@ -157,31 +158,46 @@ class GenerateFrame:
         sid = 0x34  # Service Identifier for Request Download
         pci = 0x07  # Protocol Control Information (PCI) - 1 byte
 
-        # Ensure the data_format_identifier is valid
-        if data_format_identifier not in DATA_FORMAT_IDENTIFIER_MAP:
-            raise ValueError("Invalid data format identifier")
-
-        # Calculate the number of bytes for memory address and memory size
-        if isinstance(memory_address, int):
-            memory_address_bytes = memory_address.to_bytes((memory_address.bit_length() + 7) // 8, byteorder='big')
+        # Handle data_format_identifier
+        if isinstance(data_format_identifier, str):
+            if data_format_identifier.lower() not in DATA_FORMAT_IDENTIFIER_MAP:
+                raise ValueError(f"Invalid data format identifier: {data_format_identifier}")
+            data_format_identifier = DATA_FORMAT_IDENTIFIER_MAP[data_format_identifier.lower()]
+        elif isinstance(data_format_identifier, int):
+            if data_format_identifier not in DATA_FORMAT_IDENTIFIER_MAP:
+                raise ValueError(f"Invalid data format identifier: {data_format_identifier}")
         else:
-            memory_address_bytes = memory_address
+            raise ValueError(f"Invalid data format identifier type: {type(data_format_identifier)}")
 
-        if isinstance(memory_size, int):
-            memory_size_bytes = memory_size.to_bytes((memory_size.bit_length() + 7) // 8, byteorder='big')
-        else:
-            memory_size_bytes = memory_size
+        # Handle memory address and size
+        memory_address_bytes = memory_address.to_bytes((memory_address.bit_length() + 7) // 8, byteorder='big') if isinstance(memory_address, int) else memory_address
+        memory_size_bytes = memory_size.to_bytes((memory_size.bit_length() + 7) // 8, byteorder='big') if isinstance(memory_size, int) else memory_size
 
         # Calculate the Address and Length Format Identifier
         address_length = len(memory_address_bytes)
         size_length = len(memory_size_bytes)
         address_and_length_format_identifier = (size_length << 4) | address_length
 
+        # Handle version
+        if isinstance(version, str):
+            major, minor = map(float, version.split('.'))
+            # Reduce the version by 1.0
+            reduced_version = major - 1 + (minor / 10)
+            if reduced_version < 0:
+                raise ValueError(f"Invalid version: {version}. Cannot be less than 1.0")
+            reduced_major, reduced_minor = divmod(reduced_version, 1)
+            version_byte = (int(reduced_major) << 4) | int(reduced_minor * 10)
+        elif isinstance(version, int):
+            # Assume the int is already in the correct format
+            version_byte = version
+        else:
+            raise ValueError(f"Invalid version format: {version}")
+
         # Constructing the data list
         data = [pci, sid, data_format_identifier, address_and_length_format_identifier]
         data.extend(memory_address_bytes)
         data.extend(memory_size_bytes)
-        data.append(version)
+        data.append(version_byte)
 
         # Sending the frame using the send_frame function
         self.send_frame(id, data)
