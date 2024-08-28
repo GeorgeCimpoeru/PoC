@@ -26,11 +26,11 @@ def request_ids():
 @api_bp.route('/update_to_version', methods=['POST'])
 def update_to_version():
     data = request.get_json()
-    ecu_id = data.get('ecu_id')
-    version = data.get('version')
-    updater = Updates(my_id=0xFA, id_ecu=[0x10, 0x11, 0x12])
-    response = updater.update_to(ecu_id=ecu_id,
-                                 version=version)
+    sw_file_type = data.get('update_file_type')
+    sw_file_version = data.get('update_file_version')
+    updater = Updates(my_id=0xFA, id_ecu=[0x10, 0x11, 0x12, 0x13])
+    response = updater.update_to(type=sw_file_type,
+                                 version=sw_file_version)
     return jsonify(response)
 
 
