@@ -36,6 +36,7 @@ def manual_send_frame(can_id, can_data):
             log_info_message(logger, f"Received frame: ID={hex(received_frame.arbitration_id)}, Data={[hex(b) for b in received_frame.data]}")
             received_data = {
                 'can_id': hex(received_frame.arbitration_id).upper(),
+                'can_id': hex(received_frame.arbitration_id).upper(),
                 'can_data': [hex(byte) for byte in received_frame.data]
             }
 
@@ -45,6 +46,7 @@ def manual_send_frame(can_id, can_data):
                     received_frame.data[3] == 0x00:
                 log_info_message(logger, "Authentication successful")
 
+
                 received_data['auth_status'] = 'success'
 
             # Handle negative response codes
@@ -53,6 +55,7 @@ def manual_send_frame(can_id, can_data):
                 service_id = received_frame.data[2]
                 error_text = handle_negative_response(nrc, service_id)
 
+                received_data['error'] = error_text
                 received_data['error'] = error_text
 
                 if nrc == 0x37:  # Specific handling for "RequiredTimeDelayNotExpired"
