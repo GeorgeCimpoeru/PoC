@@ -52,7 +52,7 @@ public:
      * processFrameData() with either a single or multi frame.
      * @param[in] frame The received frame.
     */
-    void handleFrame(canid_t can_socket, const struct can_frame &frame);
+    void handleFrame(int can_socket, const struct can_frame &frame);
     /**
      * @brief Method used to call a service or handle a response.
      * It takes frame_id, service id(sid) and frame_data and calls the right service or

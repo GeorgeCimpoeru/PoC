@@ -8,7 +8,7 @@ HandleFrames::HandleFrames(int socket, Logger& logger)
 }
 
 /* Method to handle a can frame */
-void HandleFrames::handleFrame(canid_t can_socket, const struct can_frame &frame) 
+void HandleFrames::handleFrame(int can_socket, const struct can_frame &frame) 
 {
     /* Indicates whether the first frame has been received */
     static bool first_frame_received = false;
