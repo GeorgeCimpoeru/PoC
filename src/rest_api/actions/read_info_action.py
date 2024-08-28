@@ -85,16 +85,15 @@ class ReadInfo(Action):
     - id_ecu: Identifier for the specific ECU being updated.
     - g: Instance of GenerateFrame for generating CAN bus frames.
     """
-
     def _auth_mcu(self):
 
         id_mcu = self.id_ecu[MCU]
         id = self.my_id * 0x100 + id_mcu
 
         try:
-            log_info_message(logger, "Changing session to default")
-            # self.generate.session_control(id, 0x01)
-            # self._passive_response(SESSION_CONTROL, "Error changing session control")
+            log_info_message(logger, "Changing session to programming")
+            self.generate.session_control(id, 0x02)
+            self._passive_response(SESSION_CONTROL, "Error changing session control")
             self._authentication(id)
 
         except CustomError as e:
@@ -134,7 +133,7 @@ class ReadInfo(Action):
 
         try:
             log_info_message(logger, "Reading data from battery")
-            id_battery = self.id_ecu[ECU_BATTERY]
+            id_battery = self.id_ecu[MCU]
             id = self.my_id * 0x100 + id_battery
 
             level = None
@@ -235,12 +234,6 @@ class ReadInfo(Action):
         id = self.my_id * 0x100 + id_door
 
         try:
-            log_info_message(logger, "Changing session to default")
-            self.generate.session_control(id, 0x01)
-            self._passive_response(SESSION_CONTROL, "Error changing session control")
-            log_info_message(logger, "Changing session to default")
-            self.generate.session_control(id, 0x01)
-            self._passive_response(SESSION_CONTROL, "Error changing session control")
             self._authentication(id)
 
             log_info_message(logger, "Reading data from doors")
