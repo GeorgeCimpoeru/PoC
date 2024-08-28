@@ -180,6 +180,8 @@ class GenerateFrame:
 
         # Handle version
         if isinstance(version, str):
+            if '.' not in version:
+                version += '.0'
             major, minor = map(float, version.split('.'))
             # Reduce the version by 1.0
             reduced_version = major - 1 + (minor / 10)
