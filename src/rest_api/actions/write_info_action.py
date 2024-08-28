@@ -40,7 +40,7 @@ class WriteInfo(Action):
 
     def write_to_battery(self, item=None):
         """
-        Method to write information to the battery module. Handles authentication, data preparation,
+        Method to write information to the battery module. Handles changin session, authentication, data preparation,
         and writing operations.
 
         Args:
@@ -55,7 +55,7 @@ class WriteInfo(Action):
             return auth_result
 
         try:
-            id_battery = self.id_ecu[MCU]
+            id_battery = self.id_ecu[ECU_BATTERY]
             id = self.my_id * 0x100 + id_battery
             log_info_message(logger, f"Writing data to ECU ID: {id_battery}")
 
@@ -98,7 +98,7 @@ class WriteInfo(Action):
 
     def write_to_doors(self, item=None):
         """
-        Method to write information to the doors module. Handles authentication, data preparation,
+        Method to write information to the doors module. Handles changing session, authentication, data preparation,
             and writing operations.
 
         Args:
