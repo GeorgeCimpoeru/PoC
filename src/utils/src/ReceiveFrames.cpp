@@ -1,7 +1,10 @@
 #include "../include/ReceiveFrames.h"
 #include "../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../ecu_simulation/EngineModule/include/EngineModule.h"
-
+bool ReceiveFrames::battery_state = false;
+bool ReceiveFrames::engine_state = false;
+bool ReceiveFrames::doors_state = false;
+bool ReceiveFrames::hvac_state = false;
 ReceiveFrames::ReceiveFrames(int socket, int current_module_id, Logger& receive_logger) : socket(socket),
                                                                                             current_module_id(current_module_id),
                                                                                             running(true), 
@@ -32,6 +35,26 @@ ReceiveFrames::ReceiveFrames(int socket, int current_module_id, Logger& receive_
 ReceiveFrames::~ReceiveFrames() 
 {
     stop();
+}
+
+bool ReceiveFrames::getBatteryState()
+{
+    return battery_state;
+}
+
+bool ReceiveFrames::getEngineState()
+{
+    return engine_state;
+}
+
+bool ReceiveFrames::getDoorsState()
+{
+    return doors_state;
+}
+
+bool ReceiveFrames::getHvacState()
+{
+    return hvac_state;
 }
 
 void ReceiveFrames::receive(HandleFrames &handle_frame) 
@@ -148,6 +171,27 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
         {
             LOG_WARN(receive_logger.GET_LOGGER(), "Invalid CAN ID: upper 8 bits are zero\n");
             return;
+        }
+        if (frame.data[0] == 0x01 && frame.data[1] == 0xCE)
+        {
+            LOG_INFO(receive_logger->GET_LOGGER(), "Security Access unlocked.");
+            switch(frame_dest_id)
+            {
+                case 0x11:
+                    battery_state = true;
+                    break;
+                case 0x12:
+                    engine_state = true;
+                    break;
+                case 0x13:
+                    doors_state = true;
+                    break;
+                case 0x14:
+                    hvac_state = true;
+                    break;
+                default:
+                    break;
+            }
         }
 
         /* Check if the frame is a request of type 'Up-Notification' from MCU */
