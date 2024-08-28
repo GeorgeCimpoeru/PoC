@@ -65,9 +65,39 @@ function requestIds() {
 }
 
 function updateToVersion() {
-    const type = prompt('Enter file type:');
-    const version = prompt('Enter sw version:');
+    let type, version;
 
+    // Regular expression for validating file type (letters only)
+    const typeRegex = /^[a-zA-Z]+$/;
+
+    // Regular expression for validating version (numbers and dots only)
+    const versionRegex = /^[0-9.]+$/;
+
+    // Loop until valid file type is provided
+    do {
+        type = prompt('Enter file type (letters only):');
+        if (type === null) {
+            alert('Operation cancelled.');
+            return;
+        }
+        if (!typeRegex.test(type)) {
+            alert('Invalid file type. Please enter letters only.');
+        }
+    } while (!typeRegex.test(type));
+
+    // Loop until valid version is provided
+    do {
+        version = prompt('Enter software version (numbers and dots only):');
+        if (version === null) {
+            alert('Operation cancelled.');
+            return;
+        }
+        if (!versionRegex.test(version)) {
+            alert('Invalid version. Please enter numbers and dots only.');
+        }
+    } while (!versionRegex.test(version));
+
+    // If validation passes, perform the API request
     performApiRequest('/api/update_to_version', 'POST', { update_file_type: type, update_file_version: version });
 }
 

@@ -145,7 +145,7 @@ class GenerateFrame:
         self.send_frame(id, data)
 
     def request_download(self, id, data_format_identifier, memory_address, memory_size, version):
-    # Define the data format identifier mapping
+        # Define the data format identifier mapping
         DATA_FORMAT_IDENTIFIER_MAP = {
             0x00: "No compression/encryption",
             "zip": 0x00,
