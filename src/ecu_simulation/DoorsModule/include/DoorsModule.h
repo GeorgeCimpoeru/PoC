@@ -82,20 +82,7 @@ public:
      * @brief Function to notify MCU if the module is Up & Running.
      */
     void sendNotificationToMCU();
-   
-    /**
-     * @brief This function will parse the data from the system about doors,
-     * and will store all values in separate variables
-     * 
-     * @param data Data taken from the system.
-     * @param _doorDriverOpen Driver Door Status.
-     * @param _doorPassengerOpen Passenger Door Status.
-     * @param _doorDriverLocked Door Driver Locked Status.
-     * @param _doorPassengerLocked Door Driver Locked Status.
-     * @param _ajarWarning Ajar warning status - if the door is fully closed.
-     */
-    void parseDoorsInfo(const std::string &data, bool &doorDriverOpen, bool &doorPassengerOpen, bool &doorDriverLocked, bool &doorPassengerLocked, bool &ajarWarning);
-
+       
     /**
      * @brief Function to fetch data from system about doors.
      */

@@ -10,12 +10,12 @@ std::map<uint8_t, std::atomic<bool>> DoorsModule::stop_flags;
 /** Constructor - initializes the DoorsModule with default values,
  * sets up the CAN interface, and prepares the frame receiver. */
 DoorsModule::DoorsModule() : moduleId(0x13),
-                                 doorDriverOpen(false),
-                                 doorPassengerOpen(false),
-                                 doorDriverLocked(false),
-                                 doorPassengerLocked(false),
-                                 ajarWarning(false),
-                                 canInterface(CreateInterface::getInstance(0x13, *doorsModuleLogger)),
+                                 doorDriverOpen(0),
+                                 doorPassengerOpen(0),
+                                 doorDriverLocked(0),
+                                 doorPassengerLocked(0),
+                                 ajarWarning(0),
+                                 canInterface(CreateInterface::getInstance(0x00, *doorsModuleLogger)),
                                  frameReceiver(nullptr)
 {
     /* Insert the default DID values in the file */
@@ -35,10 +35,10 @@ DoorsModule::DoorsModule() : moduleId(0x13),
         outfile << "\n";
     }
     outfile.close();
-    
-    doors_socket = canInterface->createSocket(0x13);
+        
+    doors_socket = canInterface->createSocket(0x10);
     /* Initialize the Frame Receiver */
-    frameReceiver = new ReceiveFrames(doors_socket, moduleId, doorsModuleLogger);
+    frameReceiver = new ReceiveFrames(doors_socket, moduleId, *doorsModuleLogger);
 
     LOG_INFO(doorsModuleLogger->GET_LOGGER(), "Doors object created successfully, ID : 0x{:X}", this->moduleId);
 
@@ -48,11 +48,11 @@ DoorsModule::DoorsModule() : moduleId(0x13),
 
 /* Parameterized Constructor - initializes the DoorsModule with provided interface number and module ID */
 DoorsModule::DoorsModule(int _interfaceNumber, int _moduleId) : moduleId(_moduleId),
-                                                                    doorDriverOpen(false),
-                                                                    doorPassengerOpen(false),
-                                                                    doorDriverLocked(false),
-                                                                    doorPassengerLocked(false),
-                                                                    ajarWarning(false),
+                                                                    doorDriverOpen(0),
+                                                                    doorPassengerOpen(0),
+                                                                    doorDriverLocked(0),
+                                                                    doorPassengerLocked(0),
+                                                                    ajarWarning(0),
                                                                     canInterface(CreateInterface::getInstance(_interfaceNumber, *doorsModuleLogger)),
                                                                     frameReceiver(nullptr)
 {
@@ -76,7 +76,7 @@ DoorsModule::DoorsModule(int _interfaceNumber, int _moduleId) : moduleId(_module
 
     doors_socket = canInterface->createSocket(0x13);
     /* Initialize the Frame Receiver */
-    frameReceiver = new ReceiveFrames(doors_socket, moduleId, doorsModuleLogger);
+    frameReceiver = new ReceiveFrames(doors_socket, moduleId, *doorsModuleLogger);
 
     LOG_INFO(doorsModuleLogger->GET_LOGGER(), "Doors object created successfully using Parameterized Constructor, ID : 0x{:X}", this->moduleId);
 
@@ -118,8 +118,8 @@ void DoorsModule::fetchDoorsData()
         doorPassengerLocked = 0;
         ajarWarning = 1;
 
-        /* Path to battery data file */
-        std::unordered_map<uint16_t,std::string> updated_values = 
+        /* Simulated data */
+        std::map<uint16_t,std::string> updated_values = 
         {
             {0x03A0, std::to_string(doorDriverOpen)},
             {0x03B0, std::to_string(doorPassengerOpen)},
@@ -127,8 +127,8 @@ void DoorsModule::fetchDoorsData()
             {0x03D0, std::to_string(doorPassengerLocked)},
             {0x03E0, std::to_string(ajarWarning)}
         };
-
-        /* Write the mapped values to the file */
+           
+        /* Path to battery data file */
         std::string file_path = "doors_data.txt";
 
         /* Read the current file contents into memory */
@@ -140,7 +140,7 @@ void DoorsModule::fetchDoorsData()
         std::string file_contents = buffer.str();
         std::istringstream file_stream(file_contents);
         std::string updated_file_contents;
-        std::string file_line;
+        std::string file_line;        
         
         /* Update the relevant DID values in the file contents */
         while (std::getline(file_stream, file_line))
@@ -184,7 +184,7 @@ void DoorsModule::receiveFrames()
     LOG_INFO(doorsModuleLogger->GET_LOGGER(), "Doors module starts the frame receiver");
 
     /* Create a HandleFrames object to process received frames */
-    HandleFrames handleFrames(this->doors_socket, doorsModuleLogger);
+    HandleFrames handleFrames(this->doors_socket, *doorsModuleLogger);
 
     /* Receive a CAN frame using the frame receiver and process it with handleFrames */
     frameReceiver->receive(handleFrames);
