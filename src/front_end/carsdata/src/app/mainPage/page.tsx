@@ -1,8 +1,9 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-import Carousel from '../../components/mainPageComponents/Carousel';
-import NavBarMain from '../../components/mainPageComponents/NavBarMain';
-import Map from '../../components/mainPageComponents/Map';
+import React, { useState } from 'react';
+import Carousel from '../components/mainPageComponents/Carousel';
+import NavBarMain from '../components/mainPageComponents/NavBarMain';
+import Map from '../components/mainPageComponents/Map';
+
 
 const MainPage = () => {
     const [isVinSubmitted, setIsVinSubmitted] = useState(false);
@@ -10,6 +11,14 @@ const MainPage = () => {
     const [vin, setVin] = useState('');
 
     useEffect(() => {
+        fetch('/api/runscript')
+            .then((response) => response.json())
+            .then((data) => {
+                console.log('Script output:', data.output);
+            })
+            .catch((error) => {
+                console.error('Error running script:', error);
+            });
         const storedVinSubmitted = localStorage.getItem('isVinSubmitted') === 'true';
         setIsVinSubmitted(storedVinSubmitted);
     }, []);
@@ -32,8 +41,8 @@ const MainPage = () => {
                 body: JSON.stringify({
                     userId: 1,
                     id: 1,
-                    title: vin, 
-                    body: 'Some body text', 
+                    title: vin,
+                    body: 'Some body text',
                 }),
             });
 

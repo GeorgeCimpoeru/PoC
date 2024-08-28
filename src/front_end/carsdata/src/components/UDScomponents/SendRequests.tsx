@@ -27,6 +27,7 @@ const SendRequests = () => {
     const [disableInfoBatteryBtns, setDisableInfoBatteryBtns] = useState<boolean>(false);
     const [disableInfoEngineBtns, setDisableInfoEngineBtns] = useState<boolean>(false);
     const [disableInfoDoorsBtns, setDisableInfoDoorsBtns] = useState<boolean>(false);
+    const [disableConvertBtn, setDisableConvertBtn] = useState<boolean>(true);
 
     const fetchLogs = async () => {
         console.log("Fetching logs...");
@@ -40,6 +41,19 @@ const SendRequests = () => {
             .catch(error => {
                 console.error('Error fetching logs:', error);
             });
+    }
+
+    const hexToAscii = () => {
+        let asciiString = '';
+        console.log(data23.response.can_data);
+        const hexArray: string[] = data23.response.can_data;
+
+        hexArray.forEach(hexStr => {
+            const decimal = parseInt(hexStr.slice(2), 16);
+            asciiString += String.fromCharCode(decimal);
+        });
+
+        setData23(asciiString);
     }
 
     const sendFrame = async () => {
@@ -59,9 +73,10 @@ const SendRequests = () => {
             }),
         }).then(response => response.json())
             .then(data => {
-                setData(data);
+                setData23(data);
                 console.log(data);
                 fetchLogs();
+                setDisableConvertBtn(false);
             });
     }
 
@@ -103,7 +118,7 @@ const SendRequests = () => {
             }).then(response => response.json())
                 .then(data => {
                     if (!initialRequest) {
-                        setData(data);
+                        setData23(data);
                         console.log(data);
                         fetchLogs();
                     } else {
@@ -150,7 +165,7 @@ const SendRequests = () => {
                 body: JSON.stringify({ ecu_id: ecuId, version: version }),
             }).then(response => response.json())
                 .then(data => {
-                    setData(data);
+                    setData23(data);
                     console.log(data);
                     fetchLogs();
                 });
@@ -167,7 +182,7 @@ const SendRequests = () => {
             }).then(response => response.json())
                 .then(data => {
                     if (!initialRequest) {
-                        setData(data);
+                        setData23(data);
                         console.log(data);
                         fetchLogs();
                     } else {
@@ -181,6 +196,7 @@ const SendRequests = () => {
     }
 
     const readInfoEngine = async () => { }
+    const readInfoEngine = async () => { }
 
     const readInfoDoors = async () => {
         console.log("Reading info doors...");
@@ -189,7 +205,7 @@ const SendRequests = () => {
                 method: 'GET',
             }).then(response => response.json())
                 .then(data => {
-                    setData(data);
+                    setData23(data);
                     console.log(data);
                     fetchLogs();
                 });
@@ -225,7 +241,7 @@ const SendRequests = () => {
                 body: JSON.stringify(data),
             }).then(response => response.json())
                 .then(data => {
-                    setData(data);
+                    setData23(data);
                     console.log(data);
                     fetchLogs();
                 });
@@ -260,7 +276,7 @@ const SendRequests = () => {
             // device_consumption: deviceConsumption || null
         };
 
-        console.log("Writing info doors...");
+        console.log("Writing info battery...");
         try {
             await fetch('http://127.0.0.1:5000/api/write_info_battery', {
                 method: 'POST',
@@ -271,7 +287,7 @@ const SendRequests = () => {
             })
                 .then(response => response.json())
                 .then(data => {
-                    setData(data);
+                    setData23(data);
                     console.log(data);
                     fetchLogs();
                 })
@@ -309,7 +325,7 @@ const SendRequests = () => {
                 </div>
                 <div className="w-full h-px mt-4 bg-gray-300"></div>
                 <div className="mt-4">
-                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => requestIds(true)} disabled={disableRequestIdsBtn}>Request IDs</button>
+                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => requestIds(false)} disabled={disableRequestIdsBtn}>Request IDs</button>
                     <button className="btn btn-success w-fit m-1 text-white" onClick={updateToVersion} disabled={disableUpdateToVersionBtn}>Update to version</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => readInfoBattery(false)} disabled={disableInfoBatteryBtns}>Read Info Battery</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoEngine} disabled={disableInfoEngineBtns}>Read Info Engine</button>
@@ -320,7 +336,7 @@ const SendRequests = () => {
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoBattery} disabled={disableInfoBatteryBtns}>Write Battery Info</button>
                 </div>
                 <h1 className="text-3xl mt-4">Response</h1>
-                <textarea id="response-output" className="m-2 h-fit textarea textarea-bordered" placeholder="" value={JSON.stringify(data23, null, 0)}></textarea>
+                <textarea id="response-output" className="m-2 h-36 textarea textarea-bordered" placeholder="" value={JSON.stringify(data23, null, 0)}></textarea>
 
                 <div className="m-2 border-2 border-black overflow-x-auto max-h-52">
                     <h1 className="text-3xl mt-4">Logs:</h1>
