@@ -94,7 +94,7 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
             engine->stop_flags[0x2E] = false;
         }
     }
-    else if (receiver_id == 0x10 && !SecurityAccess::getMcuState())
+    else if (receiver_id == 0x10 && !SecurityAccess::getMcuState(wdbi_logger))
     {
         nrc.sendNRC(id, WDBI_SID, NegativeResponse::SAD);
         MCU::mcu->stop_flags[0x2E] = false;

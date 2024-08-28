@@ -174,7 +174,7 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
         }
         if (frame.data[0] == 0x01 && frame.data[1] == 0xCE)
         {
-            LOG_INFO(receive_logger->GET_LOGGER(), "Security Access unlocked.");
+            LOG_INFO(receive_logger.GET_LOGGER(), "Security Access unlocked.");
             switch(frame_dest_id)
             {
                 case 0x11:

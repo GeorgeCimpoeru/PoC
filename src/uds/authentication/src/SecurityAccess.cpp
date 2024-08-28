@@ -19,8 +19,8 @@ std::chrono::steady_clock::time_point SecurityAccess::end_time =
 std::chrono::steady_clock::time_point SecurityAccess::end_time_security =
         std::chrono::steady_clock::now() + std::chrono::hours(24 * 365);
 
-SecurityAccess::SecurityAccess(int socket_api, int socket_canbus, Logger& security_logger)
-                :  security_logger(security_logger), socket_api(socket_api), socket_canbus(socket_canbus)
+SecurityAccess::SecurityAccess(int socket_api, Logger& security_logger)
+                :  security_logger(security_logger), socket_api(socket_api)
 {}
 
 std::chrono::steady_clock::time_point SecurityAccess::getEndTimeSecurity()
@@ -28,13 +28,31 @@ std::chrono::steady_clock::time_point SecurityAccess::getEndTimeSecurity()
     return end_time_security;
 }
 
-bool SecurityAccess::getMcuState()
+bool SecurityAccess::getMcuState(Logger& security_logger)
 {
     auto security_now = std::chrono::steady_clock::now();
     if (security_now >= end_time_security)
     {
         mcu_state = false;
     }
+
+    if (security_now < end_time_security && mcu_state)
+    {
+    uint32_t time_left_security = static_cast<uint32_t>
+    (
+        std::chrono::duration_cast<std::chrono::milliseconds>
+        (
+            SecurityAccess::getEndTimeSecurity() - security_now
+        ).count()
+    );
+    uint32_t seconds = time_left_security / 1000;
+    uint32_t milliseconds = time_left_security % 1000;
+    LOG_INFO(security_logger.GET_LOGGER(), "Security timer activated." \
+        " {} seconds and {} milliseconds until the security expires.",
+    seconds,milliseconds);
+    LOG_INFO(security_logger.GET_LOGGER(), "Server is unlocked.");
+    }
+    
     return mcu_state;
 }
 
@@ -110,7 +128,7 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
     if (upperbits == 0xFA) 
     {
         generate_frames = new GenerateFrames(socket_api, security_logger);
-        GenerateFrames generate_frames_ECU(socket_canbus, security_logger);
+        GenerateFrames generate_frames_ECU(socket_api, security_logger);
         /** 
          * Check if the delay timer has expired.
          * Set the nr of attempts to default. Delay timer will be 0.
