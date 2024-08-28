@@ -275,25 +275,26 @@ class Action:
 
     def _write_by_identifier(self, id, identifier, value):
         """
-        Function to read data from a specific identifier. The function requests, reads the data, and processes it.
+        Function to write data to a specific identifier.
 
         Args:
+        - id: Identifier of the request.
         - identifier: Identifier of the data.
+        - value: Value to write.
 
         Returns:
-        - Data as a string.
+        - True if the operation is triggered.
         """
-        log_info_message(logger, "Write by identifier {identifier}")
+        log_info_message(logger, f"Write by identifier {identifier}")
+
         value_list = self._number_to_list(value)
 
         if isinstance(value_list, list) and len(value_list) > 4:
             self.generate.write_data_by_identifier_long(id, identifier, value_list)
         else:
             self.generate.write_data_by_identifier(id, identifier, value_list)
-            self._passive_response(WRITE_BY_IDENTIFIER, f"Error writing {identifier}")
 
-        self.generate.write_data_by_identifier(id, identifier, value_list)
-        self._passive_response(WRITE_BY_IDENTIFIER, f"Error reading data from identifier {identifier}")
+        self._passive_response(WRITE_BY_IDENTIFIER, f"Operation complete for identifier {identifier}")
 
         return True
 
