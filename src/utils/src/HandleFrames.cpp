@@ -157,7 +157,20 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
                 SecurityAccess security_access(can_socket, _logger);
                 security_access.securityAccess(frame_id, frame_data);
                 if (SecurityAccess::getMcuState())
-                {
+                {   
+                        auto security_now = std::chrono::steady_clock::now();
+                        uint32_t time_left_security = static_cast<uint32_t>
+                        (
+                            std::chrono::duration_cast<std::chrono::milliseconds>
+                            (
+                                SecurityAccess::getEndTimeSecurity() - security_now
+                            ).count()
+                        );
+                        uint32_t seconds = time_left_security / 1000;
+                        uint32_t milliseconds = time_left_security % 1000;
+                        LOG_INFO(_logger->GET_LOGGER(), "Security timer activated." \
+                            " {} seconds and {} milliseconds until the security expires.",
+                        seconds,milliseconds);
                     LOG_INFO(_logger.GET_LOGGER(), "Server is unlocked.");
                 }
                 else

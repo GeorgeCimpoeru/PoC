@@ -19,6 +19,7 @@
 #include <linux/can.h>
 #include <iostream>
 #include <vector>
+#include <chrono>
 
 #include "../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
 #include "../../uds/write_data_by_identifier/include/WriteDataByIdentifier.h"

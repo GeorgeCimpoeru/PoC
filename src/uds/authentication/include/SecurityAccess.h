@@ -87,6 +87,15 @@ class SecurityAccess
          * @return The current value of MCU state(true or false).
         */
         static bool getMcuState();
+        /**
+         * @brief Retrieves the end time for the security timeout.
+         * 
+         * This method returns the current value of the `end_time_security` variable,
+         * which represents the point in time when the security timeout will expire.
+         * 
+         * @return std::chrono::steady_clock::time_point The end time of the security timeout.
+        */
+        static std::chrono::steady_clock::time_point getEndTimeSecurity();
 
     private:
         /**

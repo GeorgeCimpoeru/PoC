@@ -23,8 +23,18 @@ SecurityAccess::SecurityAccess(int socket_api, int socket_canbus, Logger& securi
                 :  security_logger(security_logger), socket_api(socket_api), socket_canbus(socket_canbus)
 {}
 
+std::chrono::steady_clock::time_point SecurityAccess::getEndTimeSecurity()
+{
+    return end_time_security;
+}
+
 bool SecurityAccess::getMcuState()
 {
+    auto security_now = std::chrono::steady_clock::now();
+    if (security_now >= end_time_security)
+    {
+        mcu_state = false;
+    }
     return mcu_state;
 }
 
