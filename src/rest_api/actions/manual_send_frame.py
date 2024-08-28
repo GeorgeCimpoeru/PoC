@@ -7,21 +7,27 @@ from actions.base_actions import *
 
 def manual_send_frame(can_id, can_data):
     log_info_message(logger, "Starting manual_send_frame function")
+    log_info_message(logger, "Starting manual_send_frame function")
     data = request.get_json()
     try:
         log_info_message(logger, f"Attempting to connect to CAN bus on channel: {Config.CAN_CHANNEL}")
+        log_info_message(logger, f"Attempting to connect to CAN bus on channel: {Config.CAN_CHANNEL}")
         bus = can.interface.Bus(channel=Config.CAN_CHANNEL, bustype='socketcan')
+        log_info_message(logger, "Successfully connected to CAN bus")
         log_info_message(logger, "Successfully connected to CAN bus")
 
         can_id = int(data.get('can_id'), 16)
         can_data = [int(byte, 16) for byte in data.get('can_data').split(',')]
         log_info_message(logger, f"Parsed CAN ID: {hex(can_id)}, CAN Data: {[hex(b) for b in can_data]}")
+        log_info_message(logger, f"Parsed CAN ID: {hex(can_id)}, CAN Data: {[hex(b) for b in can_data]}")
 
         if can_id > 0xFFFF or len(can_data) > 8:
+            log_error_message(logger, f"Invalid CAN ID or Data: ID={hex(can_id)}, Data Length={len(can_data)}")
             log_error_message(logger, f"Invalid CAN ID or Data: ID={hex(can_id)}, Data Length={len(can_data)}")
             raise ValueError("CAN ID or Data out of bounds")
 
         message = can.Message(arbitration_id=can_id, data=can_data, is_extended_id=True)
+        log_info_message(logger, f"Sending CAN message: ID={hex(message.arbitration_id)}, Data={[hex(b) for b in message.data]}")
         log_info_message(logger, f"Sending CAN message: ID={hex(message.arbitration_id)}, Data={[hex(b) for b in message.data]}")
         bus.send(message)
 
@@ -58,6 +64,7 @@ def manual_send_frame(can_id, can_data):
                     time_delay_ms = int.from_bytes(received_frame.data[4:8], byteorder='big')
                     time_delay_s = time_delay_ms / 1000
                     log_info_message(logger, f"Retries exceeded. Try again in: {time_delay_s} s")
+                    log_info_message(logger, f"Retries exceeded. Try again in: {time_delay_s} s")
                     received_data['retry_timeout_ms'] = time_delay_ms
                 else:
                     error_text = handle_negative_response(received_frame.data)
@@ -66,17 +73,25 @@ def manual_send_frame(can_id, can_data):
                     log_error_message(logger, f"Authentication failed: {error_text}")
 
             received_frames.append(received_data)
+                    log_error_message(logger, f"Authentication failed: {error_text}")
 
+            received_frames.append(received_data)
+
+        log_info_message(logger, f"Total frames received: {len(received_frames)}")
+        return {'response': received_frames}
         log_info_message(logger, f"Total frames received: {len(received_frames)}")
         return {'response': received_frames}
 
     except ValueError as e:
         log_error_message(logger, f"ValueError occurred: {str(e)}")
+        log_error_message(logger, f"ValueError occurred: {str(e)}")
         return {'status': 'Error', 'message': str(e)}, 400
     except Exception as e:
         log_error_message(logger, f"Unexpected error occurred: {str(e)}")
+        log_error_message(logger, f"Unexpected error occurred: {str(e)}")
         return {'status': 'Error', 'message': str(e)}, 500
     finally:
+        log_info_message(logger, "Shutting down CAN bus connection")
         log_info_message(logger, "Shutting down CAN bus connection")
         bus.shutdown()
 
