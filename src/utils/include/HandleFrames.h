@@ -38,24 +38,21 @@ class HandleFrames
 {
 private:
     int module_id = -1;
-    int socket_api = -1;
-    int socket_canbus = -1;
-    Logger *_logger;
+    int _socket = -1;
+    Logger& _logger;
     DiagnosticSessionControl mcuDiagnosticSessionControl;
-    TesterPresent testerPresent;
 public:
     /**
      * @brief Default constructor for Handle Frames object.
     */
-    HandleFrames(int socket_canbus, Logger *logger);
-    HandleFrames(int socket_api, int socket_canbus, Logger *logger);
+    HandleFrames(int socket, Logger& logger);
     /**
      * @brief Method used to handle a can frame received from the ReceiveFrame class.
      * Takes a can_frame as parameter, checks if the frame is complete and then calls
      * processFrameData() with either a single or multi frame.
      * @param[in] frame The received frame.
     */
-    void handleFrame(const struct can_frame &frame);
+    void handleFrame(int can_socket, const struct can_frame &frame);
     /**
      * @brief Method used to call a service or handle a response.
      * It takes frame_id, service id(sid) and frame_data and calls the right service or
@@ -65,7 +62,7 @@ public:
      * @param[in] frame_data The data held by the frame.
      * @param[in] is_multi_frame Flag that checks if the frame is a multiframe.
     */
-    void processFrameData(canid_t frame_id, uint8_t sid, std::vector<uint8_t> frame_data, bool is_multi_frame);
+    void processFrameData(int can_socket, canid_t frame_id, uint8_t sid, std::vector<uint8_t> frame_data, bool is_multi_frame);
     /**
      * @brief Method used to send a frame based on the nrc(negative response code) received.
      * It takes as parameters frame_id, sid to identify the service, and nrc to send the correct
@@ -75,12 +72,6 @@ public:
      * @param[in] nrc The negative response code.
      */
     void processNrc(canid_t frame_id, uint8_t sid, uint8_t nrc);
-    /**
-     * @brief return the socket, either vcan1 socket or vcan0 socket
-     * @param[in] frame_id The frame ID used to determine the socket.
-     * @return int 
-     */
-    int getMcuSocket(canid_t frame_id);
     /**
      * @brief Method for checking the validity of the received CAN frame.
      * 

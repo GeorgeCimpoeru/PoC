@@ -2,14 +2,14 @@
 #include "../include/RequestDownload.h"
 
 RequestDownloadService::RequestDownloadService(Logger& RDSlogger)
-                        : generate_frames(socket, RDSlogger)
+                        : RDSlogger(RDSlogger), generate_frames(socket, RDSlogger)
 {
-   this->RDSlogger = RDSlogger;
+
 }
 RequestDownloadService::RequestDownloadService(int socket, Logger& RDSlogger)
-                        : socket(socket), generate_frames(socket, RDSlogger)
+                        : socket(socket), RDSlogger(RDSlogger), generate_frames(socket, RDSlogger)
 {
-    this->RDSlogger = RDSlogger;
+
 }
 RequestDownloadService::~RequestDownloadService()
 {
@@ -402,7 +402,7 @@ bool RequestDownloadService::isLatestSoftwareVersion()
 {
     /* Logic to check version */
     return true;
-    ReadDataByIdentifier software_version(this->socket, &RDSlogger);
+    ReadDataByIdentifier software_version(this->socket, RDSlogger);
     LOG_INFO(RDSlogger.GET_LOGGER(), "Check software version");
     uint16_t IDENTIFIER_SOFTWARE = 0x1234; //dummy
     std::vector<uint8_t> current_version = software_version.readDataByIdentifier(0x0,{0x0,0x22, uint8_t(IDENTIFIER_SOFTWARE / 0x100), uint8_t(IDENTIFIER_SOFTWARE % 0x100)},false );

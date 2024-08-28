@@ -1,7 +1,7 @@
 #include "../include/ReceiveFrames.h"
 #include "../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 
-ReceiveFrames::ReceiveFrames(int socket, int current_module_id, Logger *receive_logger) : socket(socket),
+ReceiveFrames::ReceiveFrames(int socket, int current_module_id, Logger& receive_logger) : socket(socket),
                                                                                             current_module_id(current_module_id),
                                                                                             running(true), 
                                                                                             receive_logger(receive_logger),
@@ -10,7 +10,7 @@ ReceiveFrames::ReceiveFrames(int socket, int current_module_id, Logger *receive_
     if (socket < 0) 
     {
         /* std::cerr << "Error: Pass a valid Socket\n"; */
-        LOG_WARN(receive_logger->GET_LOGGER(), "Error: Pass a valid Socket\n");
+        LOG_WARN(receive_logger.GET_LOGGER(), "Error: Pass a valid Socket\n");
         exit(EXIT_FAILURE);
     }
 
@@ -20,12 +20,12 @@ ReceiveFrames::ReceiveFrames(int socket, int current_module_id, Logger *receive_
     if (current_module_id < MIN_VALID_ID || current_module_id > MAX_VALID_ID) 
     {
         /* std::cerr << "Error: Pass a valid Module ID\n"; */
-        LOG_WARN(receive_logger->GET_LOGGER(), "Error: Pass a valid Module ID\n");
+        LOG_WARN(receive_logger.GET_LOGGER(), "Error: Pass a valid Module ID\n");
         exit(EXIT_FAILURE);
     }
 
     /* Print the frame_id for debugging */ 
-    LOG_INFO(receive_logger->GET_LOGGER(), "Module ID: 0x{0:x}", this->current_module_id);
+    LOG_INFO(receive_logger.GET_LOGGER(), "Module ID: 0x{0:x}", this->current_module_id);
 }
 
 ReceiveFrames::~ReceiveFrames() 
@@ -42,7 +42,7 @@ void ReceiveFrames::receive(HandleFrames &handle_frame)
     } 
     catch (const std::exception &e) 
     {
-        LOG_ERROR(receive_logger->GET_LOGGER(), "Exception in starting threads: {}", e.what());
+        LOG_ERROR(receive_logger.GET_LOGGER(), "Exception in starting threads: {}", e.what());
         stop();
     }
 }
@@ -99,14 +99,14 @@ void ReceiveFrames::bufferFrameIn()
             else 
             {
                 /* An error occurred */ 
-                LOG_ERROR(receive_logger->GET_LOGGER(), "poll error: {}", strerror(errno));
+                LOG_ERROR(receive_logger.GET_LOGGER(), "poll error: {}", strerror(errno));
                 break;
             }
         }
     }
     catch (const std::exception &e) 
     {
-        LOG_ERROR(receive_logger->GET_LOGGER(), "Exception in bufferFrameIn: {}", e.what());
+        LOG_ERROR(receive_logger.GET_LOGGER(), "Exception in bufferFrameIn: {}", e.what());
         stop();
     }
 }
@@ -146,35 +146,35 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
         /* Check if the received frame is for your module */ 
         if (static_cast<int>(frame_dest_id) != current_module_id)
         {
-            LOG_WARN(receive_logger->GET_LOGGER(), "Received frame is not for this module\n");
+            LOG_WARN(receive_logger.GET_LOGGER(), "Received frame is not for this module\n");
             continue;
         }
 
         if (((frame.can_id >> 8) & 0xFF) == 0) 
         {
-        LOG_WARN(receive_logger->GET_LOGGER(), "Invalid CAN ID: upper 8 bits are zero\n");
+        LOG_WARN(receive_logger.GET_LOGGER(), "Invalid CAN ID: upper 8 bits are zero\n");
         return;
         }
 
         /* Check if the frame is a request of type 'Up-Notification' from MCU */
         if (frame.data[0] == 0x01)
         {
-            LOG_INFO(receive_logger->GET_LOGGER(), "Request received from MCU");
+            LOG_INFO(receive_logger.GET_LOGGER(), "Request received from MCU");
             /* Create and instance of GenerateFrames with the CAN socket */
-            GenerateFrames frame = GenerateFrames(this->socket, *receive_logger);
+            GenerateFrames frame = GenerateFrames(this->socket, receive_logger);
 
             /* Create a vector of uint8_t (bytes) containing the data to be sent */
             std::vector<uint8_t> data = {0x0, 0xff, 0x11, 0x3};
             
             uint16_t id = (0x10 << 8) | frame_dest_id;
             frame.sendFrame(id, data);
-            LOG_INFO(receive_logger->GET_LOGGER(), "Response sent to MCU");
+            LOG_INFO(receive_logger.GET_LOGGER(), "Response sent to MCU");
 
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             goto label1;
         }
         /* Process the received frame */ 
-        handle_frame.handleFrame(frame);
+        handle_frame.handleFrame(socket, frame);
     }
 }
 
@@ -188,7 +188,7 @@ void ReceiveFrames::startTimer(uint8_t frame_dest_id, uint8_t sid) {
         timer_value = AccessTimingParameter::p2_star_max_time;
     }
 
-    LOG_INFO(receive_logger->GET_LOGGER(), "Started frame processing timing for frame with SID {:x} with max_time = {} on ECU with id {}.", sid, timer_value, frame_dest_id);
+    LOG_INFO(receive_logger.GET_LOGGER(), "Started frame processing timing for frame with SID {:x} with max_time = {} on ECU with id {}.", sid, timer_value, frame_dest_id);
 
     auto start_time = std::chrono::steady_clock::now();
     switch(frame_dest_id)
@@ -222,7 +222,7 @@ void ReceiveFrames::startTimer(uint8_t frame_dest_id, uint8_t sid) {
 }
 
 void ReceiveFrames::stopTimer(uint8_t frame_dest_id, uint8_t sid) {
-    LOG_INFO(receive_logger->GET_LOGGER(), "stopTimer function called for frame with SID {:x}.", sid);
+    LOG_INFO(receive_logger.GET_LOGGER(), "stopTimer function called for frame with SID {:x}.", sid);
     
     auto end_time = std::chrono::steady_clock::now();
 
@@ -244,10 +244,10 @@ void ReceiveFrames::stopTimer(uint8_t frame_dest_id, uint8_t sid) {
             /* Set stop flag to false for this SID */
             if (battery->stop_flags[sid]) {
                 int id = ((sid & 0xFF) << 8) | ((sid >> 8) & 0xFF);
-                LOG_INFO(receive_logger->GET_LOGGER(), 
+                LOG_INFO(receive_logger.GET_LOGGER(), 
                          "Service with SID {:x} sent the response pending frame.", 0x2E);
                 
-                NegativeResponse negative_response(socket, *receive_logger);
+                NegativeResponse negative_response(socket, receive_logger);
                 negative_response.sendNRC(id, 0x2E, 0x78);
                 battery->stop_flags[sid] = false;
             }
@@ -260,22 +260,22 @@ void ReceiveFrames::stopTimer(uint8_t frame_dest_id, uint8_t sid) {
     case 0x13:
     case 0x14:
     default:
-        LOG_INFO(receive_logger->GET_LOGGER(), "stopTimer function called with an ecu id unknown {:x}.", frame_dest_id);
+        LOG_INFO(receive_logger.GET_LOGGER(), "stopTimer function called with an ecu id unknown {:x}.", frame_dest_id);
         break;
     }
 }
 
 void ReceiveFrames::printFrame(const struct can_frame &frame) 
 {
-    LOG_INFO(receive_logger->GET_LOGGER(), "");
-    LOG_INFO(receive_logger->GET_LOGGER(), "Received CAN frame");
-    LOG_INFO(receive_logger->GET_LOGGER(), fmt::format("CAN ID: 0x{:x}", frame.can_id));
-    LOG_INFO(receive_logger->GET_LOGGER(), "Data Length: {}", int(frame.can_dlc));
+    LOG_INFO(receive_logger.GET_LOGGER(), "");
+    LOG_INFO(receive_logger.GET_LOGGER(), "Received CAN frame");
+    LOG_INFO(receive_logger.GET_LOGGER(), fmt::format("CAN ID: 0x{:x}", frame.can_id));
+    LOG_INFO(receive_logger.GET_LOGGER(), "Data Length: {}", int(frame.can_dlc));
     std::ostringstream dataStream;
     dataStream << "Data:";
     for (int frame_byte = 0; frame_byte < frame.can_dlc; ++frame_byte) 
     {
         dataStream << " 0x" << std::hex << int(frame.data[frame_byte]);
     }
-    LOG_INFO(receive_logger->GET_LOGGER(), "{}", dataStream.str());
+    LOG_INFO(receive_logger.GET_LOGGER(), "{}", dataStream.str());
 }

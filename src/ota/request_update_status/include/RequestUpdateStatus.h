@@ -27,7 +27,7 @@
 #include "../../../utils/include/Logger.h"
 #include "../../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
 #include "../../../utils/include/GenerateFrames.h"
-#include "../../../mcu/include/MCULogger.h"
+#include "../../../utils/include/Logger.h"
 
 #define REQUEST_UPDATE_STATUS_REQUEST_SIZE      0x02
 #define REQUEST_UPDATE_STATUS_RESPONSE_SUCCESS_SIZE	    0x03
@@ -93,7 +93,8 @@ class RequestUpdateStatus
 private:        
 public:
 	int socket = -1;
-	RequestUpdateStatus(int socket);
+	Logger& _logger;
+	RequestUpdateStatus(int socket, Logger& logger);
 	/**
 	 * @brief Service method. Receive a request for reading Ota Update Status.
 	 * 	Sends a ReadDataByIdentifier request to MCU, with the Ota Update Status Data Identifier.
