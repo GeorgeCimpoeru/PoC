@@ -76,6 +76,7 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
 
     /* Form the new id */
     int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+    uint8_t receiver_id = frame_id & 0xFF;
 
     /* Checks if frame_data has the required minimum length */
     if (frame_data.size() < 3)
@@ -93,20 +94,18 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
             engine->stop_flags[0x2E] = false;
         }
     }
-    else if (!SecurityAccess::getMcuState())
+    else if (receiver_id == 0x10 && !SecurityAccess::getMcuState(wdbi_logger))
     {
         nrc.sendNRC(id, WDBI_SID, NegativeResponse::SAD);
-        uint8_t receiver_id = frame_id & 0xFF;
-        if (receiver_id == 0x10)
-        {
-            MCU::mcu->stop_flags[0x2E] = false;
-        } else if (receiver_id == 0x11)
-        {
-            battery->stop_flags[0x2E] = false;
+        MCU::mcu->stop_flags[0x2E] = false;
+    }
+    else if (receiver_id == 0x11 && !ReceiveFrames::getBatteryState())
+    {
+        nrc.sendNRC(id, WDBI_SID, NegativeResponse::SAD);
+        battery->stop_flags[0x2E] = false;
         } else if (receiver_id == 0x12)
         {
             engine->stop_flags[0x2E] = false;
-        }
     }
     else
     {

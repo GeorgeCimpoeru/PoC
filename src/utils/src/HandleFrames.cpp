@@ -149,22 +149,23 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
         }
         case 0x27:
         {
-            /* SecurityAccess(sid, frame_data[2], key?); */
-            /* This service can be called in PROGRAMMING_SESSION */
-            if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
-            {
-                LOG_INFO(_logger.GET_LOGGER(), "SecurityAccess called.");
-                SecurityAccess security_access(can_socket, _logger);
-                security_access.securityAccess(frame_id, frame_data);
-                if (SecurityAccess::getMcuState())
+
+                /* This service can be called in PROGRAMMING_SESSION */
+                if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
                 {
-                    LOG_INFO(_logger.GET_LOGGER(), "Server is unlocked.");
+                    LOG_INFO(_logger.GET_LOGGER(), "SecurityAccess called.");
+                    SecurityAccess security_access(can_socket,_logger);
+                    security_access.securityAccess(frame_id, frame_data);
+                    if (!SecurityAccess::getMcuState(_logger))
+                    {
+                        LOG_INFO(_logger.GET_LOGGER(), "Server is locked.");
+                    }
+                
+                    else
+                    {
+                        LOG_INFO(_logger.GET_LOGGER(), "Server is locked.");
+                    }
                 }
-                else
-                {
-                    LOG_INFO(_logger.GET_LOGGER(), "Server is locked.");
-                }
-            }
             else
             {
                 int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
@@ -350,7 +351,6 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
             {
                 RequestDownloadService requestDownload(can_socket, _logger);
                 ReadDataByIdentifier software_version(can_socket, _logger);
-                SecurityAccess logged_in(can_socket, _logger);
                 requestDownload.requestDownloadRequest(frame_id, frame_data);
             }
             else

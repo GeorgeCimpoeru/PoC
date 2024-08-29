@@ -127,6 +127,14 @@ private:
     std::thread bufferFrameInThread;
     /* The logger used to write the logs. */
     Logger& receive_logger;
+    /* Update security for battery based on notify */
+    static bool battery_state;
+    /* Update security for engine based on notify */
+    static bool engine_state;
+    /* Update security for doors based on notify */
+    static bool doors_state;
+    /* Update security for hvac based on notify */
+    static bool hvac_state;
 
     /**
      * @brief bufferFrameIn thread function that reads frames from the socket and adds them to the buffer.
@@ -170,6 +178,30 @@ public:
      */
     void printFrame(const struct can_frame &frame);
 
+    /**
+     * @brief Gets the current state of the battery security system.
+     * 
+     * @return true if the battery security is enabled, false otherwise.
+     */
+    static bool getBatteryState();
+    /**
+     * @brief Gets the current state of the engine security system.
+     * 
+     * @return true if the engine security is enabled, false otherwise.
+     */
+    static bool getEngineState();
+    /**
+     * @brief Gets the current state of the doors security system.
+     * 
+     * @return true if the doors security is enabled, false otherwise.
+     */
+    static bool getDoorsState();
+    /**
+     * @brief Gets the current state of the HVAC (Heating, Ventilation, and Air Conditioning) security system.
+     * 
+     * @return true if the HVAC security is enabled, false otherwise.
+     */
+    static bool getHvacState();
     /**
      * @brief Starts the receive process by creating bufferFrameIn and bufferFrameOut threads.
      * 

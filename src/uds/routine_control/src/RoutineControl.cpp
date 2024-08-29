@@ -51,7 +51,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
         }
         return;
     }
-    else if (!SecurityAccess::getMcuState())
+    else if (!SecurityAccess::getMcuState(rc_logger))
     {
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
         if (lowerbits == 0x10)

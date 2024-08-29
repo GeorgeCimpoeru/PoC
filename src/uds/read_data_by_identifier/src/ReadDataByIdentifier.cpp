@@ -90,7 +90,7 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
         /* Return early as the request is invalid */
         return response;
     }
-    if (!SecurityAccess::getMcuState())
+    if (!SecurityAccess::getMcuState(rdbi_logger))
     {
         response.push_back(0x03); /* PCI */
         response.push_back(0x7F); /* Negative response */

@@ -32,15 +32,32 @@ class SecurityAccess
     static constexpr uint8_t TIMEOUT_IN_SECONDS = 0x05;
     /* Adjust nr of attempts here. */
     static constexpr uint8_t MAX_NR_OF_ATTEMPTS = 3;
+    /* Adjust timer until security access will expire here. */
+    static constexpr uint8_t SECURITY_TIMEOUT_IN_SECONDS = 0x0A;
 
     private:
         GenerateFrames* generate_frames;
         Logger& security_logger;
-        int socket = -1;
+        int socket_api = -1;
         static uint8_t nr_of_attempts;
         static bool mcu_state;
+        /**
+         * Time left until the delay timer will expire.
+        */
         static uint32_t time_left;
         static std::vector<uint8_t> security_access_seed;
+        /**
+         * end_time is the total time until the delay timer will expire.
+         * Set end_time to a distant future point. This ensures that it is always.
+         * greater than the current time unless a specific delay timer is activated.
+        */
+        static std::chrono::steady_clock::time_point end_time;
+        /**
+         * end_time_security is total the time until the security will expire.
+         * Set end_time to a distant future point. This ensures that it is always.
+         * greater than the current time unless a specific delay timer is activated.
+        */
+        static std::chrono::steady_clock::time_point end_time_security;
     
     public:
         /**
@@ -49,10 +66,11 @@ class SecurityAccess
          * socket for communication and a reference to a Logger object for logging 
          * security-related events.
          *
-         * @param socket The socket descriptor used for communication.
+         * @param socket_api The api socket descriptor used for communication.
+         * @param socket_canbus The canbus socket descriptor used for communication.
          * @param security_logger Reference to a Logger object for logging security events.
         */
-        SecurityAccess(int socket, Logger& security_logger);
+        SecurityAccess(int socket_api, Logger& security_logger);
         /**
          * @brief Main method to the 0x27 Security Access UDS service.
          * Processes security access using the specified CAN ID and data.
@@ -67,7 +85,16 @@ class SecurityAccess
          * 
          * @return The current value of MCU state(true or false).
         */
-        static bool getMcuState();
+        static bool getMcuState(Logger& security_logger);
+        /**
+         * @brief Retrieves the end time for the security timeout.
+         * 
+         * This method returns the current value of the `end_time_security` variable,
+         * which represents the point in time when the security timeout will expire.
+         * 
+         * @return std::chrono::steady_clock::time_point The end time of the security timeout.
+        */
+        static std::chrono::steady_clock::time_point getEndTimeSecurity();
 
     private:
         /**

@@ -221,7 +221,9 @@ OBJS_DIAGNOSTICSESSIONCONTROL_TEST = $(OBJ_DIR)/Logger_test.o \
 
 OBJS_SECURITYACCESS_TEST = $(OBJ_DIR)/Logger_test.o \
 						   $(OBJ_DIR)/GenerateFrames_test.o \
-			   			   $(OBJ_DIR)/SecurityAccess_test.o
+			   			   $(OBJ_DIR)/SecurityAccess_test.o \
+			   			   $(OBJ_DIR)/NegativeResponse_test.o
+			   			   
 
 OBJS_TESTERPRESENT_TEST = $(OBJ_DIR)/Logger_test.o \
 						   $(OBJ_DIR)/GenerateFrames_test.o \

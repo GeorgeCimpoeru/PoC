@@ -389,7 +389,7 @@ bool RequestDownloadService::isRequestAuthenticated()
     
     LOG_INFO(RDSlogger.GET_LOGGER(), "MCU authentication state");
     return true;
-    bool is_authenticated = SecurityAccess::getMcuState();
+    bool is_authenticated = SecurityAccess::getMcuState(RDSlogger);
     /* Check MCU state if unlocked */
     if (is_authenticated) 
     {
