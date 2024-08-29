@@ -2,10 +2,10 @@
 
 ECU::ECU(uint8_t module_id, Logger& logger) : _module_id(module_id),
                                             _logger(logger),
-                                            _can_interface(CreateInterface::getInstance(module_id, logger))
+                                            _can_interface(CreateInterface::getInstance(0x00, logger))
 {
     _ecu_socket = _can_interface->createSocket(_module_id);
-    _frame_receiver = new ReceiveFrames(_ecu_socket, _module_id, &_logger);
+    _frame_receiver = new ReceiveFrames(_ecu_socket, _module_id, _logger);
 }
 
 void ECU::sendNotificationToMCU()
@@ -14,7 +14,7 @@ void ECU::sendNotificationToMCU()
     GenerateFrames notifyFrame = GenerateFrames(_ecu_socket, _logger);
 
     /* Create a vector of uint8_t (bytes) containing the data to be sent */
-    std::vector<uint8_t> data = {0x0, 0xff, _module_id, 0x3};
+    std::vector<uint8_t> data = {0x0, 0xD9, _module_id, 0x3};
 
     /* Send the CAN frame with ID sender-ECU, receiver-MCU and the data vector */
     uint16_t frame_id = (_module_id << 8) | MCU_ID;
@@ -28,7 +28,7 @@ void ECU::startFrames()
     LOG_INFO(_logger.GET_LOGGER(), "{:#x} starts the frame receiver", _module_id);
 
     /* Create a HandleFrames object to process received frames */
-    HandleFrames handleFrames(_ecu_socket, &_logger);
+    HandleFrames handleFrames(_ecu_socket, _logger);
 
     /* Receive a CAN frame using the frame receiver and process it with handleFrames */
     _frame_receiver->receive(handleFrames);

@@ -9,6 +9,8 @@ int main()
     #endif
 
     HVACModule hvac;
+    hvac.fetchHvacData();
+    hvac.printHvacInfo();
     std::thread receiveFrThread([&hvac]()
                                { hvac._ecu->startFrames(); });
     sleep(200);

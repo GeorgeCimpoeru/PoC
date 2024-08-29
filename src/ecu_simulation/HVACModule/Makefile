@@ -24,6 +24,7 @@ UTILS_TEST = ../../utils/test
 UDS_DIR = ../../uds
 MCU_DIR = ../../mcu/src
 BATTERY_DIR = ../BatteryModule/src
+ENGINE_DIR = ../EngineModule/src
 OTA_DIR = ../../ota
 OBJ_DIR = obj
 
@@ -37,10 +38,12 @@ HVAC_OBJS = $(OBJ_DIR)/main.o \
 			$(OBJ_DIR)/HVACModule.o
 
 # MCU object files
-
 MCU_OBJS = $(OBJ_DIR)/MCUModule.o \
 		   $(OBJ_DIR)/MCUModule_ReceiveFrames.o 
-		   
+
+# Engine object files
+ENGINE_OBJS = $(OBJ_DIR)/EngineModule.o \
+
 # Utils object files
 UTILS_OBJS = $(OBJ_DIR)/MemoryManager.o \
              $(OBJ_DIR)/Logger.o \
@@ -72,6 +75,7 @@ OTA_OBJS = $(OBJ_DIR)/RequestUpdateStatus.o \
 OBJS = $(MCU_OBJS) \
        $(BATTERY_OBJS) \
 	   $(HVAC_OBJS) \
+	   $(ENGINE_OBJS) \
        $(UTILS_OBJS) \
        $(UDS_OBJS) \
        $(OTA_OBJS)
@@ -105,6 +109,9 @@ $(OBJ_DIR)/BatteryModule.o: $(BATTERY_DIR)/BatteryModule.cpp
 
 $(OBJ_DIR)/HVACModule.o: $(SRC_DIR)/HVACModule.cpp
 	$(CXX) $(CFLAGS) -c $(SRC_DIR)/HVACModule.cpp -o $(OBJ_DIR)/HVACModule.o
+
+$(OBJ_DIR)/EngineModule.o: $(ENGINE_DIR)/EngineModule.cpp
+	$(CXX) $(CFLAGS) -c $(ENGINE_DIR)/EngineModule.cpp -o $(OBJ_DIR)/EngineModule.o
 
 $(OBJ_DIR)/GenerateFrames.o: $(UTILS_DIR)/GenerateFrames.cpp
 	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/GenerateFrames.cpp -o $(OBJ_DIR)/GenerateFrames.o
