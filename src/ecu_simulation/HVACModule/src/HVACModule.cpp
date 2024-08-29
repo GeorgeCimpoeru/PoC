@@ -1,8 +1,9 @@
 #include "../include/HVACModule.h"
 
 Logger *hvacModuleLogger = nullptr;
+HVACModule *hvac = nullptr;
 
-HVACModule::HVACModule()
+HVACModule::HVACModule() : _logger(*hvacModuleLogger)
 {
     initHVAC();
 }

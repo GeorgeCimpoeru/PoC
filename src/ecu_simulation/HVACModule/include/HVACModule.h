@@ -33,24 +33,21 @@
 class HVACModule
 {
 private:
-    Logger& _logger = *hvacModuleLogger;
-    /* Static dictionary to store SID and processing time */
-    static std::map<uint8_t, double> timing_parameters;
-    /* Store active timers for SIDs */
-    static std::map<uint8_t, std::future<void>> active_timers;
-    /* Stop flags for each SID. */
-    static std::map<uint8_t, std::atomic<bool>> stop_flags;
+    Logger& _logger;
+    
     /* Variable to store hvac data*/
     std::unordered_map<uint16_t, std::vector<uint8_t>> default_DID_hvac =
     {
-        {AMBIENT_TEMPERATURE_DID, {0}}, /* Ambient temperature */
-        {CABIN_TEMPERATURE_DID, {0}}, /* Cabin temperature */
-        {HVAC_SET_TEMPERATURE_DID, {0}}, /* HVAC set temperature */
-        {FAN_SPEED_DID, {0}}, /* Fan speed (Duty cycle) */
-        {HVAC_MODES_DID, {0}}  /* HVAC modes */
+        {AMBIENT_TEMPERATURE_DID, {DEFAULT_DID_VALUE}}, /* Ambient temperature */
+        {CABIN_TEMPERATURE_DID, {DEFAULT_DID_VALUE}}, /* Cabin temperature */
+        {HVAC_SET_TEMPERATURE_DID, {DEFAULT_DID_VALUE}}, /* HVAC set temperature */
+        {FAN_SPEED_DID, {DEFAULT_DID_VALUE}}, /* Fan speed (Duty cycle) */
+        {HVAC_MODES_DID, {DEFAULT_DID_VALUE}}  /* HVAC modes */
     };
 
 public:
+
+    /* ECU object used for sockets, frame handling and ecu specific parameters (timing, flags etc)*/
     ECU *_ecu;
     /**
      * @brief Construct a new HVACModule object
@@ -64,31 +61,32 @@ public:
     ~HVACModule();
 
     /**
-     * @brief 
+     * @brief Init method called in the constructor
      * 
      */
     void initHVAC();
 
     /**
-     * @brief 
+     * @brief Method that generates random data and outputs it to file
      * 
      */
     void fetchHvacData();
 
     /**
-     * @brief 
+     * @brief Method that generates random data for the hvac.
+     * Each data has its own particularities (temperature boundaries etc)
      * 
      */
     void generateData();
 
     /**
-     * @brief 
+     * @brief Write the deafault_DID_hvac data to file
      * 
      */
     void writeDataToFile();
 
     /**
-     * @brief 
+     * @brief Print the hvac data with meaningful messages.
      * 
      */
     void printHvacInfo();

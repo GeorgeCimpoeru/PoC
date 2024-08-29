@@ -1,10 +1,10 @@
 #include "../include/ECU.h"
 
 ECU::ECU(uint8_t module_id, Logger& logger) : _module_id(module_id),
-                                            _logger(logger),
-                                            _can_interface(CreateInterface::getInstance(0x00, logger))
+                                            _can_interface(CreateInterface::getInstance(0x00, logger)),
+                                            _logger(logger)
 {
-    _ecu_socket = _can_interface->createSocket(_module_id);
+    _ecu_socket = _can_interface->createSocket(ECU_INTERFACE_NUMBER);
     _frame_receiver = new ReceiveFrames(_ecu_socket, _module_id, _logger);
 }
 

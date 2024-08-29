@@ -9,6 +9,8 @@
 #define FAN_SPEED_DID             0x01D0
 #define HVAC_MODES_DID            0x01F0
 
+#define DEFAULT_DID_VALUE 0x00
+
 #define AC_STATUS           (1 << 0)
 #define LEGS                (1 << 1)
 #define FRONT               (1 << 2)

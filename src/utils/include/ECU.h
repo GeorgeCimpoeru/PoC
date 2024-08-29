@@ -18,6 +18,8 @@
 #include "CreateInterface.h"
 #include "ReceiveFrames.h"
 
+#define ECU_INTERFACE_NUMBER 0x00
+
 class ECU
 {
 public:
@@ -28,12 +30,44 @@ public:
     CreateInterface *_can_interface;
     Logger& _logger;
 
-    ECU(uint8_t module_id, Logger& logger);
-    ~ECU();
+    /* Static dictionary to store SID and processing time */
+    static std::map<uint8_t, double> timing_parameters;
+    /* Store active timers for SIDs */
+    static std::map<uint8_t, std::future<void>> active_timers;
+    /* Stop flags for each SID. */
+    static std::map<uint8_t, std::atomic<bool>> stop_flags;
 
+    /**
+     * @brief Construct a new ECU object
+     * 
+     * @param module_id 
+     * @param logger 
+     */
+    ECU(uint8_t module_id, Logger& logger);
+
+    /**
+     * @brief Function to notify MCU if the module is Up & Running.
+     * 
+     */
     void sendNotificationToMCU();
+
+    /**
+     * @brief Function that starts the frame receiver.
+     * 
+     */
     void startFrames();
+
+    /**
+     * @brief Function that stops the frame receiver.
+     * 
+     */
     void stopFrames();
+
+    /**
+     * @brief Destroy the ECU object
+     * 
+     */
+    ~ECU();
 };
 
 #endif
