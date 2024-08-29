@@ -4,17 +4,15 @@ const ModalUDS = (props: any) => {
     const [input, setInput] = useState('');
 
     const handleInputChange = (event: any) => {
-        props.handleInputChange(event.target.value, props.id);
         setInput(event.target.value);
     }
 
     const handleInputClick = () => {
         setInput('');
-        props.handleInputClick(props.id);
     }
 
     const handleClickSaveBtn = () => {
-        props.writeInfoBattery("");
+        props.writeInfoBattery(props.param, input);
     }
 
     return (

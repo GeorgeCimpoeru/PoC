@@ -1,8 +1,7 @@
-import React from 'react';
-import LoginButton from './LoginButton';
-import InputsLoginPage from './InputsLoginPage';
-import GoToRegister from './GoToRegister';
-import LoginTitle from './LoginTitle';
+import LoginButton from '@/src/components/loginComponents/LoginButton';
+import InputsLoginPage from '@/src/components/loginComponents//InputsLoginPage';
+import GoToRegister from '@/src/components/loginComponents//GoToRegister';
+import LoginTitle from '@/src/components/loginComponents//LoginTitle';
 
 const LoginPage = () => {
     return (
