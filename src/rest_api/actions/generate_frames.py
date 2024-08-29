@@ -31,6 +31,14 @@ class GenerateFrame:
         data = [0x30, 0x00, 0x00, 0x00]
         self.send_frame(id, data)
 
+    def control_frame_write_file(self, id):
+        data = [0x03, 0x31, 0x01, 0x03, 0x01, 0x00]
+        self.send_frame(id, data)
+
+    def control_frame_install_updates(self, id):
+        data = [0x03, 0x31, 0x01, 0x02, 0x01, 0x00]
+        self.send_frame(id, data)
+
     def request_id_mcu(self, api_id):
         data = [1, 0x99]
         self.send_frame(api_id, data)
@@ -148,7 +156,7 @@ class GenerateFrame:
         # Define the data format identifier mapping
         DATA_FORMAT_IDENTIFIER_MAP = {
             0x00: "No compression/encryption",
-            "zip": 0x00,
+            "zip": 0x10,
             0x01: "Only encryption",
             0x10: "Only compression",
             0x11: "Both encryption and compression"
@@ -211,15 +219,8 @@ class GenerateFrame:
 
         self.send_frame(id, data)
 
-    def transfer_data(self, id, block_sequence_counter, transfer_data={}):
-        if len(transfer_data):
-            if len(transfer_data) <= 5:
-                data = [len(transfer_data) + 2, 0x36, block_sequence_counter] + transfer_data
-            else:
-                print("ERROR: To many data to transfer, consider using Transfer_data_long!")
-                return
-        else:
-            data = [0x2, 0x76, block_sequence_counter]
+    def transfer_data(self, id, block_sequence_counter):
+        data = [0x02, 0x36, block_sequence_counter]
         self.send_frame(id, data)
 
     def transfer_data_long(self, id, block_sequence_counter, transfer_data, first_frame=True):
