@@ -8,7 +8,7 @@ function LeftSideBar(props: any) {
 
     const handleIconClick = (iconIndex: number) => {
         setActiveIcon(iconIndex);
-        props.clickedDevice(iconIndex); 
+        props.clickedDevice(iconIndex);
     };
 
     const handleMouseEnter = (iconIndex: number) => {
@@ -29,19 +29,21 @@ function LeftSideBar(props: any) {
 
     return (
         <div className="w-[6%] bg-blue-700 rounded-lg m-5 p-6 shadow-xl flex flex-col items-center">
-            {iconsData.map(icon => (
-                <Icons
-                    key={icon.index}
-                    index={icon.index}
-                    activeIcon={activeIcon}
-                    hoveredIcon={hoveredIcon}
-                    handleIconClick={handleIconClick}
-                    handleMouseEnter={handleMouseEnter}
-                    handleMouseLeave={handleMouseLeave}
-                    imageSrc={icon.imageSrc}
-                    tooltipText={icon.tooltipText}
-                />
-            ))}
+            <div className="mt-20">
+                {iconsData.map(icon => (
+                    <Icons
+                        key={icon.index}
+                        index={icon.index}
+                        activeIcon={activeIcon}
+                        hoveredIcon={hoveredIcon}
+                        handleIconClick={handleIconClick}
+                        handleMouseEnter={handleMouseEnter}
+                        handleMouseLeave={handleMouseLeave}
+                        imageSrc={icon.imageSrc}
+                        tooltipText={icon.tooltipText}
+                    />
+                ))}
+            </div>
         </div>
     );
 }

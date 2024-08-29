@@ -1,9 +1,9 @@
 'use client';
 import { useState } from "react";
-import LeftSideBar from "../../components/OTAcomponents/LeftSideBar";
-import NavbarOta from "../../components/OTAcomponents/NavbarOta";
-import TableVersionControl from "../../components/OTAcomponents/TableVersionControl";
-import TableHistory from "../../components/OTAcomponents/TableHistory";
+import LeftSideBar from "@/src/components/OTAcomponents/LeftSideBar";
+import NavbarOta from "@/src/components/OTAcomponents/NavbarOta";
+import TableVersionControl from "@/src/components/OTAcomponents/TableVersionControl";
+import TableHistory from "@/src/components/OTAcomponents/TableHistory";
 
 
 const OTApage = () => {
