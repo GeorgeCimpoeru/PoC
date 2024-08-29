@@ -1,5 +1,6 @@
 #include "../include/TesterPresent.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
 TesterPresent::TesterPresent(Logger& logger, DiagnosticSessionControl* sessionControl, int socket, int timeout_duration):
@@ -28,6 +29,9 @@ void TesterPresent::handleTesterPresent(uint32_t can_id, std::vector<uint8_t> da
         } else if (receiver_id == 0x11)
         {
             battery->stop_flags[0x3E] = false;
+        } else if (receiver_id == 0x12)
+        {
+            battery->stop_flags[0x3E] = false;
         }
         return;
     }
@@ -43,6 +47,9 @@ void TesterPresent::handleTesterPresent(uint32_t can_id, std::vector<uint8_t> da
         {
             MCU::mcu->stop_flags[0x3E] = false;
         } else if (receiver_id == 0x11)
+        {
+            battery->stop_flags[0x3E] = false;
+        } else if (receiver_id == 0x12)
         {
             battery->stop_flags[0x3E] = false;
         }
@@ -88,6 +95,28 @@ void TesterPresent::handleTesterPresent(uint32_t can_id, std::vector<uint8_t> da
                     this->generate->testerPresent(can_id, true);
                     LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x3E);
                     battery->stop_flags[0x3E] = false;
+                } 
+                else
+                {
+                    LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} failed to send the response frame.", 0x3E);
+                    NegativeResponse negative_response(socket, logger);
+                    negative_response.sendNRC(can_id, 0x3E, 0x78);
+                }
+            } 
+            else
+            {
+                LOG_ERROR(logger.GET_LOGGER(), "MCU::mcu is null or flag not found.");
+            }
+            break;
+        case 0x12:
+            if (engine!= nullptr && engine->stop_flags.find(0x3E) != engine->stop_flags.end())
+            {
+                if (engine->stop_flags.find(0x3E) != engine->stop_flags.end())
+                {
+                    /* Send response frame */
+                    this->generate->testerPresent(can_id, true);
+                    LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x3E);
+                    engine->stop_flags[0x3E] = false;
                 } 
                 else
                 {

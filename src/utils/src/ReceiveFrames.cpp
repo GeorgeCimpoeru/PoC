@@ -1,5 +1,6 @@
 #include "../include/ReceiveFrames.h"
 #include "../../ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "../../ecu_simulation/EngineModule/include/EngineModule.h"
 
 ReceiveFrames::ReceiveFrames(int socket, int current_module_id, Logger& receive_logger) : socket(socket),
                                                                                             current_module_id(current_module_id),
@@ -82,8 +83,8 @@ void ReceiveFrames::bufferFrameIn()
                 {
                     struct can_frame frame = {};
                     int nbytes = read(this->socket, &frame, sizeof(struct can_frame));
-
-                    if (nbytes > 0) 
+                    uint8_t frame_receiver = frame.can_id & 0xFF;
+                    if (nbytes > 0 && frame_receiver == current_module_id) 
                     {
                         std::unique_lock<std::mutex> lock(mtx);
                         frame_buffer.push_back(std::make_tuple(frame, nbytes));
@@ -138,35 +139,28 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
         /* Starting frame processing timing if is it a frame request for MCU */
         auto it = std::find(service_sids.begin(), service_sids.end(), frame.data[1]);
 
-        if (it != service_sids.end() && frame_dest_id == 0x11)
+        if (it != service_sids.end())
         {
             startTimer(frame_dest_id, frame.data[1]);
         }
 
-        /* Check if the received frame is for your module */ 
-        if (static_cast<int>(frame_dest_id) != current_module_id)
-        {
-            LOG_WARN(receive_logger.GET_LOGGER(), "Received frame is not for this module\n");
-            continue;
-        }
-
         if (((frame.can_id >> 8) & 0xFF) == 0) 
         {
-        LOG_WARN(receive_logger.GET_LOGGER(), "Invalid CAN ID: upper 8 bits are zero\n");
-        return;
+            LOG_WARN(receive_logger.GET_LOGGER(), "Invalid CAN ID: upper 8 bits are zero\n");
+            return;
         }
 
         /* Check if the frame is a request of type 'Up-Notification' from MCU */
-        if (frame.data[0] == 0x01)
+        if (frame.data[1] == 0x99)
         {
             LOG_INFO(receive_logger.GET_LOGGER(), "Request received from MCU");
             /* Create and instance of GenerateFrames with the CAN socket */
             GenerateFrames frame = GenerateFrames(this->socket, receive_logger);
 
             /* Create a vector of uint8_t (bytes) containing the data to be sent */
-            std::vector<uint8_t> data = {0x0, 0xff, 0x11, 0x3};
+            std::vector<uint8_t> data = {0x01, 0xD9};
             
-            uint16_t id = (0x10 << 8) | frame_dest_id;
+            uint16_t id = (frame_dest_id << 8) | 0x10;
             frame.sendFrame(id, data);
             LOG_INFO(receive_logger.GET_LOGGER(), "Response sent to MCU");
 
@@ -200,7 +194,7 @@ void ReceiveFrames::startTimer(uint8_t frame_dest_id, uint8_t sid) {
         battery->stop_flags[sid] = true;
 
         battery->active_timers[sid] = std::async(std::launch::async, [sid, this, start_time, timer_value, frame_dest_id]() {
-            while (BatteryModule::stop_flags[sid]) {
+            while (battery->stop_flags[sid]) {
                 auto now = std::chrono::steady_clock::now();
                 std::chrono::duration<double> elapsed = now - start_time;
                 if (elapsed.count() > timer_value / 20.0) {
@@ -211,6 +205,21 @@ void ReceiveFrames::startTimer(uint8_t frame_dest_id, uint8_t sid) {
         });
         break;
     case 0x12:
+        engine->timing_parameters[sid] = start_time.time_since_epoch().count();
+
+        // Initialize stop flag for this SID
+        engine->stop_flags[sid] = true;
+
+        engine->active_timers[sid] = std::async(std::launch::async, [sid, this, start_time, timer_value, frame_dest_id]() {
+            while (engine->stop_flags[sid]) {
+                auto now = std::chrono::steady_clock::now();
+                std::chrono::duration<double> elapsed = now - start_time;
+                if (elapsed.count() > timer_value / 20.0) {
+                    stopTimer(frame_dest_id, sid);
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
+        });
         break;
     case 0x13:
         break;
@@ -240,7 +249,7 @@ void ReceiveFrames::stopTimer(uint8_t frame_dest_id, uint8_t sid) {
 
         battery->timing_parameters[sid] = processing_time.count();
 
-        if (BatteryModule::active_timers.find(sid) != BatteryModule::active_timers.end()) {
+        if (battery->active_timers.find(sid) != battery->active_timers.end()) {
             /* Set stop flag to false for this SID */
             if (battery->stop_flags[sid]) {
                 int id = ((sid & 0xFF) << 8) | ((sid >> 8) & 0xFF);
@@ -255,8 +264,31 @@ void ReceiveFrames::stopTimer(uint8_t frame_dest_id, uint8_t sid) {
             battery->active_timers[sid].wait();
         }
         break;
-
     case 0x12:
+        start_time = std::chrono::steady_clock::time_point(
+            std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+                std::chrono::nanoseconds((long long)engine->timing_parameters[sid])
+            )
+        );
+        processing_time = end_time - start_time;
+
+        engine->timing_parameters[sid] = processing_time.count();
+
+        if (engine->active_timers.find(sid) != engine->active_timers.end()) {
+            /* Set stop flag to false for this SID */
+            if (engine->stop_flags[sid]) {
+                int id = ((sid & 0xFF) << 8) | ((sid >> 8) & 0xFF);
+                LOG_INFO(receive_logger.GET_LOGGER(), 
+                         "Service with SID {:x} sent the response pending frame.", 0x2E);
+                
+                NegativeResponse negative_response(socket, receive_logger);
+                negative_response.sendNRC(id, 0x2E, 0x78);
+                engine->stop_flags[sid] = false;
+            }
+            engine->stop_flags.erase(sid);
+            engine->active_timers[sid].wait();
+        }
+        break;
     case 0x13:
     case 0x14:
     default:

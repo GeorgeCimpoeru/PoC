@@ -24,6 +24,7 @@ UTILS_DIR = ../utils/src
 UTILS_TEST = ../utils/test
 UDS_DIR = ../uds
 BATTERY_DIR = ../ecu_simulation/BatteryModule/src
+ENGINE_DIR = ../ecu_simulation/EngineModule/src
 OTA_DIR = ../ota
 OBJ_DIR = obj
 
@@ -36,6 +37,9 @@ MCU_OBJS = $(OBJ_DIR)/main.o \
 
 # Battery object files
 BATTERY_OBJS = $(OBJ_DIR)/BatteryModule.o \
+
+# Engine object files
+ENGINE_OBJS = $(OBJ_DIR)/EngineModule.o \
 
 # Utils object files
 UTILS_OBJS = $(OBJ_DIR)/MemoryManager.o \
@@ -66,6 +70,7 @@ OTA_OBJS = $(OBJ_DIR)/RequestUpdateStatus.o \
            
 OBJS = $(MCU_OBJS) \
        $(BATTERY_OBJS) \
+	   $(ENGINE_OBJS) \
        $(UTILS_OBJS) \
        $(UDS_OBJS) \
        $(OTA_OBJS)
@@ -93,6 +98,9 @@ $(OBJ_DIR)/MCUModule.o: $(SRC_DIR)/MCUModule.cpp
 
 $(OBJ_DIR)/BatteryModule.o: $(BATTERY_DIR)/BatteryModule.cpp
 	$(CXX) $(CFLAGS) -c $(BATTERY_DIR)/BatteryModule.cpp -o $(OBJ_DIR)/BatteryModule.o
+
+$(OBJ_DIR)/EngineModule.o: $(ENGINE_DIR)/EngineModule.cpp
+	$(CXX) $(CFLAGS) -c $(ENGINE_DIR)/EngineModule.cpp -o $(OBJ_DIR)/EngineModule.o
 
 $(OBJ_DIR)/GenerateFrames.o: $(UTILS_DIR)/GenerateFrames.cpp
 	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/GenerateFrames.cpp -o $(OBJ_DIR)/GenerateFrames.o

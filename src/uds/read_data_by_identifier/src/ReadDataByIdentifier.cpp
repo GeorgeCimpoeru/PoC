@@ -1,5 +1,6 @@
 #include "../include/ReadDataByIdentifier.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
 /* Helper function to read data from a file */
@@ -80,6 +81,9 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
             } else if (lowerbits == 0x11)
             {
                 battery->stop_flags[0x22] = false;
+            } else if (lowerbits == 0x12)
+            {
+                engine->stop_flags[0x22] = false;
             }
         }
 
@@ -101,6 +105,9 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
             } else if (lowerbits == 0x11)
             {
                 battery->stop_flags[0x22] = false;
+            } else if (lowerbits == 0x12)
+            {
+                engine->stop_flags[0x22] = false;
             }
         }
 
@@ -132,6 +139,9 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
             } else if (lowerbits == 0x11)
             {
                 battery->stop_flags[0x22] = false;
+            } else if (lowerbits == 0x12)
+            {
+                engine->stop_flags[0x22] = false;
             }
         }
         return response;
@@ -156,6 +166,9 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
             } else if (lowerbits == 0x11)
             {
                 battery->stop_flags[0x22] = false;
+            } else if (lowerbits == 0x12)
+            {
+                engine->stop_flags[0x22] = false;
             }
         }
         return response;
@@ -177,6 +190,9 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
             } else if (lowerbits == 0x11)
             {
                 battery->stop_flags[0x22] = false;
+            } else if (lowerbits == 0x12)
+            {
+                engine->stop_flags[0x22] = false;
             }
         }
         return response;
@@ -206,6 +222,9 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
             } else if (lowerbits == 0x11)
             {
                 battery->stop_flags[0x22] = false;
+            } else if (lowerbits == 0x12)
+            {
+                engine->stop_flags[0x22] = false;
             }
         } 
         else
@@ -219,6 +238,9 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
             } else if (lowerbits == 0x11)
             {
                 battery->stop_flags[0x22] = false;
+            } else if (lowerbits == 0x12)
+            {
+                engine->stop_flags[0x22] = false;
             }
         }
     }

@@ -176,7 +176,7 @@ bool ReceiveFrames::receiveFramesFromAPI()
             /* Compare the CAN ID with the expected hexValueId */
             if (receiver_id == hex_value_id) 
             {
-                if (frame.data[1] == 0xff) 
+                if (frame.data[1] == 0xD9) 
                 {
                     LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Frame received to notify MCU that ECU with ID: 0x{:x} is up", sender_id));
                     /* Set the corresponding value from the array with the ECU id */
@@ -225,7 +225,7 @@ bool ReceiveFrames::receiveFramesFromAPI()
                         data: {PCI_L, SID(0xD9), MCU_id, BATTERY_id, DOORS_id, ENGINE_id, ECU4_id}
                     */
                     LOG_INFO(MCULogger->GET_LOGGER(), "Received frame to update status of ECUs still up.");
-                    generate_frames.sendFrame(0x10FA,{0x07, 0xD9, (uint8_t)hex_value_id, ecus_up[0], ecus_up[1], ecus_up[2], ecus_up[3]}, socket_api, DATA_FRAME);
+                    generate_frames.sendFrame(0x10FA,{0x05, 0xD9, ecus_up[0], ecus_up[1], ecus_up[2], ecus_up[3]}, socket_api, DATA_FRAME);
                     LOG_INFO(MCULogger->GET_LOGGER(), "Frame sent to API on API socket to update status of ECUs still up.");
                 }
                 else
@@ -395,7 +395,7 @@ bool ReceiveFrames::receiveFramesFromAPI()
                         {
                             ecus_up[i] = 0;
                         }/* Send request frame */
-                        std::vector<uint8_t> data = {0x01};
+                        std::vector<uint8_t> data = {0x01, 0x99};
                         uint16_t id = (0x10 << 8) | it->first;
                         ReceiveFrames::generate_frames.sendFrame(id, data);
                         it = ecu_timers.erase(it);

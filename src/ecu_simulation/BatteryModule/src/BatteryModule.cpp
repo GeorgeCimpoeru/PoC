@@ -95,7 +95,7 @@ void BatteryModule::sendNotificationToMCU()
     GenerateFrames notifyFrame = GenerateFrames(battery_socket, *batteryModuleLogger);
 
     /* Create a vector of uint8_t (bytes) containing the data to be sent */
-    std::vector<uint8_t> data = {0x0, 0xff, 0x11, 0x3};
+    std::vector<uint8_t> data = {0x01, 0xD9};
 
     /* Send the CAN frame with ID 0x22110 and the data vector */
     notifyFrame.sendFrame(0x1110, data);
