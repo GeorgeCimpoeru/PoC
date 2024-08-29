@@ -43,6 +43,18 @@ class WriteInfo(Action):
         Method to write information to the battery module. Handles changin session, authentication, data preparation,
         and writing operations.
 
+        curl -X POST http://localhost:5000/api/write_info_battery \
+        -H "Content-Type: application/json" \
+        -d '{
+            "battery_level": 80,
+            "voltage": 12,
+            "percentage": 50,
+            "battery_state_of_charge": 75,
+            "temperature": 25,
+            "life_cycle": 300,
+            "device_consumption": 10
+        }'
+
         Args:
         - item: Optional identifier for a specific data item to write.
 
@@ -55,7 +67,7 @@ class WriteInfo(Action):
             return auth_result
 
         try:
-            id_battery = self.id_ecu[ECU_BATTERY]
+            id_battery = self.id_ecu[MCU]
             id = self.my_id * 0x100 + id_battery
             log_info_message(logger, f"Writing data to ECU ID: {id_battery}")
 
@@ -65,12 +77,12 @@ class WriteInfo(Action):
                 IDENTIFIER_BATTERY_VOLTAGE: int(self.data.get('voltage')),
                 IDENTIFIER_BATTERY_PERCENTAGE: int(self.data.get('percentage')),
                 IDENTIFIER_BATTERY_STATE_OF_CHARGE: int(self.data.get('battery_state_of_charge')),
-                # IDENTIFIER_BATTERY_TEMPERATURE: int(self.data.get('temperature')),
-                # IDENTIFIER_BATTERY_LIFE_CYCLE: int(self.data.get('life_cycle')),
+                IDENTIFIER_BATTERY_TEMPERATURE: int(self.data.get('temperature')),
+                IDENTIFIER_BATTERY_LIFE_CYCLE: int(self.data.get('life_cycle')),
                 # IDENTIFIER_BATTERY_FULLY_CHARGED: int(self.data.get('fully_charged')),
                 # IDENTIFIER_BATTERY_RANGE: int(self.data.get('range_battery')),
                 # IDENTIFIER_BATTERY_CHARGING_TIME: int(self.data.get('charging_time')),
-                # IDENTIFIER_DEVICE_CONSUMPTION: int(self.data.get('device_consumption'))
+                IDENTIFIER_DEVICE_CONSUMPTION: int(self.data.get('device_consumption'))
             }
 
             # Determine which data to write

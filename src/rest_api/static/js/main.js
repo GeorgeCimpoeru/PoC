@@ -97,8 +97,20 @@ function updateToVersion() {
         }
     } while (!versionRegex.test(version));
 
+    // Loop until valid version is provided
+    do {
+        ecu_id = prompt('Enter ECU id (numbers only):');
+        if (ecu_id === null) {
+            alert('Operation cancelled.');
+            return;
+        }
+        if (!versionRegex.test(ecu_id)) {
+            alert('Invalid version. Please enter numbers only.');
+        }
+    } while (!versionRegex.test(ecu_id));
+
     // If validation passes, perform the API request
-    performApiRequest('/api/update_to_version', 'POST', { update_file_type: type, update_file_version: version });
+    performApiRequest('/api/update_to_version', 'POST', { update_file_type: type, update_file_version: version, ecu_id: ecu_id });
 }
 
 function readInfoBattery() {

@@ -27,7 +27,7 @@ class Updates(Action):
     - g: Instance of GenerateFrame for generating CAN bus frames.
     """
 
-    def update_to(self, type, version):
+    def update_to(self, type, version, id):
         """
         Method to update the software of the ECU to a specified version.
 
@@ -44,7 +44,8 @@ class Updates(Action):
         """
 
         try:
-            self.id = (self.id_ecu[1] << 16) + (self.my_id << 8) + self.id_ecu[0]
+            # self.id = (self.id_ecu[1] << 16) + (self.my_id << 8) + self.id_ecu[0]
+            self.id = (int(id, 16) << 16) + (self.my_id << 8) + self.id_ecu[0]
 
             log_info_message(logger, "Changing session to programming")
             self.generate.session_control(self.id, 0x02)
@@ -56,12 +57,12 @@ class Updates(Action):
             self.generate.session_control(self.id, 0x01)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
 
-            log_info_message(logger, "Reading data from battery")
-            current_version = self._verify_version(version)
-            if current_version == version:
-                response_json = ToJSON()._to_json(f"Version {version} already installed", 0)
-                self.bus.shutdown()
-                return response_json
+            # log_info_message(logger, "Reading data from battery")
+            # current_version = self._verify_version(version)
+            # if current_version == version:
+            #     response_json = ToJSON()._to_json(f"Version {version} already installed", 0)
+            #     self.bus.shutdown()
+            #     return response_json
 
             log_info_message(logger, "Changing session to programming")
             self.generate.session_control(self.id, 0x02)
@@ -74,8 +75,6 @@ class Updates(Action):
             log_info_message(logger, "Changing session to default")
             self.generate.session_control(self.id, 0x01)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
-
-            # self.generate.routine_control(): # ToDO
 
             # Reset the ECU to apply the update
             # self.id = (self.my_id * 0x100) + int(ecu_id, 16)
@@ -144,19 +143,19 @@ class Updates(Action):
         create locally a virtual partition used for download.
         -> search/change "/dev/loopXX" in RequestDownload.cpp, MemoryManager.cpp; (Depends which partition is attributed)
         """
-
         self.generate.request_download(self.id,
                                        data_format_identifier=type,  # No compression/encryption
                                        memory_address=0x8001,  # Memory address starting from 2049
                                        memory_size=0x01,  # Memory size
                                        version=version)  # Version 2
         self._passive_response(REQUEST_DOWNLOAD, "Error requesting download")
-        # self.generate.transfer_data_long(self.id, 0x01, data)
-        # self.generate.transfer_data_long(self.id, 0x01, data, False)
-        # self._passive_response(TRANSFER_DATA, "Error transferring data")
 
-        # self.generate.request_transfer_exit(self.id)
-        # self._passive_response(REQUEST_TRANSFER_EXIT, "Error requesting transfer exit")
+        self.generate.transfer_data(self.id, 0x01)
+        self._passive_response(TRANSFER_DATA, "Error transferring data")
+        time.sleep(1)
+        self.generate.control_frame_write_file(self.id)
+        time.sleep(1)
+        self.generate.control_frame_install_updates(self.id)
 
     def _verify_version(self, version):
         """
