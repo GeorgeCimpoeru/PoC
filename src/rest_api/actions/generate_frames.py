@@ -2,7 +2,7 @@ import can
 from utils.logger import SingletonLogger
 from config import Config
 import threading
-
+import subprocess
 
 can_lock = threading.Lock()
 
@@ -15,17 +15,36 @@ logger_frame = logger_singleton.logger_frame
 class GenerateFrame:
     def __init__(self, bus=None):
         if bus is None:
-            self.bus = can.interface.Bus(channel=Config.CAN_CHANNEL, bustype='socketcan')
+            if self.is_interface_up(Config.CAN_CHANNEL):
+                self.bus = can.interface.Bus(channel=Config.CAN_CHANNEL, bustype='socketcan')
+                logger.info(f"Connected to CAN interface {Config.CAN_CHANNEL}.")
+            else:
+                raise RuntimeError(f"CAN interface {Config.CAN_CHANNEL} is not up. Please bring it up before initializing.")
         else:
             self.bus = bus
+
+    @staticmethod
+    def is_interface_up(interface: str) -> bool:
+        """
+        Check if the given network interface is up.
+        """
+        try:
+            # Run the 'ip link show' command to check the status of the interface
+            result = subprocess.run(['ip', 'link', 'show', interface], capture_output=True, text=True)
+            # Check if the result contains "state UP"
+            return "state UP" in result.stdout
+        except Exception as e:
+            logger.info(f"Error checking interface status: {e}")
+            return False
 
     def send_frame(self, id, data):
         with can_lock:
             message = can.Message(arbitration_id=id, data=data, is_extended_id=True)
             try:
                 self.bus.send(message)
-            except can.CanError:
-                print("Message not sent")
+                logger.info(f"Sent CAN message with ID: {id}, Data: {data}")
+            except can.CanError as e:
+                logger.error(f"Message not sent: {e}")
 
     def control_frame(self, id):
         data = [0x30, 0x00, 0x00, 0x00]
@@ -58,7 +77,6 @@ class GenerateFrame:
             if len(response) <= 4:
                 data = [len(response) + 3, 0x62, identifier // 0x100, identifier % 0x100] + response
             else:
-                print("Error")
                 return
         self.send_frame(id, data)
 
@@ -90,7 +108,7 @@ class GenerateFrame:
                 self.__add_to_list(data, memory_size)
                 data = data + response
             else:
-                print("Error, please use considering read_memory_by_adress_long")
+                logger.error("Error, please use considering read_memory_by_adress_long")
                 return
         self.send_frame(id, data)
 
