@@ -28,6 +28,14 @@ jobs:
         run: |
           cd src/ecu_simulation/BatteryModule
           make
+      - name: Run Makefile in src/ecu_simulation/EngineModule with Extra Flags
+        run: |
+          cd src/ecu_simulation/EngineModule
+          make
+      - name: Run Makefile in src/ecu_simulation/DoorsModule with Extra Flags
+        run: |
+          cd src/ecu_simulation/DoorsModule
+          make
 
       - name: Check Build Results
         run: |
