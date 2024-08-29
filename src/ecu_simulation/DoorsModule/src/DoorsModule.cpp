@@ -98,7 +98,7 @@ void DoorsModule::sendNotificationToMCU()
     GenerateFrames notifyFrame = GenerateFrames(doors_socket, *doorsModuleLogger);
 
     /* Create a vector of uint8_t (bytes) containing the data to be sent */
-    std::vector<uint8_t> data = {0x0, 0xff, 0x13, 0x3};
+    std::vector<uint8_t> data = {0x0, 0xD9};
 
     /* Send the CAN frame with ID 0x22130 and the data vector */
     notifyFrame.sendFrame(0x1310, data);
