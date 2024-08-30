@@ -33,7 +33,7 @@
         "**/*.ts",
         "**/*.tsx",
         ".next/types/**/*.ts",
-        "app/firebaseConfig.tsx"
+        "src/app/firebaseConfig.tsx"
     ],
     "exclude": [
         "node_modules"

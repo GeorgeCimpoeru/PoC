@@ -18,3 +18,6 @@ rc/rest_api/.pytest_cache
 # ignore local cached databases
 src/rest_api/database/can_frames.db
 src/rest_api/database/mcu_ids.db
+key.json
+src/ota/google_drive_api/__pycache__
+src/ota/google_drive_api/__init__.py

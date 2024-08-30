@@ -4,6 +4,9 @@ Logger* MCULogger = nullptr;
 namespace MCU
 {
     MCUModule* mcu = nullptr;
+    std::map<uint8_t, double> MCUModule::timing_parameters;
+    std::map<uint8_t, std::future<void>> MCUModule::active_timers;
+    std::map<uint8_t, std::atomic<bool>> MCUModule::stop_flags;
     /* Constructor */
     MCUModule::MCUModule(uint8_t interfaces_number) : 
                     is_running(false),
@@ -13,13 +16,50 @@ namespace MCU
                     mcu_ecu_socket(create_interface->createSocket(interfaces_number >> 4))
                     {
 
+        /* Insert the default DID values in the file */
+        std::ofstream outfile("mcu_data.txt");
+        if (!outfile.is_open())
+        {
+            throw std::runtime_error("Failed to open file: mcu_data.txt");
+        }
+
+        for (const auto& [data_identifier, data] : default_DID_MCU)
+        {
+            outfile << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << data_identifier << " ";
+            for (uint8_t byte : data)
+            {
+                outfile << std::hex << std::setw(1) << std::setfill('0') << static_cast<int>(byte) << " ";
+            }
+            outfile << "\n";
+        }
+        outfile.close();
+
         receive_frames = new ReceiveFrames(mcu_ecu_socket, mcu_api_socket);
     }
 
     /* Default constructor */
     MCUModule::MCUModule() : is_running(false),
                          create_interface(CreateInterface::getInstance(0x01, *MCULogger)),
-                         receive_frames(nullptr) {}
+                         receive_frames(nullptr)
+    {
+        /* Insert the default DID values in the file */
+        std::ofstream outfile("mcu_data.txt");
+        if (!outfile.is_open())
+        {
+            throw std::runtime_error("Failed to open file: mcu_data.txt");
+        }
+
+        for (const auto& [data_identifier, data] : default_DID_MCU)
+        {
+            outfile << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << data_identifier << " ";
+            for (uint8_t byte : data)
+            {
+                outfile << std::hex << std::setw(1) << std::setfill('0') << static_cast<int>(byte) << " ";
+            }
+            outfile << "\n";
+        }
+        outfile.close();
+    }
 
     /* Destructor */
     MCUModule::~MCUModule() 
@@ -29,7 +69,12 @@ namespace MCU
     }
 
     /* Start the module */
-    void MCUModule::StartModule() { is_running = true; }
+    void MCUModule::StartModule() 
+    { 
+    is_running = true;
+    create_interface->setSocketBlocking(mcu_api_socket);
+    create_interface->setSocketBlocking(mcu_ecu_socket);
+    }
 
     int MCUModule::getMcuApiSocket() const 
     {
@@ -51,7 +96,13 @@ namespace MCU
     }
 
     /* Stop the module */
-    void MCUModule::StopModule() { is_running = false; }
+    void MCUModule::StopModule() 
+    { 
+    is_running = false;
+    receive_frames->stopProcessingQueue();            
+    receive_frames->stopListenAPI();
+    receive_frames->stopListenCANBus(); 
+    }
 
     /* Receive frames */
     void MCUModule::recvFrames() 

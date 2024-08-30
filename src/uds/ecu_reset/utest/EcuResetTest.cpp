@@ -113,76 +113,49 @@ protected:
 /* Test for HardReset */
 TEST_F(EcuResetTest, HardResetTestEcu) {
 
-    // std::vector<uint8_t> invalid_frame_data = {0x02, 0x36};
-    // std::vector<uint8_t> expected_frame_data = {0x03, 0x7F, 0x36, 0x13};
     ecu_reset = new EcuReset(0x1011, 0x01, socket_, *mockLogger);
     testing::internal::CaptureStdout();
     ecu_reset->ecuResetRequest();
 
     std::string output = testing::internal::GetCapturedStdout();
-    // delete ecu_reset;
     EXPECT_NE(output.find("Reset Mode: Hard Reset"), std::string::npos);
-    // captured_frame->capture();
-    // for (int i = 0; i < captured_frame->frame.can_dlc; ++i) {
-    //     EXPECT_EQ(expected_frame_data[i], captured_frame->frame.data[i]);
-    // }
 }
 
 TEST_F(EcuResetTest, HardResetTestMcu) {
 
-    // std::vector<uint8_t> invalid_frame_data = {0x02, 0x36};
-    // std::vector<uint8_t> expected_frame_data = {0x03, 0x7F, 0x36, 0x13};
     ecu_reset = new EcuReset(0xFA10, 0x01, socket_, *mockLogger);
     testing::internal::CaptureStdout();
     ecu_reset->ecuResetRequest();
 
     std::string output = testing::internal::GetCapturedStdout();
-    // delete ecu_reset;
     EXPECT_NE(output.find("Reset Mode: Hard Reset"), std::string::npos);
-    // captured_frame->capture();
-    // for (int i = 0; i < captured_frame->frame.can_dlc; ++i) {
-    //     EXPECT_EQ(expected_frame_data[i], captured_frame->frame.data[i]);
-    // }
 }
 
 /* Test for KeyOffReset */
 TEST_F(EcuResetTest, KeyOffResetTestEcu) {
 
-    // std::vector<uint8_t> invalid_frame_data = {0x02, 0x36};
-    // std::vector<uint8_t> expected_frame_data = {0x03, 0x7F, 0x36, 0x13};
     ecu_reset = new EcuReset(0x1011, 0x02, socket_, *mockLogger);
     testing::internal::CaptureStdout();
     ecu_reset->ecuResetRequest();
 
     std::string output = testing::internal::GetCapturedStdout();
     EXPECT_NE(output.find("Reset Mode: Key Off Reset"), std::string::npos);
-    // captured_frame->capture();
-    // for (int i = 0; i < captured_frame->frame.can_dlc; ++i) {
-    //     EXPECT_EQ(expected_frame_data[i], captured_frame->frame.data[i]);
-    // }
 }
 
 /* Test for KeyOffReset */
 TEST_F(EcuResetTest, KeyOffResetTestMcu) {
 
-    // std::vector<uint8_t> invalid_frame_data = {0x02, 0x36};
-    // std::vector<uint8_t> expected_frame_data = {0x03, 0x7F, 0x36, 0x13};
     ecu_reset = new EcuReset(0xFA10, 0x02, socket_, *mockLogger);
     testing::internal::CaptureStdout();
     ecu_reset->ecuResetRequest();
 
     std::string output = testing::internal::GetCapturedStdout();
     EXPECT_NE(output.find("Reset Mode: Key Off Reset"), std::string::npos);
-    // captured_frame->capture();
-    // for (int i = 0; i < captured_frame->frame.can_dlc; ++i) {
-    //     EXPECT_EQ(expected_frame_data[i], captured_frame->frame.data[i]);
-    // }
 }
 
 /* Test for PositiveResponse */
 TEST_F(EcuResetTest, PositiveResponseTest) {
 
-    // std::vector<uint8_t> frame_data = {0x02, 0x36, 0x01, 0x02, 0x33};
     std::vector<uint8_t> expected_frame_data = {0x00, 0xFF, 0x11, 0x03};
 
     ecu_reset->ecuResetRequest();

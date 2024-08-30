@@ -24,6 +24,7 @@
 
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../../utils/include/Logger.h"
+#include "../../../utils/include/NegativeResponse.h"
 
 #include <linux/can.h>
 #include <cstdlib>

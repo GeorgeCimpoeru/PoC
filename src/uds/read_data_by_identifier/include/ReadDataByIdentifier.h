@@ -16,17 +16,24 @@
 #include <vector>
 #include <unordered_map>
 #include <bitset>
+#include <fstream>
+#include <sstream>
+#include <string>
 
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../utils/include/Logger.h"
+#include "../../../utils/include/NegativeResponse.h"
+#include "../../authentication/include/SecurityAccess.h"
 
 class ReadDataByIdentifier
 {
     public:
+    /* Define the service identifier for Read Data By Identifier */
+    static constexpr uint8_t RDBI_SERVICE_ID = 0x22;
     /**
     * @brief Default constructor
     */
-    ReadDataByIdentifier(int socket, Logger* rdbi_logger);
+    ReadDataByIdentifier(int socket, Logger& rdbi_logger);
     /**
     * @brief Method that retrieves some data based on a DID.
     * @param can_id The frame id.
