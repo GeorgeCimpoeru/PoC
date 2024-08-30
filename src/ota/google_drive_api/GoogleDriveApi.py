@@ -77,7 +77,12 @@ class GDriveAPI:
         try:
             # pylint: disable=maybe-no-member
             sw_version = self.__convertByteToSwVersion(hex(sw_version_byte))
-            print('Searching for version ' + ecu_map[ecu_id] + ' ' + sw_version)
+            print('Searching for version ' + sw_version)
+
+            # Find the appropriate string to search for in the name
+            search_string = ecu_map[ecu_id].upper()
+
+            # Filter based on the presence of the search string in the name
             file_to_download = [
                 data for data in self.__drive_data_array
                 if search_string in data['name'].upper() == ecu_map[ecu_id] and data['sw_version'] == str(sw_version)]

@@ -18,18 +18,6 @@ class ToJSON():
 
 
 class Updates(Action):
-    # def _auth_mcu(self):
-    #     id = self.my_id * 0x100 + self.id_ecu[0]
-    #     try:
-    #         log_info_message(logger, "Changing session to default")
-    #         self.generate.session_control(id, 0x02)
-    #         self._passive_response(SESSION_CONTROL, "Error changing session control")
-    #         self._authentication(id)
-
-    #     except CustomError as e:
-    #         self.bus.shutdown()
-    #         return e.message
-
     """
     Update class for managing software updates on an Electronic Control Unit (ECU).
 
@@ -62,24 +50,6 @@ class Updates(Action):
             log_info_message(logger, "Changing session to programming")
             self.generate.session_control(self.id, 0x02)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
-
-            self._authentication(self.id)
-
-            log_info_message(logger, "Changing session to default")
-            self.generate.session_control(self.id, 0x01)
-            self._passive_response(SESSION_CONTROL, "Error changing session control")
-
-            # log_info_message(logger, "Reading data from battery")
-            # current_version = self._verify_version(version)
-            # if current_version == version:
-            #     response_json = ToJSON()._to_json(f"Version {version} already installed", 0)
-            #     self.bus.shutdown()
-            #     return response_json
-
-            log_info_message(logger, "Changing session to programming")
-            self.generate.session_control(self.id, sub_funct=0x02)
-            self._passive_response(SESSION_CONTROL, "Error changing session control")
-            self._authentication(self.my_id * 0x100 + self.id_ecu[0])
 
             log_info_message(logger, "Downloading... Please wait")
             self._download_data(type, version)
@@ -156,28 +126,19 @@ class Updates(Action):
         create locally a virtual partition used for download.
         -> search/change "/dev/loopXX" in RequestDownload.cpp, MemoryManager.cpp; (Depends which partition is attributed)
         """
-        id = self.my_id * 0x100 + self.id_ecu[0]
-        self.generate.request_download(id,
-                                       data_format_identifier=0x00,
-                                       memory_address=0x01,
-                                       memory_size=0xFFFF,
-                                       size=0x01)
-        frame = self._passive_response(REQUEST_DOWNLOAD, "Error requesting download")
-        # max_number_block = frame[9]
-        log_info_message(logger, f"Max block: {frame[2]}")
-        log_info_message(logger, f"Max block: {frame[3]}")
-        log_info_message(logger, f"Max block: {frame[4]}")
-        log_info_message(logger, f"Max block: {frame[5]}")
-        log_info_message(logger, f"Max block: {frame[6]}")
-        log_info_message(logger, f"Max block: {frame[7]}")
-        log_info_message(logger, f"Max block: {frame[8]}")
-        log_info_message(logger, f"Max block: {frame[9]}")
-        # self.generate.transfer_data_long(self.id, 0x01, data)
-        # self.generate.transfer_data_long(self.id, 0x01, data, False)
-        # self._passive_response(TRANSFER_DATA, "Error transferring data")
+        self.generate.request_download(self.id,
+                                       data_format_identifier=type,  # No compression/encryption
+                                       memory_address=0x8001,  # Memory address starting from 2049
+                                       memory_size=0x01,  # Memory size
+                                       version=version)  # Version 2
+        self._passive_response(REQUEST_DOWNLOAD, "Error requesting download")
 
-        # self.generate.request_transfer_exit(self.id)
-        # self._passive_response(REQUEST_TRANSFER_EXIT, "Error requesting transfer exit")
+        self.generate.transfer_data(self.id, 0x01)
+        self._passive_response(TRANSFER_DATA, "Error transferring data")
+        time.sleep(1)
+        self.generate.control_frame_write_file(self.id)
+        time.sleep(1)
+        self.generate.control_frame_install_updates(self.id)
 
     def _verify_version(self, version):
         """
