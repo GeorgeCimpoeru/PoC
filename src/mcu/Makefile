@@ -3,11 +3,8 @@
 
 #POC Project root path
 PROJECT_PATH := $(shell cd $(shell pwd)/../../ && pwd)
-#POC Project root path
-PROJECT_PATH := $(shell cd $(shell pwd)/../../ && pwd)
 #Python flags needed for pybing library
 PYTHON_INCL_DIR=-I/usr/include/python3.8
-PYTHON_LDFLAGS = -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -lcrypt -ldl -lutil -lm -lpthread
 PYTHON_LDFLAGS = -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -lcrypt -ldl -lutil -lm -lpthread
 
 # Compiler flags
@@ -260,7 +257,7 @@ OBJS_ROUTINECONTROL_TEST = $(OBJ_DIR)/MemoryManager_test.o \
 			   			   $(OBJ_DIR)/GenerateFrames_test.o \
 			   			   $(OBJ_DIR)/RoutineControl_test.o \
 			   			   $(OBJ_DIR)/NegativeResponse_test.o \
-			   			   $(OBJ_DIR)/SecurityAccess_test.o
+			   			   $(OBJ_DIR)/SecurityAccess_test.o \
 			   			   $(OBJ_DIR)/RoutineControl_test.o \
 			   			   $(OBJ_DIR)/NegativeResponse_test.o \
 			   			   $(OBJ_DIR)/SecurityAccess_test.o
