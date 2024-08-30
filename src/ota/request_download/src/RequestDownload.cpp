@@ -147,7 +147,6 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
                 LOG_ERROR(RDSlogger.GET_LOGGER(), "Failed to extract files from ZIP archive.");
             }
         }
-
         /* Check for encryption */
         if (encryption_type == 0x0)
         {

@@ -167,9 +167,14 @@ class Action:
         """
         flag = False
         msg_ext = None
-        msg = self.bus.recv(3)
-        print(msg)
+        msg = self.bus.recv(99)
         while msg is not None:
+            # Check if the message is a "response pending"
+            if msg.data[1] == 0x7F and msg.data[3] == 0x78:
+                # If response pending, continue to wait for the actual response
+                log_info_message(logger, f"Response pending for SID {msg.data[2]:02X}. Waiting for the actual response...")
+                msg = self.bus.recv(Config.BUS_RECEIVE_TIMEOUT)
+                continue
             # First Frame
             if msg.data[0] == 0x10:
                 flag = True
@@ -188,30 +193,29 @@ class Action:
         return None
 
     def __verify_frame(self, msg: can.Message, sid: int):
-        """
-        Verifies the validity of the received CAN message.
+        log_info_message(logger, f"Verifying frame with SID: {sid:02X}, message data: {[hex(byte) for byte in msg.data]}")
 
-        Args:
-        - msg: The received CAN message.
-        - sid: Service identifier to verify the response.
-
-        Returns:
-        - True if the frame is valid, False otherwise.
-        """
+        # Existing verification logic...
         if msg.arbitration_id % 0x100 != self.my_id:
             return False
+
+        if msg.data[1] == 0x7F and msg.data[3] == 0x78:
+            return True
+
         if msg.data[1] == 0x7F:
             self.__handle_negative_response(msg)
             return False
+
         if msg.data[0] != 0x10:
             if msg.data[1] == 0x67 and msg.data[2] == 0x00:
                 log_info_message(logger, "Authentication successful")
-                return True  # Successful authentication frame
+                return True
             if msg.data[1] != sid + 0x40:
                 return False
         else:
             if msg.data[2] != sid + 0x40:
                 return False
+
         return True
 
     def _passive_response(self, sid, error_str="Error service"):
@@ -275,25 +279,26 @@ class Action:
 
     def _write_by_identifier(self, id, identifier, value):
         """
-        Function to read data from a specific identifier. The function requests, reads the data, and processes it.
+        Function to write data to a specific identifier.
 
         Args:
+        - id: Identifier of the request.
         - identifier: Identifier of the data.
+        - value: Value to write.
 
         Returns:
-        - Data as a string.
+        - True if the operation is triggered.
         """
-        log_info_message(logger, "Write by identifier {identifier}")
+        log_info_message(logger, f"Write by identifier {identifier}")
+
         value_list = self._number_to_list(value)
 
         if isinstance(value_list, list) and len(value_list) > 4:
             self.generate.write_data_by_identifier_long(id, identifier, value_list)
         else:
             self.generate.write_data_by_identifier(id, identifier, value_list)
-            self._passive_response(WRITE_BY_IDENTIFIER, f"Error writing {identifier}")
 
-        self.generate.write_data_by_identifier(id, identifier, value_list)
-        self._passive_response(WRITE_BY_IDENTIFIER, f"Error reading data from identifier {identifier}")
+        self._passive_response(WRITE_BY_IDENTIFIER, f"Operation complete for identifier {identifier}")
 
         return True
 

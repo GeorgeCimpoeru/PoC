@@ -24,13 +24,15 @@ class WriteInfo(Action):
 
     def _auth_mcu(self):
         """
-        Authenticate MCU by changing the session to default and performing authentication.
+        Authenticate MCU by changing the session to programming and performing authentication.
         """
         id_mcu = self.id_ecu[MCU]
         id = self.my_id * 0x100 + id_mcu
 
         try:
-            log_info_message(logger, "Changing session to default")
+            log_info_message(logger, "Changing session to programming")
+            self.generate.session_control(id, 0x02)
+            self._passive_response(SESSION_CONTROL, "Error changing session control")
             self._authentication(id)
         except CustomError as e:
             self.bus.shutdown()
@@ -38,8 +40,20 @@ class WriteInfo(Action):
 
     def write_to_battery(self, item=None):
         """
-        Method to write information to the battery module. Handles authentication, data preparation,
+        Method to write information to the battery module. Handles changin session, authentication, data preparation,
         and writing operations.
+
+        curl -X POST http://localhost:5000/api/write_info_battery \
+        -H "Content-Type: application/json" \
+        -d '{
+            "battery_level": 80,
+            "voltage": 12,
+            "percentage": 50,
+            "battery_state_of_charge": 75,
+            "temperature": 25,
+            "life_cycle": 300,
+            "device_consumption": 10
+        }'
 
         Args:
         - item: Optional identifier for a specific data item to write.
@@ -47,12 +61,13 @@ class WriteInfo(Action):
         Returns:
         - JSON response.
         """
+
         auth_result = self._auth_mcu()
         if isinstance(auth_result, str):  # If authentication fails and returns a message
             return auth_result
 
         try:
-            id_battery = self.id_ecu[ECU_BATTERY]
+            id_battery = self.id_ecu[MCU]
             id = self.my_id * 0x100 + id_battery
             log_info_message(logger, f"Writing data to ECU ID: {id_battery}")
 
@@ -64,9 +79,9 @@ class WriteInfo(Action):
                 IDENTIFIER_BATTERY_STATE_OF_CHARGE: int(self.data.get('battery_state_of_charge')),
                 IDENTIFIER_BATTERY_TEMPERATURE: int(self.data.get('temperature')),
                 IDENTIFIER_BATTERY_LIFE_CYCLE: int(self.data.get('life_cycle')),
-                IDENTIFIER_BATTERY_FULLY_CHARGED: int(self.data.get('fully_charged')),
-                IDENTIFIER_BATTERY_RANGE: int(self.data.get('range_battery')),
-                IDENTIFIER_BATTERY_CHARGING_TIME: int(self.data.get('charging_time')),
+                # IDENTIFIER_BATTERY_FULLY_CHARGED: int(self.data.get('fully_charged')),
+                # IDENTIFIER_BATTERY_RANGE: int(self.data.get('range_battery')),
+                # IDENTIFIER_BATTERY_CHARGING_TIME: int(self.data.get('charging_time')),
                 IDENTIFIER_DEVICE_CONSUMPTION: int(self.data.get('device_consumption'))
             }
 
@@ -95,7 +110,7 @@ class WriteInfo(Action):
 
     def write_to_doors(self, item=None):
         """
-        Method to write information to the doors module. Handles authentication, data preparation,
+        Method to write information to the doors module. Handles changing session, authentication, data preparation,
             and writing operations.
 
         Args:
@@ -104,6 +119,10 @@ class WriteInfo(Action):
         Returns:
         - JSON response.
         """
+        log_info_message(logger, "Changing session to programming")
+        self.generate.session_control(self.id, 0x02)
+        self._passive_response(SESSION_CONTROL, "Error changing session control")
+
         auth_result = self._auth_mcu()
         if isinstance(auth_result, str):  # If authentication fails and returns a message
             return auth_result
