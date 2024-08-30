@@ -1,5 +1,6 @@
 #include "../include/RoutineControl.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
 RoutineControl::RoutineControl(int socket, Logger& rc_logger) 
@@ -22,23 +23,63 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     {
         /* Incorrect message length or invalid format - prepare a negative response */
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::IMLOIF);
+        if (lowerbits == 0x10)
+        {
+            MCU::mcu->stop_flags[0x31] = false;
+        } else if (lowerbits == 0x11)
+        {
+            battery->stop_flags[0x31] = false;
+        } else if (lowerbits == 0x12)
+        {
+            engine->stop_flags[0x31] = false;
+        }
         return;
     }
     else if (request[2] < 0x01 || request [2] > 0x03)
     {
         /* Sub Function not supported - prepare a negative response */
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SFNS);
+        if (lowerbits == 0x10)
+        {
+            MCU::mcu->stop_flags[0x31] = false;
+        } else if (lowerbits == 0x11)
+        {
+            battery->stop_flags[0x31] = false;
+        } else if (lowerbits == 0x12)
+        {
+            engine->stop_flags[0x31] = false;
+        }
         return;
     }
-    else if (!SecurityAccess::getMcuState())
+    else if (!SecurityAccess::getMcuState(rc_logger))
     {
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
+        if (lowerbits == 0x10)
+        {
+            MCU::mcu->stop_flags[0x31] = false;
+        } else if (lowerbits == 0x11)
+        {
+            battery->stop_flags[0x31] = false;
+        } else if (lowerbits == 0x12)
+        {
+            engine->stop_flags[0x31] = false;
+        }
     }
     /* when our identifiers will be defined, this range should be smaller */
     else if (routine_identifier < 0x0100 || routine_identifier > 0xEFFF)
     {
         /* Request Out of Range - prepare a negative response */
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::ROOR);
+        if (lowerbits == 0x10)
+        {
+            MCU::mcu->stop_flags[0x31] = false;
+        } else if (lowerbits == 0x11)
+        {
+            battery->stop_flags[0x31] = false;
+        } else if (lowerbits == 0x12)
+        {
+            engine->stop_flags[0x31] = false;
+        }
         return;
     }
     else

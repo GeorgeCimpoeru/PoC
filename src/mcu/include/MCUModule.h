@@ -7,7 +7,7 @@
 #ifndef POC_MCU_MODULE_H
 #define POC_MCU_MODULE_H
 
-#include "HandleFrames.h"
+#include "../../utils/include/HandleFrames.h"
 #include "../../utils/include/CreateInterface.h"
 #include "ReceiveFrames.h"
 #include "../include/MCULogger.h"
@@ -16,6 +16,10 @@
 
 #include <thread>
 #include <future>
+#include <fstream>
+#include <stdexcept>
+#include <filesystem>
+
 namespace MCU
 {
     class MCUModule {
@@ -28,7 +32,7 @@ namespace MCU
         static std::map<uint8_t, std::atomic<bool>> stop_flags;
 
         /* Variable to store mcu data */
-        std::unordered_map<uint16_t, std::vector<uint8_t>> mcu_data = 
+        std::unordered_map<uint16_t, std::vector<uint8_t>> default_DID_MCU = 
         {
             {0x01E0, {IDLE}}
         };

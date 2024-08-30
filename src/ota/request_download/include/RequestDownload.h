@@ -38,7 +38,6 @@ class RequestDownloadService
 {
 public:
     static constexpr uint8_t RDS_SID = 0x34;
-    Logger RDSlogger;
     /**
      * @brief Construct a new Request Download Service object
      * 
@@ -74,6 +73,8 @@ public:
 
 private:
     int socket = -1;
+    Logger& RDSlogger;
+
     GenerateFrames generate_frames;
     /**
      * @brief Method for validation of the provided memory address and size, ensuring they are within acceptable bounds and logical ranges.

@@ -93,37 +93,12 @@ class MemoryManager
         Logger& logger;
 
         /**
-         * @brief Construct a new Memory Manager object
-         * 
-         * @param address 
-         * @param path 
-         * @param logger 
-         */
-        MemoryManager(off_t address, std::string path, Logger& logger);
-
-        /**
          * @brief Method to transform a string number to type integer
          * 
          * @param number 
          * @return int 
          */
         int to_int(std::string number);
-
-        /**
-         * @brief Method to check if the address is available
-         * 
-         * @param address 
-         * @return true or false
-         */
-        bool availableAddress(off_t address);
-
-        /**
-         * @brief Method to check if the amount of memory is available
-         * 
-         * @param size_of_data 
-         * @return true or false
-         */
-        bool availableMemory(off_t size_of_data);
 
         /**
          * @brief Method to run a command in the bash terminal
@@ -134,6 +109,15 @@ class MemoryManager
         std::string runCommand(char command[]);
 
     public:
+        /**
+         * @brief Construct a new Memory Manager object
+         * 
+         * @param address 
+         * @param path 
+         * @param logger 
+         */
+        MemoryManager(off_t address, std::string path, Logger& logger);
+        
         /**
          * @brief Get the Instance object
          * 
@@ -192,6 +176,22 @@ class MemoryManager
          * @param path_to_binary 
          * @return std::vector<uint8_t> 
          */
+
+        /**
+         * @brief Method to check if the address is available
+         * 
+         * @param address 
+         * @return true or false
+         */
+        bool availableAddress(off_t address);
+
+        /**
+         * @brief Method to check if the amount of memory is available
+         * 
+         * @param size_of_data 
+         * @return true or false
+         */
+        bool availableMemory(off_t size_of_data);
         static std::vector<uint8_t> readBinary(std::string path_to_binary, Logger& logger);
 
         /**

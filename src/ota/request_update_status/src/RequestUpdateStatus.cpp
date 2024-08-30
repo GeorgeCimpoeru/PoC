@@ -11,8 +11,10 @@
 
 #include "../include/RequestUpdateStatus.h"
 
-RequestUpdateStatus::RequestUpdateStatus(int socket, Logger& rus_logger) : rus_logger(rus_logger), socket(socket)
-{}
+RequestUpdateStatus::RequestUpdateStatus(int socket, Logger& logger) : socket(socket), _logger(logger)
+{
+    
+}
 
 std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id, std::vector<uint8_t> request)
 {
@@ -25,7 +27,7 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
     NegativeResponse nrc(socket, rus_logger);
     if(receiver_byte != MCU_ID || sender_byte != API_ID)
     {
-        LOG_WARN(rus_logger.GET_LOGGER(), "Request update status must be made from API to MCU. Request redirected from API to MCU.");
+        LOG_WARN(_logger.GET_LOGGER(), "Request update status must be made from API to MCU. Request redirected from API to MCU.");
         receiver_byte = MCU_ID;
         sender_byte = API_ID;
         request_id = (API_ID << 8) | MCU_ID;
@@ -40,7 +42,7 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
     readDataRequest.emplace_back(OTA_UPDATE_STATUS_DID_MSB);    /* OTA_UPDATE_STATUS_MSB_DID */
     readDataRequest.emplace_back(OTA_UPDATE_STATUS_DID_LSB);    /* OTA_UPDATE_STATUS_LSB_DID */
 
-    ReadDataByIdentifier RIDB(socket, &rus_logger);
+    ReadDataByIdentifier RIDB(socket, _logger);
     std::vector<uint8_t> RIDB_response = RIDB.readDataByIdentifier(request_id, readDataRequest, false);
     std::vector<uint8_t> response;
 
@@ -54,8 +56,11 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
         uint8_t status = RIDB_response[0];
         if (isValidStatus(RIDB_response[0]) == 0)
         {
-            LOG_WARN(rus_logger.GET_LOGGER(), "Status value {} read from readDataByIdentifier is invalid.", status);
-            nrc.sendNRC(response_id, REQUEST_UPDATE_STATUS_SID, NegativeResponse::ROOR);
+            LOG_WARN(_logger.GET_LOGGER(), "Status value {} read from readDataByIdentifier is invalid.", status);
+            response.push_back(PCI_L);           /* PCI_l*/
+            response.push_back(NEGATIVE_RESPONSE);           /* Negative response */
+            response.push_back(REQUEST_UPDATE_STATUS_SID);  /* SID */
+            response.push_back(REQUEST_OUT_OF_RANGE);           /* Negative response code */
         }
         else
         {
@@ -66,7 +71,7 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
         }
     }
 
-    GenerateFrames generate_frames(socket, rus_logger);
+    GenerateFrames generate_frames(socket, _logger);
     generate_frames.requestUpdateStatusResponse(response_id, response);
     
     return response;

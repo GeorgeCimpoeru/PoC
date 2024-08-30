@@ -33,9 +33,9 @@
 #include <future>
 #include <set>
 
-#include "../include/HandleFrames.h"
-#include "../include/GenerateFrames.h"
-#include "../include/BatteryModuleLogger.h"
+#include "HandleFrames.h"
+#include "GenerateFrames.h"
+#include "Logger.h"
 
 /* List of service we have implemented. */
 const std::vector<uint8_t> service_sids = {
@@ -112,11 +112,9 @@ class ReceiveFrames
 {
 private:
     /* Descriptor for the socket connection */
-    int socket = -1;            
-    /* Module ID for filtering incoming frames */  
-    int frame_id;    
+    int socket = -1;             
     /* Battery Module ID for filtering frames for this module */              
-    uint8_t current_module_id = 0x11;                 
+    int current_module_id;                 
     /* Define frame_buffer as a deque of tuples */ 
     std::deque<std::tuple<can_frame, int>> frame_buffer; 
     /* Mutex for ensuring thread safety when accessing the frame buffer */   
@@ -126,7 +124,17 @@ private:
     /* Flag indicating whether the receive threads should continue running */     
     std::atomic<bool> running;                
     /* Thread for buffering in receiving frames */                
-    std::thread bufferFrameInThread;    
+    std::thread bufferFrameInThread;
+    /* The logger used to write the logs. */
+    Logger& receive_logger;
+    /* Update security for battery based on notify */
+    static bool battery_state;
+    /* Update security for engine based on notify */
+    static bool engine_state;
+    /* Update security for doors based on notify */
+    static bool doors_state;
+    /* Update security for hvac based on notify */
+    static bool hvac_state;
 
     /**
      * @brief bufferFrameIn thread function that reads frames from the socket and adds them to the buffer.
@@ -141,9 +149,9 @@ private:
     void bufferFrameOut(HandleFrames &handle_frame);
 
     /* Method that start time processing frame. */
-    void startTimer(uint8_t sid);
+    void startTimer(uint8_t frame_dest_id, uint8_t sid);
     /* Method that stop time processing frame. */
-    void stopTimer(uint8_t sid);
+    void stopTimer(uint8_t frame_dest_id, uint8_t sid);
     
 protected:
     HandleFrames handle_frame;
@@ -156,7 +164,7 @@ public:
      * @param socket The socket file descriptor.
      * @param frame_id Frame identifier.
      */
-    ReceiveFrames(int socket, int frame_id);
+    ReceiveFrames(int socket, int current_module_id, Logger& receive_logger);
 
     /**
      * @brief Destructor.
@@ -170,6 +178,30 @@ public:
      */
     void printFrame(const struct can_frame &frame);
 
+    /**
+     * @brief Gets the current state of the battery security system.
+     * 
+     * @return true if the battery security is enabled, false otherwise.
+     */
+    static bool getBatteryState();
+    /**
+     * @brief Gets the current state of the engine security system.
+     * 
+     * @return true if the engine security is enabled, false otherwise.
+     */
+    static bool getEngineState();
+    /**
+     * @brief Gets the current state of the doors security system.
+     * 
+     * @return true if the doors security is enabled, false otherwise.
+     */
+    static bool getDoorsState();
+    /**
+     * @brief Gets the current state of the HVAC (Heating, Ventilation, and Air Conditioning) security system.
+     * 
+     * @return true if the HVAC security is enabled, false otherwise.
+     */
+    static bool getHvacState();
     /**
      * @brief Starts the receive process by creating bufferFrameIn and bufferFrameOut threads.
      * 

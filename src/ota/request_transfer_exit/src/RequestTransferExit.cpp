@@ -72,12 +72,30 @@ void RequestTransferExit::requestTRansferExitRequest(canid_t can_id, const std::
     }
     else    
     {
-        /* Retrieve transfer_status based on the OTA_UPDATE_STATUS_DID if it exists */
-        if ( MCU::mcu->mcu_data.find(0x01E0) != MCU::mcu->mcu_data.end())
+        std::ifstream file("mcu_data.txt");
+        std::string line;
+        uint8_t value;
+        bool did_found = false;
+        
+        while (std::getline(file, line))
         {
-            uint8_t transfer_status = MCU::mcu->mcu_data.at(0x01E0)[0];
+            std::istringstream iss(line);
+            std::string key_str;
+            uint16_t key;
+            
+            if (iss >> std::hex >> key && key == 0x01E0)
+            {
+                /* Read the first byte associated with the DID */
+                iss >> std::hex >> value;
+                did_found = true;
+                break;
+            }
+        }
+        /* Retrieve transfer_status based on the OTA_UPDATE_STATUS_DID if it exists */
+        if (did_found != 01)
+        {
             /* Check if the transfer data has been completed */
-            if (transfer_status == 0x31)        
+            if (value == 0x31)        
                 {
                 /* prepare positive response */
                 response.push_back(0x02); /* PCI */

@@ -54,7 +54,7 @@
 #include <atomic>
 #include <set>
 
-#include "../include/HandleFrames.h"
+#include "../../utils/include/HandleFrames.h"
 #include "../../utils/include/GenerateFrames.h"
 #include "../include/MCULogger.h"
 
@@ -267,6 +267,23 @@ namespace MCU
      * @param ecu_id The identifier of the ECU (will be added to the list).
      */
     void resetTimer(uint8_t ecu_id);
+
+    /**
+     * @brief return the socket, either vcan1 socket or vcan0 socket
+     * @param[in] sender_id The sender id.
+     * @return int 
+     */
+    int getMcuSocket(uint8_t sender_id);
+    /**
+     * @brief Notify each ECU that the MCU state is unlocked.
+     * This method sends a notification frame to multiple ECUs (Battery, Engine, Doors, HVAC)
+     * indicating that the MCU state is unlocked. It appends the necessary data to the provided
+     * response vector and uses the class's generate_frames attribute to send the frames.
+     * 
+     * @param[in] response vector containing the data to be sent in each frame.
+     */
+    void securityNotifyECU(std::vector<uint8_t> response);
+
   };
 }
 #endif /* POC_SRC_MCU_RECEIVE_FRAME_MODULE_H */
