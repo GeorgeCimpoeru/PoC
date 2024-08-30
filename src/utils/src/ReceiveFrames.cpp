@@ -193,6 +193,7 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
                 default:
                     break;
             }
+            goto label1;
         }
 
         /* Check if the frame is a request of type 'Up-Notification' from MCU */

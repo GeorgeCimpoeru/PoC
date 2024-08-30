@@ -232,7 +232,7 @@ bool ReceiveFrames::receiveFramesFromAPI()
                         /* Receiver HVAC */
                         upperbits = 0x14;
                         generate_frames.sendFrame((lowerbits << 8) | upperbits,response,DATA_FRAME);
-                        LOG_INFO(MCULogger->GET_LOGGER(), "Server is locked.");
+                        LOG_INFO(MCULogger->GET_LOGGER(), "Server is unlocked.");
                     }
                 }
             }
