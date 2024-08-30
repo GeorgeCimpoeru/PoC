@@ -1,10 +1,8 @@
 #include "../include/ReceiveFrames.h"
 #include "../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../ecu_simulation/EngineModule/include/EngineModule.h"
-bool ReceiveFrames::battery_state = false;
-bool ReceiveFrames::engine_state = false;
-bool ReceiveFrames::doors_state = false;
-bool ReceiveFrames::hvac_state = false;
+#include "../../ecu_simulation/DoorsModule/include/DoorsModule.h"
+
 ReceiveFrames::ReceiveFrames(int socket, int current_module_id, Logger& receive_logger) : socket(socket),
                                                                                             current_module_id(current_module_id),
                                                                                             running(true), 
@@ -291,6 +289,21 @@ void ReceiveFrames::startTimer(uint8_t frame_dest_id, uint8_t sid) {
         });
         break;
     case 0x13:
+        doors->timing_parameters[sid] = start_time.time_since_epoch().count();
+
+        // Initialize stop flag for this SID
+        doors->stop_flags[sid] = true;
+
+        doors->active_timers[sid] = std::async(std::launch::async, [sid, this, start_time, timer_value, frame_dest_id]() {
+            while (DoorsModule::stop_flags[sid]) {
+                auto now = std::chrono::steady_clock::now();
+                std::chrono::duration<double> elapsed = now - start_time;
+                if (elapsed.count() > timer_value / 20.0) {
+                    stopTimer(frame_dest_id, sid);
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
+        });
         break;
     case 0x14:
         break;
@@ -359,6 +372,30 @@ void ReceiveFrames::stopTimer(uint8_t frame_dest_id, uint8_t sid) {
         }
         break;
     case 0x13:
+        start_time = std::chrono::steady_clock::time_point(
+            std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+                std::chrono::nanoseconds((long long)doors->timing_parameters[sid])
+            )
+        );
+        processing_time = end_time - start_time;
+
+        doors->timing_parameters[sid] = processing_time.count();
+
+        if (DoorsModule::active_timers.find(sid) != DoorsModule::active_timers.end()) {
+            /* Set stop flag to false for this SID */
+            if (doors->stop_flags[sid]) {
+                int id = ((sid & 0xFF) << 8) | ((sid >> 8) & 0xFF);
+                LOG_INFO(doorsModuleLogger->GET_LOGGER(), 
+                         "Service with SID {:x} sent the response pending frame.", 0x2E);
+                
+                NegativeResponse negative_response(socket, *doorsModuleLogger);
+                negative_response.sendNRC(id, 0x2E, 0x78);
+                doors->stop_flags[sid] = false;
+            }
+            doors->stop_flags.erase(sid);
+            doors->active_timers[sid].wait();
+        }
+        break;
     case 0x14:
     default:
         LOG_INFO(receive_logger.GET_LOGGER(), "stopTimer function called with an ecu id unknown {:x}.", frame_dest_id);
