@@ -1,6 +1,10 @@
 #include "../include/ReceiveFrames.h"
 #include "../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../ecu_simulation/EngineModule/include/EngineModule.h"
+bool ReceiveFrames::battery_state = false;
+bool ReceiveFrames::engine_state = false;
+bool ReceiveFrames::doors_state = false;
+bool ReceiveFrames::hvac_state = false;
 #include "../../ecu_simulation/DoorsModule/include/DoorsModule.h"
 
 ReceiveFrames::ReceiveFrames(int socket, int current_module_id, Logger& receive_logger) : socket(socket),
