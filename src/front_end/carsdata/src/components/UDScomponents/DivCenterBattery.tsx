@@ -1,8 +1,8 @@
 'use client'
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import ModalUDS from './ModalUDS';
 import './style.css';
-import ModalUDS from '../sharedComponents/ModalUDS';
 
 interface batteryData {
     battery_level: any,
@@ -22,10 +22,6 @@ const DivCenterBattery = (props: any) => {
     const [data, setData] = useState<batteryData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [batteryLevel, setBatteryLevel] = useState<string>('');
-    const [batteryStateOfCharge, setBatteryStateOfCharge] = useState<string>('');
-    const [percentage, setPercentage] = useState<string>('');
-    const [voltage, setVoltage] = useState<string>('');
 
     const readInfoBattery = async () => {
         await fetch('http://127.0.0.1:5000/api/read_info_battery')
@@ -37,32 +33,32 @@ const DivCenterBattery = (props: any) => {
             })
             .then(data => {
                 setData(data);
-                setBatteryLevel(data.battery_level);
-                switch (data.battery_state_of_charge) {
-                    case 'Unknown state':
-                        setBatteryStateOfCharge('0');
-                        break;
-                    case 'Charging':
-                        setBatteryStateOfCharge('1');
-                        break;
-                    case 'Discharging':
-                        setBatteryStateOfCharge('2');
-                        break;
-                    case 'Empty':
-                        setBatteryStateOfCharge('3');
-                        break;
-                    case 'Fully charged':
-                        setBatteryStateOfCharge('4');
-                        break;
-                    case 'Pending charge':
-                        setBatteryStateOfCharge('5');
-                        break;
-                    default: // 'Pending discharge':
-                        setBatteryStateOfCharge('6');
-                        break;
-                }
-                setPercentage(data.percentage.toString().split(".")[0]);
-                setVoltage(data.voltage.toString());
+                // setBatteryLevel(data.battery_level);
+                // switch (data.battery_state_of_charge) {
+                //     case 'Unknown state':
+                //         setBatteryStateOfCharge('0');
+                //         break;
+                //     case 'Charging':
+                //         setBatteryStateOfCharge('1');
+                //         break;
+                //     case 'Discharging':
+                //         setBatteryStateOfCharge('2');
+                //         break;
+                //     case 'Empty':
+                //         setBatteryStateOfCharge('3');
+                //         break;
+                //     case 'Fully charged':
+                //         setBatteryStateOfCharge('4');
+                //         break;
+                //     case 'Pending charge':
+                //         setBatteryStateOfCharge('5');
+                //         break;
+                //     default: // 'Pending discharge':
+                //         setBatteryStateOfCharge('6');
+                //         break;
+                // }
+                // setPercentage(data.percentage.toString().split(".")[0]);
+                // setVoltage(data.voltage.toString());
                 setLoading(false);
             })
             .catch(error => {
@@ -76,36 +72,49 @@ const DivCenterBattery = (props: any) => {
     }, []);
 
     const handleInputChange = (input: any, id: string) => {
-        if (id === "my_modal_1") {
-            setBatteryLevel(input);
-        } else if (id === "my_modal_8") {
-            setPercentage(input);
-        } else if (id === "my_modal_10") {
-            setVoltage(input);
-        }
+        // if (id === "my_modal_1") {
+        //     setBatteryLevel(input);
+        // } else if (id === "my_modal_8") {
+        //     setPercentage(input);
+        // } else if (id === "my_modal_10") {
+        //     setVoltage(input);
+        // }
     }
 
     const handleInputClick = (id: string) => {
-        if (id === "my_modal_1") {
-            setBatteryLevel("0");
-        } else if (id === "my_modal_8") {
-            setPercentage("0");
-        } else if (id === "my_modal_10") {
-            setVoltage("0");
-        }
+        // if (id === "my_modal_1") {
+        //     setBatteryLevel("0");
+        // } else if (id === "my_modal_8") {
+        //     setPercentage("0");
+        // } else if (id === "my_modal_10") {
+        //     setVoltage("0");
+        // }
     }
 
-    const writeInfoBattery = async (newStateOfCharge: string) => {
-        const data2 = {
-            battery_level: batteryLevel || null,
-            battery_state_of_charge: newStateOfCharge || batteryStateOfCharge || null,
-            percentage: percentage || null,
-            voltage: voltage || null,
-        };
+    const writeInfoBattery = async (variable: string, newValue: string) => {
+        let data2;
+        if (variable === "battery_level") {
+            data2 = {
+                battery_level: newValue
+            };
+        } else if (variable === "battery_state_of_charge") {
+            data2 = {
+                battery_state_of_charge: newValue
+            };
+        } else if (variable === "percentage") {
+            data2 = {
+                percentage: newValue
+            };
+        } else if (variable === "voltage") {
+            data2 = {
+                voltage: newValue
+            };
+        }
         console.log(data2);
 
         await fetch('http://127.0.0.1:5000/api/write_info_battery', {
             method: 'POST',
+            mode: 'no-cors',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -132,7 +141,7 @@ const DivCenterBattery = (props: any) => {
                             className="inline-flex items-center justify-center p-2 bg-blue-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-blue-700">
                             {data?.battery_level}%
                         </label>
-                        <ModalUDS id="my_modal_1" cardTitle={'Battery level'} handleInputChange={handleInputChange} handleInputClick={handleInputClick} writeInfoBattery={writeInfoBattery} />
+                        <ModalUDS id="my_modal_1" cardTitle={'Battery level'} handleInputChange={handleInputChange} handleInputClick={handleInputClick} writeInfoBattery={writeInfoBattery} param="battery_level"/>
                         <p>Battery level</p>
                     </div>
 
@@ -143,12 +152,12 @@ const DivCenterBattery = (props: any) => {
                                 {data?.battery_state_of_charge}
                             </div>
                             <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                                <li><a onClick={() => writeInfoBattery("1")}>Charging</a></li>
-                                <li><a onClick={() => writeInfoBattery("2")}>Discharging</a></li>
-                                <li><a onClick={() => writeInfoBattery("3")}>Empty</a></li>
-                                <li><a onClick={() => writeInfoBattery("4")}>Fully charged</a></li>
-                                <li><a onClick={() => writeInfoBattery("5")}>Pending charge</a></li>
-                                <li><a onClick={() => writeInfoBattery("6")}>Pending discharge</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "1")}>Charging</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "2")}>Discharging</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "3")}>Empty</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "4")}>Fully charged</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "5")}>Pending charge</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "6")}>Pending discharge</a></li>
                             </ul>
                         </div>
                         <p className="text-white">State of charge</p>
@@ -218,7 +227,7 @@ const DivCenterBattery = (props: any) => {
                         className="inline-flex items-center justify-center p-2 bg-green-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-green-700">
                         {data?.percentage}%
                     </label>
-                    <ModalUDS id="my_modal_8" cardTitle={'Battery percentage'} handleInputChange={handleInputChange} handleInputClick={handleInputClick} writeInfoBattery={writeInfoBattery} />
+                    <ModalUDS id="my_modal_8" cardTitle={'Battery percentage'} handleInputChange={handleInputChange} handleInputClick={handleInputClick} writeInfoBattery={writeInfoBattery} param="percentage" />
                     <p>Battery percentage</p>
                 </div>
 
@@ -237,10 +246,9 @@ const DivCenterBattery = (props: any) => {
                         className="inline-flex items-center justify-center p-2 bg-purple-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-purple-700">
                         {data?.voltage}V
                     </label>
-                    <ModalUDS id="my_modal_10" cardTitle={'Voltage'} handleInputChange={handleInputChange} handleInputClick={handleInputClick} writeInfoBattery={writeInfoBattery} />
+                    <ModalUDS id="my_modal_10" cardTitle={'Voltage'} handleInputChange={handleInputChange} handleInputClick={handleInputClick} writeInfoBattery={writeInfoBattery} param="voltage" />
                     <p>Voltage</p>
                 </div>
-
 
             </div>
         </div>
