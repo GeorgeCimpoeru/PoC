@@ -1,5 +1,6 @@
 #include "../include/ReceiveFrames.h"
 #include "../include/MCUModule.h"
+#include "../../uds/authentication/include/SecurityAccess.h"
 
 namespace MCU
 {
@@ -205,6 +206,34 @@ bool ReceiveFrames::receiveFramesFromAPI()
                     LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Received frame for MCU to execute service with SID: 0x{:x}", frame.data[1]));
                     LOG_INFO(MCULogger->GET_LOGGER(), "Calling HandleFrames module to execute the service and parse the frame.");
                     handler.handleFrame(getMcuSocket(sender_id), frame);
+                    std::vector<uint8_t> response;
+                    if (!SecurityAccess::getMcuState(*MCULogger))
+                    {
+                        LOG_INFO(MCULogger->GET_LOGGER(), "Server is locked.");
+                    }
+                    else
+                    {
+                        uint8_t lowerbits;
+                        uint8_t upperbits;
+                        /* Create a frame to notify each ECU that MCU state is unlocked */
+                        response.push_back(0x01);
+                        response.push_back(0xCE);
+                        /* Set sender to MCU ID */
+                        lowerbits = 0x10;
+                        /* Receiver battery */
+                        upperbits = 0x11;
+                        generate_frames.sendFrame((lowerbits << 8) | upperbits,response,DATA_FRAME);
+                        /* Receiver engine */
+                        upperbits = 0x12;
+                        generate_frames.sendFrame((lowerbits << 8) | upperbits,response,DATA_FRAME);
+                        /* Receiver doors */
+                        upperbits = 0x13;
+                        generate_frames.sendFrame((lowerbits << 8) | upperbits,response,DATA_FRAME);
+                        /* Receiver HVAC */
+                        upperbits = 0x14;
+                        generate_frames.sendFrame((lowerbits << 8) | upperbits,response,DATA_FRAME);
+                        LOG_INFO(MCULogger->GET_LOGGER(), "Server is locked.");
+                    }
                 }
             }
             else if (receiver_id == 0xFA) 

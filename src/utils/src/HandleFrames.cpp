@@ -150,22 +150,13 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
         case 0x27:
         {
 
-                /* This service can be called in PROGRAMMING_SESSION */
-                if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
-                {
-                    LOG_INFO(_logger.GET_LOGGER(), "SecurityAccess called.");
-                    SecurityAccess security_access(can_socket,_logger);
-                    security_access.securityAccess(frame_id, frame_data);
-                    if (!SecurityAccess::getMcuState(_logger))
-                    {
-                        LOG_INFO(_logger.GET_LOGGER(), "Server is locked.");
-                    }
-                
-                    else
-                    {
-                        LOG_INFO(_logger.GET_LOGGER(), "Server is locked.");
-                    }
-                }
+            /* This service can be called in PROGRAMMING_SESSION */
+            if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
+            {
+                LOG_INFO(_logger.GET_LOGGER(), "SecurityAccess called.");
+                SecurityAccess security_access(can_socket,_logger);
+                security_access.securityAccess(frame_id, frame_data);
+            }
             else
             {
                 int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);

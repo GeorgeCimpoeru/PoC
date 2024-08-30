@@ -172,6 +172,7 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
             LOG_WARN(receive_logger.GET_LOGGER(), "Invalid CAN ID: upper 8 bits are zero\n");
             return;
         }
+        /* Notify from MCU to tell ECU's that MCU state is unlocked */
         if (frame.data[0] == 0x01 && frame.data[1] == 0xCE)
         {
             LOG_INFO(receive_logger.GET_LOGGER(), "Security Access unlocked.");

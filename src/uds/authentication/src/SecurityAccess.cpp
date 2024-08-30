@@ -218,23 +218,6 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                         LOG_INFO(security_logger.GET_LOGGER(), "Security Access granted successfully.");
                         mcu_state = true;
                         response.clear();
-                        /* Create a frame to notify each ECU that MCU state is unlocked */
-                        response.push_back(0x01);
-                        response.push_back(0xCE);
-                        /* Set sender to MCU ID */
-                        lowerbits = 0x10;
-                        /* Receiver battery */
-                        upperbits = 0x11;
-                        generate_frames_ECU.sendFrame((lowerbits << 8) | upperbits,response,DATA_FRAME);
-                        /* Receiver engine */
-                        upperbits = 0x12;
-                        generate_frames_ECU.sendFrame((lowerbits << 8) | upperbits,response,DATA_FRAME);
-                        /* Receiver doors */
-                        upperbits = 0x13;
-                        generate_frames_ECU.sendFrame((lowerbits << 8) | upperbits,response,DATA_FRAME);
-                        /* Receiver HVAC */
-                        upperbits = 0x14;
-                        generate_frames_ECU.sendFrame((lowerbits << 8) | upperbits,response,DATA_FRAME);
                         end_time_security = std::chrono::steady_clock::now() +
                                     std::chrono::seconds(SECURITY_TIMEOUT_IN_SECONDS);
                         auto security_now = std::chrono::steady_clock::now();
