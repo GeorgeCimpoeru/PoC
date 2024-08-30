@@ -13,7 +13,7 @@ CFLAGS = -std=c++17 -g -Wall -Werror -pthread -I./include -I../utils/include ${P
 LDFLAGS = -lspdlog -lfmt ${PYTHON_LDFLAGS}
 
 # Test flags
-CFLAGSTST = -std=c++17 -I/include -fprofile-arcs -ftest-coverage
+CFLAGSTST = -std=c++17 -I/include -I/usr/include/python3.8 -fprofile-arcs -ftest-coverage
 CFLAGSTST2 = -lgtest -lgtest_main -lpthread
 CFLAGSTST += -DUNIT_TESTING_MODE
 
