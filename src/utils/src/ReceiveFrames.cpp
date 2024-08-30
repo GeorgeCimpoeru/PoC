@@ -295,7 +295,7 @@ void ReceiveFrames::startTimer(uint8_t frame_dest_id, uint8_t sid) {
         doors->stop_flags[sid] = true;
 
         doors->active_timers[sid] = std::async(std::launch::async, [sid, this, start_time, timer_value, frame_dest_id]() {
-            while (DoorsModule::stop_flags[sid]) {
+            while (doors->stop_flags[sid]) {
                 auto now = std::chrono::steady_clock::now();
                 std::chrono::duration<double> elapsed = now - start_time;
                 if (elapsed.count() > timer_value / 20.0) {
@@ -381,14 +381,14 @@ void ReceiveFrames::stopTimer(uint8_t frame_dest_id, uint8_t sid) {
 
         doors->timing_parameters[sid] = processing_time.count();
 
-        if (DoorsModule::active_timers.find(sid) != DoorsModule::active_timers.end()) {
+        if (doors->active_timers.find(sid) != doors->active_timers.end()) {
             /* Set stop flag to false for this SID */
             if (doors->stop_flags[sid]) {
                 int id = ((sid & 0xFF) << 8) | ((sid >> 8) & 0xFF);
-                LOG_INFO(doorsModuleLogger->GET_LOGGER(), 
+                LOG_INFO(receive_logger.GET_LOGGER(), 
                          "Service with SID {:x} sent the response pending frame.", 0x2E);
                 
-                NegativeResponse negative_response(socket, *doorsModuleLogger);
+                NegativeResponse negative_response(socket, receive_logger);
                 negative_response.sendNRC(id, 0x2E, 0x78);
                 doors->stop_flags[sid] = false;
             }

@@ -1,6 +1,7 @@
 #include "../include/RoutineControl.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
+#include "../../../ecu_simulation/DoorsModule/include/DoorsModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
 RoutineControl::RoutineControl(int socket, Logger& rc_logger) 
@@ -33,6 +34,10 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
         {
             engine->stop_flags[0x31] = false;
         }
+        else if (lowerbits == 0x13)
+        {
+            doors->stop_flags[0x31] = false;
+        }
         return;
     }
     else if (request[2] < 0x01 || request [2] > 0x03)
@@ -49,6 +54,10 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
         {
             engine->stop_flags[0x31] = false;
         }
+        else if (lowerbits == 0x13)
+        {
+            doors->stop_flags[0x31] = false;
+        }
         return;
     }
     else if (!SecurityAccess::getMcuState(rc_logger))
@@ -63,6 +72,10 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
         } else if (lowerbits == 0x12)
         {
             engine->stop_flags[0x31] = false;
+        }
+        else if (lowerbits == 0x13)
+        {
+            doors->stop_flags[0x31] = false;
         }
     }
     /* when our identifiers will be defined, this range should be smaller */
@@ -79,6 +92,10 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
         } else if (lowerbits == 0x12)
         {
             engine->stop_flags[0x31] = false;
+        }
+        else if (lowerbits == 0x13)
+        {
+            doors->stop_flags[0x31] = false;
         }
         return;
     }
@@ -109,6 +126,12 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                         LOG_INFO(rc_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame: eraseMemory routine.", 0x31);
                         engine->stop_flags[0x31] = false;
                         break;
+                    case 0x13:
+                        /* Send response frame */
+                        generate_frames.routineControl(can_id, request[2], routine_identifier, true);
+                        LOG_INFO(rc_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame: eraseMemory routine.", 0x31);
+                        doors->stop_flags[0x31] = false;
+                        break;
                     default:
                         LOG_ERROR(rc_logger.GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);
                 }
@@ -135,6 +158,12 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                         generate_frames.routineControl(can_id, request[2], routine_identifier, true);
                         LOG_INFO(rc_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame: installUpdates routine.", 0x31);
                         engine->stop_flags[0x31] = false;
+                        break;
+                    case 0x13:
+                        /* Send response frame */
+                        generate_frames.routineControl(can_id, request[2], routine_identifier, true);
+                        LOG_INFO(rc_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame: installUpdates routine.", 0x31);
+                        doors->stop_flags[0x31] = false;
                         break;
                     default:
                         LOG_ERROR(rc_logger.GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);

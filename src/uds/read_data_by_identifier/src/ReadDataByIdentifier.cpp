@@ -1,6 +1,7 @@
 #include "../include/ReadDataByIdentifier.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
+#include "../../../ecu_simulation/DoorsModule/include/DoorsModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
 /* Helper function to read data from a file */
@@ -85,6 +86,10 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
             {
                 engine->stop_flags[0x22] = false;
             }
+            else if (lowerbits == 0x13)
+            {
+                doors->stop_flags[0x22] = false;
+            }
         }
 
         /* Return early as the request is invalid */
@@ -99,6 +104,20 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
         if (use_send_frame)
         {
             nrc.sendNRC(can_id, RDBI_SERVICE_ID, NegativeResponse::SAD);
+            if (lowerbits == 0x10)
+            {
+                MCU::mcu->stop_flags[0x22] = false;
+            } else if (lowerbits == 0x11)
+            {
+                battery->stop_flags[0x22] = false;
+            } else if (lowerbits == 0x12)
+            {
+                engine->stop_flags[0x22] = false;
+            }
+            else if (lowerbits == 0x13)
+            {
+                doors->stop_flags[0x22] = false;
+            }
         }
         MCU::mcu->stop_flags[0x22] = false;
         return response;
@@ -127,6 +146,12 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
     } else if (lowerbits == 0x11)
     {
         file_name = "battery_data.txt";
+    } else if (lowerbits == 0x12)
+    {
+        file_name = "engine_data.txt";
+    } else if (lowerbits == 0x13)
+    {
+        file_name = "doors_data.txt";
     } else
     {
         response.push_back(0x03); /* PCI */
@@ -145,6 +170,10 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
             } else if (lowerbits == 0x12)
             {
                 engine->stop_flags[0x22] = false;
+            }
+            else if (lowerbits == 0x13)
+            {
+                doors->stop_flags[0x22] = false;
             }
         }
         return response;
@@ -173,6 +202,10 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
             {
                 engine->stop_flags[0x22] = false;
             }
+            else if (lowerbits == 0x13)
+            {
+                doors->stop_flags[0x22] = false;
+            }
         }
         return response;
     }
@@ -196,6 +229,10 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
             } else if (lowerbits == 0x12)
             {
                 engine->stop_flags[0x22] = false;
+            }
+            else if (lowerbits == 0x13)
+            {
+                doors->stop_flags[0x22] = false;
             }
         }
         return response;
@@ -229,6 +266,10 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
             {
                 engine->stop_flags[0x22] = false;
             }
+            else if (lowerbits == 0x13)
+            {
+                doors->stop_flags[0x22] = false;
+            }
         } 
         else
         {
@@ -244,6 +285,10 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
             } else if (lowerbits == 0x12)
             {
                 engine->stop_flags[0x22] = false;
+            }
+            else if (lowerbits == 0x13)
+            {
+                doors->stop_flags[0x22] = false;
             }
         }
     }

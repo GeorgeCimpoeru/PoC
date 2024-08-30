@@ -36,7 +36,7 @@ DoorsModule::DoorsModule() : moduleId(0x13),
     }
     outfile.close();
         
-    doors_socket = canInterface->createSocket(0x10);
+    doors_socket = canInterface->createSocket(0x00);
     /* Initialize the Frame Receiver */
     frameReceiver = new ReceiveFrames(doors_socket, moduleId, *doorsModuleLogger);
 
@@ -74,7 +74,7 @@ DoorsModule::DoorsModule(int _interfaceNumber, int _moduleId) : moduleId(_module
     }
     outfile.close();
 
-    doors_socket = canInterface->createSocket(0x13);
+    doors_socket = canInterface->createSocket(0x00);
     /* Initialize the Frame Receiver */
     frameReceiver = new ReceiveFrames(doors_socket, moduleId, *doorsModuleLogger);
 
@@ -198,36 +198,6 @@ void DoorsModule::stopFrames()
 {
     frameReceiver->stop();
     LOG_INFO(doorsModuleLogger->GET_LOGGER(), "Doors module stopped the frame receiver");
-}
-
-/* Getter function to check if the driver's door is open */
-bool DoorsModule::getDoorDriverOpen() const
-{
-    return doorDriverOpen;
-}
-
-/* Getter function to check if the passenger's door is open */
-bool DoorsModule::getDoorPassengerOpen() const
-{
-    return doorPassengerOpen;
-}
-
-/* Getter function to check if the driver's door is locked */
-bool DoorsModule::getDoorDriverLocked() const
-{
-    return doorDriverLocked;
-}
-
-/* Getter function to check if the passenger's door is locked */
-bool DoorsModule::getDoorPassengerLocked() const
-{
-    return doorPassengerLocked;
-}
-
-/* Getter function to check if there is an ajar warning */
-bool DoorsModule::getAjarWarning() const
-{
-    return ajarWarning;
 }
 
 int DoorsModule::getDoorsSocket() const

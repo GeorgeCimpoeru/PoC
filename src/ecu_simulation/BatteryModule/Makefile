@@ -24,6 +24,7 @@ UTILS_TEST = ../../utils/test
 UDS_DIR = ../../uds
 MCU_DIR = ../../mcu/src
 ENGINE_DIR = ../EngineModule/src
+DOORS_DIR = ../DoorsModule/src
 OTA_DIR = ../../ota
 OBJ_DIR = obj
 
@@ -39,6 +40,9 @@ MCU_OBJS = $(OBJ_DIR)/MCUModule.o \
 
 # Engine object files
 ENGINE_OBJS = $(OBJ_DIR)/EngineModule.o \
+
+# Doors object files
+DOORS_OBJS = $(OBJ_DIR)/DoorsModule.o \
 		   
 # Utils object files
 UTILS_OBJS = $(OBJ_DIR)/MemoryManager.o \
@@ -70,6 +74,7 @@ OTA_OBJS = $(OBJ_DIR)/RequestUpdateStatus.o \
 OBJS = $(MCU_OBJS) \
        $(BATTERY_OBJS) \
 	   $(ENGINE_OBJS) \
+	   $(DOORS_OBJS) \
        $(UTILS_OBJS) \
        $(UDS_OBJS) \
        $(OTA_OBJS)
@@ -100,6 +105,9 @@ $(OBJ_DIR)/MCUModule.o: $(MCU_DIR)/MCUModule.cpp
 
 $(OBJ_DIR)/BatteryModule.o: $(SRC_DIR)/BatteryModule.cpp
 	$(CXX) $(CFLAGS) -c $(SRC_DIR)/BatteryModule.cpp -o $(OBJ_DIR)/BatteryModule.o
+
+$(OBJ_DIR)/DoorsModule.o: $(SRC_DIR)/DoorsModule.cpp
+	$(CXX) $(CFLAGS) -c $(SRC_DIR)/DoorsModule.cpp -o $(OBJ_DIR)/DoorsModule.o
 	
 $(OBJ_DIR)/EngineModule.o: $(ENGINE_DIR)/EngineModule.cpp
 	$(CXX) $(CFLAGS) -c $(ENGINE_DIR)/EngineModule.cpp -o $(OBJ_DIR)/EngineModule.o

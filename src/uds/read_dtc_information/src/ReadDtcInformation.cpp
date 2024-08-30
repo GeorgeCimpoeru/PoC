@@ -1,6 +1,7 @@
 #include "../include/ReadDtcInformation.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
+#include "../../../ecu_simulation/DoorsModule/include/DoorsModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
 
@@ -37,6 +38,10 @@ void ReadDTC::read_dtc(int id, std::vector<uint8_t> data)
         {
             engine->stop_flags[0x19] = false;
         }
+        else if (lowerbits == 0x13)
+        {
+            doors->stop_flags[0x19] = false;
+        }
         return;
     }
     int sub_function = data[2];
@@ -64,6 +69,10 @@ void ReadDTC::read_dtc(int id, std::vector<uint8_t> data)
             } else if (lowerbits == 0x12)
             {
                 engine->stop_flags[0x19] = false;
+            }
+            else if (lowerbits == 0x13)
+            {
+                doors->stop_flags[0x19] = false;
             }
     }
 }
@@ -94,6 +103,10 @@ void ReadDTC::number_of_dtc(int id, int dtc_status_mask)
         } else if (lowerbits == 0x12)
         {
             engine->stop_flags[0x19] = false;
+        }
+        else if (lowerbits == 0x13)
+        {
+            doors->stop_flags[0x19] = false;
         }
         return;
     }
@@ -138,6 +151,12 @@ void ReadDTC::number_of_dtc(int id, int dtc_status_mask)
             LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x19);
             engine->stop_flags[0x19] = false;
             break;
+        case 0x13:
+            /* Send response frame */
+            this->generate->readDtcInformationResponse01(id,status_availability_mask,dtc_format_identifier,number_of_dtc);
+            LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x19);
+            doors->stop_flags[0x19] = false;
+            break;
         default:
             LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
     }
@@ -169,6 +188,10 @@ void ReadDTC::report_dtcs(int id, int dtc_status_mask)
         } else if (lowerbits == 0x12)
         {
             engine->stop_flags[0x19] = false;
+        }
+        else if (lowerbits == 0x13)
+        {
+            doors->stop_flags[0x19] = false;
         } 
         return;
     }
@@ -215,6 +238,12 @@ void ReadDTC::report_dtcs(int id, int dtc_status_mask)
                 this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,true);
                 LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the first response frame.", 0x19);
                 engine->stop_flags[0x19] = false;
+                break;
+            case 0x13:
+                /* Send response frame */
+                this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,true);
+                LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the first response frame.", 0x19);
+                doors->stop_flags[0x19] = false;
                 break;
             default:
                 LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);
@@ -273,6 +302,12 @@ void ReadDTC::report_dtcs(int id, int dtc_status_mask)
                 this->generate->readDtcInformationResponse02(id,status_availability_mask,dtc_and_status_list);
                 LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the first response frame.", 0x19);
                 engine->stop_flags[0x19] = false;
+                break;
+            case 0x13:
+                /* Send response frame */
+                this->generate->readDtcInformationResponse02(id,status_availability_mask,dtc_and_status_list);
+                LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the first response frame.", 0x19);
+                doors->stop_flags[0x19] = false;
                 break;
             default:
                 LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);

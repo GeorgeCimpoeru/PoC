@@ -1,6 +1,7 @@
 #include "../include/WriteDataByIdentifier.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
+#include "../../../ecu_simulation/DoorsModule/include/DoorsModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
 /* Helper function to load data from a file into a map */
@@ -93,6 +94,10 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         {
             engine->stop_flags[0x2E] = false;
         }
+        else if (receiver_id == 0x13)
+        {
+            doors->stop_flags[0x2E] = false;
+        }
     }
     else if (receiver_id == 0x10 && !SecurityAccess::getMcuState(wdbi_logger))
     {
@@ -107,6 +112,11 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
     else if (receiver_id == 0x12)
     {
             engine->stop_flags[0x2E] = false;
+        }
+        else if (receiver_id == 0x13)
+        {
+            doors->stop_flags[0x2E] = false;
+        }
     }
     else
     {
@@ -140,6 +150,10 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
             {
                 engine->stop_flags[0x2E] = false;
             }
+            else if (receiver_id == 0x13)
+            {
+                doors->stop_flags[0x2E] = false;
+            }
             return;
         }
 
@@ -158,6 +172,10 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         {
             file_name = "engine_data.txt";
         }
+        else if (receiver_id == 0x13)
+        {
+            file_name = "doors_data.txt";
+        }
         else
         {
             if (receiver_id == 0x10)
@@ -169,6 +187,10 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
             } else if (receiver_id == 0x12)
             {
                 engine->stop_flags[0x2E] = false;
+            }
+            else if (receiver_id == 0x13)
+            {
+                doors->stop_flags[0x2E] = false;
             }
             LOG_ERROR(wdbi_logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
             nrc.sendNRC(id, WDBI_SID, NegativeResponse::ROOR);
@@ -199,6 +221,10 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
             {
                 engine->stop_flags[0x2E] = false;
             }
+            else if (receiver_id == 0x13)
+            {
+                doors->stop_flags[0x2E] = false;
+            }
             LOG_ERROR(wdbi_logger.GET_LOGGER(), "Error processing file: {}", e.what());
             nrc.sendNRC(id, WDBI_SID, NegativeResponse::ROOR);
             return;
@@ -216,6 +242,10 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         } else if (receiver_id == 0x12)
         {
             engine->stop_flags[0x2E] = false;
+        }
+        else if (receiver_id == 0x13)
+        {
+            doors->stop_flags[0x2E] = false;
         }
     }
 };

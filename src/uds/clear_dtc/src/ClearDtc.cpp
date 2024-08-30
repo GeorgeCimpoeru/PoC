@@ -1,6 +1,7 @@
 #include "../include/ClearDtc.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
+#include "../../../ecu_simulation/DoorsModule/include/DoorsModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
 ClearDtc::ClearDtc(std::string path_to_dtc, Logger& logger, int socket)
@@ -31,6 +32,9 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
         } else if (lowerbits == 0x12) {
             engine->stop_flags[0x14] = false;
         }
+        else if (lowerbits == 0x13) {
+            doors->stop_flags[0x14] = false;
+        }
         return;
     }
 
@@ -47,6 +51,9 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
             battery->stop_flags[0x14] = false;
         } else if (lowerbits == 0x12) {
             engine->stop_flags[0x14] = false;
+        }
+        else if (lowerbits == 0x13) {
+            doors->stop_flags[0x14] = false;
         }
     }
 
@@ -80,6 +87,12 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
                 LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x14);
                 engine->stop_flags[0x14] = false;
                 break;
+            case 0x13:
+                /* Send response frame */
+                this->generate->clearDiagnosticInformation(new_id,{}, true);
+                LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x14);
+                doors->stop_flags[0x14] = false;
+                break;
             default:
                 LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);
         }
@@ -108,6 +121,10 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
         } else if (lowerbits == 0x12)
         {
             engine->stop_flags[0x14] = false;
+        }
+        else if (lowerbits == 0x13)
+        {
+            doors->stop_flags[0x14] = false;
         }
         return;
     }
@@ -145,6 +162,12 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
             LOG_INFO(logger.GET_LOGGER(), "DTCs cleared succesffuly");
             this->generate->clearDiagnosticInformation(new_id,{}, true);
             engine->stop_flags[0x14] = false;
+            break;
+        case 0x13:
+            /* Send response frame */
+            LOG_INFO(logger.GET_LOGGER(), "DTCs cleared succesffuly");
+            this->generate->clearDiagnosticInformation(new_id,{}, true);
+            doors->stop_flags[0x14] = false;
             break;
         default:
             LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);

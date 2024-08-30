@@ -98,42 +98,6 @@ public:
      */
     void stopFrames();
 
-    /* Member Accessors */
-    /**
-     * @brief Get function for driver door status.
-     * 
-     * @return Returns driver door status.
-     */
-    bool getDoorDriverOpen() const;
-
-    /**
-     * @brief Get function for passenger door status.
-     * 
-     * @return Returns passenger door status.
-     */
-    bool getDoorPassengerOpen() const;
-
-    /**
-     * @brief Get function for door driver lock status.
-     * 
-     * @return Returns door driver lock status.
-     */
-    bool getDoorDriverLocked() const;
-
-    /**
-     * @brief Get function for doors passenger lock status.
-     * 
-     * @return Returns door passenger lock status.
-     */
-    bool getDoorPassengerLocked() const;
-
-    /**
-     * @brief Get function for ajar warning status.
-     * 
-     * @return Returns ajar warning status.
-     */
-    bool getAjarWarning() const;
-
     /**
      * @brief Get the door Socket.
      * 
