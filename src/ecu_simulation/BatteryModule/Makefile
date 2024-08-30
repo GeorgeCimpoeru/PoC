@@ -106,8 +106,8 @@ $(OBJ_DIR)/MCUModule.o: $(MCU_DIR)/MCUModule.cpp
 $(OBJ_DIR)/BatteryModule.o: $(SRC_DIR)/BatteryModule.cpp
 	$(CXX) $(CFLAGS) -c $(SRC_DIR)/BatteryModule.cpp -o $(OBJ_DIR)/BatteryModule.o
 
-$(OBJ_DIR)/DoorsModule.o: $(SRC_DIR)/DoorsModule.cpp
-	$(CXX) $(CFLAGS) -c $(SRC_DIR)/DoorsModule.cpp -o $(OBJ_DIR)/DoorsModule.o
+$(OBJ_DIR)/DoorsModule.o: $(DOORS_DIR)/DoorsModule.cpp
+	$(CXX) $(CFLAGS) -c $(DOORS_DIR)/DoorsModule.cpp -o $(OBJ_DIR)/DoorsModule.o
 	
 $(OBJ_DIR)/EngineModule.o: $(ENGINE_DIR)/EngineModule.cpp
 	$(CXX) $(CFLAGS) -c $(ENGINE_DIR)/EngineModule.cpp -o $(OBJ_DIR)/EngineModule.o
