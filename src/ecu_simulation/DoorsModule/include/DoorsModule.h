@@ -35,14 +35,7 @@ class DoorsModule
 {
 private:
     int moduleId;    
-    int doors_socket = -1;    
-
-    /* Doors parameters */
-    bool doorDriverOpen;
-    bool doorPassengerOpen;
-    bool doorDriverLocked;
-    bool doorPassengerLocked;
-    bool ajarWarning;
+    int doors_socket = -1;
 
     CreateInterface* canInterface;
     ReceiveFrames* frameReceiver;
@@ -54,9 +47,9 @@ public:
     static std::map<uint8_t, std::future<void>> active_timers;
     /* Stop flags for each SID. */
     static std::map<uint8_t, std::atomic<bool>> stop_flags;
-    /* Variable to store ecu data */
+    /* Variable to store ecu data: 0:closed; 1:open; 0:unlocked; 1:locked; 0:no warning; 1: warning */
     std::unordered_map<uint16_t, std::vector<uint8_t>> default_DID_doors = {
-        {0x03A0, {0}},  /* Driver Door Status */
+        {0x03A0, {0}},  /* Driver Door Status  */
         {0x03B0, {0}},  /* Passenger Door Status*/
         {0x03C0, {0}},  /* Door Driver Locked Status*/
         {0x03D0, {0}},  /* Door Passenger Locked Status*/

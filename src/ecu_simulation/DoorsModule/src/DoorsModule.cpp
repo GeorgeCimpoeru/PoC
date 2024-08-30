@@ -9,14 +9,9 @@ std::map<uint8_t, std::atomic<bool>> DoorsModule::stop_flags;
 
 /** Constructor - initializes the DoorsModule with default values,
  * sets up the CAN interface, and prepares the frame receiver. */
-DoorsModule::DoorsModule() : moduleId(0x13),
-                                 doorDriverOpen(0),
-                                 doorPassengerOpen(0),
-                                 doorDriverLocked(0),
-                                 doorPassengerLocked(0),
-                                 ajarWarning(0),
-                                 canInterface(CreateInterface::getInstance(0x00, *doorsModuleLogger)),
-                                 frameReceiver(nullptr)
+DoorsModule::DoorsModule() : moduleId(0x13),                                 
+                             canInterface(CreateInterface::getInstance(0x00, *doorsModuleLogger)),
+                             frameReceiver(nullptr)
 {
     /* Insert the default DID values in the file */
     std::ofstream outfile("doors_data.txt");
@@ -47,14 +42,9 @@ DoorsModule::DoorsModule() : moduleId(0x13),
 }
 
 /* Parameterized Constructor - initializes the DoorsModule with provided interface number and module ID */
-DoorsModule::DoorsModule(int _interfaceNumber, int _moduleId) : moduleId(_moduleId),
-                                                                    doorDriverOpen(0),
-                                                                    doorPassengerOpen(0),
-                                                                    doorDriverLocked(0),
-                                                                    doorPassengerLocked(0),
-                                                                    ajarWarning(0),
-                                                                    canInterface(CreateInterface::getInstance(_interfaceNumber, *doorsModuleLogger)),
-                                                                    frameReceiver(nullptr)
+DoorsModule::DoorsModule(int _interfaceNumber, int _moduleId) : moduleId(_moduleId),                                                                    
+                                                                canInterface(CreateInterface::getInstance(_interfaceNumber, *doorsModuleLogger)),
+                                                                frameReceiver(nullptr)
 {
     /* Insert the default DID values in the file */
     std::ofstream outfile("doors_data.txt");
@@ -108,74 +98,65 @@ void DoorsModule::sendNotificationToMCU()
 
 /* Function to fetch data with simulated door data */
 void DoorsModule::fetchDoorsData()
-{
-    try
-    {       
-        /* Assign predefined values for the doors states: 0:closed; 1:open; 0:unlocked; 1:locked; 0:no warning; 1: warning */        
-        doorDriverOpen = 0;
-        doorPassengerOpen = 1;
-        doorDriverLocked = 1;
-        doorPassengerLocked = 0;
-        ajarWarning = 1;
+{    
+    /* Generate random values for each DID */
+    std::unordered_map<uint16_t, std::string> updated_values;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dist(0, 1);
 
-        /* Simulated data */
-        std::map<uint16_t,std::string> updated_values = 
+    for (auto& [did, data] : default_DID_doors)
+    {
+        std::stringstream data_ss;
+        for (auto& byte : data)
         {
-            {0x03A0, std::to_string(doorDriverOpen)},
-            {0x03B0, std::to_string(doorPassengerOpen)},
-            {0x03C0, std::to_string(doorDriverLocked)},
-            {0x03D0, std::to_string(doorPassengerLocked)},
-            {0x03E0, std::to_string(ajarWarning)}
-        };
-           
-        /* Path to battery data file */
-        std::string file_path = "doors_data.txt";
+            byte = dist(gen);  // Generate a random value between 0 and 255
+            data_ss << std::hex << std::setw(2) << std::setfill('0') << std::uppercase << static_cast<int>(byte) << " ";
+        }
+        updated_values[did] = data_ss.str();
+    }
 
-        /* Read the current file contents into memory */
-        std::ifstream infile(file_path);
-        std::stringstream buffer;
-        buffer << infile.rdbuf();
-        infile.close();
+    /* Path to engine data file */
+    std::string file_path = "doors_data.txt";
 
-        std::string file_contents = buffer.str();
-        std::istringstream file_stream(file_contents);
-        std::string updated_file_contents;
-        std::string file_line;        
-        
-        /* Update the relevant DID values in the file contents */
-        while (std::getline(file_stream, file_line))
+    /* Read the current file contents into memory */
+    std::ifstream infile(file_path);
+    std::stringstream buffer;
+    buffer << infile.rdbuf();
+    infile.close();
+
+    std::string file_contents = buffer.str();
+    std::istringstream file_stream(file_contents);
+    std::string updated_file_contents;
+    std::string file_line;
+
+    /* Update the relevant DID values in the file contents */
+    while (std::getline(file_stream, file_line))
+    {
+        bool updated = false;
+        for (const auto& pair : updated_values)
         {
-            bool updated = false;
-
-            for (const auto &pair : updated_values)
+            std::stringstream did_ss;
+            did_ss << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << pair.first;
+            if (file_line.find(did_ss.str()) != std::string::npos)
             {
-                std::stringstream did_ss;
-                did_ss << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << pair.first;
-                if (file_line.find(did_ss.str()) != std::string::npos)
-                {
-                    updated_file_contents += did_ss.str() + " " + pair.second + "\n";
-                    updated = true;
-                    break;
-                }
-            }
-            if (!updated)
-            {
-                updated_file_contents += file_line + "\n";
+                updated_file_contents += did_ss.str() + " " + pair.second + "\n";
+                updated = true;
+                break;
             }
         }
-
-        /* Write the updated contents back to the file */
-        std::ofstream outfile(file_path);
-        outfile << updated_file_contents;
-        outfile.close();
-
-        LOG_INFO(doorsModuleLogger->GET_LOGGER(), "Doors Data : Door Driver Open: {}, Door Passenger Open: {}, Door Driver Locked: {}, Door Passenger Locked: {},  Ajar Warning: {}", doorDriverOpen, doorPassengerOpen, doorDriverLocked, doorPassengerLocked, ajarWarning);
+        if (!updated)
+        {
+            updated_file_contents += file_line + "\n";
+        }
     }
-    catch (const std::exception &e)
-    {
-        /* std::cerr << "Error fetching doors data: " << e.what() << std::endl; */
-        LOG_ERROR(doorsModuleLogger->GET_LOGGER(), "Error fetching doors data: {}", e.what());
-    }
+
+    /* Write the updated contents back to the file */
+    std::ofstream outfile(file_path);
+    outfile << updated_file_contents;
+    outfile.close();
+
+    LOG_INFO(doorsModuleLogger->GET_LOGGER(), "Doors data file updated with random values.");
 }
 
 /* Function to receive CAN frames */
