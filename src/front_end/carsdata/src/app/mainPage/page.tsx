@@ -1,13 +1,13 @@
 'use client';
-import React, { useState } from 'react';
-import Carousel from '../../components/mainPageComponents/Carousel';
-import NavBarMain from '../../components/mainPageComponents/NavBarMain';
-import Map from '../../components/mainPageComponents/Map';
+import React, { useState, useEffect } from 'react';
+import Carousel from '@/src/components/mainPageComponents/Carousel';
+import NavBarMain from '@/src/components/mainPageComponents/NavBarMain';
+import Map from '@/src/components/mainPageComponents/Map';
 
 const MainPage = () => {
+    const [isVinSubmitted, setIsVinSubmitted] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [vin, setVin] = useState('');
-    const [isVinSubmitted, setIsVinSubmitted] = useState(false);
 
     const handleOpenModal = () => {
         setIsModalOpen(true);
@@ -16,6 +16,11 @@ const MainPage = () => {
     const handleCloseModal = () => {
         setIsModalOpen(false);
     };
+
+    useEffect(() => {
+        const storedVinSubmitted = sessionStorage.getItem('isVinSubmitted') === 'true';
+        setIsVinSubmitted(storedVinSubmitted);
+    }, []);
 
     const handleVinSubmit = async () => {
         try {
@@ -27,8 +32,8 @@ const MainPage = () => {
                 body: JSON.stringify({
                     userId: 1,
                     id: 1,
-                    title: vin, 
-                    body: 'Some body text', 
+                    title: vin,
+                    body: 'Some body text',
                 }),
             });
 
@@ -39,17 +44,18 @@ const MainPage = () => {
             const data = await response.json();
             console.log('VIN Submitted successfully:', data);
 
-            setIsModalOpen(false);
+            sessionStorage.setItem('isVinSubmitted', 'true');
             setIsVinSubmitted(true);
+            setIsModalOpen(false);
         } catch (error) {
             console.error('There was a problem with the fetch operation:', error);
         }
     };
 
-    return (
 
+    return (
         <div className="flex flex-col h-full w-full">
-            <NavBarMain isVinSubmitted={isVinSubmitted}/>
+            <NavBarMain isVinSubmitted={isVinSubmitted} />
             <div className="relative flex flex-1">
                 <Carousel />
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -61,7 +67,6 @@ const MainPage = () => {
                     </button>
                 </div>
             </div>
-
 
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -129,7 +134,7 @@ const MainPage = () => {
             </div>
 
             <div className="pt-10 pb-10 flex justify-center items-center">
-                <Map></Map>
+                <Map />
             </div>
         </div>
     );
