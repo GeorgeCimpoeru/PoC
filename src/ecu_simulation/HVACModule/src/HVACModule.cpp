@@ -10,7 +10,7 @@ HVACModule::HVACModule() : _logger(*hvacModuleLogger)
 
 void HVACModule::initHVAC()
 {
-    /* ECU object responsible for socket and frames (communication) */
+    /* ECU object responsible for common functionalities for all ECUs (sockets, frames, parameters) */
     _ecu = new ECU(HVAC_ECU_ID, _logger);
     writeDataToFile();
 }
@@ -63,6 +63,7 @@ void HVACModule::writeDataToFile()
 
 void HVACModule::printHvacInfo()
 {
+    /* Convert Fan speed (dutycycle) to levels => L0, L1:0-20, L2:20-40, L3:40-60, L4:60-80, L5:80-100*/
     uint8_t fan_speed_level = static_cast<uint8_t>((default_DID_hvac[FAN_SPEED_DID].front() / HVAC_MAX_FAN_SPEED) * HVAC_MAX_FAN_SPEED_LEVELS);
     uint8_t hvac_modes = default_DID_hvac[HVAC_MODES_DID].front();
 
