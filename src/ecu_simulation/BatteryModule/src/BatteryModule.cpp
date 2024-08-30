@@ -17,9 +17,27 @@ BatteryModule::BatteryModule() : moduleId(0x11),
                                  canInterface(CreateInterface::getInstance(0x00, *batteryModuleLogger)),
                                  frameReceiver(nullptr)
 {
+    /* Insert the default DID values in the file */
+    std::ofstream outfile("battery_data.txt");
+    if (!outfile.is_open())
+    {
+        throw std::runtime_error("Failed to open file: battery_data.txt");
+    }
+
+    for (const auto& [data_identifier, data] : default_DID_battery)
+    {
+        outfile << std::hex << std::setw(4) << std::setfill('0') << data_identifier << " ";
+        for (uint8_t byte : data) 
+        {
+            outfile << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
+        }
+        outfile << "\n";
+    }
+    outfile.close();
+
     battery_socket = canInterface->createSocket(0x00);
     /* Initialize the Frame Receiver */
-    frameReceiver = new ReceiveFrames(battery_socket, moduleId);
+    frameReceiver = new ReceiveFrames(battery_socket, moduleId, *batteryModuleLogger);
 
     LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Battery object created successfully, ID : 0x{:X}", this->moduleId);
 
@@ -35,9 +53,27 @@ BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_mo
                                                                     canInterface(CreateInterface::getInstance(_interfaceNumber, *batteryModuleLogger)),
                                                                     frameReceiver(nullptr)
 {
+    /* Insert the default DID values in the file */
+    std::ofstream outfile("battery_data.txt");
+    if (!outfile.is_open())
+    {
+        throw std::runtime_error("Failed to open file: battery_data.txt");
+    }
+
+    for (const auto& [data_identifier, data] : default_DID_battery)
+    {
+        outfile << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << data_identifier << " ";
+        for (uint8_t byte : data)
+        {
+            outfile << std::hex << std::setw(1) << std::setfill('0') << static_cast<int>(byte) << " ";
+        }
+        outfile << "\n";
+    }
+    outfile.close();
+
     battery_socket = canInterface->createSocket(0x00);
     /* Initialize the Frame Receiver */
-    frameReceiver = new ReceiveFrames(battery_socket, moduleId);
+    frameReceiver = new ReceiveFrames(battery_socket, moduleId, *batteryModuleLogger);
 
     LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Battery object created successfully using Parameterized Constructor, ID : 0x{:X}", this->moduleId);
 
@@ -59,7 +95,7 @@ void BatteryModule::sendNotificationToMCU()
     GenerateFrames notifyFrame = GenerateFrames(battery_socket, *batteryModuleLogger);
 
     /* Create a vector of uint8_t (bytes) containing the data to be sent */
-    std::vector<uint8_t> data = {0x0, 0xff, 0x11, 0x3};
+    std::vector<uint8_t> data = {0x01, 0xD9};
 
     /* Send the CAN frame with ID 0x22110 and the data vector */
     notifyFrame.sendFrame(0x1110, data);
@@ -92,61 +128,100 @@ void BatteryModule::parseBatteryInfo(const std::string &data, float &energy, flo
 {
     std::istringstream stream(data);
     std::string line;
+    std::unordered_map<uint16_t, std::string> updated_values;
 
     while (std::getline(stream, line))
     {
         if (line.find("energy:") != std::string::npos)
         {
             energy = std::stof(line.substr(line.find(":") + 1));
-            ecu_data[0x01A0] = {static_cast<uint8_t>(energy)};
+            updated_values[0x01A0] = std::to_string(static_cast<uint8_t>(energy));
         }
         else if (line.find("voltage:") != std::string::npos)
         {
             voltage = std::stof(line.substr(line.find(":") + 1));
-            ecu_data[0x01B0] = {static_cast<uint8_t>(voltage)};
+            updated_values[0x01B0] = std::to_string(static_cast<uint8_t>(voltage));
         }
         else if (line.find("percentage:") != std::string::npos)
         {
             percentage = std::stof(line.substr(line.find(":") + 1));
-            ecu_data[0x01C0] = {static_cast<uint8_t>(percentage)};
+            updated_values[0x01C0] = std::to_string(static_cast<uint8_t>(percentage));
         }
         else if (line.find("state:") != std::string::npos)
         {
             size_t pos = line.find(":");
-            /* Extract substring starting from the first non-whitespace character after ':' */
             state = line.substr(pos + 1);
-            /* Remove leading whitespace */
             state = state.substr(state.find_first_not_of(" \t"));
-            if(state == "unknown")
+
+            /* default: unknown */
+            uint8_t state_value = 0x00;
+            if (state == "charging")
             {
-                ecu_data[0x01D0] = {0x00};
+                state_value = 0x01;
             }
-            else if(state == "charging")
+            else if (state == "discharging")
             {
-                ecu_data[0x01D0] = {0x01};
+                state_value = 0x02;
             }
-            else if(state == "discharging")
+            else if (state == "empty")
             {
-                ecu_data[0x01D0] = {0x02};
+                state_value = 0x03;
             }
-            else if(state == "empty")
+            else if (state == "fully-charged")
             {
-                ecu_data[0x01D0] = {0x03};
+                state_value = 0x04;
             }
-            else if(state == "fully-charged")
+            else if (state == "pending-charge")
             {
-                ecu_data[0x01D0] = {0x04};
+                state_value = 0x05;
             }
-            else if(state == "pending-charge")
+            else if (state == "pending-discharge")
             {
-                ecu_data[0x01D0] = {0x05};
+                state_value = 0x06;
             }
-            else if(state == "pending-discharge")
-            {
-                ecu_data[0x01D0] = {0x06};
-            }
+            updated_values[0x01D0] = std::to_string(state_value);
         }
     }
+
+    /* Path to battery data file */
+    std::string file_path = "battery_data.txt";
+
+    /* Read the current file contents into memory */
+    std::ifstream infile(file_path);
+    std::stringstream buffer;
+    buffer << infile.rdbuf();
+    infile.close();
+
+    std::string file_contents = buffer.str();
+    std::istringstream file_stream(file_contents);
+    std::string updated_file_contents;
+    std::string file_line;
+
+    /* Update the relevant DID values in the file contents */
+    while (std::getline(file_stream, file_line))
+    {
+        bool updated = false;
+        for (const auto &pair : updated_values)
+        {
+            std::stringstream did_ss;
+            did_ss << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << pair.first;
+            if (file_line.find(did_ss.str()) != std::string::npos)
+            {
+                updated_file_contents += did_ss.str() + " " + pair.second + "\n";
+                updated = true;
+                break;
+            }
+        }
+        if (!updated)
+        {
+            updated_file_contents += file_line + "\n";
+        }
+    }
+
+    /* Write the updated contents back to the file */
+    std::ofstream outfile(file_path);
+    outfile << updated_file_contents;
+    outfile.close();
 }
 
 /* Function to fetch data from system about battery */
@@ -180,7 +255,7 @@ void BatteryModule::receiveFrames()
     LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Battery module starts the frame receiver");
 
     /* Create a HandleFrames object to process received frames */
-    HandleFrames handleFrames(this->battery_socket);
+    HandleFrames handleFrames(this->battery_socket, *batteryModuleLogger);
 
     /* Receive a CAN frame using the frame receiver and process it with handleFrames */
     frameReceiver->receive(handleFrames);

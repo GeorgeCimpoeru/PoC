@@ -7,15 +7,20 @@
 #ifndef POC_MCU_MODULE_H
 #define POC_MCU_MODULE_H
 
-#include "HandleFrames.h"
+#include "../../utils/include/HandleFrames.h"
 #include "../../utils/include/CreateInterface.h"
 #include "ReceiveFrames.h"
 #include "../include/MCULogger.h"
 #include "../../uds/write_data_by_identifier/include/WriteDataByIdentifier.h"
 #include "../../uds/tester_present/include/TesterPresent.h"
+#include "../../uds/tester_present/include/TesterPresent.h"
 
 #include <thread>
 #include <future>
+#include <fstream>
+#include <stdexcept>
+#include <filesystem>
+
 namespace MCU
 {
     class MCUModule {
@@ -27,8 +32,15 @@ namespace MCU
         /* Stop flags for each SID. */
         static std::map<uint8_t, std::atomic<bool>> stop_flags;
 
+        /* Static dictionary to store SID and processing time */
+        static std::map<uint8_t, double> timing_parameters;
+        /* Store active timers for SIDs */
+        static std::map<uint8_t, std::future<void>> active_timers;
+        /* Stop flags for each SID. */
+        static std::map<uint8_t, std::atomic<bool>> stop_flags;
+
         /* Variable to store mcu data */
-        std::unordered_map<uint16_t, std::vector<uint8_t>> mcu_data = 
+        std::unordered_map<uint16_t, std::vector<uint8_t>> default_DID_MCU = 
         {
             {0x01E0, {IDLE}}
         };

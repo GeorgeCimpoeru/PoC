@@ -25,8 +25,9 @@
 #include <iostream>
 #include <unistd.h>
 #include <future>
+#include <fstream>
 #include "../../../utils/include/CreateInterface.h"
-#include "ReceiveFrames.h"
+#include "../../../utils/include/ReceiveFrames.h"
 #include "../../../utils/include/GenerateFrames.h"
 #include "BatteryModuleLogger.h"
 
@@ -51,8 +52,14 @@ public:
     static std::map<uint8_t, std::future<void>> active_timers;
     /* Stop flags for each SID. */
     static std::map<uint8_t, std::atomic<bool>> stop_flags;
+    /* Static dictionary to store SID and processing time */
+    static std::map<uint8_t, double> timing_parameters;
+    /* Store active timers for SIDs */
+    static std::map<uint8_t, std::future<void>> active_timers;
+    /* Stop flags for each SID. */
+    static std::map<uint8_t, std::atomic<bool>> stop_flags;
     /* Variable to store ecu data */
-    std::unordered_map<uint16_t, std::vector<uint8_t>> ecu_data = {
+    std::unordered_map<uint16_t, std::vector<uint8_t>> default_DID_battery = {
         {0x01A0, {0}},  /* Energy Level */
         {0x01B0, {0}},  /* Voltage */
         {0x01C0, {0}},  /* Percentage */

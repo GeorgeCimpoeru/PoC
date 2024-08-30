@@ -3,17 +3,20 @@
 
 #POC Project root path
 PROJECT_PATH := $(shell cd $(shell pwd)/../../ && pwd)
+#POC Project root path
+PROJECT_PATH := $(shell cd $(shell pwd)/../../ && pwd)
 #Python flags needed for pybing library
 PYTHON_INCL_DIR=-I/usr/include/python3.8
+PYTHON_LDFLAGS = -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -lcrypt -ldl -lutil -lm -lpthread
 PYTHON_LDFLAGS = -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -lcrypt -ldl -lutil -lm -lpthread
 
 # Compiler flags
 CXX = g++
 CFLAGS = -std=c++17 -g -Wall -Werror -pthread -I./include -I../utils/include ${PYTHON_INCL_DIR} -DPROJECT_PATH=\"$(PROJECT_PATH)\"
-LDFLAGS = -lspdlog -lfmt ${PYTHON_LDFLAGS}
+LDFLAGS = -lspdlog -lfmt -lzip ${PYTHON_LDFLAGS}
 
 # Test flags
-CFLAGSTST = -std=c++17 -I/include -fprofile-arcs -ftest-coverage
+CFLAGSTST = -std=c++17 -I/include -I/usr/include/python3.8 -fprofile-arcs -ftest-coverage
 CFLAGSTST2 = -lgtest -lgtest_main -lpthread
 CFLAGSTST += -DUNIT_TESTING_MODE
 
@@ -24,6 +27,7 @@ UTILS_DIR = ../utils/src
 UTILS_TEST = ../utils/test
 UDS_DIR = ../uds
 BATTERY_DIR = ../ecu_simulation/BatteryModule/src
+ENGINE_DIR = ../ecu_simulation/EngineModule/src
 OTA_DIR = ../ota
 OBJ_DIR = obj
 
@@ -32,20 +36,22 @@ OBJ_DIR = obj
 # Object files
 MCU_OBJS = $(OBJ_DIR)/main.o \
            $(OBJ_DIR)/MCUModule.o \
-           $(OBJ_DIR)/HandleFrames.o \
            $(OBJ_DIR)/ReceiveFrames.o
 
 # Battery object files
 BATTERY_OBJS = $(OBJ_DIR)/BatteryModule.o \
-               $(OBJ_DIR)/BatteryModule_HandleFrames.o \
-               $(OBJ_DIR)/BatteryModule_ReceiveFrames.o
+
+# Engine object files
+ENGINE_OBJS = $(OBJ_DIR)/EngineModule.o \
 
 # Utils object files
 UTILS_OBJS = $(OBJ_DIR)/MemoryManager.o \
              $(OBJ_DIR)/Logger.o \
              $(OBJ_DIR)/GenerateFrames.o \
              $(OBJ_DIR)/CreateInterface.o \
-             $(OBJ_DIR)/NegativeResponse.o
+             $(OBJ_DIR)/NegativeResponse.o \
+			 $(OBJ_DIR)/BatteryModule_ReceiveFrames.o \
+			 $(OBJ_DIR)/HandleFrames.o
 
 # UDS object files
 UDS_OBJS = $(OBJ_DIR)/DiagnosticSessionControl.o \
@@ -54,10 +60,12 @@ UDS_OBJS = $(OBJ_DIR)/DiagnosticSessionControl.o \
            $(OBJ_DIR)/EcuReset.o \
            $(OBJ_DIR)/SecurityAccess.o \
 		   $(OBJ_DIR)/TesterPresent.o \
+		   $(OBJ_DIR)/TesterPresent.o \
            $(OBJ_DIR)/ReadDtcInformation.o \
            $(OBJ_DIR)/ClearDtc.o \
            $(OBJ_DIR)/RoutineControl.o \
-		   $(OBJ_DIR)/AccessTimingParameter.o
+		   $(OBJ_DIR)/AccessTimingParameter.o \
+		   $(OBJ_DIR)/ReadMemoryByAddress.o
 
 # OTA object files
 OTA_OBJS = $(OBJ_DIR)/RequestUpdateStatus.o \
@@ -67,12 +75,14 @@ OTA_OBJS = $(OBJ_DIR)/RequestUpdateStatus.o \
            
 OBJS = $(MCU_OBJS) \
        $(BATTERY_OBJS) \
+	   $(ENGINE_OBJS) \
        $(UTILS_OBJS) \
        $(UDS_OBJS) \
        $(OTA_OBJS)
 
 
 # Target executables
+FINAL = main_mcu
 FINAL = main_mcu
 
 .PHONY: all clean
@@ -95,11 +105,14 @@ $(OBJ_DIR)/MCUModule.o: $(SRC_DIR)/MCUModule.cpp
 $(OBJ_DIR)/BatteryModule.o: $(BATTERY_DIR)/BatteryModule.cpp
 	$(CXX) $(CFLAGS) -c $(BATTERY_DIR)/BatteryModule.cpp -o $(OBJ_DIR)/BatteryModule.o
 
+$(OBJ_DIR)/EngineModule.o: $(ENGINE_DIR)/EngineModule.cpp
+	$(CXX) $(CFLAGS) -c $(ENGINE_DIR)/EngineModule.cpp -o $(OBJ_DIR)/EngineModule.o
+
 $(OBJ_DIR)/GenerateFrames.o: $(UTILS_DIR)/GenerateFrames.cpp
 	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/GenerateFrames.cpp -o $(OBJ_DIR)/GenerateFrames.o
 
-$(OBJ_DIR)/HandleFrames.o: $(SRC_DIR)/HandleFrames.cpp
-	$(CXX) $(CFLAGS) -c $(SRC_DIR)/HandleFrames.cpp -o $(OBJ_DIR)/HandleFrames.o
+$(OBJ_DIR)/HandleFrames.o: $(UTILS_DIR)/HandleFrames.cpp
+	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/HandleFrames.cpp -o $(OBJ_DIR)/HandleFrames.o
 
 $(OBJ_DIR)/CreateInterface.o: $(UTILS_DIR)/CreateInterface.cpp
 	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/CreateInterface.cpp -o $(OBJ_DIR)/CreateInterface.o
@@ -125,11 +138,14 @@ $(OBJ_DIR)/SecurityAccess.o: $(UDS_DIR)/authentication/src/SecurityAccess.cpp
 $(OBJ_DIR)/TesterPresent.o: $(UDS_DIR)/tester_present/src/TesterPresent.cpp
 	$(CXX) $(CFLAGS) -c $(UDS_DIR)/tester_present/src/TesterPresent.cpp -o $(OBJ_DIR)/TesterPresent.o
 
+$(OBJ_DIR)/ReadMemoryByAddress.o: $(UDS_DIR)/read_memory_by_address/src/ReadMemoryByAddress.cpp
+	$(CXX) $(CFLAGS) -c $(UDS_DIR)/read_memory_by_address/src/ReadMemoryByAddress.cpp -o $(OBJ_DIR)/ReadMemoryByAddress.o
+
 $(OBJ_DIR)/BatteryModule_HandleFrames.o: $(BATTERY_DIR)/HandleFrames.cpp
 	$(CXX) $(CFLAGS) -c $(BATTERY_DIR)/HandleFrames.cpp -o $(OBJ_DIR)/BatteryModule_HandleFrames.o
 
-$(OBJ_DIR)/BatteryModule_ReceiveFrames.o: $(BATTERY_DIR)/ReceiveFrames.cpp
-	$(CXX) $(CFLAGS) -c $(BATTERY_DIR)/ReceiveFrames.cpp -o $(OBJ_DIR)/BatteryModule_ReceiveFrames.o
+$(OBJ_DIR)/BatteryModule_ReceiveFrames.o: $(UTILS_DIR)/ReceiveFrames.cpp
+	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/ReceiveFrames.cpp -o $(OBJ_DIR)/BatteryModule_ReceiveFrames.o
 
 $(OBJ_DIR)/ReadDtcInformation.o: $(UDS_DIR)/read_dtc_information/src/ReadDtcInformation.cpp
 	$(CXX) $(CFLAGS) -c $(UDS_DIR)/read_dtc_information/src/ReadDtcInformation.cpp -o $(OBJ_DIR)/ReadDtcInformation.o
@@ -169,18 +185,17 @@ $(OBJ_DIR)/NegativeResponse.o: $(UTILS_DIR)/NegativeResponse.cpp
 #----------------------------------------------------UNIT TESTS-----------------------------------------------------
 
 MCU_OBJS_TEST = $(OBJ_DIR)/MCUModule_test.o \
-                $(OBJ_DIR)/HandleFrames_test.o \
                 $(OBJ_DIR)/ReceiveFrames_test.o
 
 BATTERY_OBJS_TEST = $(OBJ_DIR)/BatteryModule_test.o \
-                    $(OBJ_DIR)/BatteryModule_HandleFrames_test.o \
                     $(OBJ_DIR)/BatteryModule_ReceiveFrames_test.o
 
 UTILS_OBJS_TEST = $(OBJ_DIR)/MemoryManager_test.o \
                   $(OBJ_DIR)/Logger_test.o \
                   $(OBJ_DIR)/CreateInterface_test.o \
                   $(OBJ_DIR)/GenerateFrames_test.o \
-                  $(OBJ_DIR)/NegativeResponse_test.o
+                  $(OBJ_DIR)/NegativeResponse_test.o \
+				  $(OBJ_DIR)/HandleFrames_test.o
 
 OBJS_GENERATE_TEST = $(OBJ_DIR)/Logger_test.o \
                   	 $(OBJ_DIR)/GenerateFrames_test.o
@@ -198,6 +213,7 @@ UDS_OBJS_TEST = $(OBJ_DIR)/DiagnosticSessionControl_test.o \
                 $(OBJ_DIR)/WriteDataByIdentifier_test.o \
                 $(OBJ_DIR)/EcuReset_test.o \
                 $(OBJ_DIR)/SecurityAccess_test.o \
+				$(OBJ_DIR)/TesterPresent_test.o \
 				$(OBJ_DIR)/TesterPresent_test.o \
                 $(OBJ_DIR)/ReadDtcInformation_test.o \
                 $(OBJ_DIR)/ClearDtc_test.o \
@@ -219,6 +235,10 @@ OBJS_TESTERPRESENT_TEST = $(OBJ_DIR)/Logger_test.o \
 						  $(OBJ_DIR)/GenerateFrames_test.o \
 			   			  $(OBJ_DIR)/TesterPresent_test.o
 
+OBJS_TESTERPRESENT_TEST = $(OBJ_DIR)/Logger_test.o \
+						  $(OBJ_DIR)/GenerateFrames_test.o \
+			   			  $(OBJ_DIR)/TesterPresent_test.o
+
 OBJS_READDTC_TEST = $(OBJ_DIR)/Logger_test.o \
 			   		$(OBJ_DIR)/GenerateFrames_test.o \
 			   		$(OBJ_DIR)/ReadDtcInformation_test.o
@@ -230,6 +250,9 @@ OBJS_CLEARDTC_TEST = $(OBJ_DIR)/Logger_test.o \
 OBJS_ROUTINECONTROL_TEST = $(OBJ_DIR)/MemoryManager_test.o \
 						   $(OBJ_DIR)/Logger_test.o \
 			   			   $(OBJ_DIR)/GenerateFrames_test.o \
+			   			   $(OBJ_DIR)/RoutineControl_test.o \
+			   			   $(OBJ_DIR)/NegativeResponse_test.o \
+			   			   $(OBJ_DIR)/SecurityAccess_test.o
 			   			   $(OBJ_DIR)/RoutineControl_test.o \
 			   			   $(OBJ_DIR)/NegativeResponse_test.o \
 			   			   $(OBJ_DIR)/SecurityAccess_test.o
@@ -279,8 +302,8 @@ $(OBJ_DIR)/BatteryModule_test.o: $(BATTERY_DIR)/BatteryModule.cpp
 $(OBJ_DIR)/GenerateFrames_test.o: $(UTILS_DIR)/GenerateFrames.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_DIR)/GenerateFrames.cpp -o $(OBJ_DIR)/GenerateFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
 
-$(OBJ_DIR)/HandleFrames_test.o: $(SRC_DIR)/HandleFrames.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(SRC_DIR)/HandleFrames.cpp -o $(OBJ_DIR)/HandleFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
+$(OBJ_DIR)/HandleFrames_test.o: $(UTILS_DIR)/HandleFrames.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_DIR)/HandleFrames.cpp -o $(OBJ_DIR)/HandleFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 $(OBJ_DIR)/CreateInterface_test.o: $(UTILS_DIR)/CreateInterface.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_DIR)/CreateInterface.cpp -o $(OBJ_DIR)/CreateInterface_test.o $(CFLAGSTST2) $(LDFLAGS)
@@ -302,6 +325,9 @@ $(OBJ_DIR)/EcuReset_test.o: $(UDS_DIR)/ecu_reset/src/EcuReset.cpp
 
 $(OBJ_DIR)/SecurityAccess_test.o: $(UDS_DIR)/authentication/src/SecurityAccess.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/authentication/src/SecurityAccess.cpp -o $(OBJ_DIR)/SecurityAccess_test.o $(CFLAGSTST2) $(LDFLAGS)
+
+$(OBJ_DIR)/TesterPresent_test.o: $(UDS_DIR)/tester_present/src/TesterPresent.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/tester_present/src/TesterPresent.cpp -o $(OBJ_DIR)/TesterPresent_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 $(OBJ_DIR)/TesterPresent_test.o: $(UDS_DIR)/tester_present/src/TesterPresent.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/tester_present/src/TesterPresent.cpp -o $(OBJ_DIR)/TesterPresent_test.o $(CFLAGSTST2) $(LDFLAGS)
@@ -350,17 +376,17 @@ $(OBJ_DIR)/NegativeResponse_test.o: $(UTILS_DIR)/NegativeResponse.cpp
 # Compile all unit tests
 
 allTests: mcuModuleTest handleFramesTest receiveFramesTest generateFramesTest loggerTest memoryManagerTest createInterfaceTest diagnosticSessionControlTest writeDataByIdentifierTest readDataByIdentifierTest requestTransferExitTest readDtcTest clearDtcTest requestUpdateStatusTest securityAccessTest testerPresentTest routineControlTest transferDataTest requestDownloadTest ecuResetTest negativeResponseTest accessTimingParameterTest
+allTests: mcuModuleTest handleFramesTest receiveFramesTest generateFramesTest loggerTest memoryManagerTest createInterfaceTest diagnosticSessionControlTest writeDataByIdentifierTest readDataByIdentifierTest requestTransferExitTest readDtcTest clearDtcTest requestUpdateStatusTest securityAccessTest testerPresentTest routineControlTest transferDataTest requestDownloadTest ecuResetTest negativeResponseTest accessTimingParameterTest
 
 
 # HandleFrames Unit tests
-handleFramesTest: $(OBJ_DIR) $(SRC_TEST)/handleFramesTest.out
+handleFramesTest: $(OBJ_DIR) $(UTILS_TEST)/handleFramesTest.out
 
-$(SRC_TEST)/handleFramesTest.out: $(OBJ_DIR) $(OBJS_TEST) $(SRC_TEST)/HandleFrames_test.o
-	$(CXX) $(CFLAGSTST) -o $(SRC_TEST)/handleFramesTest.out $(SRC_TEST)/HandleFrames_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
+$(UTILS_TEST)/handleFramesTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UTILS_TEST)/HandleFrames_test.o
+	$(CXX) $(CFLAGSTST) -o $(UTILS_TEST)/handleFramesTest.out $(UTILS_TEST)/HandleFrames_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
 
-$(SRC_TEST)/HandleFrames_test.o: $(SRC_TEST)/HandleFrames_test.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(SRC_TEST)/HandleFrames_test.cpp -o $(SRC_TEST)/HandleFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
-
+$(UTILS_TEST)/HandleFrames_test.o: $(UTILS_TEST)/HandleFrames_test.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/HandleFrames_test.cpp -o $(UTILS_TEST)/HandleFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 
 # ReceiveFrames Unit tests
@@ -371,6 +397,17 @@ $(SRC_TEST)/receiveFramesTest.out: $(OBJ_DIR) $(OBJS_TEST) $(SRC_TEST)/ReceiveFr
 
 $(SRC_TEST)/ReceiveFrames_test.o: $(SRC_TEST)/ReceiveFramesTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(SRC_TEST)/ReceiveFramesTest.cpp -o $(SRC_TEST)/ReceiveFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
+
+
+
+# MCUModule Unit tests
+mcuModuleTest: $(OBJ_DIR) $(SRC_TEST)/mcuModuleTest.out
+
+$(SRC_TEST)/mcuModuleTest.out: $(OBJ_DIR) $(OBJS_TEST) $(SRC_TEST)/MCUModule_test.o
+	$(CXX) $(CFLAGSTST) -o $(SRC_TEST)/mcuModuleTest.out $(SRC_TEST)/MCUModule_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
+
+$(SRC_TEST)/MCUModule_test.o: $(SRC_TEST)/MCUModuleTest.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(SRC_TEST)/MCUModuleTest.cpp -o $(SRC_TEST)/MCUModule_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 
 
@@ -515,8 +552,17 @@ $(UDS_DIR)/authentication/utest/securityAccessTest.out: $(OBJ_DIR) $(OBJS_SECURI
 $(UDS_DIR)/authentication/utest/SecurityAccess_test.o: $(UDS_DIR)/authentication/utest/SecurityAccessTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/authentication/utest/SecurityAccessTest.cpp -o $(UDS_DIR)/authentication/utest/SecurityAccess_test.o $(CFLAGSTST2) $(LDFLAGS)
 
+
+
 # TesterPresent Unit tests
 testerPresentTest: $(OBJ_DIR) $(UDS_DIR)/tester_present/utest/testerPresentTest.out
+
+$(UDS_DIR)/tester_present/utest/testerPresentTest.out: $(OBJ_DIR) $(OBJS_TESTERPRESENT_TEST) $(UDS_DIR)/tester_present/utest/TesterPresent_test.o
+	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/tester_present/utest/testerPresentTest.out $(UDS_DIR)/tester_present/utest/TesterPresent_test.o $(OBJS_TESTERPRESENT_TEST) $(CFLAGSTST2) $(LDFLAGS)
+
+$(UDS_DIR)/tester_present/utest/TesterPresent_test.o: $(UDS_DIR)/tester_present/utest/TesterPresentTest.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/tester_present/utest/TesterPresentTest.cpp -o $(UDS_DIR)/tester_present/utest/TesterPresent_test.o $(CFLAGSTST2) $(LDFLAGS)
+
 
 $(UDS_DIR)/tester_present/utest/testerPresentTest.out: $(OBJ_DIR) $(OBJS_TESTERPRESENT_TEST) $(UDS_DIR)/tester_present/utest/TesterPresent_test.o
 	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/tester_present/utest/testerPresentTest.out $(UDS_DIR)/tester_present/utest/TesterPresent_test.o $(OBJS_TESTERPRESENT_TEST) $(CFLAGSTST2) $(LDFLAGS)
@@ -565,6 +611,7 @@ $(OTA_DIR)/transfer_data/utest/transferDataTest.out: $(OBJ_DIR) $(OBJS_TRANSFERD
 
 $(OTA_DIR)/transfer_data/utest/TransferData_test.o: $(OTA_DIR)/transfer_data/utest/TransferDataTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(OTA_DIR)/transfer_data/utest/TransferDataTest.cpp -o $(OTA_DIR)/transfer_data/utest/TransferData_test.o $(CFLAGSTST2) $(LDFLAGS)
+
 
 
 # AccessTimingParameter Unit tests
@@ -753,6 +800,7 @@ createInterface_coverage: createInterfaceTest
 	mv CreateInterface.cpp.gcov coverage/out_CreateInterface
 
 
+
 # HandleFrames Coverage - solo job
 handleFramesCoverage: handleFrames_coverage
 	lcov --capture --directory . --output-file coverage.info
@@ -762,9 +810,9 @@ handleFramesCoverage: handleFrames_coverage
 	xdg-open coverage/out_HandleFramesTest/index.html
 # This job runs for allCoverage
 handleFrames_coverage: handleFramesTest
-	./$(SRC_TEST)/handleFramesTest.out
+	./$(UTILS_TEST)/handleFramesTest.out
 	mkdir -p coverage/out_HandleFrames
-	gcov -o obj/HandleFrames_test.gcno obj/HandleFrames_test.gcda $(SRC_TEST)/HandleFrames.cpp
+	gcov -o obj/HandleFrames_test.gcno obj/HandleFrames_test.gcda $(UTILS_TEST)/HandleFrames.cpp
 	mv HandleFrames.cpp.gcov coverage/out_HandleFrames
 
 
@@ -784,6 +832,7 @@ receiveFrames_coverage: receiveFramesTest
 	mv ReceiveFrames.cpp.gcov coverage/out_ReceiveFrames
 
 
+
 # MCUModule Coverage - solo job
 mcuModuleCoverage: mcuModule_coverage
 	lcov --capture --directory . --output-file coverage.info
@@ -797,6 +846,7 @@ mcuModule_coverage: mcuModuleTest
 	mkdir -p coverage/out_MCUModuleTest
 	gcov -o obj/MCUModule_test.gcno obj/MCUModule_test.gcda $(SRC_TEST)/MCUModule.cpp
 	mv MCUModule.cpp.gcov coverage/out_MCUModule
+
 
 
 # GenerateFrames Coverage - solo job
@@ -877,6 +927,8 @@ requestDownload_coverage: requestDownloadTest
 	gcov -o obj/RequestDownload_test.gcno obj/RequestDownload_test.gcda $(OTA_DIR)/request_download/src/RequestDownload.cpp
 	mv RequestDownload.cpp.gcov coverage/out_RequestDownload
 
+
+
 # TesterPresent Coverage - solo job
 testerPresentCoverage: testerPresent_coverage
 	lcov --capture --directory . --output-file coverage.info
@@ -891,6 +943,8 @@ testerPresent_coverage: testerPresentTest
 	gcov -o obj/TesterPresent_test.gcno obj/TesterPresent_test.gcda $(UDS_DIR)/tester_present/src/TesterPresent.cpp
 	mv TesterPresent.cpp.gcov coverage/out_TesterPresent
 
+
+
 # TransferData Coverage - solo job
 transferDataCoverage: transferData_coverage
 	lcov --capture --directory . --output-file coverage.info
@@ -904,6 +958,7 @@ transferData_coverage: transferDataTest
 	mkdir -p coverage/out_TransferData
 	gcov -o obj/TransferData_test.gcno obj/TransferData_test.gcda $(OTA_DIR)/transfer_data/src/TransferData.cpp
 	mv TransferData.cpp.gcov coverage/out_TransferData
+
 
 
 # AccessTimingParameter Coverage - solo job
@@ -921,6 +976,7 @@ accessTimingParameter_coverage: accessTimingParameterTest
 	mv AccessTimingParameter.cpp.gcov coverage/out_AccessTimingParameter
 
 
+
 # NegativeResponse Coverage - solo job
 negativeResponseCoverage: negativeResponse_coverage
 	lcov --capture --directory . --output-file coverage.info
@@ -934,6 +990,7 @@ negativeResponse_coverage: negativeResponseTest
 	mkdir -p coverage/out_NegativeResponse
 	gcov -o obj/NegativeResponse_test.gcno obj/NegativeResponse_test.gcda $(UTILS_DIR)/NegativeResponse.cpp
 	mv NegativeResponse.cpp.gcov coverage/out_NegativeResponse
+
 
 
 allCoverage: securityAccess_coverage routineControl_coverage transferData_coverage requestDownload_coverage ecuReset_coverage memoryManager_coverage logger_coverage generateFrames_coverage mcuModule_coverage receiveFrames_coverage handleFrames_coverage createInterface_coverage diagnosticSessionControl_coverage writeDataByIdentifier_coverage readDataByIdentifier_coverage testerPresent_coverage requestTransferExit_coverage clearDtc_coverage readDtc_coverage requestUpdateStatus_coverage negativeResponse_coverage accessTimingParameter_coverage
@@ -1015,5 +1072,4 @@ clean:
 	find . -name '*.info' -delete
 	find ./test -name '*.out' -delete
 	find ./test -name '*.o' -delete
-	find ./coverage -name '*' -delete
-
+	if [ -d "./coverage" ]; then find ./coverage -name '*' -delete; fi

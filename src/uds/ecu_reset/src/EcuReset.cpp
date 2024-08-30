@@ -1,6 +1,7 @@
 #include "../include/EcuReset.h"
 #include "../../../mcu/include/MCUModule.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
 
 EcuReset::EcuReset(uint32_t can_id, uint8_t sub_function, int socket, Logger &logger)
     : can_id(can_id), sub_function(sub_function), response_socket(socket), ECUResetLog(logger)
@@ -22,12 +23,23 @@ void EcuReset::ecuResetRequest()
     if (sub_function != 0x01 && sub_function != 0x02)
     {
         nrc.sendNRC(can_id,0x11,NegativeResponse::SFNS);
+        if (lowerbits == 0x10)
+        {
+            MCU::mcu->stop_flags[0x11] = false;
+        } else if (lowerbits == 0x11)
+        {
+            battery->stop_flags[0x11] = false;
+        } else if (lowerbits == 0x12)
+        {
+            engine->stop_flags[0x11] = false;
+        }
     }
     // else if (!SecurityAccess::getMcuState())
     // {
     //     nrc.sendNRC(can_id,0x11,NegativeResponse::SAD);
     // }
     /* Hard Reset case */
+    else if (sub_function == 0x01) {
     else if (sub_function == 0x01) {
         LOG_INFO(ECUResetLog.GET_LOGGER(), "Reset Mode: Hard Reset");
         this->hardReset();
@@ -89,20 +101,78 @@ void EcuReset::hardReset()
     //         break;
     //     }
     // }
+    /* Commented because we need to discuss about this in future if we need it */
+    // uint8_t lowerbits = can_id & 0xFF;
+    // /* Send response */
+    // this->ecuResetResponse();
+    // CreateInterface* interface = CreateInterface::getInstance(0x00, ECUResetLog);
+    // /* Deletes the interface */
+    // uint8_t interface_name = interface->getInterfaceName();
+    // LOG_INFO(ECUResetLog.GET_LOGGER(), "interface {} deleted", interface_name);
+    // interface->deleteInterface();
+
+    // /* Close the sockets binded to the interface */
+    // switch(lowerbits) {
+    //     /* ECU Battery case */
+    //     case 0x11:
+    //         LOG_INFO(ECUResetLog.GET_LOGGER(), "ECU socket closed");
+    //         close(battery->getBatterySocket());
+    //         break;
+
+    //     /* MCU case */
+    //     case 0x10:
+    //     {
+    //         LOG_INFO(ECUResetLog.GET_LOGGER(), "MCU sockets closed");
+    //         close(MCU::mcu->getMcuApiSocket());
+    //         close(MCU::mcu->getMcuEcuSocket());
+    //         break;
+    //     }
+    // }
+
+    // /* Recreate the interface */
+    // LOG_INFO(ECUResetLog.GET_LOGGER(), "interface {} created", interface_name);
+    // interface->createInterface();
+    // interface->startInterface();
+
+    // /* Recreate the sockets */
+    // switch(lowerbits) {
+    //     /* ECU Battery case */
+    //     case 0x11:
+    //         LOG_INFO(ECUResetLog.GET_LOGGER(), "ECU socket recreated");
+    //         battery->setBatterySocket(interface_name);
+    //         break;
+
+    //     /* MCU case */
+    //     case 0x10:
+    //     {
+    //         LOG_INFO(ECUResetLog.GET_LOGGER(), "MCU sockets recreated");
+    //         MCU::mcu->setMcuApiSocket(interface_name);
+    //         MCU::mcu->setMcuEcuSocket(interface_name);
+    //         break;
+    //     }
+    // }
     uint8_t lowerbits = can_id & 0xFF;
+    /* Send response */
+    this->ecuResetResponse();
+    switch(lowerbits)
+    {
     /* Send response */
     this->ecuResetResponse();
     switch(lowerbits)
     {
         case 0x10:
             system("./../autoscripts/ecu_reset_hard.sh");
+            system("./../autoscripts/ecu_reset_hard.sh");
             break;
+    }
     }
 }
 
 void EcuReset::keyOffReset()
 {
     uint8_t lowerbits = can_id & 0xFF;
+    /* Sens response */
+    this->ecuResetResponse();
     /* Sens response */
     this->ecuResetResponse();
     CreateInterface* interface = CreateInterface::getInstance(0x00, ECUResetLog);
@@ -114,18 +184,26 @@ void EcuReset::keyOffReset()
 
     /* Close the sockets binded to the interface */
     switch(lowerbits) {
-        /* ECU Battery case */
-        case 0x11:
-            LOG_INFO(ECUResetLog.GET_LOGGER(), "ECU socket closed");
-            close(battery->getBatterySocket());
-            break;
-
         /* MCU case */
         case 0x10:
         {
             LOG_INFO(ECUResetLog.GET_LOGGER(), "MCU sockets closed");
             close(MCU::mcu->getMcuApiSocket());
             close(MCU::mcu->getMcuEcuSocket());
+            break;
+        }
+        /* ECU Battery case */
+        case 0x11:
+        {
+            LOG_INFO(ECUResetLog.GET_LOGGER(), "ECU socket closed");
+            close(battery->getBatterySocket());
+            break;
+        }
+        /* ECU Engine case */
+        case 0x12:
+        {
+            LOG_INFO(ECUResetLog.GET_LOGGER(), "ECU socket closed");
+            close(engine->getEngineSocket());
             break;
         }
     }
@@ -136,18 +214,26 @@ void EcuReset::keyOffReset()
 
     /* Recreate the sockets */
     switch(lowerbits) {
-        /* ECU Battery case */
-        case 0x11:
-            LOG_INFO(ECUResetLog.GET_LOGGER(), "ECU socket recreated");
-            battery->setBatterySocket(interface_name);
-            break;
-
         /* MCU case */
         case 0x10:
         {
             LOG_INFO(ECUResetLog.GET_LOGGER(), "MCU sockets recreated");
             MCU::mcu->setMcuApiSocket(interface_name);
             MCU::mcu->setMcuEcuSocket(interface_name);
+            break;
+        }
+        /* ECU Battery case */
+        case 0x11:
+        {
+            LOG_INFO(ECUResetLog.GET_LOGGER(), "ECU socket recreated");
+            battery->setBatterySocket(interface_name);
+            break;
+        }
+        /* ECU Battery case */
+        case 0x12:
+        {
+            LOG_INFO(ECUResetLog.GET_LOGGER(), "ECU socket recreated");
+            engine->setEngineSocket(interface_name);
             break;
         }
     }
@@ -180,6 +266,12 @@ void EcuReset::ecuResetResponse()
             generate_frames.ecuReset(can_id, sub_function, generate_frames.getSocket(), true);
             LOG_INFO(ECUResetLog.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x11);
             battery->stop_flags[0x11] = false;
+            break;
+        case 0x12:
+            /* Send response frame */
+            generate_frames.ecuReset(can_id, sub_function, generate_frames.getSocket(), true);
+            LOG_INFO(ECUResetLog.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x11);
+            engine->stop_flags[0x11] = false;
             break;
         default:
             LOG_ERROR(ECUResetLog.GET_LOGGER(), "Module with id {:x} not supported.", frame_dest_id);

@@ -16,6 +16,18 @@ interface engineData {
     weight: any,
 }
 
+interface engineData {
+    current_speed: any,
+    engine_state: any,
+    fuel_consumption: any,
+    fuel_used: any,
+    power_output: any,
+    serial_number: any,
+    state_of_running: any,
+    torque: any,
+    weight: any,
+}
+
 const DivCenterEngine = (props: any) => {
     const [data, setData] = useState<engineData | null>(null);
     const [loading, setLoading] = useState(true);
