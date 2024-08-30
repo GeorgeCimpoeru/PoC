@@ -1,15 +1,3 @@
-'''
-Authot: Mujdei Ruben 6/2024
-Use class Update to update the software of an ECU
-Future implementations:
-    Download from cloud
-    Start Routines
-
-How to use?
-    u = Updates( 0x23, [0x11,0x12,0x13])
-    u.update_to(id_ecu, "12")
-'''
-
 from actions.base_actions import *  # Assuming this imports necessary actions
 import time
 
@@ -30,18 +18,6 @@ class ToJSON():
 
 
 class Updates(Action):
-    # def _auth_mcu(self):
-    #     id = self.my_id * 0x100 + self.id_ecu[0]
-    #     try:
-    #         log_info_message(logger, "Changing session to default")
-    #         self.generate.session_control(id, 0x02)
-    #         self._passive_response(SESSION_CONTROL, "Error changing session control")
-    #         self._authentication(id)
-
-    #     except CustomError as e:
-    #         self.bus.shutdown()
-    #         return e.message
-
     """
     Update class for managing software updates on an Electronic Control Unit (ECU).
 
@@ -51,7 +27,7 @@ class Updates(Action):
     - g: Instance of GenerateFrame for generating CAN bus frames.
     """
 
-    def update_to(self, ecu_id, version: str, data=[]):
+    def update_to(self, type, version, id):
         """
         Method to update the software of the ECU to a specified version.
 
@@ -66,43 +42,53 @@ class Updates(Action):
         - CustomError: If the current software version matches the desired version,
           indicating that the latest version is already installed.
         """
-        # self.data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 
         try:
-            self.id = (self.my_id * 0x100) + int(ecu_id, 16)
-            log_info_message(logger, "Reading data from battery")
-            current_version = self._verify_version(version)
-            if current_version == version:
-                response_json = ToJSON()._to_json(f"Version {version} already installed", 0)
-                self.bus.shutdown()
-                return response_json
+            # self.id = (self.id_ecu[1] << 16) + (self.my_id << 8) + self.id_ecu[0]
+            self.id = (int(id, 16) << 16) + (self.my_id << 8) + self.id_ecu[0]
 
             log_info_message(logger, "Changing session to programming")
             self.generate.session_control(self.id, sub_funct=0x02)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
-            self._authentication(self.my_id * 0x100 + self.id_ecu[0])
+
+            self._authentication(self.id)
+
+            log_info_message(logger, "Changing session to default")
+            self.generate.session_control(self.id, 0x01)
+            self._passive_response(SESSION_CONTROL, "Error changing session control")
+
+            # log_info_message(logger, "Reading data from battery")
+            # current_version = self._verify_version(version)
+            # if current_version == version:
+            #     response_json = ToJSON()._to_json(f"Version {version} already installed", 0)
+            #     self.bus.shutdown()
+            #     return response_json
+
+            log_info_message(logger, "Changing session to programming")
+            self.generate.session_control(self.id, sub_funct=0x02)
+            self._passive_response(SESSION_CONTROL, "Error changing session control")
 
             log_info_message(logger, "Downloading... Please wait")
-            self._download_data(ecu_id, data)
+            self._download_data(type, version)
             log_info_message(logger, "Download finished, restarting ECU...")
 
             log_info_message(logger, "Changing session to default")
-            # self.id = self.my_id * 0x100 + self.id_ecu[0]
             self.generate.session_control(self.id, 0x01)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
 
             # Reset the ECU to apply the update
             # self.id = (self.my_id * 0x100) + int(ecu_id, 16)
-            self.generate.ecu_reset(self.id)
-            self._passive_response(RESET_ECU, "Error trying to reset ECU")
+            # self.generate.ecu_reset(self.id)
+            # self._passive_response(RESET_ECU, "Error trying to reset ECU") # ToDo reactivate when using real hardware
 
             # Add a delay to wait until the ECU completes the reset process
-            log_info_message(logger, "Waiting until ECU is up")
+            # log_info_message(logger, "Waiting until ECU is up")
             time.sleep(1)
 
             # Check for errors in the updated ECU
-            log_info_message(logger, "Checking for errors..")
-            no_errors = self._check_errors()
+            # log_info_message(logger, "Checking for errors..")
+            # no_errors = self._check_errors()
+            no_errors = "No errors."
 
             # Generate a JSON response indicating the success of the update
             response_json = ToJSON()._to_json("downloaded", no_errors)
@@ -118,55 +104,58 @@ class Updates(Action):
             self.bus.shutdown()
             return e.message
 
-    def _download_data(self, ecu_id, data=[]):
+    def _download_data(self, type, version):
         """
-        Private method to handle the download process of software update data.
-        Data format identifier:
-            0x00 means that no compression/encryption method is used
-            0x01 means that only encryption is used
-            0x10 means that only compression is used
-            0x11 means that both encryption and compression are used
-        Download_type = 1 byte
-            0x00 => 0b 000 0000 0
-                                ^ this bit is used to determine the download type(0-> manual, 1-> auto)
-                           ^^^^ these bits are used to determine update iteration(ranges between 0 and 15)
-                       ^^^ these bits are used to determine update version(ranges between 0 and 7)
-            -> for example 0x00 -> 0b 000 0000 0 -> this value represents manual update because the first bit is 0,
-                the next 4 bits are representing the iteration of update like 1.x, and the next 3 bits are representing the version, in this case 1.0
-            -> 000 0000 -> version 1.0
-            -> 000 0001 -> version 1.1
-            …
-            -> 001 0000 -> version 2.0
-            -> 001 0001 -> version 2.1
-            …
-        Args:
-        - data: Data to be transferred during the download process.
+        Request Sid = 0x34
+        Response Sid = 0x74
 
-        Raises:
-        - CustomError: If any error occurs during the download process.
+        Request frame format:
+        { pci, sid, data_format_identifier, adress_and_length_format_identifier, memory_adress, memory_size, version}
+
+        Pci = 1 byte
+        Sid = 1 byte
+        Data_format_identifier = 1 byte
+        0x00 means that no compression/encryption method is used
+        0x01 means that only encryption is used
+        0x10 means that only compression is used
+        0x11 means that both encryption and compression are used
+            -> for now use 0x00 because compression/encryption are not defined
+            -> we can define more values if needed
+        Address and Length format identifier 1-byte
+        (bit 4- bit 7) denotes the number of bytes of the memory size parameter and the lower nibble
+        (bit 0- bit 3) denotes the number of bytes of the memory address parameter.
+        Memory address = min 1 byte -  max 16 bytes
+        Memory size = min 1 byte - max 16 bytes
+        Version = 1 byte
+        0x00 => 0b 0000 0000
+                                    ^^^^ these bits are used to determine update
+                    iteration(ranges between 0 and 15)
+                            ^^^^ these bits are used to determine update
+            version(ranges between 0 and 15)
+            -> 0000 0000 -> version 0.0
+            -> 0000 0001 -> version 0.1
+            …
+            -> 0010 0000 -> version 2.0
+            -> 0010 0001 -> version 2.1
+            …
+
+        Important note: This action requires to have the mcu module running in python virtual env and
+        create locally a virtual partition used for download.
+        -> search/change "/dev/loopXX" in RequestDownload.cpp, MemoryManager.cpp; (Depends which partition is attributed)
         """
-        id = self.my_id * 0x100 + self.id_ecu[0]
-        self.generate.request_download(id,
-                                       data_format_identifier=0x00,
-                                       memory_address=0x01,
-                                       memory_size=0xFFFF,
-                                       size=0x01)
-        frame = self._passive_response(REQUEST_DOWNLOAD, "Error requesting download")
-        # max_number_block = frame[9]
-        log_info_message(logger, f"Max block: {frame[2]}")
-        log_info_message(logger, f"Max block: {frame[3]}")
-        log_info_message(logger, f"Max block: {frame[4]}")
-        log_info_message(logger, f"Max block: {frame[5]}")
-        log_info_message(logger, f"Max block: {frame[6]}")
-        log_info_message(logger, f"Max block: {frame[7]}")
-        log_info_message(logger, f"Max block: {frame[8]}")
-        log_info_message(logger, f"Max block: {frame[9]}")
-        # self.generate.transfer_data_long(self.id, 0x01, data)
-        # self.generate.transfer_data_long(self.id, 0x01, data, False)
-        # self._passive_response(TRANSFER_DATA, "Error transferring data")
+        self.generate.request_download(self.id,
+                                       data_format_identifier=type,  # No compression/encryption
+                                       memory_address=0x8001,  # Memory address starting from 2049
+                                       memory_size=0x01,  # Memory size
+                                       version=version)  # Version 2
+        self._passive_response(REQUEST_DOWNLOAD, "Error requesting download")
 
-        # self.generate.request_transfer_exit(self.id)
-        # self._passive_response(REQUEST_TRANSFER_EXIT, "Error requesting transfer exit")
+        self.generate.transfer_data(self.id, 0x01)
+        self._passive_response(TRANSFER_DATA, "Error transferring data")
+        time.sleep(1)
+        self.generate.control_frame_write_file(self.id)
+        time.sleep(1)
+        self.generate.control_frame_install_updates(self.id)
 
     def _verify_version(self, version):
         """

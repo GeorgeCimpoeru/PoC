@@ -63,7 +63,7 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
 
 
     /* Authenticate the request */
-    else if (!isRequestAuthenticated())
+    if (!isRequestAuthenticated())
     {
         LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Authentication failed");
         /* Authentication failed */
@@ -148,6 +148,14 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
             }
         }
 
+            std::string outputDir = std::string(PROJECT_PATH);
+
+            if (extractZipFile(target_id, zipFilePath, outputDir)) {
+                LOG_INFO(RDSlogger.GET_LOGGER(), "Files extracted successfully");
+            } else {
+                LOG_ERROR(RDSlogger.GET_LOGGER(), "Failed to extract files from ZIP archive.");
+            }
+        }
         /* Check for encryption */
         if (encryption_type == 0x0)
         {
