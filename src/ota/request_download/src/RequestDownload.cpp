@@ -18,11 +18,14 @@ RequestDownloadService::~RequestDownloadService()
 
 /**RequestDownload- request method 
  * Expected request:  pci_l + sid + data_format_identifier  +  address_memory_length + memory_address[] +  memory_size[]               +          download_type
+ * Expected request:  pci_l + sid + data_format_identifier  +  address_memory_length + memory_address[] +  memory_size[]               +          download_type
  *  Index               [0]   [1]              [2]                  [3]             [3 + size(memory_adress)]  [3+size(memory_adress+memory_size)]  [3+size(memory_adress+memory_size)+1]
  */
 void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint8_t> stored_data)
+void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint8_t> stored_data)
 {
     LOG_INFO(RDSlogger.GET_LOGGER(), "Service 0x34 RequestDownload");
+
 
     /* Extract and switch sender and receiver */
     uint8_t receiver_id = id  & 0xFF;
@@ -32,11 +35,11 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     uint8_t target_id = (id >> 16) & 0xFF;
     /* Reverse IDs, target id will be in same position but receiver will be switched with sender */
     id = (target_id << 16) | (receiver_id << 8) | sender_id;
-
+    NegativeResponse nrc(socket, RDSlogger);
     if (stored_data.size() < 7)
     {
         /* Incorrect message length or invalid format - prepare a negative response */
-        generate_frames.negativeResponse(id, 0x34, 0x13);
+        nrc.sendNRC(id, RDS_SID, NegativeResponse::IMLOIF);
         return;
     }
     /** data format identifier is 0x00 when no compression or encryption method is used 
@@ -49,7 +52,7 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     if (valid_data_format_indentifiers.find(stored_data[2]) == valid_data_format_indentifiers.end())
     {
         /* Request out of range - prepare a negative response */
-        generate_frames.negativeResponse(id, 0x34, 0x31);
+        nrc.sendNRC(id, RDS_SID, NegativeResponse::ROOR);
         return;
     }
     /* extract method returns IMLOIF if full length check fails */
@@ -61,23 +64,25 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     int memory_address = address_and_size.first;
     int memory_size = address_and_size.second;
 
-    /* Validate memory address and size */
-    if (!isValidMemoryRange(memory_address, memory_size))
-    {
-        LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Invalid memory range");
-        /* Request out of range */
-        generate_frames.negativeResponse(id, 0x34, 0x31);
-        return;
-    }
+
     /* Authenticate the request */
     else if (!isRequestAuthenticated())
     {
         LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Authentication failed");
         /* Authentication failed */
-        generate_frames.negativeResponse(id, 0x34, 0x34);
+        nrc.sendNRC(id, RDS_SID, NegativeResponse::SAD);
+        return;
+    }
+    /* Validate memory address and size */
+    else if (!isValidMemoryRange(memory_address, memory_size))
+    {
+        LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Invalid memory range");
+        /* Request out of range */
+        nrc.sendNRC(id, RDS_SID, NegativeResponse::ROOR);
         return;
     }
     /* Check if software is at the latest version */ 
+    else if (!isLatestSoftwareVersion())
     else if (!isLatestSoftwareVersion())
     {
         LOG_INFO(RDSlogger.GET_LOGGER(), "Software is not at the latest version");
@@ -93,6 +98,12 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
         uint8_t encryption_type = data_format_identifier & 0x0F;
         LOG_INFO(RDSlogger.GET_LOGGER(), "Encryption Type: 0x{0:x}", static_cast<int>(encryption_type));
 
+        /* Calculate the position for software version*/ 
+        size_t position_software_version = 4 + length_memory_address + length_memory_size;
+        uint8_t software_version = stored_data[position_software_version];
+        /* 0x12 => 0001 0010* => v2.2, offset 1 */
+        downloadSoftwareVersion(target_id, software_version);
+
         /* Check for compression */ 
         if (compression_type == 0x0) 
         {
@@ -100,12 +111,46 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
         } 
         else 
         {
-            /** Decompress using tar
-             * Decompress stored_data from position 4 onwards (assuming position 2 is DFI)
-             * Process decompressed_data as needed
-             */ 
-        }
+            /* 2 digits + '.' + 2 digits + null terminator */
+            char buffer[5];
+            /* Map 0-15 to 1-16 */
+            uint8_t highNibble = ((software_version >> 4) & 0x0F) + 1;
+            /* Map 0-15 to 1-16 */
+            uint8_t lowNibble = (software_version & 0x0F);
 
+            /* Format the string as "X.Y" */
+            std::sprintf(buffer, "%x.%x", highNibble, lowNibble);
+            std::string zipFilePath;
+
+            if (access((std::string(PROJECT_PATH) + "/MCU_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x10) {
+                zipFilePath = std::string(PROJECT_PATH) + "/MCU_SW_VERSION_" + buffer + ".zip";
+            }
+            else if (access((std::string(PROJECT_PATH) + "/ECU_BATTERY_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x11) {
+                zipFilePath = std::string(PROJECT_PATH) + "/ECU_BATTERY_SW_VERSION_" + buffer + ".zip";
+            }
+            else if (access((std::string(PROJECT_PATH) + "/ECU_DOORS_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x12) {
+                zipFilePath = std::string(PROJECT_PATH) + "/ECU_DOORS_SW_VERSION_" + buffer + ".zip";
+            }
+            else if (access((std::string(PROJECT_PATH) + "/ECU_ENGINE_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x13) {
+                zipFilePath = std::string(PROJECT_PATH) + "/ECU_ENGINE_SW_VERSION_" + buffer + ".zip";
+            }
+            else if (access((std::string(PROJECT_PATH) + "/ECU_HVAC_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x14) {
+                zipFilePath = std::string(PROJECT_PATH) + "/ECU_HVAC_SW_VERSION_" + buffer + ".zip";
+            }
+            else
+            {
+                LOG_ERROR(RDSlogger.GET_LOGGER(), "No valid zip file file found in PROJECT_PATH.");
+                return;
+            }
+
+            std::string outputDir = std::string(PROJECT_PATH);
+
+            if (extractZipFile(target_id, zipFilePath, outputDir)) {
+                LOG_INFO(RDSlogger.GET_LOGGER(), "Files extracted successfully");
+            } else {
+                LOG_ERROR(RDSlogger.GET_LOGGER(), "Failed to extract files from ZIP archive.");
+            }
+        }
         /* Check for encryption */
         if (encryption_type == 0x0)
         {
@@ -116,15 +161,9 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
             /* check if encryption is needed */
         }
 
-        /* Calculate the position for manual update 0 or automatic update 1 */ 
-        size_t position_software_version = 4 + length_memory_address + length_memory_size;
-        uint8_t software_version = stored_data[position_software_version];
-        /* 0x24 => 0010 010 0* => v2.2, LSB not taken in consideration for versioning */
-        downloadSoftwareVersion(receiver_id, software_version);
-
         int max_number_block = calculate_max_number_block(memory_size);
-
         requestDownloadResponse(id, memory_address, max_number_block);
+
         return;
     }
 }
@@ -136,21 +175,24 @@ int RequestDownloadService::calculate_max_number_block(int memory_size)
     /* Initialize max_number_block with a value that ensures it will be updated */
     int max_number_block = 0;
 
-    /* HOW IS CALCULATED 'max_number_block'??? */
     /* Calculate max_number_block as the maximum ceiling of memory_size divided by block_size */
     int blocks_needed = (memory_size + block_size - 1) / block_size;
     LOG_INFO(RDSlogger.GET_LOGGER(), "blocks_needed:{}", blocks_needed);
+    LOG_INFO(RDSlogger.GET_LOGGER(), "blocks_needed:{}", blocks_needed);
     
+    /* Update max_number_block with the calculated blocks_needed */
     /* Update max_number_block with the calculated blocks_needed */
     max_number_block = blocks_needed;
 
+    LOG_INFO(RDSlogger.GET_LOGGER(), "max_number_block:{}", max_number_block);
     LOG_INFO(RDSlogger.GET_LOGGER(), "max_number_block:{}", max_number_block);
     return 1;
 }
 
 void RequestDownloadService::requestDownloadAutomatic(canid_t id, int memory_address, int max_number_block)
+void RequestDownloadService::requestDownloadAutomatic(canid_t id, int memory_address, int max_number_block)
 {
-    /*Download from drive- part 3*/
+    /* Download from drive- part 3 */
     std::string path = "";
 
     int receiver_id = id & 0xFF;
@@ -159,6 +201,7 @@ void RequestDownloadService::requestDownloadAutomatic(canid_t id, int memory_add
         LOG_INFO(RDSlogger.GET_LOGGER(), "Map memory in MCU and transfer data");
         /* Map memory in MCU -Set adress vector-> send to Install for mapping data */
         
+        MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, RDSlogger);
         MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, RDSlogger);
         managerInstance->getAddress();
         /* routine for transfer first or second partition */
@@ -179,7 +222,9 @@ void RequestDownloadService::downloadInEcu(int id, int memory_address)
     std::string path_download = "";
 
     std::vector<uint8_t> data = MemoryManager::readBinary(path_download, RDSlogger);
+    std::vector<uint8_t> data = MemoryManager::readBinary(path_download, RDSlogger);
 
+    generate_frames.requestDownload(new_id,0x00,memory_address,data.size(),0x88);
     generate_frames.requestDownload(new_id,0x00,memory_address,data.size(),0x88);
     struct can_frame* frame = read_frame(new_id, 0x34);
     int max_number_block;
@@ -199,9 +244,12 @@ void RequestDownloadService::downloadInEcu(int id, int memory_address)
         data_to_send.insert(data_to_send.begin(), data.begin() + (max_number_block * block_sequence_counter), data.begin() + ((max_number_block * block_sequence_counter + 1)));
         /* Calculate block_sequence_counter for the current block */ 
         LOG_INFO(RDSlogger.GET_LOGGER(), "block_sequence_counter: {}", block_sequence_counter);
+        LOG_INFO(RDSlogger.GET_LOGGER(), "block_sequence_counter: {}", block_sequence_counter);
         /* Call transferData with the current block_sequence_counter */ 
         if ( data_to_send.size() >  5)
         {
+            generate_frames.transferDataLong(new_id,block_sequence_counter,data_to_send);
+            /* read flow control frame */
             generate_frames.transferDataLong(new_id,block_sequence_counter,data_to_send);
             /* read flow control frame */
             frame = read_frame(new_id, -0x10);
@@ -211,9 +259,11 @@ void RequestDownloadService::downloadInEcu(int id, int memory_address)
                 return;
             }
             generate_frames.transferDataLong(new_id,block_sequence_counter,data_to_send, false);
+            generate_frames.transferDataLong(new_id,block_sequence_counter,data_to_send, false);
         }
         else
         {
+            generate_frames.transferData(new_id,block_sequence_counter,data_to_send);
             generate_frames.transferData(new_id,block_sequence_counter,data_to_send);
         }
     }
@@ -223,6 +273,7 @@ void RequestDownloadService::downloadInEcu(int id, int memory_address)
         /* generate error frame*/
         return;
     }
+    generate_frames.requestTransferExit(new_id);
     generate_frames.requestTransferExit(new_id);
     frame = read_frame(new_id, 0x37);
     if (frame == NULL || frame->data[1] == 0x7F)
@@ -276,17 +327,27 @@ can_frame* RequestDownloadService::read_frame(int id, uint8_t sid)
  *  Index              [0]     [1]         [2]                       [3]
  */
 void RequestDownloadService::requestDownloadResponse(canid_t id, int memory_address, int max_number_block)
+void RequestDownloadService::requestDownloadResponse(canid_t id, int memory_address, int max_number_block)
 {
+    /* this path is temporary and differs on each VM */
+    std::string path = "/dev/loop25";
     /* this path is temporary and differs on each VM */
     std::string path = "/dev/loop25";
     /* Rename destination in sender and viceversa */
     uint8_t frame_receiver_id = (id >> 8) & 0xFF;
     LOG_INFO(RDSlogger.GET_LOGGER(), "memory adress: 0x{0:x}", static_cast<int>(memory_address));
+    uint8_t frame_receiver_id = (id >> 8) & 0xFF;
+    LOG_INFO(RDSlogger.GET_LOGGER(), "memory adress: 0x{0:x}", static_cast<int>(memory_address));
     /* Check if frame is intended for MCU */
+    if(frame_receiver_id == 0x10)
     if(frame_receiver_id == 0x10)
     {
         MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, RDSlogger);
+        MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, RDSlogger);
         managerInstance->getAddress();
+        LOG_INFO(RDSlogger.GET_LOGGER(), "max number block {}", static_cast<int>(max_number_block));
+        /* Call response method from generate_frames */
+        generate_frames.requestDownloadResponse(id, max_number_block);
         LOG_INFO(RDSlogger.GET_LOGGER(), "max number block {}", static_cast<int>(max_number_block));
         /* Call response method from generate_frames */
         generate_frames.requestDownloadResponse(id, max_number_block);
@@ -295,9 +356,11 @@ void RequestDownloadService::requestDownloadResponse(canid_t id, int memory_addr
 }
 
 std::pair<int,int> RequestDownloadService::extractSizeAndAddressLength(canid_t id, std::vector<uint8_t> stored_data)
+std::pair<int,int> RequestDownloadService::extractSizeAndAddressLength(canid_t id, std::vector<uint8_t> stored_data)
 {
      /* Retrieve the address_memory_length */
     uint8_t address_memory_length = stored_data[3];
+    LOG_INFO(RDSlogger.GET_LOGGER(), "address_memory_length: 0x{0:x}", address_memory_length);
     LOG_INFO(RDSlogger.GET_LOGGER(), "address_memory_length: 0x{0:x}", address_memory_length);
 
     /* Determine the length of memory address and memory size */
@@ -307,12 +370,15 @@ std::pair<int,int> RequestDownloadService::extractSizeAndAddressLength(canid_t i
     uint8_t length_memory_size = address_memory_length & 0x0F;
     LOG_INFO(RDSlogger.GET_LOGGER(), "length_memory_address: {}", length_memory_address);
     LOG_INFO(RDSlogger.GET_LOGGER(), "length_memory_size: {}", length_memory_size);
+    LOG_INFO(RDSlogger.GET_LOGGER(), "length_memory_address: {}", length_memory_address);
+    LOG_INFO(RDSlogger.GET_LOGGER(), "length_memory_size: {}", length_memory_size);
     /* Ensure there are enough bytes for memory_address and memory_size */ 
     if (stored_data.size() < static_cast<std::vector<unsigned char>::size_type>(1 + length_memory_address + length_memory_size))
     {
         LOG_ERROR(RDSlogger.GET_LOGGER(), "Payload does not contain enough data for memory address and size");
         /* Incorrect message length or invalid format */
-        generate_frames.negativeResponse(id, 0x34, 0x13);
+        NegativeResponse nrc(socket, RDSlogger);
+        nrc.sendNRC(id, RDS_SID, NegativeResponse::IMLOIF);
     }
     return {length_memory_address, length_memory_size};
 }
@@ -330,6 +396,7 @@ std::pair<int,int> RequestDownloadService::extractSizeAndAddress( std::vector<ui
         dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
     }
     LOG_INFO(RDSlogger.GET_LOGGER(), "{}", dataStream.str());
+    LOG_INFO(RDSlogger.GET_LOGGER(), "{}", dataStream.str());
 
     dataStream.str("");
     dataStream.clear();
@@ -339,6 +406,7 @@ std::pair<int,int> RequestDownloadService::extractSizeAndAddress( std::vector<ui
     {
         dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
     }
+    LOG_INFO(RDSlogger.GET_LOGGER(), "{}", dataStream.str());
     LOG_INFO(RDSlogger.GET_LOGGER(), "{}", dataStream.str());
 
     /* Extract full memory address and size based on their combined byte values */
@@ -357,6 +425,7 @@ std::pair<int,int> RequestDownloadService::extractSizeAndAddress( std::vector<ui
     }
 
     return {full_memory_address, full_memory_size};
+}
 }
 
 bool RequestDownloadService::isValidMemoryRange(const int &memory_address, const int &memory_size)
@@ -379,6 +448,8 @@ bool RequestDownloadService::isValidMemoryRange(const int &memory_address, const
 
     LOG_INFO(RDSlogger.GET_LOGGER(), "Validated Memory Address: 0x{0:x}", memory_address);
     LOG_INFO(RDSlogger.GET_LOGGER(), "Validated Memory Size: 0x{0:x}", memory_size);
+    LOG_INFO(RDSlogger.GET_LOGGER(), "Validated Memory Address: 0x{0:x}", memory_address);
+    LOG_INFO(RDSlogger.GET_LOGGER(), "Validated Memory Size: 0x{0:x}", memory_size);
 
     return true;
 }
@@ -393,6 +464,7 @@ bool RequestDownloadService::isRequestAuthenticated()
     /* Check MCU state if unlocked */
     if (is_authenticated) 
     {
+        LOG_INFO(RDSlogger.GET_LOGGER(), "MCU authentication state: {}", is_authenticated);
         LOG_INFO(RDSlogger.GET_LOGGER(), "MCU authentication state: {}", is_authenticated);
     }
     return is_authenticated;
@@ -420,6 +492,7 @@ bool RequestDownloadService::isLatestSoftwareVersion()
 }
 
 void RequestDownloadService::downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_version)
+void RequestDownloadService::downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_version)
 {
     namespace py = pybind11;
     py::scoped_interpreter guard{}; // start the interpreter and keep it alive
@@ -428,7 +501,12 @@ void RequestDownloadService::downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_
     std::string project_path = PROJECT_PATH;
     std::string path_to_drive_api = project_path + "/src/ota/google_drive_api";
 
+    /* PROJECT_PATH defined in makefile to be the root folder path (POC)*/
+    std::string project_path = PROJECT_PATH;
+    std::string path_to_drive_api = project_path + "/src/ota/google_drive_api";
+
     auto sys = py::module::import("sys");
+    sys.attr("path").attr("append")(path_to_drive_api);
     sys.attr("path").attr("append")(path_to_drive_api);
 
     /* Get the created Python module */
@@ -451,6 +529,86 @@ void RequestDownloadService::downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_
     /* Call the downloadFile method from GoogleDriveApi.py */
      gGdrive_object.attr("downloadFile")(ecu_id, sw_version);
 }
+
+bool RequestDownloadService::extractZipFile(uint8_t target_id, const std::string &zipFilePath, const std::string &outputDir) {
+    int err = 0;
+    zip *archive = zip_open(zipFilePath.c_str(), 0, &err);
+
+    if (archive == nullptr) {
+        LOG_ERROR(RDSlogger.GET_LOGGER(), "Error opening ZIP file:" + zipFilePath);
+        return false;
+    }
+
+    zip_uint64_t numFiles = zip_get_num_entries(archive, 0);
+    for (zip_uint64_t i = 0; i < numFiles; ++i) {
+        const char *name = zip_get_name(archive, i, 0);
+        if (name == nullptr) {
+            LOG_ERROR(RDSlogger.GET_LOGGER(), "Error getting name of file #" + std::to_string(i) + " in ZIP archive.");
+            zip_close(archive);
+            return false;
+        }
+
+        struct zip_stat st;
+        zip_stat_init(&st);
+        zip_stat(archive, name, 0, &st);
+
+        zip_file *zf = zip_fopen(archive, name, 0);
+        if (!zf) {
+            LOG_ERROR(RDSlogger.GET_LOGGER(), "Error opening file inside ZIP: " + std::string(name));
+            zip_close(archive);
+            return false;
+        }
+
+        std::string outputFilePath;
+        if (target_id == 0x10) {
+            outputFilePath = outputDir + "/" + name + "_mcu_new";
+        }
+        else if (target_id == 0x11) {
+            outputFilePath = outputDir + "/" + name + "_battery_new";
+        }
+        else if (target_id == 0x12) {
+            outputFilePath = outputDir + "/" + name + "_doors_new";
+        }
+        else if (target_id == 0x13) {
+            outputFilePath = outputDir + "/" + name + "_engine_new";
+        }
+        else if (target_id == 0x14) {
+            outputFilePath = outputDir + "/" + name + "_hvac_new";
+        }
+        else
+        {
+            LOG_ERROR(RDSlogger.GET_LOGGER(), "No valid id to match main file.");
+            return false;
+        }
+        std::ofstream outFile(outputFilePath, std::ios::binary);
+        if (!outFile.is_open()) {
+            LOG_ERROR(RDSlogger.GET_LOGGER(), "Error creating output file: " + outputFilePath);
+            zip_fclose(zf);
+            zip_close(archive);
+            return false;
+        }
+
+        char buffer[8192];
+        zip_int64_t bytesRead;
+        while ((bytesRead = zip_fread(zf, buffer, sizeof(buffer))) > 0) {
+            outFile.write(buffer, bytesRead);
+        }
+
+        outFile.close();
+        zip_fclose(zf);
+
+        if (bytesRead < 0) {
+            LOG_ERROR(RDSlogger.GET_LOGGER(), "Error reading from ZIP file: " + std::string(name));
+            zip_close(archive);
+            return false;
+        }
+    }
+
+    zip_close(archive);
+    return true;
+}
+
+
 /** Use libraries for tar
  * #include <archive.h>
  * #include <archive_entry.h>

@@ -55,6 +55,7 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
 {
     std::vector<uint8_t> response;
     NegativeResponse nrc(socket, rdbi_logger);
+    NegativeResponse nrc(socket, rdbi_logger);
 
     /* Extract the first 8 bits of frame_id */
     uint8_t lowerbits = frame_id & 0xFF;
@@ -70,6 +71,7 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
         response.push_back(0x03); /* PCI */
         response.push_back(0x7F); /* Negative response */
         response.push_back(RDBI_SERVICE_ID); /* Service ID */
+        response.push_back(NegativeResponse::IMLOIF); /* Incorrect message length or invalid format */
         response.push_back(NegativeResponse::IMLOIF); /* Incorrect message length or invalid format */
 
         if (use_send_frame)

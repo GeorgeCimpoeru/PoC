@@ -24,10 +24,12 @@
 #include <sys/ioctl.h>
 #include <linux/can.h>
 #include <net/if.h>
+#include <zip.h>
 #include "../../../utils/include/CreateInterface.h"
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../utils/include/Logger.h"
 #include "../../uds/diagnostic_session_control/include/DiagnosticSessionControl.h"
+#include "../../../utils/include/NegativeResponse.h"
 #include "../../uds/authentication/include/SecurityAccess.h"
 #include "../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
 #include "../../utils/include/MemoryManager.h"
@@ -35,6 +37,7 @@
 class RequestDownloadService
 {
 public:
+    static constexpr uint8_t RDS_SID = 0x34;
     /**
      * @brief Construct a new Request Download Service object
      * 
@@ -147,6 +150,15 @@ private:
      * @param version_file_id 
      */
     void downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_version);
+
+    /**
+     * @brief Method to extract the zipped file.
+     * 
+     * @param target_id targeted ecu for file unzipping.
+     * @param zipFilePath path to zip file
+     * @param outputDir path for the extracted file
+     */
+    bool extractZipFile(uint8_t target_id, const std::string &zipFilePath, const std::string &outputDir);
 };
 
 #endif /* REQUEST_DOWNLOAD_SERVICE_H */

@@ -2,7 +2,7 @@ import can
 from utils.logger import SingletonLogger
 from config import Config
 import threading
-
+import subprocess
 
 can_lock = threading.Lock()
 
@@ -15,20 +15,47 @@ logger_frame = logger_singleton.logger_frame
 class GenerateFrame:
     def __init__(self, bus=None):
         if bus is None:
-            self.bus = can.interface.Bus(channel=Config.CAN_CHANNEL, bustype='socketcan')
+            if self.is_interface_up(Config.CAN_CHANNEL):
+                self.bus = can.interface.Bus(channel=Config.CAN_CHANNEL, bustype='socketcan')
+                logger.info(f"Connected to CAN interface {Config.CAN_CHANNEL}.")
+            else:
+                raise RuntimeError(f"CAN interface {Config.CAN_CHANNEL} is not up. Please bring it up before initializing.")
         else:
             self.bus = bus
+
+    @staticmethod
+    def is_interface_up(interface: str) -> bool:
+        """
+        Check if the given network interface is up.
+        """
+        try:
+            # Run the 'ip link show' command to check the status of the interface
+            result = subprocess.run(['ip', 'link', 'show', interface], capture_output=True, text=True)
+            # Check if the result contains "state UP"
+            return "state UP" in result.stdout
+        except Exception as e:
+            logger.info(f"Error checking interface status: {e}")
+            return False
 
     def send_frame(self, id, data):
         with can_lock:
             message = can.Message(arbitration_id=id, data=data, is_extended_id=True)
             try:
                 self.bus.send(message)
-            except can.CanError:
-                print("Message not sent")
+                logger.info(f"Sent CAN message with ID: {id}, Data: {data}")
+            except can.CanError as e:
+                logger.error(f"Message not sent: {e}")
 
     def control_frame(self, id):
         data = [0x30, 0x00, 0x00, 0x00]
+        self.send_frame(id, data)
+
+    def control_frame_write_file(self, id):
+        data = [0x03, 0x31, 0x01, 0x03, 0x01, 0x00]
+        self.send_frame(id, data)
+
+    def control_frame_install_updates(self, id):
+        data = [0x03, 0x31, 0x01, 0x02, 0x01, 0x00]
         self.send_frame(id, data)
 
     def request_id_mcu(self, api_id):
@@ -50,7 +77,6 @@ class GenerateFrame:
             if len(response) <= 4:
                 data = [len(response) + 3, 0x62, identifier // 0x100, identifier % 0x100] + response
             else:
-                print("Error")
                 return
         self.send_frame(id, data)
 
@@ -82,7 +108,7 @@ class GenerateFrame:
                 self.__add_to_list(data, memory_size)
                 data = data + response
             else:
-                print("Error, please use considering read_memory_by_adress_long")
+                logger.error("Error, please use considering read_memory_by_adress_long")
                 return
         self.send_frame(id, data)
 
@@ -144,14 +170,64 @@ class GenerateFrame:
         data = [2, 0x83, sub_function] if response is False else [2, 0xC3, sub_function]
         self.send_frame(id, data)
 
-    def request_download(self, id, data_format_identifier, memory_address, memory_size, size):
-        address_length = (self.__count_digits(memory_address) + 1) // 2
-        size_length = (self.__count_digits(memory_size) + 1) // 2
-        memory_length = size_length * 0x10 + address_length
-        data = [size_length + address_length + 3, 0x34, data_format_identifier, memory_length]
-        self.__add_to_list(data, memory_address)
-        self.__add_to_list(data, memory_size)
-        data.append(size)
+    def request_download(self, id, data_format_identifier, memory_address, memory_size, version):
+        # Define the data format identifier mapping
+        DATA_FORMAT_IDENTIFIER_MAP = {
+            0x00: "No compression/encryption",
+            "zip": 0x10,
+            0x01: "Only encryption",
+            0x10: "Only compression",
+            0x11: "Both encryption and compression"
+        }
+
+        # Constants
+        sid = 0x34  # Service Identifier for Request Download
+        pci = 0x07  # Protocol Control Information (PCI) - 1 byte
+
+        # Handle data_format_identifier
+        if isinstance(data_format_identifier, str):
+            if data_format_identifier.lower() not in DATA_FORMAT_IDENTIFIER_MAP:
+                raise ValueError(f"Invalid data format identifier: {data_format_identifier}")
+            data_format_identifier = DATA_FORMAT_IDENTIFIER_MAP[data_format_identifier.lower()]
+        elif isinstance(data_format_identifier, int):
+            if data_format_identifier not in DATA_FORMAT_IDENTIFIER_MAP:
+                raise ValueError(f"Invalid data format identifier: {data_format_identifier}")
+        else:
+            raise ValueError(f"Invalid data format identifier type: {type(data_format_identifier)}")
+
+        # Handle memory address and size
+        memory_address_bytes = memory_address.to_bytes((memory_address.bit_length() + 7) // 8, byteorder='big') if isinstance(memory_address, int) else memory_address
+        memory_size_bytes = memory_size.to_bytes((memory_size.bit_length() + 7) // 8, byteorder='big') if isinstance(memory_size, int) else memory_size
+
+        # Calculate the Address and Length Format Identifier
+        address_length = len(memory_address_bytes)
+        size_length = len(memory_size_bytes)
+        address_and_length_format_identifier = (size_length << 4) | address_length
+
+        # Handle version
+        if isinstance(version, str):
+            if '.' not in version:
+                version += '.0'
+            major, minor = map(float, version.split('.'))
+            # Reduce the version by 1.0
+            reduced_version = major - 1 + (minor / 10)
+            if reduced_version < 0:
+                raise ValueError(f"Invalid version: {version}. Cannot be less than 1.0")
+            reduced_major, reduced_minor = divmod(reduced_version, 1)
+            version_byte = (int(reduced_major) << 4) | int(reduced_minor * 10)
+        elif isinstance(version, int):
+            # Assume the int is already in the correct format
+            version_byte = version
+        else:
+            raise ValueError(f"Invalid version format: {version}")
+
+        # Constructing the data list
+        data = [pci, sid, data_format_identifier, address_and_length_format_identifier]
+        data.extend(memory_address_bytes)
+        data.extend(memory_size_bytes)
+        data.append(version_byte)
+
+        # Sending the frame using the send_frame function
         self.send_frame(id, data)
 
     def request_download_response(self, id, max_number_block):
@@ -161,15 +237,8 @@ class GenerateFrame:
 
         self.send_frame(id, data)
 
-    def transfer_data(self, id, block_sequence_counter, transfer_data={}):
-        if len(transfer_data):
-            if len(transfer_data) <= 5:
-                data = [len(transfer_data) + 2, 0x36, block_sequence_counter] + transfer_data
-            else:
-                print("ERROR: To many data to transfer, consider using Transfer_data_long!")
-                return
-        else:
-            data = [0x2, 0x76, block_sequence_counter]
+    def transfer_data(self, id, block_sequence_counter):
+        data = [0x02, 0x36, block_sequence_counter]
         self.send_frame(id, data)
 
     def transfer_data_long(self, id, block_sequence_counter, transfer_data, first_frame=True):

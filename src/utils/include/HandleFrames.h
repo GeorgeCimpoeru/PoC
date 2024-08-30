@@ -30,10 +30,12 @@
 #include "../../uds/read_dtc_information/include/ReadDtcInformation.h"
 #include "../../uds/routine_control/include/RoutineControl.h"
 #include "../../uds/access_timing_parameters/include/AccessTimingParameter.h"
+#include "../../uds/read_memory_by_address/include/ReadMemoryByAddress.h"
 #include "../../ota/request_download/include/RequestDownload.h"
 #include "../../ota/request_update_status/include/RequestUpdateStatus.h"
 #include "../../ota/transfer_data/include/TransferData.h"
 #include "../../uds/clear_dtc/include/ClearDtc.h"
+#include "../../utils/include/MemoryManager.h"
 
 class HandleFrames 
 {

@@ -13,6 +13,7 @@
 #include "../include/MCULogger.h"
 #include "../../uds/write_data_by_identifier/include/WriteDataByIdentifier.h"
 #include "../../uds/tester_present/include/TesterPresent.h"
+#include "../../uds/tester_present/include/TesterPresent.h"
 
 #include <thread>
 #include <future>
@@ -24,6 +25,13 @@ namespace MCU
 {
     class MCUModule {
     public:
+        /* Static dictionary to store SID and processing time */
+        static std::map<uint8_t, double> timing_parameters;
+        /* Store active timers for SIDs */
+        static std::map<uint8_t, std::future<void>> active_timers;
+        /* Stop flags for each SID. */
+        static std::map<uint8_t, std::atomic<bool>> stop_flags;
+
         /* Static dictionary to store SID and processing time */
         static std::map<uint8_t, double> timing_parameters;
         /* Store active timers for SIDs */

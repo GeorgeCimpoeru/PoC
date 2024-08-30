@@ -25,6 +25,7 @@
 #include <linux/can.h>
 #include <map>
 #include "../../../utils/include/Logger.h"
+#include "../../../utils/include/NegativeResponse.h"
 #include "../../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../../utils/include/Logger.h"
@@ -49,7 +50,7 @@
 #define NEGATIVE_RESPONSE 0x7F
 #define REQUEST_OUT_OF_RANGE 0x31
 
-#define MCU_ID 0x10
+#define MCU_ID ((uint8_t)0x10)
 #define API_ID 0xFA
 
 /**
@@ -90,7 +91,8 @@ typedef enum OtaUpdateStatesEnum
 
 class RequestUpdateStatus
 {
-private:        
+private:
+	Logger rus_logger;
 public:
 	int socket = -1;
 	Logger& _logger;

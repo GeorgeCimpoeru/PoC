@@ -205,6 +205,27 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
         {
             /* ReadMemoryByAddress(frame_data[2], frame_data[3] << 8) | frame_data[4], frame_data[5] << 8) | frame_data[6]); */
             LOG_INFO(_logger.GET_LOGGER(), "ReadMemoryByAddress called.");
+            if(frame_data[1] == 0x7F)
+            {
+                LOG_INFO(_logger.GET_LOGGER(), "Negative Response received.");
+                NegativeResponse negative_response(can_socket, _logger);
+                negative_response.sendNRC(frame_id, 0x23, frame_data[3]);
+            }
+            else
+            {
+                LOG_INFO(_logger.GET_LOGGER(), "ReadMemoryByAddress called.");
+
+                /* Assuming that frame_data[2-5] contains the memory address and frame_data[6-7] contains the memory size */
+                off_t memory_address = (frame_data[2] << 24) | (frame_data[3] << 16) | (frame_data[4] << 8) | frame_data[5];
+                off_t memory_size = (frame_data[6] << 8) | frame_data[7];
+
+                /* Create instances of MemoryManager and GenerateFrames as needed */
+                MemoryManager memoryManager(memory_address, "/dev/loop25", _logger);
+                GenerateFrames frameGenerator(_socket, _logger);
+                ReadMemoryByAddress read_memory_by_address(&memoryManager, frameGenerator, _socket, _logger);
+
+                read_memory_by_address.handleRequest(frame_id, memory_address, memory_size);
+            }
             break;
         }
         case 0x2E:
