@@ -17,18 +17,15 @@
 #define DIAGNOSTICSESSIONCONTROL_H
 
 #include <cstdlib>
+#include <iostream>
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../../utils/include/Logger.h"
+#include "../../../utils/include/NegativeResponse.h"
+
 /* Diagnostic Control Session codes */
 const uint8_t SID_DIAGNOSTIC_SESSION_CONTROL = 0x10;
 const uint8_t SUB_FUNCTION_DEFAULT_SESSION = 1;
 const uint8_t SUB_FUNCTION_PROGRAMMING_SESSION = 2;
-
-/* Negative response codes */
-const uint8_t NR_SUBFUNCION_NOT_SUPPORTED = 0x12;
-const uint8_t NR_INCORRECT_MESSAGE_LENGTH = 0x13;
-const uint8_t NR_AUTHENTICATION_FAILED = 0x34;
-const uint8_t NR_RESOURCE_TEMP_UNAVAILABLE = 0x94;
 
 enum DiagnosticSession
 {
@@ -45,7 +42,7 @@ public:
      * this will be used in MCU module.
      * 
      */
-    DiagnosticSessionControl(Logger* logger, int socket);
+    DiagnosticSessionControl(Logger& logger, int socket);
     /**
      * @brief Construct a new Diagnostic Session Control object
      * with a parameter given for 'module_id'. For example, battery
@@ -53,7 +50,7 @@ public:
      * 
      * @param module_id 
      */
-    DiagnosticSessionControl(int module_id, Logger* logger, int socket);
+    DiagnosticSessionControl(int module_id, Logger& logger, int socket);
 
     /**
      * @brief Destroy the Diagnostic Session Control object
@@ -89,11 +86,11 @@ public:
      * @param response_code 
      */
     void sendNegativeResponse(uint8_t response_code);
+    static DiagnosticSession current_session;
 
 private:
     int module_id;
-    Logger* dsc_logger;
-    static DiagnosticSession current_session;
+    Logger& dsc_logger;
     int socket = -1;
     void switchToDefaultSession(canid_t frame_id);
     void switchToProgrammingSession(canid_t frame_id);

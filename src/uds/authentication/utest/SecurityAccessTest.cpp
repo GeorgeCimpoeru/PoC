@@ -133,7 +133,7 @@ TEST_F(SecurityTest, DefaultMCUStateTest)
 TEST_F(SecurityTest, IncorrectMesssageLength)
 {
     struct can_frame result_frame = createFrame({0x03, 0x7F, 
-                    SecurityAccess::SECURITY_ACCESS_SID, SecurityAccess::IMLOIF});
+                    SecurityAccess::SECURITY_ACCESS_SID, NegativeResponse::IMLOIF});
 
     r->securityAccess(0xFA10, {0x03, 0x27, 0x03, 0x3F, 0x01, 0x00, 0x02});
     c1->capture();
@@ -144,7 +144,7 @@ TEST_F(SecurityTest, IncorrectMesssageLength)
 TEST_F(SecurityTest, SubFunctionNotSupported)
 {
     struct can_frame result_frame = createFrame({0x03, 0x7F, 
-                    SecurityAccess::SECURITY_ACCESS_SID, SecurityAccess::SFNS});
+                    SecurityAccess::SECURITY_ACCESS_SID, NegativeResponse::SFNS});
 
     r->securityAccess(0xFA10, {0x06, SecurityAccess::SECURITY_ACCESS_SID, 
                     0x03, 0x3F, 0x01, 0x00, 0x02});
@@ -156,7 +156,7 @@ TEST_F(SecurityTest, SubFunctionNotSupported)
 TEST_F(SecurityTest, SendKeyBeforeRequestSeed)
 {
     struct can_frame result_frame = createFrame({0x03, 0x7F, 
-                    SecurityAccess::SECURITY_ACCESS_SID, SecurityAccess::RSE});
+                    SecurityAccess::SECURITY_ACCESS_SID, NegativeResponse::RSE});
     r->securityAccess(0xFA10, {0x04, 0x27, 0x02, 0xCA, 0xA5});
     c1->capture();
     testFrames(result_frame, *c1);
@@ -187,7 +187,7 @@ TEST_F(SecurityTest, RequestSeed)
 TEST_F(SecurityTest, InvalidKey)
 {
     struct can_frame result_frame = createFrame({0x03, 0x7F, 
-                    SecurityAccess::SECURITY_ACCESS_SID, SecurityAccess::IK});
+                    SecurityAccess::SECURITY_ACCESS_SID, NegativeResponse::IK});
     /* Send 3 wrong key */
     std::vector<uint8_t> data_frame = {static_cast<uint8_t>(seed.size() + 2), 0x27, 0x02};
 
@@ -206,7 +206,7 @@ TEST_F(SecurityTest, InvalidKey)
 TEST_F(SecurityTest, ExceededNrOfAttempts)
 {
     struct can_frame result_frame = createFrame({0x03, 0x7F, 
-                    SecurityAccess::SECURITY_ACCESS_SID, SecurityAccess::ENOA});
+                    SecurityAccess::SECURITY_ACCESS_SID, NegativeResponse::ENOA});
     /* Send another wrong key */
     std::vector<uint8_t> data_frame = {static_cast<uint8_t>(seed.size() + 2), 0x27, 0x02};
     

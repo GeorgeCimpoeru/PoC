@@ -24,8 +24,8 @@ class ClearDtc
     private:
         std::string path_to_dtc = "";
         GenerateFrames* generate;
+        Logger& logger;
         int socket;
-        Logger* logger;
     public:
         /**
          * @brief Construct a new Clear Dtc object

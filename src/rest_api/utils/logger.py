@@ -1,8 +1,22 @@
 import os
 import logging
-from logging.handlers import RotatingFileHandler
 from flask import request
 from functools import wraps
+
+
+LOG_DIRECTORY = os.path.join(os.path.dirname(__file__), 'log')
+os.makedirs(LOG_DIRECTORY, exist_ok=True)
+
+log_memory = []
+
+
+class MemoryHandler(logging.Handler):
+    """
+    A custom logging handler that stores log entries in memory.
+    """
+    def emit(self, record):
+        log_entry = self.format(record)
+        log_memory.append(log_entry)
 
 
 def setup_logger():
@@ -12,11 +26,8 @@ def setup_logger():
     Returns:
         function: A decorator function for logging requests and responses.
     """
-    log_directory = os.path.join(os.path.dirname(__file__), 'log')
-    os.makedirs(log_directory, exist_ok=True)
-    log_file = os.path.join(log_directory, 'api.log')
-
-    log_handler = RotatingFileHandler(log_file, maxBytes=10000, backupCount=3)
+    log_file = os.path.join(LOG_DIRECTORY, 'api.log')
+    log_handler = logging.FileHandler(log_file)
     log_handler.setLevel(logging.INFO)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     log_handler.setFormatter(formatter)
@@ -39,15 +50,6 @@ def setup_logger():
     return decorator
 
 
-log_memory = []
-
-
-class MemoryHandler(logging.Handler):
-    def emit(self, record):
-        log_entry = self.format(record)
-        log_memory.append(log_entry)
-
-
 class SingletonLogger:
     _instance = None
     _logger = None
@@ -60,15 +62,13 @@ class SingletonLogger:
         return cls._instance
 
     def _initialize(self, log_filename):
-        log_directory = os.path.join(os.path.dirname(__file__), 'log')
-        os.makedirs(log_directory, exist_ok=True)
-        log_path = os.path.join(log_directory, log_filename)
+        log_path = os.path.join(LOG_DIRECTORY, log_filename)
 
         self._logger = logging.getLogger('custom_logger')
         self._logger.setLevel(logging.DEBUG)
 
         if not self._logger.hasHandlers():
-            log_handler = RotatingFileHandler(log_path, maxBytes=10000, backupCount=3)
+            log_handler = logging.FileHandler(log_path)
             log_handler.setLevel(logging.DEBUG)
             formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
             log_handler.setFormatter(formatter)

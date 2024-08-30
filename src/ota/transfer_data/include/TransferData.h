@@ -12,16 +12,18 @@
 #include "../../utils/include/Logger.h"
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../utils/include/MemoryManager.h"
+#include "../../../utils/include/NegativeResponse.h"
 #include "../../request_transfer_exit/include/RequestTransferExit.h"
 
 class TransferData 
 {
     public:
+    static constexpr uint8_t TD_SID = 0x34;
     /**
      * @brief Constructor for transfer data object
      * @param transfer_data_logger local reference to the parent logger
      */
-    TransferData(int socket, Logger& transfer_data_logger);
+    TransferData(int socket, Logger transfer_data_logger);
     /**
      * @brief method used to facilitate the transfer of data
      * @param can_id frame id that contains the sender and receiver
@@ -29,9 +31,8 @@ class TransferData
      */
     void transferData(canid_t can_id, std::vector<uint8_t>& transfer_request);
     private:
-    Logger& transfer_data_logger;
+    Logger transfer_data_logger;
     GenerateFrames generate_frames;
-    MemoryManager* memory_manager;
     int socket = -1;
     static uint8_t expected_block_sequence_number;
 

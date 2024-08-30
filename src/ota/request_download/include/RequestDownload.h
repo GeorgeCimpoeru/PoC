@@ -24,10 +24,12 @@
 #include <sys/ioctl.h>
 #include <linux/can.h>
 #include <net/if.h>
+#include <zip.h>
 #include "../../../utils/include/CreateInterface.h"
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../utils/include/Logger.h"
 #include "../../uds/diagnostic_session_control/include/DiagnosticSessionControl.h"
+#include "../../../utils/include/NegativeResponse.h"
 #include "../../uds/authentication/include/SecurityAccess.h"
 #include "../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
 #include "../../utils/include/MemoryManager.h"
@@ -35,7 +37,7 @@
 class RequestDownloadService
 {
 public:
-    Logger RDSlogger;
+    static constexpr uint8_t RDS_SID = 0x34;
     /**
      * @brief Construct a new Request Download Service object
      * 
@@ -60,24 +62,20 @@ public:
      * @param id 
      * @param stored_data 
      */
-    void requestDownloadRequest(int id, std::vector<uint8_t> stored_data);
+    void requestDownloadRequest(canid_t id, std::vector<uint8_t> stored_data);
     /**
      * @brief Response method from manual Request Download service to start the download in MCU
      * 
      * @param id 
      * @param max_number_block 
      */
-    void requestDownloadResp(int id, int memory_address, int max_number_block);
+    void requestDownloadResponse(canid_t id, int memory_address, int max_number_block);
 
 private:
     int socket = -1;
-    GenerateFrames generateFrames;
-    /**
-     * @brief Method for checking if the MCU is in the programming session
-     * 
-     * @return true 
-     */
-    bool isInProgrammingSession();
+    Logger& RDSlogger;
+
+    GenerateFrames generate_frames;
     /**
      * @brief Method for validation of the provided memory address and size, ensuring they are within acceptable bounds and logical ranges.
      *
@@ -114,7 +112,7 @@ private:
      * @param stored_data 
      * @return std::pair<int,int> 
      */
-    std::pair<int,int> extractSizeAndAddressLength( std::vector<uint8_t> stored_data);
+    std::pair<int,int> extractSizeAndAddressLength(canid_t id, std::vector<uint8_t> stored_data);
     /**
      * @brief Response to request download
      * 
@@ -122,7 +120,7 @@ private:
      * @param memory_address 
      * @param max_number_block 
      */
-    void requestDownloadResp89(int receiver_id, int memory_address, int max_number_block);
+    void requestDownloadAutomatic(canid_t receiver_id, int memory_address, int max_number_block);
     /**
      * @brief Method to calculate max_number_block
      * 
@@ -151,7 +149,16 @@ private:
      * 
      * @param version_file_id 
      */
-    void downloadSoftwareVersion(std::string version_file_id);
+    void downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_version);
+
+    /**
+     * @brief Method to extract the zipped file.
+     * 
+     * @param target_id targeted ecu for file unzipping.
+     * @param zipFilePath path to zip file
+     * @param outputDir path for the extracted file
+     */
+    bool extractZipFile(uint8_t target_id, const std::string &zipFilePath, const std::string &outputDir);
 };
 
 #endif /* REQUEST_DOWNLOAD_SERVICE_H */
