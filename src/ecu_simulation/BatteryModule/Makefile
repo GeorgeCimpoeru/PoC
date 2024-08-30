@@ -2,14 +2,15 @@
 ######### Author: Theodor Stoica (contact theodor.stoica@randstaddigital.com for any help)
 
 #POC Project root path
-PROJECT_PATH := $(shell cd $(shell pwd)/../../ && pwd)
+PROJECT_PATH := $(shell cd $(shell pwd)/../../../ && pwd)
+
 #Python flags
 PYTHON_INCL_DIR=-I/usr/include/python3.8
 PYTHON_LDFLAGS = -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -lcrypt -ldl -lutil -lm -lpthread
 # Compiler flags
 CXX = g++
 CFLAGS = -std=c++17 -g -Wall -Werror -pthread -I./include -I../../utils/include ${PYTHON_INCL_DIR} -DPROJECT_PATH=\"$(PROJECT_PATH)\"
-LDFLAGS = -lspdlog -lfmt  ${PYTHON_LDFLAGS}
+LDFLAGS = -lspdlog -lfmt -lzip ${PYTHON_LDFLAGS}
 
 # Test flags
 CFLAGSTST = -std=c++17 -I/include -fprofile-arcs -ftest-coverage
@@ -623,6 +624,8 @@ $(UDS_DIR)/authentication/utest/securityAccessTest.out: $(OBJ_DIR) $(OBJS_SECURI
 $(UDS_DIR)/authentication/utest/SecurityAccess_test.o: $(UDS_DIR)/authentication/utest/SecurityAccessTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/authentication/utest/SecurityAccessTest.cpp -o $(UDS_DIR)/authentication/utest/SecurityAccess_test.o $(CFLAGSTST2) $(LDFLAGS)
 
+
+
 # TesterPresent Unit tests
 testerPresentTest: $(OBJ_DIR) $(UDS_DIR)/tester_present/utest/testerPresentTest.out
 
@@ -631,6 +634,8 @@ $(UDS_DIR)/tester_present/utest/testerPresentTest.out: $(OBJ_DIR) $(OBJS_TESTERP
 
 $(UDS_DIR)/tester_present/utest/TesterPresent_test.o: $(UDS_DIR)/tester_present/utest/TesterPresentTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/tester_present/utest/TesterPresentTest.cpp -o $(UDS_DIR)/tester_present/utest/TesterPresent_test.o $(CFLAGSTST2) $(LDFLAGS)
+
+
 
 # RoutineControl Unit tests
 routineControlTest: $(OBJ_DIR) $(UDS_DIR)/routine_control/utest/routineControlTest.out
@@ -673,6 +678,7 @@ $(OTA_DIR)/transfer_data/utest/transferDataTest.out: $(OBJ_DIR) $(OBJS_TRANSFERD
 
 $(OTA_DIR)/transfer_data/utest/TransferData_test.o: $(OTA_DIR)/transfer_data/utest/TransferDataTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(OTA_DIR)/transfer_data/utest/TransferDataTest.cpp -o $(OTA_DIR)/transfer_data/utest/TransferData_test.o $(CFLAGSTST2) $(LDFLAGS)
+
 
 
 # AccessTimingParameter Unit tests
@@ -955,6 +961,7 @@ ecuReset_coverage: ecuResetTest
 	mv EcuReset.cpp.gcov coverage/out_EcuReset
 
 
+
 # TesterPresent Coverage - solo job
 testerPresentCoverage: testerPresent_coverage
 	lcov --capture --directory . --output-file coverage.info
@@ -968,6 +975,7 @@ testerPresent_coverage: testerPresentTest
 	mkdir -p coverage/out_TesterPresent
 	gcov -o obj/TesterPresent_test.gcno obj/TesterPresent_test.gcda $(UDS_DIR)/tester_present/src/TesterPresent.cpp
 	mv TesterPresent.cpp.gcov coverage/out_TesterPresent
+
 
 
 # NegativeResponse Coverage - solo job
@@ -1032,6 +1040,8 @@ batteryModule_coverage: batteryModuleTest
 	gcov -o obj/BatteryModule_test.gcno obj/BatteryModule_test.gcda $(SRC_TEST)/BatteryModule.cpp
 	mv BatteryModule.cpp.gcov coverage/out_BatteryModule
 
+
+
 # AccessTimingParameter Coverage - solo job
 accessTimingParameterCoverage: accessTimingParameter_coverage
 	lcov --capture --directory . --output-file coverage.info
@@ -1045,6 +1055,7 @@ accessTimingParameter_coverage: accessTimingParameterTest
 	mkdir -p coverage/out_AccessTimingParameterTest
 	gcov -o obj/AccessTimingParameter_test.gcno obj/AccessTimingParameter_test.gcda $(UDS_DIR)/access_timing_parameters/src/AccessTimingParameter.cpp
 	mv AccessTimingParameter.cpp.gcov coverage/out_AccessTimingParameter
+
 
 
 allCoverage: securityAccess_coverage routineControl_coverage transferData_coverage requestDownload_coverage ecuReset_coverage memoryManager_coverage logger_coverage generateFrames_coverage receiveFrames_coverage handleFrames_coverage createInterface_coverage diagnosticSessionControl_coverage writeDataByIdentifier_coverage readDataByIdentifier_coverage requestTransferExit_coverage clearDtc_coverage readDtc_coverage requestUpdateStatus_coverage batteryModule_coverage testerPresent_coverage accessTimingParameter_coverage
@@ -1127,4 +1138,4 @@ clean:
 	find . -name '*.info' -delete
 	find ./test -name '*.out' -delete
 	find ./test -name '*.o' -delete
-	find ./coverage -name '*' -delete
+	if [ -d "./coverage" ]; then find ./coverage -name '*' -delete; fi

@@ -11,7 +11,7 @@
 
 #include "../include/RequestUpdateStatus.h"
 
-RequestUpdateStatus::RequestUpdateStatus(int socket) : socket(socket)
+RequestUpdateStatus::RequestUpdateStatus(int socket, Logger& rus_logger) : rus_logger(rus_logger), socket(socket)
 {}
 
 std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id, std::vector<uint8_t> request)
@@ -22,10 +22,10 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
     canid_t response_id = request_id;
     uint8_t receiver_byte = (response_id & 0xff); /* Get the first byte - receiver */
     uint8_t sender_byte = ((response_id & 0xff00) >> 8);     /* Get second byte - sender */
-
+    NegativeResponse nrc(socket, rus_logger);
     if(receiver_byte != MCU_ID || sender_byte != API_ID)
     {
-        LOG_WARN(MCULogger->GET_LOGGER(), "Request update status must be made from API to MCU. Request redirected from API to MCU.");
+        LOG_WARN(rus_logger.GET_LOGGER(), "Request update status must be made from API to MCU. Request redirected from API to MCU.");
         receiver_byte = MCU_ID;
         sender_byte = API_ID;
         request_id = (API_ID << 8) | MCU_ID;
@@ -40,28 +40,22 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
     readDataRequest.emplace_back(OTA_UPDATE_STATUS_DID_MSB);    /* OTA_UPDATE_STATUS_MSB_DID */
     readDataRequest.emplace_back(OTA_UPDATE_STATUS_DID_LSB);    /* OTA_UPDATE_STATUS_LSB_DID */
 
-    ReadDataByIdentifier RIDB(socket, MCULogger);
+    ReadDataByIdentifier RIDB(socket, &rus_logger);
     std::vector<uint8_t> RIDB_response = RIDB.readDataByIdentifier(request_id, readDataRequest, false);
     std::vector<uint8_t> response;
 
     /* If a negative response is sent from readDataByIdentifier service, send the same response from requestUpdateStatus, but with changed SID. */
     if(RIDB_response[1] == NEGATIVE_RESPONSE)
     {
-        response.push_back(RIDB_response[0]);           /* PCI_l*/
-        response.push_back(RIDB_response[1]);           /* Negative response */
-        response.push_back(REQUEST_UPDATE_STATUS_SID);  /* SID */
-        response.push_back(RIDB_response[3]);           /* Negative response code */
+        nrc.sendNRC(response_id, REQUEST_UPDATE_STATUS_SID, RIDB_response[3]);
     }
     else
     {   /* Check if the received status value is a valid one */
         uint8_t status = RIDB_response[0];
         if (isValidStatus(RIDB_response[0]) == 0)
         {
-            LOG_WARN(MCULogger->GET_LOGGER(), "Status value {} read from readDataByIdentifier is invalid.", status);
-            response.push_back(PCI_L);           /* PCI_l*/
-            response.push_back(NEGATIVE_RESPONSE);           /* Negative response */
-            response.push_back(REQUEST_UPDATE_STATUS_SID);  /* SID */
-            response.push_back(REQUEST_OUT_OF_RANGE);           /* Negative response code */
+            LOG_WARN(rus_logger.GET_LOGGER(), "Status value {} read from readDataByIdentifier is invalid.", status);
+            nrc.sendNRC(response_id, REQUEST_UPDATE_STATUS_SID, NegativeResponse::ROOR);
         }
         else
         {
@@ -72,7 +66,7 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
         }
     }
 
-    GenerateFrames generate_frames(socket, *MCULogger);
+    GenerateFrames generate_frames(socket, rus_logger);
     generate_frames.requestUpdateStatusResponse(response_id, response);
     
     return response;
