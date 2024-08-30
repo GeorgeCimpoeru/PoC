@@ -69,7 +69,7 @@ const DowngradeButton = () => {
 
             <Modal
                 title="Select Version"
-                visible={isVersionPopupVisible}
+                open={isVersionPopupVisible}
                 onCancel={() => setIsVersionPopupVisible(false)}
                 footer={[
                     <Button key="version1" onClick={() => handleVersionSelect('1')}>
@@ -88,7 +88,7 @@ const DowngradeButton = () => {
 
             <Modal
                 title="Downgrade Status"
-                visible={isPopupVisible}
+                open={isPopupVisible}
                 onCancel={closePopup}
                 footer={[
                     <Button key="ok" onClick={closePopup}>

@@ -34,7 +34,7 @@ echo "Navigated to ../mcu" &&
     echo "Cleaned the MCUModule build" &&
     make &&
     echo "Compiled the MCU application" &&
-    ./main &&
+    ./main_mcu &&
     echo "Ran the MCU application"
 } 2>&1 | tee mcu_log.txt &&
 exec bash
@@ -48,7 +48,7 @@ make clean &&
 echo "Cleaned the BatteryModule build" &&
 make &&
 echo "Compiled the BatteryModule application" &&
-./main &&
+./main_battery &&
 echo "Ran the BatteryModule application" &&
 exec bash
 '

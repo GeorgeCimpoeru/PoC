@@ -14,8 +14,9 @@ const DivLeft = (props: any) => {
             <div onClick={() => handleSendBack("1")} className={activeIcon === "1" ? "bg-white/50 p-1 rounded-lg" : "text-cyan-50"}>MCU</div>
             <div onClick={() => handleSendBack("2")} className={activeIcon === "2" ? "bg-white/50 p-1 rounded-lg" : "text-cyan-50"}>Battery</div>
             <div onClick={() => handleSendBack("3")} className={activeIcon === "3" ? "bg-white/50 p-1 rounded-lg" : "text-cyan-50"}>Engine</div>
-            <div onClick={() => handleSendBack("4")} className={activeIcon === "4" ? "bg-white/50 p-1 rounded-lg" : "text-cyan-50"}>SOTA/SIT</div>
-            <div onClick={() => handleSendBack("5")} className={activeIcon === "5" ? "bg-white/50 p-1 rounded-lg" : "text-cyan-50"}>Send requests</div>
+            <div onClick={() => handleSendBack("4")} className={activeIcon === "4" ? "bg-white/50 p-1 rounded-lg" : "text-cyan-50"}>Doors</div>
+            <div onClick={() => handleSendBack("5")} className={activeIcon === "5" ? "bg-white/50 p-1 rounded-lg" : "text-cyan-50"}>HVAC</div>
+            <div onClick={() => handleSendBack("6")} className={activeIcon === "6" ? "bg-white/50 p-1 rounded-lg" : "text-cyan-50"}>Send requests</div>
         </div>
     );
 }

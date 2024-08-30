@@ -16,6 +16,9 @@
 #include <vector>
 #include <unordered_map>
 #include <bitset>
+#include <fstream>
+#include <sstream>
+#include <string>
 
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../utils/include/Logger.h"
@@ -30,7 +33,7 @@ class ReadDataByIdentifier
     /**
     * @brief Default constructor
     */
-    ReadDataByIdentifier(int socket, Logger* rdbi_logger);
+    ReadDataByIdentifier(int socket, Logger& rdbi_logger);
     /**
     * @brief Method that retrieves some data based on a DID.
     * @param can_id The frame id.
