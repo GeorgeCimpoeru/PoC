@@ -17,7 +17,7 @@ interface batteryData {
 
 const SendRequests = () => {
     const [logs, setLogs] = useState<string[]>([]);
-    const [data23, setData23] = useState<{ ecu_ids: [], mcu_id: any, status: string, time_stamp: string } | string | null>();
+    const [data23, setData23] = useState<{ ecu_ids: [], mcu_id: any, status: string, time_stamp: string } | string[] | string | null>();
     const [batteryData, setBatteryData] = useState<batteryData | null>();
     const [canId, setCanId] = useState("");
     const [canData, setCanData] = useState("");
@@ -104,9 +104,9 @@ const SendRequests = () => {
         };
 
         displayPopup();
-        setInterval(() => {
-            displayPopup();
-        }, 10000);
+        // setInterval(() => {
+        //     displayPopup();
+        // }, 10000);
     };
 
 
@@ -213,6 +213,29 @@ const SendRequests = () => {
         }
     }
 
+    const getNewSoftVersions = async () => {
+        console.log("Geting new soft versions...");
+        try {
+            await fetch('http://127.0.0.1:5000/api/drive_update_data', {
+                method: 'GET',
+            }).then(response => response.json())
+                .then(data => {
+                    const versionsArray: string[] = [];
+                    for (let i = 0; i < data.children[3].children.length; ++i) {
+                        versionsArray.push(data.children[3].children[i].name)
+                    }
+                    for (let i = 0; i < data.children[4].children.length; ++i) {
+                        versionsArray.push(data.children[4].children[i].name)
+                    }
+                    setData23(versionsArray);
+                    console.log(data);
+                    fetchLogs();
+                });
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     const writeInfoDoors = async () => {
         const door = prompt('Enter Door Parameter:');
         const serial_number = prompt('Enter Serial Number:');
@@ -306,11 +329,14 @@ const SendRequests = () => {
         <div className="w-[90%] h-screen flex flex-col items-center">
             <div className="w-[50%] h-screen flex flex-col">
                 <h1 className="text-3xl mt-4">CAN Interface Control</h1>
+                <div>
+                    <button className="btn btn-info w-fit mt-5 text-white">
+                        <Link href="http://127.0.0.1:5000/apidocs/" target="_blank" rel="noopener noreferrer">Go to Docs</Link>
+                    </button>
+                    <button className="btn btn-warning w-fit mt-5 ml-5 text-white" onClick={testerPresent} disabled={disableFrameAndDtcBtns}>Tester present</button>
 
-                <button className="btn btn-info w-fit mt-5 text-white">
-                    <Link href="http://127.0.0.1:5000/apidocs/" target="_blank" rel="noopener noreferrer">Go to Docs</Link>
-                </button>
-
+                </div>
+               
                 <p className="text-xl mt-3">CAN ID:</p>
                 <input type="text" placeholder="e.g., 0xFa, 0x1234" className="input input-bordered w-full" onChange={e => setCanId(e.target.value)} />
                 <p className="text-xl mt-3">CAN Data:</p>
@@ -321,7 +347,7 @@ const SendRequests = () => {
                     <button className="btn btn-success w-fit mt-5 text-white" onClick={sendFrame} disabled={disableFrameAndDtcBtns}>Read DTC</button>
                     <button className="btn btn-success w-fit ml-5 mt-5 text-white" onClick={hexToAscii} disabled={disableConvertBtn}>Convert response to ASCII</button>
                     <br></br>
-                    <button className="btn btn-warning w-fit mt-5 text-white" onClick={testerPresent} disabled={disableFrameAndDtcBtns}>Tester present</button>
+                    <button className="btn btn-warning w-fit mt-5 text-white" onClick={getNewSoftVersions} disabled={disableFrameAndDtcBtns}>Check new soft versions</button>
                 </div>
                 <div className="w-full h-px mt-4 bg-gray-300"></div>
                 <div className="mt-4">
