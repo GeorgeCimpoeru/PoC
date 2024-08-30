@@ -14,7 +14,7 @@ const OtaUpdatePage = () => {
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 opacity: 0.4,
-                zIndex: -1, // treaba asta e pentru a ma asigura ca background-ul este sub toate componentele din pagina
+                zIndex: -1, 
             }}>
             </div>
 

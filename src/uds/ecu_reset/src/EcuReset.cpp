@@ -40,6 +40,7 @@ void EcuReset::ecuResetRequest()
     // }
     /* Hard Reset case */
     else if (sub_function == 0x01) {
+    else if (sub_function == 0x01) {
         LOG_INFO(ECUResetLog.GET_LOGGER(), "Reset Mode: Hard Reset");
         this->hardReset();
     /* Keys off Reset case */
@@ -100,20 +101,78 @@ void EcuReset::hardReset()
     //         break;
     //     }
     // }
+    /* Commented because we need to discuss about this in future if we need it */
+    // uint8_t lowerbits = can_id & 0xFF;
+    // /* Send response */
+    // this->ecuResetResponse();
+    // CreateInterface* interface = CreateInterface::getInstance(0x00, ECUResetLog);
+    // /* Deletes the interface */
+    // uint8_t interface_name = interface->getInterfaceName();
+    // LOG_INFO(ECUResetLog.GET_LOGGER(), "interface {} deleted", interface_name);
+    // interface->deleteInterface();
+
+    // /* Close the sockets binded to the interface */
+    // switch(lowerbits) {
+    //     /* ECU Battery case */
+    //     case 0x11:
+    //         LOG_INFO(ECUResetLog.GET_LOGGER(), "ECU socket closed");
+    //         close(battery->getBatterySocket());
+    //         break;
+
+    //     /* MCU case */
+    //     case 0x10:
+    //     {
+    //         LOG_INFO(ECUResetLog.GET_LOGGER(), "MCU sockets closed");
+    //         close(MCU::mcu->getMcuApiSocket());
+    //         close(MCU::mcu->getMcuEcuSocket());
+    //         break;
+    //     }
+    // }
+
+    // /* Recreate the interface */
+    // LOG_INFO(ECUResetLog.GET_LOGGER(), "interface {} created", interface_name);
+    // interface->createInterface();
+    // interface->startInterface();
+
+    // /* Recreate the sockets */
+    // switch(lowerbits) {
+    //     /* ECU Battery case */
+    //     case 0x11:
+    //         LOG_INFO(ECUResetLog.GET_LOGGER(), "ECU socket recreated");
+    //         battery->setBatterySocket(interface_name);
+    //         break;
+
+    //     /* MCU case */
+    //     case 0x10:
+    //     {
+    //         LOG_INFO(ECUResetLog.GET_LOGGER(), "MCU sockets recreated");
+    //         MCU::mcu->setMcuApiSocket(interface_name);
+    //         MCU::mcu->setMcuEcuSocket(interface_name);
+    //         break;
+    //     }
+    // }
     uint8_t lowerbits = can_id & 0xFF;
+    /* Send response */
+    this->ecuResetResponse();
+    switch(lowerbits)
+    {
     /* Send response */
     this->ecuResetResponse();
     switch(lowerbits)
     {
         case 0x10:
             system("./../autoscripts/ecu_reset_hard.sh");
+            system("./../autoscripts/ecu_reset_hard.sh");
             break;
+    }
     }
 }
 
 void EcuReset::keyOffReset()
 {
     uint8_t lowerbits = can_id & 0xFF;
+    /* Sens response */
+    this->ecuResetResponse();
     /* Sens response */
     this->ecuResetResponse();
     CreateInterface* interface = CreateInterface::getInstance(0x00, ECUResetLog);
