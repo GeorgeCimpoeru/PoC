@@ -38,7 +38,6 @@ class RequestDownloadService
 {
 public:
     static constexpr uint8_t RDS_SID = 0x34;
-    Logger RDSlogger;
     /**
      * @brief Construct a new Request Download Service object
      * 
