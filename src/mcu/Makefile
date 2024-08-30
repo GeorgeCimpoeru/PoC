@@ -60,7 +60,8 @@ UDS_OBJS = $(OBJ_DIR)/DiagnosticSessionControl.o \
            $(OBJ_DIR)/ReadDtcInformation.o \
            $(OBJ_DIR)/ClearDtc.o \
            $(OBJ_DIR)/RoutineControl.o \
-		   $(OBJ_DIR)/AccessTimingParameter.o
+		   $(OBJ_DIR)/AccessTimingParameter.o \
+		   $(OBJ_DIR)/ReadMemoryByAddress.o
 
 # OTA object files
 OTA_OBJS = $(OBJ_DIR)/RequestUpdateStatus.o \
@@ -131,6 +132,9 @@ $(OBJ_DIR)/SecurityAccess.o: $(UDS_DIR)/authentication/src/SecurityAccess.cpp
 
 $(OBJ_DIR)/TesterPresent.o: $(UDS_DIR)/tester_present/src/TesterPresent.cpp
 	$(CXX) $(CFLAGS) -c $(UDS_DIR)/tester_present/src/TesterPresent.cpp -o $(OBJ_DIR)/TesterPresent.o
+
+$(OBJ_DIR)/ReadMemoryByAddress.o: $(UDS_DIR)/read_memory_by_address/src/ReadMemoryByAddress.cpp
+	$(CXX) $(CFLAGS) -c $(UDS_DIR)/read_memory_by_address/src/ReadMemoryByAddress.cpp -o $(OBJ_DIR)/ReadMemoryByAddress.o
 
 $(OBJ_DIR)/BatteryModule_HandleFrames.o: $(BATTERY_DIR)/HandleFrames.cpp
 	$(CXX) $(CFLAGS) -c $(BATTERY_DIR)/HandleFrames.cpp -o $(OBJ_DIR)/BatteryModule_HandleFrames.o
