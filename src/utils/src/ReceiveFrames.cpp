@@ -172,9 +172,10 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
             LOG_WARN(receive_logger.GET_LOGGER(), "Invalid CAN ID: upper 8 bits are zero\n");
             return;
         }
+        /* Notify from MCU to tell ECU's that MCU state is unlocked */
         if (frame.data[0] == 0x01 && frame.data[1] == 0xCE)
         {
-            LOG_INFO(receive_logger.GET_LOGGER(), "Security Access unlocked.");
+            LOG_INFO(receive_logger.GET_LOGGER(), "Notification from the MCU that the server is unlocked.");
             switch(frame_dest_id)
             {
                 case 0x11:
@@ -192,6 +193,30 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
                 default:
                     break;
             }
+            goto label1;
+        }
+        /* Notify from MCU to tell ECU's that MCU state is locked */
+        else if (frame.data[0] == 0x01 && frame.data[1] == 0xCF)
+        {
+            LOG_INFO(receive_logger.GET_LOGGER(), "Notification from the MCU that the server is locked.");
+            switch(frame_dest_id)
+            {
+                case 0x11:
+                    battery_state = false;
+                    break;
+                case 0x12:
+                    engine_state = false;
+                    break;
+                case 0x13:
+                    doors_state = false;
+                    break;
+                case 0x14:
+                    hvac_state = false;
+                    break;
+                default:
+                    break;
+            }
+            goto label1;
         }
 
         /* Check if the frame is a request of type 'Up-Notification' from MCU */

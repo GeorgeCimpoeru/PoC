@@ -32,8 +32,10 @@ class SecurityAccess
     static constexpr uint8_t TIMEOUT_IN_SECONDS = 0x05;
     /* Adjust nr of attempts here. */
     static constexpr uint8_t MAX_NR_OF_ATTEMPTS = 3;
-    /* Adjust timer until security access will expire here. */
-    static constexpr uint8_t SECURITY_TIMEOUT_IN_SECONDS = 0x0A;
+    /* Adjust timer until security access will expire here. 
+     * Now it's set to 180 seconds.
+    */
+    static constexpr uint8_t SECURITY_TIMEOUT_IN_SECONDS =  0xB4;
 
     private:
         GenerateFrames* generate_frames;

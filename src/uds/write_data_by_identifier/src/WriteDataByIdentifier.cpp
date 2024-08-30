@@ -103,8 +103,9 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
     {
         nrc.sendNRC(id, WDBI_SID, NegativeResponse::SAD);
         battery->stop_flags[0x2E] = false;
-        } else if (receiver_id == 0x12)
-        {
+    }
+    else if (receiver_id == 0x12)
+    {
             engine->stop_flags[0x2E] = false;
     }
     else

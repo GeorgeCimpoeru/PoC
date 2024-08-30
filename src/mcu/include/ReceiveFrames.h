@@ -274,6 +274,16 @@ namespace MCU
      * @return int 
      */
     int getMcuSocket(uint8_t sender_id);
+    /**
+     * @brief Notify each ECU that the MCU state is unlocked.
+     * This method sends a notification frame to multiple ECUs (Battery, Engine, Doors, HVAC)
+     * indicating that the MCU state is unlocked. It appends the necessary data to the provided
+     * response vector and uses the class's generate_frames attribute to send the frames.
+     * 
+     * @param[in] response vector containing the data to be sent in each frame.
+     */
+    void securityNotifyECU(std::vector<uint8_t> response);
+
   };
 }
 #endif /* POC_SRC_MCU_RECEIVE_FRAME_MODULE_H */

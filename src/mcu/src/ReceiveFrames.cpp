@@ -1,5 +1,6 @@
 #include "../include/ReceiveFrames.h"
 #include "../include/MCUModule.h"
+#include "../../uds/authentication/include/SecurityAccess.h"
 
 namespace MCU
 {
@@ -205,6 +206,17 @@ bool ReceiveFrames::receiveFramesFromAPI()
                     LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Received frame for MCU to execute service with SID: 0x{:x}", frame.data[1]));
                     LOG_INFO(MCULogger->GET_LOGGER(), "Calling HandleFrames module to execute the service and parse the frame.");
                     handler.handleFrame(getMcuSocket(sender_id), frame);
+                    std::vector<uint8_t> response;
+                    if (!SecurityAccess::getMcuState(*MCULogger))
+                    {
+                        securityNotifyECU({0x01,0xCF});
+                        LOG_INFO(MCULogger->GET_LOGGER(), "Server is locked.");
+                    }
+                    else
+                    {
+                        securityNotifyECU({0x01,0xCE});
+                        LOG_INFO(MCULogger->GET_LOGGER(), "Server is unlocked.");
+                    }
                 }
             }
             else if (receiver_id == 0xFA) 
@@ -408,6 +420,19 @@ bool ReceiveFrames::receiveFramesFromAPI()
             std::cerr << "Exception in timerCheck: " << e.what() << std::endl;
         } catch (...) {
             std::cerr << "Unknown exception in timerCheck" << std::endl;
+        }
+    }
+    void ReceiveFrames::securityNotifyECU(std::vector<uint8_t> response)
+    {
+        /* MCU ID as sender */
+        uint8_t lowerbits = 0x10;
+        /* Battery, Engine, Doors, HVAC receivers */
+        uint8_t upperbits[] = {0x11, 0x12, 0x13, 0x14};
+
+        // Send frames to each receiver
+        for (uint8_t upper : upperbits)
+        {
+            generate_frames.sendFrame((lowerbits << 8) | upper, response, DATA_FRAME);
         }
     }
 
