@@ -149,7 +149,6 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
         }
         case 0x27:
         {
-
             /* This service can be called in PROGRAMMING_SESSION */
             if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
             {

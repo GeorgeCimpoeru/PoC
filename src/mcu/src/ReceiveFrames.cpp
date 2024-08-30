@@ -209,29 +209,12 @@ bool ReceiveFrames::receiveFramesFromAPI()
                     std::vector<uint8_t> response;
                     if (!SecurityAccess::getMcuState(*MCULogger))
                     {
+                        securityNotifyECU({0x01,0xCF});
                         LOG_INFO(MCULogger->GET_LOGGER(), "Server is locked.");
                     }
                     else
                     {
-                        uint8_t lowerbits;
-                        uint8_t upperbits;
-                        /* Create a frame to notify each ECU that MCU state is unlocked */
-                        response.push_back(0x01);
-                        response.push_back(0xCE);
-                        /* Set sender to MCU ID */
-                        lowerbits = 0x10;
-                        /* Receiver battery */
-                        upperbits = 0x11;
-                        generate_frames.sendFrame((lowerbits << 8) | upperbits,response,DATA_FRAME);
-                        /* Receiver engine */
-                        upperbits = 0x12;
-                        generate_frames.sendFrame((lowerbits << 8) | upperbits,response,DATA_FRAME);
-                        /* Receiver doors */
-                        upperbits = 0x13;
-                        generate_frames.sendFrame((lowerbits << 8) | upperbits,response,DATA_FRAME);
-                        /* Receiver HVAC */
-                        upperbits = 0x14;
-                        generate_frames.sendFrame((lowerbits << 8) | upperbits,response,DATA_FRAME);
+                        securityNotifyECU({0x01,0xCE});
                         LOG_INFO(MCULogger->GET_LOGGER(), "Server is unlocked.");
                     }
                 }
@@ -437,6 +420,19 @@ bool ReceiveFrames::receiveFramesFromAPI()
             std::cerr << "Exception in timerCheck: " << e.what() << std::endl;
         } catch (...) {
             std::cerr << "Unknown exception in timerCheck" << std::endl;
+        }
+    }
+    void ReceiveFrames::securityNotifyECU(std::vector<uint8_t> response)
+    {
+        /* MCU ID as sender */
+        uint8_t lowerbits = 0x10;
+        /* Battery, Engine, Doors, HVAC receivers */
+        uint8_t upperbits[] = {0x11, 0x12, 0x13, 0x14};
+
+        // Send frames to each receiver
+        for (uint8_t upper : upperbits)
+        {
+            generate_frames.sendFrame((lowerbits << 8) | upper, response, DATA_FRAME);
         }
     }
 

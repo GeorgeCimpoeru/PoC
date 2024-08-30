@@ -90,7 +90,7 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
         /* Return early as the request is invalid */
         return response;
     }
-    if (!SecurityAccess::getMcuState(rdbi_logger))
+    if (lowerbits == 0x10 && !SecurityAccess::getMcuState(rdbi_logger))
     {
         response.push_back(0x03); /* PCI */
         response.push_back(0x7F); /* Negative response */
@@ -99,18 +99,21 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
         if (use_send_frame)
         {
             nrc.sendNRC(can_id, RDBI_SERVICE_ID, NegativeResponse::SAD);
-            if (lowerbits == 0x10)
-            {
-                MCU::mcu->stop_flags[0x22] = false;
-            } else if (lowerbits == 0x11)
-            {
-                battery->stop_flags[0x22] = false;
-            } else if (lowerbits == 0x12)
-            {
-                engine->stop_flags[0x22] = false;
-            }
         }
-
+        MCU::mcu->stop_flags[0x22] = false;
+        return response;
+    }
+    if (lowerbits == 0x11 && !ReceiveFrames::getBatteryState())
+    {
+        response.push_back(0x03); /* PCI */
+        response.push_back(0x7F); /* Negative response */
+        response.push_back(RDBI_SERVICE_ID); /* Service ID */
+        response.push_back(NegativeResponse::SAD); /* Security Access Denied */
+        if (use_send_frame)
+        {
+            nrc.sendNRC(can_id, RDBI_SERVICE_ID, NegativeResponse::SAD);
+        }
+        battery->stop_flags[0x22] = false;
         return response;
     }
 
