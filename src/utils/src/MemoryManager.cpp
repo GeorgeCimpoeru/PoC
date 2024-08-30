@@ -97,7 +97,7 @@ bool MemoryManager::availableAddress(off_t address)
     std::string result = runCommand(verify_address_command);
     if (result.length() < 3)
     {
-        LOG_WARN(logger.GET_LOGGER(), "No boot partition found");
+        /* LOG_WARN(logger.GET_LOGGER(), "No boot partition found"); */
         return true;
     }
     std::string::size_type pos = result.find(' ');

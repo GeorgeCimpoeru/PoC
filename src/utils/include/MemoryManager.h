@@ -9,15 +9,43 @@
  *  * !!!!Run wtih sudo when run programm
  * 
  * Commands to create sdcard
+ *  ->this creates an img, run it only once
  * truncate -s +300M /home/projectx/sdcard.img
+ * 
+ *  ->this creates a loop partition with the image created above
  * sudo losetup -fP sdcard.img
+ * 
+ *  ->this lists all loops, here you should check loop number where sdcard.img is mounted,
+ *  it could be loop21 or loop25 or any number
  * sudo losetup -a
+ * 
+ *  ->here replace loop21 with your loop number found with the command above
  * sudo fdisk /dev/loop21
+ *  ->after typing this^ command, type n->enter, select 1, select primary, select 2048 as starting adress
+ *  ->then type +100M to be the ending adress, nwo you created loop21p1
+ *  ->now type n->enter, select 2, select primary, enter for default start adress, enter again for default
+ *  end adress, now you created loop21p2
+ *  ->now type w and enter to finish changes
+ *  ->now type q-> enter to quit fdisk
+ *  
+ *  ->after finishing commands above run the two mkfs commands below to format those partitions
  * sudo mkfs.fat -F 32 /dev/loop21p1
  * sudo mkfs.fat -F 16 /dev/loop21p2
- * sudo mount -o rw,uid=1000,gid=1000 /dev/loop21 /mnt/sdcard
+ * 
+ * -> run mkdir to create /mnt folder
+ * sudo mkdir /mnt/sdcard
+ * 
+ * -> run mount for both partitions created
+ * sudo mount -o rw,uid=1000,gid=1000 /dev/loop21p1 /mnt/sdcard
+ * sudo mount -o rw,uid=1000,gid=1000 /dev/loop21p2 /mnt/sdcard
+ * 
+ * -> this commands prints the data found at starting with adress 118006272
  * sudo xxd -l 17168 -s 118006272 /dev/loop21
- * sudo dd if=/dev/zero of=/dev/loop21 bs=1 seek=118006272 count=17168 conv=notrunc(delete memory)
+ * 
+ * -> this command replaces all data with zeros(erase)
+ * sudo dd if=/dev/zero of=/dev/loop21 bs=1 seek=118006272 count=17168 conv=notrunc
+ * 
+ * -> last two commands are not mandatory, only for testing
  * MAIN:
     int main()
     {
