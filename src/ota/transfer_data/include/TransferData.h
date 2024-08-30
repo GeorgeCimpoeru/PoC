@@ -12,11 +12,13 @@
 #include "../../utils/include/Logger.h"
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../utils/include/MemoryManager.h"
+#include "../../../utils/include/NegativeResponse.h"
 #include "../../request_transfer_exit/include/RequestTransferExit.h"
 
 class TransferData 
 {
     public:
+    static constexpr uint8_t TD_SID = 0x34;
     /**
      * @brief Constructor for transfer data object
      * @param transfer_data_logger local reference to the parent logger

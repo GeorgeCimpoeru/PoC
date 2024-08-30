@@ -25,6 +25,7 @@
 #include <linux/can.h>
 #include <map>
 #include "../../../utils/include/Logger.h"
+#include "../../../utils/include/NegativeResponse.h"
 #include "../../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../../utils/include/Logger.h"
@@ -90,7 +91,8 @@ typedef enum OtaUpdateStatesEnum
 
 class RequestUpdateStatus
 {
-private:        
+private:
+	Logger rus_logger;
 public:
 	int socket = -1;
 	Logger& _logger;

@@ -24,7 +24,7 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
     canid_t response_id = request_id;
     uint8_t receiver_byte = (response_id & 0xff); /* Get the first byte - receiver */
     uint8_t sender_byte = ((response_id & 0xff00) >> 8);     /* Get second byte - sender */
-
+    NegativeResponse nrc(socket, rus_logger);
     if(receiver_byte != MCU_ID || sender_byte != API_ID)
     {
         LOG_WARN(_logger.GET_LOGGER(), "Request update status must be made from API to MCU. Request redirected from API to MCU.");
@@ -49,10 +49,7 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
     /* If a negative response is sent from readDataByIdentifier service, send the same response from requestUpdateStatus, but with changed SID. */
     if(RIDB_response[1] == NEGATIVE_RESPONSE)
     {
-        response.push_back(RIDB_response[0]);           /* PCI_l*/
-        response.push_back(RIDB_response[1]);           /* Negative response */
-        response.push_back(REQUEST_UPDATE_STATUS_SID);  /* SID */
-        response.push_back(RIDB_response[3]);           /* Negative response code */
+        nrc.sendNRC(response_id, REQUEST_UPDATE_STATUS_SID, RIDB_response[3]);
     }
     else
     {   /* Check if the received status value is a valid one */
