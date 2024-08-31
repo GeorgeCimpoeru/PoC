@@ -47,7 +47,7 @@ UTILS_OBJS = $(OBJ_DIR)/MemoryManager.o \
              $(OBJ_DIR)/GenerateFrames.o \
              $(OBJ_DIR)/CreateInterface.o \
              $(OBJ_DIR)/NegativeResponse.o \
-			 $(OBJ_DIR)/BatteryModule_ReceiveFrames.o \
+			 $(OBJ_DIR)/ECU_ReceiveFrames.o \
 			 $(OBJ_DIR)/HandleFrames.o
 
 # UDS object files
@@ -56,7 +56,6 @@ UDS_OBJS = $(OBJ_DIR)/DiagnosticSessionControl.o \
            $(OBJ_DIR)/WriteDataByIdentifier.o \
            $(OBJ_DIR)/EcuReset.o \
            $(OBJ_DIR)/SecurityAccess.o \
-		   $(OBJ_DIR)/TesterPresent.o \
 		   $(OBJ_DIR)/TesterPresent.o \
            $(OBJ_DIR)/ReadDtcInformation.o \
            $(OBJ_DIR)/ClearDtc.o \
@@ -137,11 +136,8 @@ $(OBJ_DIR)/TesterPresent.o: $(UDS_DIR)/tester_present/src/TesterPresent.cpp
 $(OBJ_DIR)/ReadMemoryByAddress.o: $(UDS_DIR)/read_memory_by_address/src/ReadMemoryByAddress.cpp
 	$(CXX) $(CFLAGS) -c $(UDS_DIR)/read_memory_by_address/src/ReadMemoryByAddress.cpp -o $(OBJ_DIR)/ReadMemoryByAddress.o
 
-$(OBJ_DIR)/BatteryModule_HandleFrames.o: $(BATTERY_DIR)/HandleFrames.cpp
-	$(CXX) $(CFLAGS) -c $(BATTERY_DIR)/HandleFrames.cpp -o $(OBJ_DIR)/BatteryModule_HandleFrames.o
-
-$(OBJ_DIR)/BatteryModule_ReceiveFrames.o: $(UTILS_DIR)/ReceiveFrames.cpp
-	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/ReceiveFrames.cpp -o $(OBJ_DIR)/BatteryModule_ReceiveFrames.o
+$(OBJ_DIR)/ECU_ReceiveFrames.o: $(UTILS_DIR)/ReceiveFrames.cpp
+	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/ReceiveFrames.cpp -o $(OBJ_DIR)/ECU_ReceiveFrames.o
 
 $(OBJ_DIR)/ReadDtcInformation.o: $(UDS_DIR)/read_dtc_information/src/ReadDtcInformation.cpp
 	$(CXX) $(CFLAGS) -c $(UDS_DIR)/read_dtc_information/src/ReadDtcInformation.cpp -o $(OBJ_DIR)/ReadDtcInformation.o

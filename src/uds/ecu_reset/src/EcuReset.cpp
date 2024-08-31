@@ -165,9 +165,7 @@ void EcuReset::hardReset()
 void EcuReset::keyOffReset()
 {
     uint8_t lowerbits = can_id & 0xFF;
-    /* Sens response */
-    this->ecuResetResponse();
-    /* Sens response */
+    /* Send response */
     this->ecuResetResponse();
     CreateInterface* interface = CreateInterface::getInstance(0x00, ECUResetLog);
     /* Turns down the interface */
