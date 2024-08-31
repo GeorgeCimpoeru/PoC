@@ -22,7 +22,6 @@ RequestDownloadService::~RequestDownloadService()
  *  Index               [0]   [1]              [2]                  [3]             [3 + size(memory_adress)]  [3+size(memory_adress+memory_size)]  [3+size(memory_adress+memory_size)+1]
  */
 void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint8_t> stored_data)
-void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint8_t> stored_data)
 {
     LOG_INFO(RDSlogger.GET_LOGGER(), "Service 0x34 RequestDownload");
 
@@ -66,7 +65,7 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
 
 
     /* Authenticate the request */
-    else if (!isRequestAuthenticated())
+    if (!isRequestAuthenticated())
     {
         LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Authentication failed");
         /* Authentication failed */
@@ -82,7 +81,6 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
         return;
     }
     /* Check if software is at the latest version */ 
-    else if (!isLatestSoftwareVersion())
     else if (!isLatestSoftwareVersion())
     {
         LOG_INFO(RDSlogger.GET_LOGGER(), "Software is not at the latest version");
@@ -178,18 +176,14 @@ int RequestDownloadService::calculate_max_number_block(int memory_size)
     /* Calculate max_number_block as the maximum ceiling of memory_size divided by block_size */
     int blocks_needed = (memory_size + block_size - 1) / block_size;
     LOG_INFO(RDSlogger.GET_LOGGER(), "blocks_needed:{}", blocks_needed);
-    LOG_INFO(RDSlogger.GET_LOGGER(), "blocks_needed:{}", blocks_needed);
     
-    /* Update max_number_block with the calculated blocks_needed */
     /* Update max_number_block with the calculated blocks_needed */
     max_number_block = blocks_needed;
 
     LOG_INFO(RDSlogger.GET_LOGGER(), "max_number_block:{}", max_number_block);
-    LOG_INFO(RDSlogger.GET_LOGGER(), "max_number_block:{}", max_number_block);
     return 1;
 }
 
-void RequestDownloadService::requestDownloadAutomatic(canid_t id, int memory_address, int max_number_block)
 void RequestDownloadService::requestDownloadAutomatic(canid_t id, int memory_address, int max_number_block)
 {
     /* Download from drive- part 3 */
@@ -201,7 +195,6 @@ void RequestDownloadService::requestDownloadAutomatic(canid_t id, int memory_add
         LOG_INFO(RDSlogger.GET_LOGGER(), "Map memory in MCU and transfer data");
         /* Map memory in MCU -Set adress vector-> send to Install for mapping data */
         
-        MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, RDSlogger);
         MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, RDSlogger);
         managerInstance->getAddress();
         /* routine for transfer first or second partition */
@@ -222,9 +215,7 @@ void RequestDownloadService::downloadInEcu(int id, int memory_address)
     std::string path_download = "";
 
     std::vector<uint8_t> data = MemoryManager::readBinary(path_download, RDSlogger);
-    std::vector<uint8_t> data = MemoryManager::readBinary(path_download, RDSlogger);
 
-    generate_frames.requestDownload(new_id,0x00,memory_address,data.size(),0x88);
     generate_frames.requestDownload(new_id,0x00,memory_address,data.size(),0x88);
     struct can_frame* frame = read_frame(new_id, 0x34);
     int max_number_block;
@@ -244,12 +235,9 @@ void RequestDownloadService::downloadInEcu(int id, int memory_address)
         data_to_send.insert(data_to_send.begin(), data.begin() + (max_number_block * block_sequence_counter), data.begin() + ((max_number_block * block_sequence_counter + 1)));
         /* Calculate block_sequence_counter for the current block */ 
         LOG_INFO(RDSlogger.GET_LOGGER(), "block_sequence_counter: {}", block_sequence_counter);
-        LOG_INFO(RDSlogger.GET_LOGGER(), "block_sequence_counter: {}", block_sequence_counter);
         /* Call transferData with the current block_sequence_counter */ 
         if ( data_to_send.size() >  5)
         {
-            generate_frames.transferDataLong(new_id,block_sequence_counter,data_to_send);
-            /* read flow control frame */
             generate_frames.transferDataLong(new_id,block_sequence_counter,data_to_send);
             /* read flow control frame */
             frame = read_frame(new_id, -0x10);
@@ -259,11 +247,9 @@ void RequestDownloadService::downloadInEcu(int id, int memory_address)
                 return;
             }
             generate_frames.transferDataLong(new_id,block_sequence_counter,data_to_send, false);
-            generate_frames.transferDataLong(new_id,block_sequence_counter,data_to_send, false);
         }
         else
         {
-            generate_frames.transferData(new_id,block_sequence_counter,data_to_send);
             generate_frames.transferData(new_id,block_sequence_counter,data_to_send);
         }
     }
@@ -273,7 +259,6 @@ void RequestDownloadService::downloadInEcu(int id, int memory_address)
         /* generate error frame*/
         return;
     }
-    generate_frames.requestTransferExit(new_id);
     generate_frames.requestTransferExit(new_id);
     frame = read_frame(new_id, 0x37);
     if (frame == NULL || frame->data[1] == 0x7F)
@@ -327,27 +312,17 @@ can_frame* RequestDownloadService::read_frame(int id, uint8_t sid)
  *  Index              [0]     [1]         [2]                       [3]
  */
 void RequestDownloadService::requestDownloadResponse(canid_t id, int memory_address, int max_number_block)
-void RequestDownloadService::requestDownloadResponse(canid_t id, int memory_address, int max_number_block)
 {
-    /* this path is temporary and differs on each VM */
-    std::string path = "/dev/loop25";
     /* this path is temporary and differs on each VM */
     std::string path = "/dev/loop25";
     /* Rename destination in sender and viceversa */
     uint8_t frame_receiver_id = (id >> 8) & 0xFF;
     LOG_INFO(RDSlogger.GET_LOGGER(), "memory adress: 0x{0:x}", static_cast<int>(memory_address));
-    uint8_t frame_receiver_id = (id >> 8) & 0xFF;
-    LOG_INFO(RDSlogger.GET_LOGGER(), "memory adress: 0x{0:x}", static_cast<int>(memory_address));
     /* Check if frame is intended for MCU */
-    if(frame_receiver_id == 0x10)
     if(frame_receiver_id == 0x10)
     {
         MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, RDSlogger);
-        MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, RDSlogger);
         managerInstance->getAddress();
-        LOG_INFO(RDSlogger.GET_LOGGER(), "max number block {}", static_cast<int>(max_number_block));
-        /* Call response method from generate_frames */
-        generate_frames.requestDownloadResponse(id, max_number_block);
         LOG_INFO(RDSlogger.GET_LOGGER(), "max number block {}", static_cast<int>(max_number_block));
         /* Call response method from generate_frames */
         generate_frames.requestDownloadResponse(id, max_number_block);
@@ -356,11 +331,9 @@ void RequestDownloadService::requestDownloadResponse(canid_t id, int memory_addr
 }
 
 std::pair<int,int> RequestDownloadService::extractSizeAndAddressLength(canid_t id, std::vector<uint8_t> stored_data)
-std::pair<int,int> RequestDownloadService::extractSizeAndAddressLength(canid_t id, std::vector<uint8_t> stored_data)
 {
      /* Retrieve the address_memory_length */
     uint8_t address_memory_length = stored_data[3];
-    LOG_INFO(RDSlogger.GET_LOGGER(), "address_memory_length: 0x{0:x}", address_memory_length);
     LOG_INFO(RDSlogger.GET_LOGGER(), "address_memory_length: 0x{0:x}", address_memory_length);
 
     /* Determine the length of memory address and memory size */
@@ -368,8 +341,6 @@ std::pair<int,int> RequestDownloadService::extractSizeAndAddressLength(canid_t i
     uint8_t length_memory_address = (address_memory_length & 0xF0) >> 4;
     /* Low nibble */
     uint8_t length_memory_size = address_memory_length & 0x0F;
-    LOG_INFO(RDSlogger.GET_LOGGER(), "length_memory_address: {}", length_memory_address);
-    LOG_INFO(RDSlogger.GET_LOGGER(), "length_memory_size: {}", length_memory_size);
     LOG_INFO(RDSlogger.GET_LOGGER(), "length_memory_address: {}", length_memory_address);
     LOG_INFO(RDSlogger.GET_LOGGER(), "length_memory_size: {}", length_memory_size);
     /* Ensure there are enough bytes for memory_address and memory_size */ 
@@ -396,7 +367,6 @@ std::pair<int,int> RequestDownloadService::extractSizeAndAddress( std::vector<ui
         dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
     }
     LOG_INFO(RDSlogger.GET_LOGGER(), "{}", dataStream.str());
-    LOG_INFO(RDSlogger.GET_LOGGER(), "{}", dataStream.str());
 
     dataStream.str("");
     dataStream.clear();
@@ -406,7 +376,6 @@ std::pair<int,int> RequestDownloadService::extractSizeAndAddress( std::vector<ui
     {
         dataStream << std::hex << "0x" << static_cast<int>(data) << " ";
     }
-    LOG_INFO(RDSlogger.GET_LOGGER(), "{}", dataStream.str());
     LOG_INFO(RDSlogger.GET_LOGGER(), "{}", dataStream.str());
 
     /* Extract full memory address and size based on their combined byte values */
@@ -425,7 +394,6 @@ std::pair<int,int> RequestDownloadService::extractSizeAndAddress( std::vector<ui
     }
 
     return {full_memory_address, full_memory_size};
-}
 }
 
 bool RequestDownloadService::isValidMemoryRange(const int &memory_address, const int &memory_size)
@@ -448,8 +416,6 @@ bool RequestDownloadService::isValidMemoryRange(const int &memory_address, const
 
     LOG_INFO(RDSlogger.GET_LOGGER(), "Validated Memory Address: 0x{0:x}", memory_address);
     LOG_INFO(RDSlogger.GET_LOGGER(), "Validated Memory Size: 0x{0:x}", memory_size);
-    LOG_INFO(RDSlogger.GET_LOGGER(), "Validated Memory Address: 0x{0:x}", memory_address);
-    LOG_INFO(RDSlogger.GET_LOGGER(), "Validated Memory Size: 0x{0:x}", memory_size);
 
     return true;
 }
@@ -459,12 +425,10 @@ bool RequestDownloadService::isRequestAuthenticated()
     /* Logic to check security access */
     
     LOG_INFO(RDSlogger.GET_LOGGER(), "MCU authentication state");
-    return true;
     bool is_authenticated = SecurityAccess::getMcuState(RDSlogger);
     /* Check MCU state if unlocked */
     if (is_authenticated) 
     {
-        LOG_INFO(RDSlogger.GET_LOGGER(), "MCU authentication state: {}", is_authenticated);
         LOG_INFO(RDSlogger.GET_LOGGER(), "MCU authentication state: {}", is_authenticated);
     }
     return is_authenticated;
@@ -492,7 +456,6 @@ bool RequestDownloadService::isLatestSoftwareVersion()
 }
 
 void RequestDownloadService::downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_version)
-void RequestDownloadService::downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_version)
 {
     namespace py = pybind11;
     py::scoped_interpreter guard{}; // start the interpreter and keep it alive
@@ -501,12 +464,8 @@ void RequestDownloadService::downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_
     std::string project_path = PROJECT_PATH;
     std::string path_to_drive_api = project_path + "/src/ota/google_drive_api";
 
-    /* PROJECT_PATH defined in makefile to be the root folder path (POC)*/
-    std::string project_path = PROJECT_PATH;
-    std::string path_to_drive_api = project_path + "/src/ota/google_drive_api";
 
     auto sys = py::module::import("sys");
-    sys.attr("path").attr("append")(path_to_drive_api);
     sys.attr("path").attr("append")(path_to_drive_api);
 
     /* Get the created Python module */
