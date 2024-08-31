@@ -32,13 +32,6 @@ namespace MCU
         /* Stop flags for each SID. */
         static std::map<uint8_t, std::atomic<bool>> stop_flags;
 
-        /* Static dictionary to store SID and processing time */
-        static std::map<uint8_t, double> timing_parameters;
-        /* Store active timers for SIDs */
-        static std::map<uint8_t, std::future<void>> active_timers;
-        /* Stop flags for each SID. */
-        static std::map<uint8_t, std::atomic<bool>> stop_flags;
-
         /* Variable to store mcu data */
         std::unordered_map<uint16_t, std::vector<uint8_t>> default_DID_MCU = 
         {
@@ -78,31 +71,6 @@ namespace MCU
          * from the CAN bus.
         */
         void recvFrames();
-
-        /**
-         * @brief Getter for securityAccess_seed
-         * @return The current value of securityAccess_seed
-         */
-        std::vector<uint8_t> getSecurityAccessSeed();
-
-        /**
-         * @brief Setter for securityAccess_seed
-         * @param seed The new value to set for securityAccess_seed
-         */
-        void setSecurityAccessSeed(const std::vector<uint8_t>& seed);
-
-        /**
-         * @brief Getter for MCU state access
-         * @return The current value of MCU state
-         */
-        bool getMCUState() const;
-
-        /**
-         * @brief Setter for MCU state access
-         * @return The current value of MCU state
-         */
-        void setMCUState(bool state);
-
         /**
          * @brief Get the Mcu Api Socket
          * 

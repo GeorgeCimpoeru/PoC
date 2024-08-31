@@ -54,7 +54,6 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
 {
     std::vector<uint8_t> response;
     NegativeResponse nrc(socket, rdbi_logger);
-    NegativeResponse nrc(socket, rdbi_logger);
 
     /* Extract the first 8 bits of frame_id */
     uint8_t lowerbits = frame_id & 0xFF;
