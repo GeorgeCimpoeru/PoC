@@ -8,7 +8,7 @@ PYTHON_LDFLAGS = -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -l
 # Compiler flags
 CXX = g++
 CFLAGS = -std=c++17 -g -Wall -Werror -pthread -I./include -I../../utils/include ${PYTHON_INCL_DIR} -DPROJECT_PATH=\"$(PROJECT_PATH)\"
-LDFLAGS = -lspdlog -lfmt  ${PYTHON_LDFLAGS}
+LDFLAGS = -lspdlog -lzip -lfmt  ${PYTHON_LDFLAGS}
 
 # Test flags
 CFLAGSTST = -std=c++17 -I/include -fprofile-arcs -ftest-coverage
@@ -19,7 +19,6 @@ CFLAGSTST += -DUNIT_TESTING_MODE
 SRC_DIR = src
 SRC_TEST = test
 UTILS_DIR = ../../utils/src
-UTILS_TEST = ../../utils/test
 UDS_DIR = ../../uds
 MCU_DIR = ../../mcu/src
 BATTERY_DIR = ../BatteryModule/src
@@ -58,7 +57,8 @@ UDS_OBJS = $(OBJ_DIR)/DiagnosticSessionControl.o \
            $(OBJ_DIR)/ReadDtcInformation.o \
            $(OBJ_DIR)/ClearDtc.o \
            $(OBJ_DIR)/RoutineControl.o \
-		   $(OBJ_DIR)/AccessTimingParameter.o
+		   $(OBJ_DIR)/AccessTimingParameter.o \
+		   $(OBJ_DIR)/ReadMemoryByAddress.o
 
 # OTA object files
 OTA_OBJS = $(OBJ_DIR)/RequestUpdateStatus.o \
@@ -80,11 +80,7 @@ FINAL = main_engine
 
 all: $(OBJ_DIR) $(FINAL)
 
-all: $(OBJ_DIR) $(FINAL)
-
 $(FINAL): $(OBJS)
-	$(CXX) $(CFLAGS) -o $(FINAL) $(OBJS) $(LDFLAGS)
-
 	$(CXX) $(CFLAGS) -o $(FINAL) $(OBJS) $(LDFLAGS)
 
 $(OBJ_DIR):
@@ -172,67 +168,13 @@ $(OBJ_DIR)/AccessTimingParameter.o: $(UDS_DIR)/access_timing_parameters/src/Acce
 $(OBJ_DIR)/NegativeResponse.o: $(UTILS_DIR)/NegativeResponse.cpp
 	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/NegativeResponse.cpp -o $(OBJ_DIR)/NegativeResponse.o
 
+$(OBJ_DIR)/ReadMemoryByAddress.o: $(UDS_DIR)/read_memory_by_address/src/ReadMemoryByAddress.cpp
+	$(CXX) $(CFLAGS) -c $(UDS_DIR)/read_memory_by_address/src/ReadMemoryByAddress.cpp -o $(OBJ_DIR)/ReadMemoryByAddress.o
+
 #----------------------------------------------------Clean up--------------------------------------------------------
-
-BASE_DIR_1 := ../../uds
-BASE_DIR_2 := ../../ota
-BASE_DIR_UTILS := ../../utils
-
-SUB_DIRS_UDS := \
-    access_timing_parameters \
-    authentication \
-    clear_dtc \
-    diagnostic_session_control \
-    ecu_reset \
-    read_data_by_identifier \
-    read_dtc_information \
-    read_memory_by_adress \
-    routine_control \
-    tester_present \
-    write_data_by_identifier \
-	access_timing_parameters
-FULL_SUB_DIRS_UDS := $(addprefix $(BASE_DIR_1)/, $(SUB_DIRS_UDS))
-
-SUB_DIRS_OTA := \
-    request_download \
-    request_transfer_exit \
-    request_update_status \
-    transfer_data
-FULL_SUB_DIRS_OTA := $(addprefix $(BASE_DIR_2)/, $(SUB_DIRS_OTA))
-
-SUB_DIRS_UTILS := \
-    src \
-    test
-FULL_SUB_DIRS_UTILS := $(addprefix $(BASE_DIR_UTILS)/, $(SUB_DIRS_UTILS))
-
-FULL_SUB_DIRS := $(FULL_SUB_DIRS_UDS) $(FULL_SUB_DIRS_OTA)
-
-UTEST_DIRS := $(addsuffix /utest, $(FULL_SUB_DIRS)) $(FULL_SUB_DIRS_UTILS)
-
-FILE_EXT_out := .out
-FILE_EXT_o := .o
 
 .PHONY: clean
 clean:
 	@echo "Cleaning up..."
 	rm -f $(FINAL)
 	rm -rf $(OBJ_DIR)
-	@for dir in $(UTEST_DIRS); do \
-		if [ -d $$dir ]; then \
-			find $$dir -name "*$(FILE_EXT_out)" -type f -exec rm -f {} +; \
-			echo "Removed *$(FILE_EXT_out) files from $$dir"; \
-			find $$dir -name "*$(FILE_EXT_o)" -type f -exec rm -f {} +; \
-			echo "Removed *$(FILE_EXT_o) files from $$dir"; \
-			find $$dir -name '*.gcno' -delete; \
-			find $$dir -name '*.gcda' -delete; \
-			find $$dir -name '*.gcov' -delete; \
-			find $$dir -name '*.info' -delete; \
-		fi \
-	done
-	find . -name '*.gcno' -delete
-	find . -name '*.gcda' -delete
-	find . -name '*.gcov' -delete
-	find . -name '*.info' -delete
-	find ./test -name '*.out' -delete
-	find ./test -name '*.o' -delete
-	if [ -d "./coverage" ]; then find ./coverage -name '*' -delete; fi
