@@ -70,8 +70,6 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
         response.push_back(0x7F); /* Negative response */
         response.push_back(RDBI_SERVICE_ID); /* Service ID */
         response.push_back(NegativeResponse::IMLOIF); /* Incorrect message length or invalid format */
-        response.push_back(NegativeResponse::IMLOIF); /* Incorrect message length or invalid format */
-
         if (use_send_frame)
         {
             /* Send the negative response frame */ 
