@@ -40,7 +40,6 @@ void EcuReset::ecuResetRequest()
     // }
     /* Hard Reset case */
     else if (sub_function == 0x01) {
-    else if (sub_function == 0x01) {
         LOG_INFO(ECUResetLog.GET_LOGGER(), "Reset Mode: Hard Reset");
         this->hardReset();
     /* Keys off Reset case */
@@ -156,24 +155,17 @@ void EcuReset::hardReset()
     this->ecuResetResponse();
     switch(lowerbits)
     {
-    /* Send response */
-    this->ecuResetResponse();
-    switch(lowerbits)
-    {
         case 0x10:
             system("./../autoscripts/ecu_reset_hard.sh");
             system("./../autoscripts/ecu_reset_hard.sh");
             break;
-    }
     }
 }
 
 void EcuReset::keyOffReset()
 {
     uint8_t lowerbits = can_id & 0xFF;
-    /* Sens response */
-    this->ecuResetResponse();
-    /* Sens response */
+    /* Send response */
     this->ecuResetResponse();
     CreateInterface* interface = CreateInterface::getInstance(0x00, ECUResetLog);
     /* Turns down the interface */

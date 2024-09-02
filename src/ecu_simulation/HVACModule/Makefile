@@ -9,7 +9,7 @@ PYTHON_LDFLAGS = -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -l
 # Compiler flags
 CXX = g++
 CFLAGS = -std=c++17 -g -Wall -Werror -pthread -I./include -I../../utils/include ${PYTHON_INCL_DIR} -DPROJECT_PATH=\"$(PROJECT_PATH)\"
-LDFLAGS = -lspdlog -lfmt  ${PYTHON_LDFLAGS}
+LDFLAGS = -lspdlog -lzip -lfmt  ${PYTHON_LDFLAGS}
 
 # Test flags
 CFLAGSTST = -std=c++17 -I/include -fprofile-arcs -ftest-coverage
@@ -20,7 +20,6 @@ CFLAGSTST += -DUNIT_TESTING_MODE
 SRC_DIR = src
 SRC_TEST = test
 UTILS_DIR = ../../utils/src
-UTILS_TEST = ../../utils/test
 UDS_DIR = ../../uds
 MCU_DIR = ../../mcu/src
 BATTERY_DIR = ../BatteryModule/src
@@ -64,7 +63,8 @@ UDS_OBJS = $(OBJ_DIR)/DiagnosticSessionControl.o \
            $(OBJ_DIR)/ReadDtcInformation.o \
            $(OBJ_DIR)/ClearDtc.o \
            $(OBJ_DIR)/RoutineControl.o \
-		   $(OBJ_DIR)/AccessTimingParameter.o
+		   $(OBJ_DIR)/AccessTimingParameter.o \
+		   $(OBJ_DIR)/ReadMemoryByAddress.o
 
 # OTA object files
 OTA_OBJS = $(OBJ_DIR)/RequestUpdateStatus.o \
@@ -87,11 +87,8 @@ FINAL = main_hvac
 
 all: $(OBJ_DIR) $(FINAL)
 
-all: $(OBJ_DIR) $(FINAL)
 
 $(FINAL): $(OBJS)
-	$(CXX) $(CFLAGS) -o $(FINAL) $(OBJS) $(LDFLAGS)
-
 	$(CXX) $(CFLAGS) -o $(FINAL) $(OBJS) $(LDFLAGS)
 
 $(OBJ_DIR):
@@ -182,27 +179,11 @@ $(OBJ_DIR)/AccessTimingParameter.o: $(UDS_DIR)/access_timing_parameters/src/Acce
 $(OBJ_DIR)/NegativeResponse.o: $(UTILS_DIR)/NegativeResponse.cpp
 	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/NegativeResponse.cpp -o $(OBJ_DIR)/NegativeResponse.o
 
+$(OBJ_DIR)/ReadMemoryByAddress.o: $(UDS_DIR)/read_memory_by_address/src/ReadMemoryByAddress.cpp
+	$(CXX) $(CFLAGS) -c $(UDS_DIR)/read_memory_by_address/src/ReadMemoryByAddress.cpp -o $(OBJ_DIR)/ReadMemoryByAddress.o
+
 .PHONY: clean
 clean:
 	@echo "Cleaning up..."
 	rm -f $(FINAL)
 	rm -rf $(OBJ_DIR)
-	@for dir in $(UTEST_DIRS); do \
-		if [ -d $$dir ]; then \
-			find $$dir -name "*$(FILE_EXT_out)" -type f -exec rm -f {} +; \
-			echo "Removed *$(FILE_EXT_out) files from $$dir"; \
-			find $$dir -name "*$(FILE_EXT_o)" -type f -exec rm -f {} +; \
-			echo "Removed *$(FILE_EXT_o) files from $$dir"; \
-			find $$dir -name '*.gcno' -delete; \
-			find $$dir -name '*.gcda' -delete; \
-			find $$dir -name '*.gcov' -delete; \
-			find $$dir -name '*.info' -delete; \
-		fi \
-	done
-	find . -name '*.gcno' -delete
-	find . -name '*.gcda' -delete
-	find . -name '*.gcov' -delete
-	find . -name '*.info' -delete
-	find ./test -name '*.out' -delete
-	find ./test -name '*.o' -delete
-	if [ -d "./coverage" ]; then find ./coverage -name '*' -delete; fi

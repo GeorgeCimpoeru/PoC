@@ -7,7 +7,6 @@ PROJECT_PATH := $(shell cd $(shell pwd)/../../../ && pwd)
 #Python flags
 PYTHON_INCL_DIR=-I/usr/include/python3.8
 PYTHON_LDFLAGS = -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -lcrypt -ldl -lutil -lm -lpthread
-PYTHON_LDFLAGS = -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -lcrypt -ldl -lutil -lm -lpthread
 # Compiler flags
 CXX = g++
 CFLAGS = -std=c++17 -g -Wall -Werror -pthread -I./include -I../../utils/include ${PYTHON_INCL_DIR} -DPROJECT_PATH=\"$(PROJECT_PATH)\"
@@ -58,7 +57,6 @@ UDS_OBJS = $(OBJ_DIR)/DiagnosticSessionControl.o \
            $(OBJ_DIR)/EcuReset.o \
            $(OBJ_DIR)/SecurityAccess.o \
 		   $(OBJ_DIR)/TesterPresent.o \
-		   $(OBJ_DIR)/TesterPresent.o \
            $(OBJ_DIR)/ReadDtcInformation.o \
            $(OBJ_DIR)/ClearDtc.o \
            $(OBJ_DIR)/RoutineControl.o \
@@ -80,21 +78,12 @@ OBJS = $(MCU_OBJS) \
 
 # Target executables
 FINAL = main_battery
-FINAL = main_battery
 
 .PHONY: all clean
 
 all: $(OBJ_DIR) $(FINAL)
 
-all: $(OBJ_DIR) $(FINAL)
-
-all: $(OBJ_DIR) $(FINAL)
-
 $(FINAL): $(OBJS)
-	$(CXX) $(CFLAGS) -o $(FINAL) $(OBJS) $(LDFLAGS)
-
-	$(CXX) $(CFLAGS) -o $(FINAL) $(OBJS) $(LDFLAGS)
-
 	$(CXX) $(CFLAGS) -o $(FINAL) $(OBJS) $(LDFLAGS)
 
 $(OBJ_DIR):
@@ -230,8 +219,6 @@ OBJS_DIAGNOSTICSESSIONCONTROL_TEST = $(OBJ_DIR)/Logger_test.o \
 			   						 $(OBJ_DIR)/GenerateFrames_test.o \
 			   						 $(OBJ_DIR)/DiagnosticSessionControl_test.o
 
-
-
 OBJS_SECURITYACCESS_TEST = $(OBJ_DIR)/Logger_test.o \
 						   $(OBJ_DIR)/GenerateFrames_test.o \
 			   			   $(OBJ_DIR)/SecurityAccess_test.o \
@@ -256,9 +243,6 @@ OBJS_ROUTINECONTROL_TEST = $(OBJ_DIR)/MemoryManager_test.o \
 			   			   $(OBJ_DIR)/RoutineControl_test.o \
 			   			   $(OBJ_DIR)/NegativeResponse_test.o \
 			   			   $(OBJ_DIR)/SecurityAccess_test.o
-			   			   $(OBJ_DIR)/RoutineControl_test.o \
-			   			   $(OBJ_DIR)/NegativeResponse_test.o \
-			   			   $(OBJ_DIR)/SecurityAccess_test.o
 
 OTA_OBJS_TEST = $(OBJ_DIR)/RequestUpdateStatus_test.o \
 				$(OBJ_DIR)/RequestTransferExit_test.o \
@@ -276,16 +260,12 @@ OBJS_REQUESTTRANSFEREXIT_TEST = $(OBJ_DIR)/Logger_test.o \
 OBJS_REQUESTDOWNLOAD_TEST = $(OBJ_DIR)/Logger_test.o \
 			   			    $(OBJ_DIR)/GenerateFrames_test.o \
 			   			    $(OBJ_DIR)/RequestDownload_test.o
-			   			    $(OBJ_DIR)/GenerateFrames_test.o \
-			   			    $(OBJ_DIR)/RequestDownload_test.o
 
 OBJS_TRANSFERDATA_TEST = $(OBJ_DIR)/Logger_test.o \
 			   			  $(OBJ_DIR)/GenerateFrames_test.o \
 			   			  $(OBJ_DIR)/TransferData_test.o
 
 OBJS_ACCESSTIMINGPARAMETER_TEST = $(OBJ_DIR)/Logger_test.o \
-			   					  $(OBJ_DIR)/GenerateFrames_test.o \
-			   					  $(OBJ_DIR)/AccessTimingParameter_test.o
 			   					  $(OBJ_DIR)/GenerateFrames_test.o \
 			   					  $(OBJ_DIR)/AccessTimingParameter_test.o
 
@@ -328,9 +308,6 @@ $(OBJ_DIR)/EcuReset_test.o: $(UDS_DIR)/ecu_reset/src/EcuReset.cpp
 
 $(OBJ_DIR)/SecurityAccess_test.o: $(UDS_DIR)/authentication/src/SecurityAccess.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/authentication/src/SecurityAccess.cpp -o $(OBJ_DIR)/SecurityAccess_test.o $(CFLAGSTST2) $(LDFLAGS)
-
-$(OBJ_DIR)/TesterPresent_test.o: $(UDS_DIR)/tester_present/src/TesterPresent.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/tester_present/src/TesterPresent.cpp -o $(OBJ_DIR)/TesterPresent_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 $(OBJ_DIR)/TesterPresent_test.o: $(UDS_DIR)/tester_present/src/TesterPresent.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/tester_present/src/TesterPresent.cpp -o $(OBJ_DIR)/TesterPresent_test.o $(CFLAGSTST2) $(LDFLAGS)
@@ -388,14 +365,6 @@ $(UTILS_TEST)/handleFramesTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UTILS_TEST)/Handle
 $(UTILS_TEST)/HandleFrames_test.o: $(UTILS_TEST)/HandleFrames_test.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/HandleFrames_test.cpp -o $(UTILS_TEST)/HandleFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
 
-handleFramesTest: $(OBJ_DIR) $(SRC_TEST)/handleFramesTest.out
-
-$(SRC_TEST)/handleFramesTest.out: $(OBJ_DIR) $(OBJS_TEST) $(SRC_TEST)/HandleFrames_test.o
-	$(CXX) $(CFLAGSTST) -o $(SRC_TEST)/handleFramesTest.out $(SRC_TEST)/HandleFrames_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(SRC_TEST)/HandleFrames_test.o: $(SRC_TEST)/HandleFrames_test.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(SRC_TEST)/HandleFrames_test.cpp -o $(SRC_TEST)/HandleFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
-
 
 
 # ReceiveFrames Unit tests
@@ -419,110 +388,8 @@ $(SRC_TEST)/batteryModule_test.o: $(SRC_TEST)/ReceiveFramesTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(SRC_TEST)/BatteryModuleTest.cpp -o $(SRC_TEST)/batteryModule_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 
-receiveFramesTest: $(OBJ_DIR) $(SRC_TEST)/receiveFramesTest.out
-
-$(SRC_TEST)/receiveFramesTest.out: $(OBJ_DIR) $(OBJS_TEST) $(SRC_TEST)/ReceiveFrames_test.o
-	$(CXX) $(CFLAGSTST) -o $(SRC_TEST)/receiveFramesTest.out $(SRC_TEST)/ReceiveFrames_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(SRC_TEST)/ReceiveFrames_test.o: $(SRC_TEST)/ReceiveFramesTest.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(SRC_TEST)/ReceiveFramesTest.cpp -o $(SRC_TEST)/ReceiveFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
-	
-
-
-# BatteryModule Unit tests
-batteryModuleTest: $(OBJ_DIR) $(SRC_TEST)/batteryModuleTest.out
-
-$(SRC_TEST)/batteryModuleTest.out: $(OBJ_DIR) $(OBJS_TEST) $(SRC_TEST)/batteryModule_test.o
-	$(CXX) $(CFLAGSTST) -o $(SRC_TEST)/batteryModuleTest.out $(SRC_TEST)/batteryModule_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(SRC_TEST)/batteryModule_test.o: $(SRC_TEST)/ReceiveFramesTest.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(SRC_TEST)/BatteryModuleTest.cpp -o $(SRC_TEST)/batteryModule_test.o $(CFLAGSTST2) $(LDFLAGS)
-
-
-receiveFramesTest: $(OBJ_DIR) $(SRC_TEST)/receiveFramesTest.out
-
-$(SRC_TEST)/receiveFramesTest.out: $(OBJ_DIR) $(OBJS_TEST) $(SRC_TEST)/ReceiveFrames_test.o
-	$(CXX) $(CFLAGSTST) -o $(SRC_TEST)/receiveFramesTest.out $(SRC_TEST)/ReceiveFrames_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(SRC_TEST)/ReceiveFrames_test.o: $(SRC_TEST)/ReceiveFramesTest.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(SRC_TEST)/ReceiveFramesTest.cpp -o $(SRC_TEST)/ReceiveFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
-	
-
-
-# BatteryModule Unit tests
-batteryModuleTest: $(OBJ_DIR) $(SRC_TEST)/batteryModuleTest.out
-
-$(SRC_TEST)/batteryModuleTest.out: $(OBJ_DIR) $(OBJS_TEST) $(SRC_TEST)/batteryModule_test.o
-	$(CXX) $(CFLAGSTST) -o $(SRC_TEST)/batteryModuleTest.out $(SRC_TEST)/batteryModule_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(SRC_TEST)/batteryModule_test.o: $(SRC_TEST)/ReceiveFramesTest.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(SRC_TEST)/BatteryModuleTest.cpp -o $(SRC_TEST)/batteryModule_test.o $(CFLAGSTST2) $(LDFLAGS)
-
-
 
 # GenerateFrames Unit tests
-generateFramesTest: $(OBJ_DIR) $(UTILS_TEST)/generateFramesTest.out
-
-$(UTILS_TEST)/generateFramesTest.out: $(OBJ_DIR) $(OBJS_GENERATE_TEST) $(UTILS_TEST)/GenerateFrames_test.o
-	$(CXX) $(CFLAGSTST) -o $(UTILS_TEST)/generateFramesTest.out $(UTILS_TEST)/GenerateFrames_test.o $(OBJS_GENERATE_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(UTILS_TEST)/GenerateFrames_test.o: $(UTILS_TEST)/GenerateFramesTest.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/GenerateFramesTest.cpp -o $(UTILS_TEST)/GenerateFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
-
-
-	
-# Logger Unit tests
-loggerTest: $(OBJ_DIR) $(UTILS_TEST)/loggerTest.out
-
-$(UTILS_TEST)/loggerTest.out: $(OBJ_DIR) $(OBJS_LOGGER_TEST) $(UTILS_TEST)/Logger_test.o
-	$(CXX) $(CFLAGSTST) -o $(UTILS_TEST)/loggerTest.out $(UTILS_TEST)/Logger_test.o $(OBJS_LOGGER_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(UTILS_TEST)/Logger_test.o: $(UTILS_TEST)/Logger_test.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/Logger_test.cpp -o $(UTILS_TEST)/Logger_test.o $(CFLAGSTST2) $(LDFLAGS)
-
-
-
-# MemoryManager Unit tests
-memoryManagerTest: $(OBJ_DIR) $(UTILS_TEST)/memoryManagerTest.out
-
-$(UTILS_TEST)/memoryManagerTest.out: $(OBJ_DIR) $(OBJS_MEMORY_TEST) $(UTILS_TEST)/MemoryManager_test.o
-	$(CXX) $(CFLAGSTST) -o $(UTILS_TEST)/memoryManagerTest.out $(UTILS_TEST)/MemoryManager_test.o $(OBJS_MEMORY_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(UTILS_TEST)/MemoryManager_test.o: $(UTILS_TEST)/MemoryManagerTest.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/MemoryManagerTest.cpp -o $(UTILS_TEST)/MemoryManager_test.o $(CFLAGSTST2) $(LDFLAGS)
-
-
-generateFramesTest: $(OBJ_DIR) $(UTILS_TEST)/generateFramesTest.out
-
-$(UTILS_TEST)/generateFramesTest.out: $(OBJ_DIR) $(OBJS_GENERATE_TEST) $(UTILS_TEST)/GenerateFrames_test.o
-	$(CXX) $(CFLAGSTST) -o $(UTILS_TEST)/generateFramesTest.out $(UTILS_TEST)/GenerateFrames_test.o $(OBJS_GENERATE_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(UTILS_TEST)/GenerateFrames_test.o: $(UTILS_TEST)/GenerateFramesTest.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/GenerateFramesTest.cpp -o $(UTILS_TEST)/GenerateFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
-
-
-	
-# Logger Unit tests
-loggerTest: $(OBJ_DIR) $(UTILS_TEST)/loggerTest.out
-
-$(UTILS_TEST)/loggerTest.out: $(OBJ_DIR) $(OBJS_LOGGER_TEST) $(UTILS_TEST)/Logger_test.o
-	$(CXX) $(CFLAGSTST) -o $(UTILS_TEST)/loggerTest.out $(UTILS_TEST)/Logger_test.o $(OBJS_LOGGER_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(UTILS_TEST)/Logger_test.o: $(UTILS_TEST)/Logger_test.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/Logger_test.cpp -o $(UTILS_TEST)/Logger_test.o $(CFLAGSTST2) $(LDFLAGS)
-
-
-
-# MemoryManager Unit tests
-memoryManagerTest: $(OBJ_DIR) $(UTILS_TEST)/memoryManagerTest.out
-
-$(UTILS_TEST)/memoryManagerTest.out: $(OBJ_DIR) $(OBJS_MEMORY_TEST) $(UTILS_TEST)/MemoryManager_test.o
-	$(CXX) $(CFLAGSTST) -o $(UTILS_TEST)/memoryManagerTest.out $(UTILS_TEST)/MemoryManager_test.o $(OBJS_MEMORY_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(UTILS_TEST)/MemoryManager_test.o: $(UTILS_TEST)/MemoryManagerTest.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/MemoryManagerTest.cpp -o $(UTILS_TEST)/MemoryManager_test.o $(CFLAGSTST2) $(LDFLAGS)
-
-
 generateFramesTest: $(OBJ_DIR) $(UTILS_TEST)/generateFramesTest.out
 
 $(UTILS_TEST)/generateFramesTest.out: $(OBJ_DIR) $(OBJS_GENERATE_TEST) $(UTILS_TEST)/GenerateFrames_test.o
@@ -587,68 +454,6 @@ $(UDS_DIR)/write_data_by_identifier/utest/WriteDataByIdentifier_test.o: $(UDS_DI
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/write_data_by_identifier/utest/WriteDataByIdentifierTest.cpp -o $(UDS_DIR)/write_data_by_identifier/utest/WriteDataByIdentifier_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 
-createInterfaceTest: $(OBJ_DIR) $(UTILS_TEST)/createInterfaceTest.out
-
-$(UTILS_TEST)/createInterfaceTest.out: $(OBJ_DIR) $(OBJS_CREATEINTERFACE_TEST) $(UTILS_TEST)/CreateInterface_test.o
-	$(CXX) $(CFLAGSTST) -o $(UTILS_TEST)/createInterfaceTest.out $(UTILS_TEST)/CreateInterface_test.o $(OBJS_CREATEINTERFACE_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(UTILS_TEST)/CreateInterface_test.o: $(UTILS_TEST)/CreateInterface_test.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/CreateInterface_test.cpp -o $(UTILS_TEST)/CreateInterface_test.o $(CFLAGSTST2) $(LDFLAGS)
-
-
-
-# DiagnosticSessionControl Unit tests
-diagnosticSessionControlTest: $(OBJ_DIR) $(UDS_DIR)/diagnostic_session_control/utest/diagnosticSessionControlTest.out
-
-$(UDS_DIR)/diagnostic_session_control/utest/diagnosticSessionControlTest.out: $(OBJ_DIR) $(OBJS_DIAGNOSTICSESSIONCONTROL_TEST) $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControl_test.o
-	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/diagnostic_session_control/utest/diagnosticSessionControlTest.out $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControl_test.o $(OBJS_DIAGNOSTICSESSIONCONTROL_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControl_test.o: $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControlTest.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControlTest.cpp -o $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControl_test.o $(CFLAGSTST2) $(LDFLAGS)
-
-
-
-# WriteDataByIdentifier Unit tests
-writeDataByIdentifierTest: $(OBJ_DIR) $(UDS_DIR)/write_data_by_identifier/utest/writeDataByIdentifierTest.out
-
-$(UDS_DIR)/write_data_by_identifier/utest/writeDataByIdentifierTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UDS_DIR)/write_data_by_identifier/utest/WriteDataByIdentifier_test.o
-	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/write_data_by_identifier/utest/writeDataByIdentifierTest.out $(UDS_DIR)/write_data_by_identifier/utest/WriteDataByIdentifier_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(UDS_DIR)/write_data_by_identifier/utest/WriteDataByIdentifier_test.o: $(UDS_DIR)/write_data_by_identifier/utest/WriteDataByIdentifierTest.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/write_data_by_identifier/utest/WriteDataByIdentifierTest.cpp -o $(UDS_DIR)/write_data_by_identifier/utest/WriteDataByIdentifier_test.o $(CFLAGSTST2) $(LDFLAGS)
-
-
-createInterfaceTest: $(OBJ_DIR) $(UTILS_TEST)/createInterfaceTest.out
-
-$(UTILS_TEST)/createInterfaceTest.out: $(OBJ_DIR) $(OBJS_CREATEINTERFACE_TEST) $(UTILS_TEST)/CreateInterface_test.o
-	$(CXX) $(CFLAGSTST) -o $(UTILS_TEST)/createInterfaceTest.out $(UTILS_TEST)/CreateInterface_test.o $(OBJS_CREATEINTERFACE_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(UTILS_TEST)/CreateInterface_test.o: $(UTILS_TEST)/CreateInterface_test.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/CreateInterface_test.cpp -o $(UTILS_TEST)/CreateInterface_test.o $(CFLAGSTST2) $(LDFLAGS)
-
-
-
-# DiagnosticSessionControl Unit tests
-diagnosticSessionControlTest: $(OBJ_DIR) $(UDS_DIR)/diagnostic_session_control/utest/diagnosticSessionControlTest.out
-
-$(UDS_DIR)/diagnostic_session_control/utest/diagnosticSessionControlTest.out: $(OBJ_DIR) $(OBJS_DIAGNOSTICSESSIONCONTROL_TEST) $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControl_test.o
-	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/diagnostic_session_control/utest/diagnosticSessionControlTest.out $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControl_test.o $(OBJS_DIAGNOSTICSESSIONCONTROL_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControl_test.o: $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControlTest.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControlTest.cpp -o $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControl_test.o $(CFLAGSTST2) $(LDFLAGS)
-
-
-
-# WriteDataByIdentifier Unit tests
-writeDataByIdentifierTest: $(OBJ_DIR) $(UDS_DIR)/write_data_by_identifier/utest/writeDataByIdentifierTest.out
-
-$(UDS_DIR)/write_data_by_identifier/utest/writeDataByIdentifierTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UDS_DIR)/write_data_by_identifier/utest/WriteDataByIdentifier_test.o
-	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/write_data_by_identifier/utest/writeDataByIdentifierTest.out $(UDS_DIR)/write_data_by_identifier/utest/WriteDataByIdentifier_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(UDS_DIR)/write_data_by_identifier/utest/WriteDataByIdentifier_test.o: $(UDS_DIR)/write_data_by_identifier/utest/WriteDataByIdentifierTest.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/write_data_by_identifier/utest/WriteDataByIdentifierTest.cpp -o $(UDS_DIR)/write_data_by_identifier/utest/WriteDataByIdentifier_test.o $(CFLAGSTST2) $(LDFLAGS)
-
-
 
 # ReadDataByIdentifier Unit tests
 readDataByIdentifierTest: $(OBJ_DIR) $(UDS_DIR)/read_data_by_identifier/utest/readDataByIdentifierTest.out
@@ -660,44 +465,8 @@ $(UDS_DIR)/read_data_by_identifier/utest/ReadDataByIdentifier_test.o: $(UDS_DIR)
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/read_data_by_identifier/utest/ReadDataByIdentifierTest.cpp -o $(UDS_DIR)/read_data_by_identifier/utest/ReadDataByIdentifier_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 
-readDataByIdentifierTest: $(OBJ_DIR) $(UDS_DIR)/read_data_by_identifier/utest/readDataByIdentifierTest.out
-
-$(UDS_DIR)/read_data_by_identifier/utest/readDataByIdentifierTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UDS_DIR)/read_data_by_identifier/utest/ReadDataByIdentifier_test.o
-	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/read_data_by_identifier/utest/readDataByIdentifierTest.out $(UDS_DIR)/read_data_by_identifier/utest/ReadDataByIdentifier_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(UDS_DIR)/read_data_by_identifier/utest/ReadDataByIdentifier_test.o: $(UDS_DIR)/read_data_by_identifier/utest/ReadDataByIdentifierTest.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/read_data_by_identifier/utest/ReadDataByIdentifierTest.cpp -o $(UDS_DIR)/read_data_by_identifier/utest/ReadDataByIdentifier_test.o $(CFLAGSTST2) $(LDFLAGS)
-
-
-readDataByIdentifierTest: $(OBJ_DIR) $(UDS_DIR)/read_data_by_identifier/utest/readDataByIdentifierTest.out
-
-$(UDS_DIR)/read_data_by_identifier/utest/readDataByIdentifierTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UDS_DIR)/read_data_by_identifier/utest/ReadDataByIdentifier_test.o
-	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/read_data_by_identifier/utest/readDataByIdentifierTest.out $(UDS_DIR)/read_data_by_identifier/utest/ReadDataByIdentifier_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(UDS_DIR)/read_data_by_identifier/utest/ReadDataByIdentifier_test.o: $(UDS_DIR)/read_data_by_identifier/utest/ReadDataByIdentifierTest.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/read_data_by_identifier/utest/ReadDataByIdentifierTest.cpp -o $(UDS_DIR)/read_data_by_identifier/utest/ReadDataByIdentifier_test.o $(CFLAGSTST2) $(LDFLAGS)
-
-
 
 # RequestTransferExit Unit tests
-requestTransferExitTest: $(OBJ_DIR) $(OTA_DIR)/request_transfer_exit/utest/requestTransferExitTest.out
-
-$(OTA_DIR)/request_transfer_exit/utest/requestTransferExitTest.out: $(OBJ_DIR) $(OBJS_REQUESTTRANSFEREXIT_TEST) $(OTA_DIR)/request_transfer_exit/utest/RequestTransferExit_test.o
-	$(CXX) $(CFLAGSTST) -o $(OTA_DIR)/request_transfer_exit/utest/requestTransferExitTest.out $(OTA_DIR)/request_transfer_exit/utest/RequestTransferExit_test.o $(OBJS_REQUESTTRANSFEREXIT_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(OTA_DIR)/request_transfer_exit/utest/RequestTransferExit_test.o: $(OTA_DIR)/request_transfer_exit/utest/RequestTransferExitTest.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(OTA_DIR)/request_transfer_exit/utest/RequestTransferExitTest.cpp -o $(OTA_DIR)/request_transfer_exit/utest/RequestTransferExit_test.o $(CFLAGSTST2) $(LDFLAGS)
-
-
-requestTransferExitTest: $(OBJ_DIR) $(OTA_DIR)/request_transfer_exit/utest/requestTransferExitTest.out
-
-$(OTA_DIR)/request_transfer_exit/utest/requestTransferExitTest.out: $(OBJ_DIR) $(OBJS_REQUESTTRANSFEREXIT_TEST) $(OTA_DIR)/request_transfer_exit/utest/RequestTransferExit_test.o
-	$(CXX) $(CFLAGSTST) -o $(OTA_DIR)/request_transfer_exit/utest/requestTransferExitTest.out $(OTA_DIR)/request_transfer_exit/utest/RequestTransferExit_test.o $(OBJS_REQUESTTRANSFEREXIT_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(OTA_DIR)/request_transfer_exit/utest/RequestTransferExit_test.o: $(OTA_DIR)/request_transfer_exit/utest/RequestTransferExitTest.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(OTA_DIR)/request_transfer_exit/utest/RequestTransferExitTest.cpp -o $(OTA_DIR)/request_transfer_exit/utest/RequestTransferExit_test.o $(CFLAGSTST2) $(LDFLAGS)
-
-
 requestTransferExitTest: $(OBJ_DIR) $(OTA_DIR)/request_transfer_exit/utest/requestTransferExitTest.out
 
 $(OTA_DIR)/request_transfer_exit/utest/requestTransferExitTest.out: $(OBJ_DIR) $(OBJS_REQUESTTRANSFEREXIT_TEST) $(OTA_DIR)/request_transfer_exit/utest/RequestTransferExit_test.o
@@ -762,11 +531,6 @@ $(UDS_DIR)/tester_present/utest/TesterPresent_test.o: $(UDS_DIR)/tester_present/
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/tester_present/utest/TesterPresentTest.cpp -o $(UDS_DIR)/tester_present/utest/TesterPresent_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 
-$(UDS_DIR)/tester_present/utest/testerPresentTest.out: $(OBJ_DIR) $(OBJS_TESTERPRESENT_TEST) $(UDS_DIR)/tester_present/utest/TesterPresent_test.o
-	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/tester_present/utest/testerPresentTest.out $(UDS_DIR)/tester_present/utest/TesterPresent_test.o $(OBJS_TESTERPRESENT_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(UDS_DIR)/tester_present/utest/TesterPresent_test.o: $(UDS_DIR)/tester_present/utest/TesterPresentTest.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/tester_present/utest/TesterPresentTest.cpp -o $(UDS_DIR)/tester_present/utest/TesterPresent_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 # RoutineControl Unit tests
 routineControlTest: $(OBJ_DIR) $(UDS_DIR)/routine_control/utest/routineControlTest.out

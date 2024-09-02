@@ -3,11 +3,8 @@
 
 #POC Project root path
 PROJECT_PATH := $(shell cd $(shell pwd)/../../ && pwd)
-#POC Project root path
-PROJECT_PATH := $(shell cd $(shell pwd)/../../ && pwd)
 #Python flags needed for pybing library
 PYTHON_INCL_DIR=-I/usr/include/python3.8
-PYTHON_LDFLAGS = -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -lcrypt -ldl -lutil -lm -lpthread
 PYTHON_LDFLAGS = -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -lcrypt -ldl -lutil -lm -lpthread
 
 # Compiler flags
@@ -50,7 +47,7 @@ UTILS_OBJS = $(OBJ_DIR)/MemoryManager.o \
              $(OBJ_DIR)/GenerateFrames.o \
              $(OBJ_DIR)/CreateInterface.o \
              $(OBJ_DIR)/NegativeResponse.o \
-			 $(OBJ_DIR)/BatteryModule_ReceiveFrames.o \
+			 $(OBJ_DIR)/ECU_ReceiveFrames.o \
 			 $(OBJ_DIR)/HandleFrames.o
 
 # UDS object files
@@ -59,7 +56,6 @@ UDS_OBJS = $(OBJ_DIR)/DiagnosticSessionControl.o \
            $(OBJ_DIR)/WriteDataByIdentifier.o \
            $(OBJ_DIR)/EcuReset.o \
            $(OBJ_DIR)/SecurityAccess.o \
-		   $(OBJ_DIR)/TesterPresent.o \
 		   $(OBJ_DIR)/TesterPresent.o \
            $(OBJ_DIR)/ReadDtcInformation.o \
            $(OBJ_DIR)/ClearDtc.o \
@@ -82,7 +78,6 @@ OBJS = $(MCU_OBJS) \
 
 
 # Target executables
-FINAL = main_mcu
 FINAL = main_mcu
 
 .PHONY: all clean
@@ -141,11 +136,8 @@ $(OBJ_DIR)/TesterPresent.o: $(UDS_DIR)/tester_present/src/TesterPresent.cpp
 $(OBJ_DIR)/ReadMemoryByAddress.o: $(UDS_DIR)/read_memory_by_address/src/ReadMemoryByAddress.cpp
 	$(CXX) $(CFLAGS) -c $(UDS_DIR)/read_memory_by_address/src/ReadMemoryByAddress.cpp -o $(OBJ_DIR)/ReadMemoryByAddress.o
 
-$(OBJ_DIR)/BatteryModule_HandleFrames.o: $(BATTERY_DIR)/HandleFrames.cpp
-	$(CXX) $(CFLAGS) -c $(BATTERY_DIR)/HandleFrames.cpp -o $(OBJ_DIR)/BatteryModule_HandleFrames.o
-
-$(OBJ_DIR)/BatteryModule_ReceiveFrames.o: $(UTILS_DIR)/ReceiveFrames.cpp
-	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/ReceiveFrames.cpp -o $(OBJ_DIR)/BatteryModule_ReceiveFrames.o
+$(OBJ_DIR)/ECU_ReceiveFrames.o: $(UTILS_DIR)/ReceiveFrames.cpp
+	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/ReceiveFrames.cpp -o $(OBJ_DIR)/ECU_ReceiveFrames.o
 
 $(OBJ_DIR)/ReadDtcInformation.o: $(UDS_DIR)/read_dtc_information/src/ReadDtcInformation.cpp
 	$(CXX) $(CFLAGS) -c $(UDS_DIR)/read_dtc_information/src/ReadDtcInformation.cpp -o $(OBJ_DIR)/ReadDtcInformation.o
@@ -252,7 +244,7 @@ OBJS_ROUTINECONTROL_TEST = $(OBJ_DIR)/MemoryManager_test.o \
 			   			   $(OBJ_DIR)/GenerateFrames_test.o \
 			   			   $(OBJ_DIR)/RoutineControl_test.o \
 			   			   $(OBJ_DIR)/NegativeResponse_test.o \
-			   			   $(OBJ_DIR)/SecurityAccess_test.o
+			   			   $(OBJ_DIR)/SecurityAccess_test.o \
 			   			   $(OBJ_DIR)/RoutineControl_test.o \
 			   			   $(OBJ_DIR)/NegativeResponse_test.o \
 			   			   $(OBJ_DIR)/SecurityAccess_test.o
@@ -329,9 +321,6 @@ $(OBJ_DIR)/SecurityAccess_test.o: $(UDS_DIR)/authentication/src/SecurityAccess.c
 $(OBJ_DIR)/TesterPresent_test.o: $(UDS_DIR)/tester_present/src/TesterPresent.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/tester_present/src/TesterPresent.cpp -o $(OBJ_DIR)/TesterPresent_test.o $(CFLAGSTST2) $(LDFLAGS)
 
-$(OBJ_DIR)/TesterPresent_test.o: $(UDS_DIR)/tester_present/src/TesterPresent.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/tester_present/src/TesterPresent.cpp -o $(OBJ_DIR)/TesterPresent_test.o $(CFLAGSTST2) $(LDFLAGS)
-
 $(OBJ_DIR)/BatteryModule_HandleFrames_test.o: $(BATTERY_DIR)/HandleFrames.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(BATTERY_DIR)/HandleFrames.cpp -o $(OBJ_DIR)/BatteryModule_HandleFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
 
@@ -376,7 +365,6 @@ $(OBJ_DIR)/NegativeResponse_test.o: $(UTILS_DIR)/NegativeResponse.cpp
 # Compile all unit tests
 
 allTests: mcuModuleTest handleFramesTest receiveFramesTest generateFramesTest loggerTest memoryManagerTest createInterfaceTest diagnosticSessionControlTest writeDataByIdentifierTest readDataByIdentifierTest requestTransferExitTest readDtcTest clearDtcTest requestUpdateStatusTest securityAccessTest testerPresentTest routineControlTest transferDataTest requestDownloadTest ecuResetTest negativeResponseTest accessTimingParameterTest
-allTests: mcuModuleTest handleFramesTest receiveFramesTest generateFramesTest loggerTest memoryManagerTest createInterfaceTest diagnosticSessionControlTest writeDataByIdentifierTest readDataByIdentifierTest requestTransferExitTest readDtcTest clearDtcTest requestUpdateStatusTest securityAccessTest testerPresentTest routineControlTest transferDataTest requestDownloadTest ecuResetTest negativeResponseTest accessTimingParameterTest
 
 
 # HandleFrames Unit tests
@@ -397,17 +385,6 @@ $(SRC_TEST)/receiveFramesTest.out: $(OBJ_DIR) $(OBJS_TEST) $(SRC_TEST)/ReceiveFr
 
 $(SRC_TEST)/ReceiveFrames_test.o: $(SRC_TEST)/ReceiveFramesTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(SRC_TEST)/ReceiveFramesTest.cpp -o $(SRC_TEST)/ReceiveFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
-
-
-
-# MCUModule Unit tests
-mcuModuleTest: $(OBJ_DIR) $(SRC_TEST)/mcuModuleTest.out
-
-$(SRC_TEST)/mcuModuleTest.out: $(OBJ_DIR) $(OBJS_TEST) $(SRC_TEST)/MCUModule_test.o
-	$(CXX) $(CFLAGSTST) -o $(SRC_TEST)/mcuModuleTest.out $(SRC_TEST)/MCUModule_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(SRC_TEST)/MCUModule_test.o: $(SRC_TEST)/MCUModuleTest.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(SRC_TEST)/MCUModuleTest.cpp -o $(SRC_TEST)/MCUModule_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 
 
@@ -564,11 +541,6 @@ $(UDS_DIR)/tester_present/utest/TesterPresent_test.o: $(UDS_DIR)/tester_present/
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/tester_present/utest/TesterPresentTest.cpp -o $(UDS_DIR)/tester_present/utest/TesterPresent_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 
-$(UDS_DIR)/tester_present/utest/testerPresentTest.out: $(OBJ_DIR) $(OBJS_TESTERPRESENT_TEST) $(UDS_DIR)/tester_present/utest/TesterPresent_test.o
-	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/tester_present/utest/testerPresentTest.out $(UDS_DIR)/tester_present/utest/TesterPresent_test.o $(OBJS_TESTERPRESENT_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(UDS_DIR)/tester_present/utest/TesterPresent_test.o: $(UDS_DIR)/tester_present/utest/TesterPresentTest.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/tester_present/utest/TesterPresentTest.cpp -o $(UDS_DIR)/tester_present/utest/TesterPresent_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 # RoutineControl Unit tests
 routineControlTest: $(OBJ_DIR) $(UDS_DIR)/routine_control/utest/routineControlTest.out

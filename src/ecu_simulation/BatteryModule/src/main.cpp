@@ -10,7 +10,7 @@ int main() {
     battery->fetchBatteryData();
     std::thread receiveFrThread([]()
                                { battery->receiveFrames(); });
-    sleep(2000);
+    sleep(200);
     battery->stopFrames();
     receiveFrThread.join();
     return 0;
