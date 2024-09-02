@@ -8,7 +8,6 @@ const ModalUDS = (props: any) => {
     }
 
     const handleInputClick = () => {
-    const handleInputClick = () => {
         setInput('');
     }
 
@@ -36,4 +35,4 @@ const ModalUDS = (props: any) => {
     )
 }
 
-export default ModalUDS
+export default ModalUDS;
