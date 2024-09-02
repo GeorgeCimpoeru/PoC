@@ -29,7 +29,7 @@ DiagnosticSessionControl::~DiagnosticSessionControl()
 /* Method to control the sessions of service */
 void DiagnosticSessionControl::sessionControl(canid_t frame_id, uint8_t sub_function)
 {
-    LOG_INFO(dsc_logger.GET_LOGGER(), "Sessiom Control request, SID: 0x{:X} Sub-Function: 0x{:X}", 0x10, sub_function);
+    LOG_INFO(dsc_logger.GET_LOGGER(), "Session Control request, SID: 0x{:X} Sub-Function: 0x{:X}", 0x10, sub_function);
 
     switch (sub_function)
     {
