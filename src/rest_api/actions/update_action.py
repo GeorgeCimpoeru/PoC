@@ -52,7 +52,7 @@ class Updates(Action):
             self._passive_response(SESSION_CONTROL, "Error changing session control")
 
             log_info_message(logger, "Authenticating...")
-            self._authentication(self.id )
+            self._authentication(self.id)
 
             log_info_message(logger, "Downloading... Please wait")
             self._download_data(type, version)
