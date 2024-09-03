@@ -169,7 +169,7 @@ class ReadInfo(Action):
             }
 
             if item:
-            # Read only the specific item if provided
+                # Read only the specific item if provided
                 if item in identifiers:
                     identifier = identifiers[item]
                     results[item] = self._read_by_identifier(id, identifier)
@@ -190,7 +190,18 @@ class ReadInfo(Action):
                 response_json = {item: results.get(item, "No read")}
             else:
                 # Return all items if no specific item is provided
-                response_json = results
+                response_json = BatteryToJSON()._to_json([
+                    results["battery_level"],
+                    results["voltage"],
+                    results["percentage"],
+                    results["state_of_charge"],
+                    results["life_cycle"],
+                    results["fully_charged"],
+                    results["serial_number"],
+                    results["range_battery"],
+                    results["charging_time"],
+                    results["device_consumption"]
+                ])
 
             self.bus.shutdown()
             log_info_message(logger, "Sending JSON")
@@ -199,27 +210,6 @@ class ReadInfo(Action):
         except CustomError as e:
             self.bus.shutdown()
             return e.message
-
-    @staticmethod
-    def _get_battery_state_of_charge(state_of_charge):
-            # Remove the '0x' prefix if present
-            if state_of_charge.startswith("0x"):
-                state_of_charge = state_of_charge[2:]
-
-            # Dictionary mapping hex string values to battery states
-            state_mapping = {
-                "00": "Unknown state",
-                "01": "Charging",
-                "02": "Discharging",
-                "03": "Empty",
-                "04": "Fully charged",
-                "05": "Pending charge",
-                "06": "Pending discharge"
-            }
-
-        # Return the corresponding state or "Unknown state" if not found
-            return state_mapping.get(state_of_charge, "Unknown state") 
-
 
     def read_from_engine(self):
 
