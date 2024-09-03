@@ -9,11 +9,11 @@ from actions.read_info_action import *  # noqa: E402
 from utils.logger import log_memory  # noqa: E402
 from actions.manual_send_frame import manual_send_frame  # noqa: E402
 from actions.write_info_action import WriteInfo  # noqa: E402
-from src.ota.google_drive_api.GoogleDriveApi import GDriveAPI  # noqa: E402
+# from src.ota.google_drive_api.GoogleDriveApi import GDriveAPI  # noqa: E402
 
 
 api_bp = Blueprint('api', __name__)
-gDrive = GDriveAPI.getInstance()
+# gDrive = GDriveAPI.getInstance()
 
 
 @api_bp.route('/request_ids', methods=['GET'])
@@ -39,7 +39,8 @@ def update_to_version():
 @api_bp.route('/read_info_battery', methods=['GET'])
 def read_info_bat():
     reader = ReadInfo(0xFA, [0x10, 0x11, 0x12])
-    response = reader.read_from_battery()
+    identifier = request.args.get('identifier', default=None, type=str)
+    response = reader.read_from_battery(identifier)
     return jsonify(response)
 
 
@@ -87,12 +88,12 @@ def get_logs():
     return jsonify({'logs': log_memory})
 
 
-# Google Drive API Endpoints
-@api_bp.route('/drive_update_data', methods=['GET'])
-def update_drive_data():
-    try:
-        drive_data_str = gDrive.getDriveData()
-        # drive_data = json.loads(drive_data_str)
-        return jsonify(drive_data_str)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+# # Google Drive API Endpoints
+# @api_bp.route('/drive_update_data', methods=['GET'])
+# def update_drive_data():
+#     try:
+#         drive_data_str = gDrive.getDriveData()
+#         # drive_data = json.loads(drive_data_str)
+#         return jsonify(drive_data_str)
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500

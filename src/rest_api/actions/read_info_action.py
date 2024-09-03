@@ -125,59 +125,72 @@ class ReadInfo(Action):
         """
         Method to read information from the battery module.
 
+        Args:
+        - item: Optional identifier for a specific data item to read.
+
         Returns:
         - JSON response.
         """
-        self._auth_mcu()
+        auth_result = self._auth_mcu()
+        if isinstance(auth_result, str):  # If authentication fails and returns a message
+            return auth_result
+
         try:
             log_info_message(logger, "Reading data from battery")
-            id = self.my_id * 0x100 + self.id_ecu[MCU]
+            id_battery = self.id_ecu[ECU_BATTERY]
+            id = self.my_id * 0x100 + id_battery
 
+            # Initialize all potential variables
             identifiers = {
-            "battery_level": IDENTIFIER_BATTERY_ENERGY_LEVEL,
-            "voltage": IDENTIFIER_BATTERY_VOLTAGE,
-            "percentage": IDENTIFIER_BATTERY_PERCENTAGE,
-            "battery_state_of_charge": IDENTIFIER_BATTERY_STATE_OF_CHARGE,
-            "life_cycle": IDENTIFIER_BATTERY_LIFE_CYCLE,
-            "fully_charged": IDENTIFIER_BATTERY_FULLY_CHARGED,
-            "serial_number": IDENTIFIER_ECU_SERIAL_NUMBER,
-            "range_battery": IDENTIFIER_BATTERY_RANGE,
-            "charging_time": IDENTIFIER_BATTERY_CHARGING_TIME,
-            "device_consumption": IDENTIFIER_DEVICE_CONSUMPTION
-        }
+                "battery_level": IDENTIFIER_BATTERY_ENERGY_LEVEL,
+                "voltage": IDENTIFIER_BATTERY_VOLTAGE,
+                "percentage": IDENTIFIER_BATTERY_PERCENTAGE,
+                "state_of_charge": IDENTIFIER_BATTERY_STATE_OF_CHARGE,
+                # "life_cycle": IDENTIFIER_BATTERY_LIFE_CYCLE,
+                # "fully_charged": IDENTIFIER_BATTERY_FULLY_CHARGED,
+                # "serial_number": IDENTIFIER_ECU_SERIAL_NUMBER,
+                # "range_battery": IDENTIFIER_BATTERY_RANGE,
+                # "charging_time": IDENTIFIER_BATTERY_CHARGING_TIME,
+                # "device_consumption": IDENTIFIER_DEVICE_CONSUMPTION,
+            }
 
-            data = {}
+            # Storage for the results
+            results = {
+                "battery_level": None,
+                "voltage": None,
+                "percentage": None,
+                "state_of_charge": None,
+                "life_cycle": "No read",
+                "fully_charged": "No read",
+                "serial_number": "No read",
+                "range_battery": "No read",
+                "charging_time": "No read",
+                "device_consumption": "No read"
+            }
 
-            # Determine which data to read
             if item:
-                identifier = identifiers.get(item)
-                if identifier:
-                    data[item] = self._read_by_identifier(id, identifier)
+            # Read only the specific item if provided
+                if item in identifiers:
+                    identifier = identifiers[item]
+                    results[item] = self._read_by_identifier(id, identifier)
+                    # Process the value if needed
+                    if item == "state_of_charge":
+                        results[item] = self._get_battery_state_of_charge(results[item])
                 else:
-                    return self._to_json("error", f"Unknown item: {item}")
-
+                    results["error"] = "Invalid identifier"
             else:
-                # Read all data items
+                # Read all items if no specific item is provided
                 for key, identifier in identifiers.items():
-                    data[key] = self._read_by_identifier(id, identifier)
+                    results[key] = self._read_by_identifier(id, identifier)
+                    if key == "state_of_charge" and results[key]:
+                        results[key] = self._get_battery_state_of_charge(results[key])
 
-            # Process data
-            for key, value in data.items():
-                if value is None:
-                    data[key] = "No read"
-                elif key in ["battery_level", "voltage"]:
-                    data[key] = str(int(value, 16))
-                elif key == "percentage":
-                    data[key] = round(((int(value, 16) / 255) * 100), 2)
-                elif key in ["life_cycle", "fully_charged", "serial_number", "range_battery", "charging_time", "device_consumption"]:
-                    # Keep as is if available, or set to "No read"
-                    data[key] = value
-
-            # Process the state of charge separately
-            if "battery_state_of_charge" in data:
-                data["battery_state_of_charge"] = self._get_battery_state_of_charge(data["battery_state_of_charge"])
-
-            response_json = BatteryToJSON()._to_json(data)
+            if item:
+                # Return only the requested item if `item` is provided
+                response_json = {item: results.get(item, "No read")}
+            else:
+                # Return all items if no specific item is provided
+                response_json = results
 
             self.bus.shutdown()
             log_info_message(logger, "Sending JSON")
@@ -186,6 +199,27 @@ class ReadInfo(Action):
         except CustomError as e:
             self.bus.shutdown()
             return e.message
+
+    @staticmethod
+    def _get_battery_state_of_charge(state_of_charge):
+            # Remove the '0x' prefix if present
+            if state_of_charge.startswith("0x"):
+                state_of_charge = state_of_charge[2:]
+
+            # Dictionary mapping hex string values to battery states
+            state_mapping = {
+                "00": "Unknown state",
+                "01": "Charging",
+                "02": "Discharging",
+                "03": "Empty",
+                "04": "Fully charged",
+                "05": "Pending charge",
+                "06": "Pending discharge"
+            }
+
+        # Return the corresponding state or "Unknown state" if not found
+            return state_mapping.get(state_of_charge, "Unknown state") 
+
 
     def read_from_engine(self):
 
