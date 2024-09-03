@@ -165,3 +165,7 @@ function writeInfoBattery() {
     performApiRequest('/api/write_info_battery', 'POST', data);
 }
 
+
+function authenticate() {
+    performApiRequest('/api/authenticate', 'GET');
+}

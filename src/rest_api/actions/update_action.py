@@ -51,6 +51,9 @@ class Updates(Action):
             self.generate.session_control(self.id, 0x02)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
 
+            log_info_message(logger, "Authenticating...")
+            self._authentication(self.id )
+
             log_info_message(logger, "Downloading... Please wait")
             self._download_data(type, version)
             log_info_message(logger, "Download finished, restarting ECU...")
@@ -126,6 +129,7 @@ class Updates(Action):
         create locally a virtual partition used for download.
         -> search/change "/dev/loopXX" in RequestDownload.cpp, MemoryManager.cpp; (Depends which partition is attributed)
         """
+        self.id = (self.id_ecu[0] << 16) + (self.my_id << 8) + self.id_ecu[0]
         self.generate.request_download(self.id,
                                        data_format_identifier=type,  # No compression/encryption
                                        memory_address=0x8001,  # Memory address starting from 2049
@@ -134,7 +138,7 @@ class Updates(Action):
         self._passive_response(REQUEST_DOWNLOAD, "Error requesting download")
 
         self.generate.transfer_data(self.id, 0x01)
-        self._passive_response(TRANSFER_DATA, "Error transferring data")
+        # self._passive_response(TRANSFER_DATA, "Error transferring data")
         time.sleep(1)
         self.generate.control_frame_write_file(self.id)
         time.sleep(1)
