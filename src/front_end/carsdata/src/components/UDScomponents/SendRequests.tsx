@@ -28,6 +28,54 @@ const SendRequests = () => {
     const [disableInfoEngineBtns, setDisableInfoEngineBtns] = useState<boolean>(false);
     const [disableInfoDoorsBtns, setDisableInfoDoorsBtns] = useState<boolean>(false);
     const [disableConvertBtn, setDisableConvertBtn] = useState<boolean>(true);
+    let popupElement: any = null;
+    let popupStyleElement: any = null;
+
+    const displayLoadingCircle = () => {
+        if (popupElement || popupStyleElement) {
+            return;
+        }
+        popupElement = document.createElement('div');
+        popupElement.style.position = 'fixed';
+        popupElement.style.top = '50%';
+        popupElement.style.left = '50%';
+        popupElement.style.transform = 'translate(-50%, -50%)';
+        popupElement.style.padding = '20px';
+        popupElement.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        popupElement.style.borderRadius = '10px';
+        popupElement.style.zIndex = '1000';
+        popupElement.style.textAlign = 'center';
+
+        const loadingCircle = document.createElement('div');
+        loadingCircle.style.width = '40px';
+        loadingCircle.style.height = '40px';
+        loadingCircle.style.border = '5px solid white';
+        loadingCircle.style.borderTop = '5px solid transparent';
+        loadingCircle.style.borderRadius = '50%';
+        loadingCircle.style.animation = 'spin 1s linear infinite';
+
+        popupElement.appendChild(loadingCircle);
+
+        document.body.appendChild(popupElement);
+
+        popupStyleElement = document.createElement('style');
+        popupStyleElement.type = 'text/css';
+        popupStyleElement.innerText = `@keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }}`;
+        document.head.appendChild(popupStyleElement);
+    };
+
+    const removeLoadingCicle = () => {
+        if (popupElement) {
+            popupElement.remove();
+            popupElement = null;
+        }
+        if (popupStyleElement) {
+            popupStyleElement.remove();
+            popupStyleElement = null;
+        }
+    };
 
     const fetchLogs = async () => {
         console.log("Fetching logs...");
@@ -57,6 +105,7 @@ const SendRequests = () => {
     }
 
     const sendFrame = async () => {
+        displayLoadingCircle();
         if (!canId || !canData) {
             alert('CAN ID and CAN Data cannot be empty.');
             return;
@@ -78,6 +127,7 @@ const SendRequests = () => {
                 fetchLogs();
                 setDisableConvertBtn(false);
             });
+        removeLoadingCicle();
     }
 
 
@@ -109,8 +159,8 @@ const SendRequests = () => {
         // }, 10000);
     };
 
-
     const requestIds = async (initialRequest: boolean) => {
+        displayLoadingCircle();
         console.log("Requesting ids...");
         try {
             await fetch('http://127.0.0.1:5000/api/request_ids', {
@@ -149,10 +199,13 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
+            removeLoadingCicle();
         }
+        removeLoadingCicle();
     }
 
     const updateToVersion = async () => {
+        displayLoadingCircle();
         const ecuId = prompt('Enter ECU ID:');
         const version = prompt('Enter Version:');
         console.log("Updateing version...");
@@ -171,10 +224,13 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
+            removeLoadingCicle();
         }
+        removeLoadingCicle();
     }
 
     const readInfoBattery = async (initialRequest: boolean) => {
+        displayLoadingCircle();
         console.log("Reading info battery...");
         try {
             await fetch('http://127.0.0.1:5000/api/read_info_battery', {
@@ -192,12 +248,15 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
+            removeLoadingCicle();
         }
+        removeLoadingCicle();
     }
 
     const readInfoEngine = async () => { }
 
     const readInfoDoors = async () => {
+        displayLoadingCircle();
         console.log("Reading info doors...");
         try {
             await fetch('http://127.0.0.1:5000/api/read_info_doors', {
@@ -210,10 +269,13 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
+            removeLoadingCicle();
         }
+        removeLoadingCicle();
     }
 
     const getNewSoftVersions = async () => {
+        displayLoadingCircle();
         console.log("Geting new soft versions...");
         try {
             await fetch('http://127.0.0.1:5000/api/drive_update_data', {
@@ -233,10 +295,13 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
+            removeLoadingCicle();
         }
+        removeLoadingCicle();
     }
 
     const writeInfoDoors = async () => {
+        displayLoadingCircle();
         const door = prompt('Enter Door Parameter:');
         const serial_number = prompt('Enter Serial Number:');
         const lighter_voltage = prompt('Enter Cigarette Lighter Voltage:');
@@ -269,10 +334,13 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
+            removeLoadingCicle();
         }
+        removeLoadingCicle();
     }
 
     const writeInfoBattery = async () => {
+        displayLoadingCircle();
         const battery_level = prompt('Enter Battery Energy Level: ' + batteryData?.battery_level);
         const stateOfCharge = prompt('Enter Battery State of Charge: ' + batteryData?.battery_state_of_charge);
         const percentage = prompt('Enter Battery Percentage: ' + batteryData?.percentage);
@@ -315,10 +383,13 @@ const SendRequests = () => {
                 })
                 .catch(error => {
                     console.error('Error:', error);
+                    removeLoadingCicle();
                 });
         } catch (error) {
             console.log(error);
+            removeLoadingCicle();
         }
+        removeLoadingCicle();
     }
 
     useEffect(() => {
@@ -336,7 +407,7 @@ const SendRequests = () => {
                     <button className="btn btn-warning w-fit mt-5 ml-5 text-white" onClick={testerPresent} disabled={disableFrameAndDtcBtns}>Tester present</button>
 
                 </div>
-               
+
                 <p className="text-xl mt-3">CAN ID:</p>
                 <input type="text" placeholder="e.g., 0xFa, 0x1234" className="input input-bordered w-full" onChange={e => setCanId(e.target.value)} />
                 <p className="text-xl mt-3">CAN Data:</p>
