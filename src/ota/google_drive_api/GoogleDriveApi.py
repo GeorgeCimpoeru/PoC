@@ -8,6 +8,12 @@ from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload
 from googleapiclient.http import MediaFileUpload
 
+# Colors used for printing messages
+RED = '\033[91m'
+GREEN = '\033[92m'
+YELLOW = '\033[93m'
+RESET = '\033[0m'
+
 PROJECT_PATH = os.path.abspath(os.path.join(os.getcwd(), "..", ".."))
 CREDS_PATH = PROJECT_PATH + '/key.json'
 OAUTH2_SCOPE = 'https://www.googleapis.com/auth/drive'
@@ -31,12 +37,18 @@ ecu_map = {
 
 
 class GDriveAPI:
+    # credentials needed for authorization. Created from the google cloud key.json file
     __creds = None
+    # drive service object for cusing the drive api
     __drive_service = None
+    # store data from the drive in json format
     __drive_data_json = {}
     __drive_data_array = []
+
+    # class variable __instance will keep track of the lone object instance
     __instance = None
 
+    # Method used for getting the GDriveAPI object. When first time called, the path to the credentials is needed.
     @staticmethod
     def getInstance(creds_path=None):
         if GDriveAPI.__instance is None:
@@ -50,14 +62,14 @@ class GDriveAPI:
         if GDriveAPI.__instance is not None:
             raise Exception("Singleton object already created!")
         else:
-            self.__creds = service_account.Credentials.from_service_account_file(
-                creds_path, scopes=[OAUTH2_SCOPE]
-            )
+            self.__creds = service_account.Credentials.from_service_account_file(creds_path, scopes=[
+                                                                                 OAUTH2_SCOPE])
             self.__drive_service = build('drive', 'v3', credentials=self.__creds)
             GDriveAPI.__instance = self
 
     def updateDriveData(self):
-        self.__drive_data_json = json.dumps(self.getDriveData(), indent=4)
+        self.__drive_data_json = json.dumps(self.__getDriveData(), indent=4)
+
         return self.__drive_data_json
 
     def uploadFile(self, file_name, file_path, parent_folder_id=DRIVE_BASE_FILE['id']):
@@ -66,43 +78,48 @@ class GDriveAPI:
             'parents': [parent_folder_id]  # ID of the folder where you want to upload
         }
 
-        # Automatically determine the MIME type
-        mimetype = 'text/plain' if file_name.endswith('.txt') else None
-        media = MediaFileUpload(file_path, mimetype=mimetype)
-
-        self.__drive_service.files().create(
-            body=file_metadata, media_body=media, fields='id').execute()
-
+        media = MediaFileUpload(file_path, mimetype='text/plain')
+        try:
+            print(f"{GREEN}Uploading {file_name} to Google Drive..{RESET}")
+            file = self.__drive_service.files().create(
+                body=file_metadata, media_body=media, fields='id').execute()
+            if 'id' in file:
+                print(f"{GREEN}File uploaded successfully. File ID:{RESET}", file['id'])
+            else:
+                print(f"{RED}File upload failed. No file ID returned.{RESET}")
+        except Exception as e:
+            print(f"{RED}An error occurred during file upload:{RESET}", e)
     def downloadFile(self, ecu_id, sw_version_byte, path_to_download=DRIVE_DOWNLOAD_PATH):
         try:
             # pylint: disable=maybe-no-member
             sw_version = self.__convertByteToSwVersion(hex(sw_version_byte))
-            print('Searching for version ' + ecu_map[ecu_id] + ' ' + sw_version)
+            print(f"{GREEN}Searching for version {RESET}" + ecu_map[ecu_id] + ' ' + sw_version)
             file_to_download = [
-                data for data in self.__drive_data_array
-                if search_string in data['name'].upper() == ecu_map[ecu_id] and data['sw_version'] == str(sw_version)]
-
+                data for data in self.__drive_data_array if data['type'] == ecu_map[ecu_id] and data['sw_version'] == str(sw_version)]
             if not file_to_download:
-                print(f"No file found with name containing '{search_string}' and version {sw_version}")
+                print(
+                    f"{RED}No file found with type:{ecu_map[ecu_id]} and version {sw_version}{RESET}")
                 return
-            print('Version found, downloading..')
+            print(f"{GREEN}Version found, downloading..{RESET}")
             file_to_download = file_to_download[0]  # Access the first element
             request = self.__drive_service.files().get_media(
                 fileId=file_to_download['id'])
             downloaded_file = io.BytesIO()
             downloader = MediaIoBaseDownload(downloaded_file, request)
             done = False
+
             while not done:
                 status, done = downloader.next_chunk()
-                print(f"Download {int(status.progress() * 100)}%.")
+                print(f"{GREEN}Download {int(status.progress() * 100)}%.{RESET}")
+
         except HttpError as error:
-            print(f"An error occurred: {error}")
+            print(f"{RED}An error occurred: {error}{RESET}")
             return
+
         downloaded_file.seek(0)
-        file_name = self.__sanitizeFileName(file_to_download['name'])
-        with open(f"{path_to_download}/{file_name}", 'wb') as f:
+        with open(f"{path_to_download}/{file_to_download['name']}", 'wb') as f:
             f.write(downloaded_file.read())
-            print(f"File downloaded and saved to {path_to_download}")
+            print(f"{GREEN}File downloaded and saved to {path_to_download}{RESET}")
 
     # PRIVATE METHODS
     def __convertByteToSwVersion(self, software_version_byte):
@@ -147,6 +164,10 @@ class GDriveAPI:
             json_file['sw_version'] = self.__getSoftwareVersion(file['name'])
             json_file['size'] = file.get('size', 'N/A')
         self.__drive_data_array.append(json_file)
+        if json_file['type'] == "folder":
+            json_file['children'].extend(self.__getDriveData(file)
+                                         for file in folder_data['files'])
+
         return json_file
 
 

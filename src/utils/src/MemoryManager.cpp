@@ -87,7 +87,7 @@ std::string MemoryManager::runCommand(char command[])
 
 bool MemoryManager::availableAddress(off_t address)
 {
-    char verify_address_command[] = "sudo fdisk -l /dev/loop25 | grep '^/dev/' | grep '*' | awk '{print $3,$4}'";
+    char verify_address_command[] = "sudo fdisk -l /dev/loop17 | grep '^/dev/' | grep '*' | awk '{print $3,$4}'";
 
     if (address == -1)
     {
@@ -119,7 +119,7 @@ bool MemoryManager::availableMemory(off_t size_of_data)
 {
     constexpr size_t SECTOR_SIZE = 512;
 
-    char verify_memory_command[] = "sudo fdisk -l /dev/loop25 | grep '^/dev/' | grep -v '*' | awk '{print $3}'";
+    char verify_memory_command[] = "sudo fdisk -l /dev/loop17 | grep '^/dev/' | grep -v '*' | awk '{print $3}'";
     std::string result = runCommand(verify_memory_command);
     if (result.length() < 3)
     {
