@@ -314,7 +314,7 @@ can_frame* RequestDownloadService::read_frame(int id, uint8_t sid)
 void RequestDownloadService::requestDownloadResponse(canid_t id, int memory_address, int max_number_block)
 {
     /* this path is temporary and differs on each VM */
-    std::string path = "/dev/loop17";
+    std::string path = DEV_LOOP;
     /* Rename destination in sender and viceversa */
     uint8_t frame_receiver_id = (id >> 8) & 0xFF;
     LOG_INFO(RDSlogger.GET_LOGGER(), "memory adress: 0x{0:x}", static_cast<int>(memory_address));

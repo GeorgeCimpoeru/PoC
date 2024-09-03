@@ -82,6 +82,8 @@
 
 #include "Logger.h"
 
+#define DEV_LOOP "/dev/loop16"
+
 class MemoryManager
 {
     private:

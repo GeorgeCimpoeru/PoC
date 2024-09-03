@@ -220,7 +220,7 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
                 off_t memory_size = (frame_data[6] << 8) | frame_data[7];
 
                 /* Create instances of MemoryManager and GenerateFrames as needed */
-                MemoryManager memoryManager(memory_address, "/dev/loop17", _logger);
+                MemoryManager memoryManager(memory_address, DEV_LOOP, _logger);
                 GenerateFrames frameGenerator(_socket, _logger);
                 ReadMemoryByAddress read_memory_by_address(&memoryManager, frameGenerator, _socket, _logger);
 
