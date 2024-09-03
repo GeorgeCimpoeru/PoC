@@ -314,7 +314,7 @@ can_frame* RequestDownloadService::read_frame(int id, uint8_t sid)
 void RequestDownloadService::requestDownloadResponse(canid_t id, int memory_address, int max_number_block)
 {
     /* this path is temporary and differs on each VM */
-    std::string path = "/dev/loop25";
+    std::string path = "/dev/loop17";
     /* Rename destination in sender and viceversa */
     uint8_t frame_receiver_id = (id >> 8) & 0xFF;
     LOG_INFO(RDSlogger.GET_LOGGER(), "memory adress: 0x{0:x}", static_cast<int>(memory_address));
@@ -518,27 +518,27 @@ bool RequestDownloadService::extractZipFile(uint8_t target_id, const std::string
             return false;
         }
 
-        std::string outputFilePath;
-        if (target_id == 0x10) {
-            outputFilePath = outputDir + "/" + name + "_mcu_new";
-        }
-        else if (target_id == 0x11) {
-            outputFilePath = outputDir + "/" + name + "_battery_new";
-        }
-        else if (target_id == 0x12) {
-            outputFilePath = outputDir + "/" + name + "_doors_new";
-        }
-        else if (target_id == 0x13) {
-            outputFilePath = outputDir + "/" + name + "_engine_new";
-        }
-        else if (target_id == 0x14) {
-            outputFilePath = outputDir + "/" + name + "_hvac_new";
-        }
-        else
-        {
-            LOG_ERROR(RDSlogger.GET_LOGGER(), "No valid id to match main file.");
-            return false;
-        }
+        std::string outputFilePath = outputDir + "/" + name + "_new";
+        // if (target_id == 0x10) {
+        //     outputFilePath = outputDir + "/" + name + "_mcu_new";
+        // }
+        // else if (target_id == 0x11) {
+        //     outputFilePath = outputDir + "/" + name + "_battery_new";
+        // }
+        // else if (target_id == 0x12) {
+        //     outputFilePath = outputDir + "/" + name + "_doors_new";
+        // }
+        // else if (target_id == 0x13) {
+        //     outputFilePath = outputDir + "/" + name + "_engine_new";
+        // }
+        // else if (target_id == 0x14) {
+        //     outputFilePath = outputDir + "/" + name + "_hvac_new";
+        // }
+        // else
+        // {
+        //     LOG_ERROR(RDSlogger.GET_LOGGER(), "No valid id to match main file.");
+        //     return false;
+        // }
         std::ofstream outFile(outputFilePath, std::ios::binary);
         if (!outFile.is_open()) {
             LOG_ERROR(RDSlogger.GET_LOGGER(), "Error creating output file: " + outputFilePath);
