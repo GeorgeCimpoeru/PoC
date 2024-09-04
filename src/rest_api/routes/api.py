@@ -1,6 +1,5 @@
 import sys
 import os
-import json
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 sys.path.append(PROJECT_ROOT)
 from flask import request, jsonify, Blueprint  # noqa: E402
