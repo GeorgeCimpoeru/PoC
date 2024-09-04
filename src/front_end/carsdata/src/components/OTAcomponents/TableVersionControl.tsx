@@ -18,30 +18,23 @@ const TableVersionControl = () => {
         try {
             await fetch('http://127.0.0.1:5000/api/drive_update_data', {
                 method: 'GET',
-                // mode: 'no-cors',
             }).then(response => response.json())
                 .then(data => {
                     const versionsArray: string[] = [];
-
-                    // Loop through the children of data.children[3] and data.children[4]
                     for (let i = 0; i < data.children[3].children.length; ++i) {
-                        // Extract only the numeric part of the version string using regex
                         const versionNumber = data.children[3].children[i].name.match(/\d+(\.\d+)*|\d+/)?.[0];
                         if (versionNumber) {
                             versionsArray.push(versionNumber);
                         }
                     }
-                    
+
                     for (let i = 0; i < data.children[4].children.length; ++i) {
                         const versionNumber = data.children[4].children[i].name.match(/\d+(\.\d+)*|\d+/)?.[0];
                         if (versionNumber) {
                             versionsArray.push(versionNumber);
                         }
                     }
-                    
-                    // Set the extracted version numbers
                     setNewSoftVersions(versionsArray);
-                    
                     console.log(data);
 
                 });
