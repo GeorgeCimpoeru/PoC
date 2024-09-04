@@ -61,11 +61,6 @@ class GDriveAPI:
             self.__drive_service = build('drive', 'v3', credentials=self.__creds)
             GDriveAPI.__instance = self
 
-    def updateDriveData(self):
-        self.__drive_data_json = json.dumps(self.getDriveData(), indent=4)
-
-        return self.__drive_data_json
-
     def uploadFile(self, file_name, file_path, parent_folder_id=DRIVE_BASE_FILE['id']):
         file_metadata = {
             'name': file_name,
