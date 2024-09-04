@@ -37,7 +37,6 @@ const UpgradeButton = () => {
                 });
             }, 500);
 
-            // Simulate version update
             if (version === '1') {
                 setMessage('Success: Version 1.2.0 installed successfully!');
                 setError(null);
@@ -77,16 +76,16 @@ const UpgradeButton = () => {
             //     setMessage('Downloaded successfully!');
             //     setError(null);
             // }
+
         } catch (error: unknown) {
             setError(error instanceof Error ? error.message : 'An unknown error occurred');
             setMessage(null);
         } finally {
-            // Delay hiding the progress modal and showing the status modal
             setTimeout(() => {
                 setIsOverlayVisible(false);
                 setIsProgressModalVisible(false);
                 setIsStatusModalVisible(true);
-            }, 4000); // Wait for 4 seconds
+            }, 4000);
         }
     };
 
