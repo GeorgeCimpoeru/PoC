@@ -89,7 +89,7 @@ def get_logs():
 # Google Drive API Endpoints
 @api_bp.route('/drive_update_data', methods=['GET'])
 def update_drive_data():
-    drive_data_json = gDrive.updateDriveData()
+    drive_data_json = gDrive.getDriveData()
     return jsonify(drive_data_json)
 
 
