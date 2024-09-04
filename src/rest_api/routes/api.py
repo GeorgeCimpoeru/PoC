@@ -9,11 +9,10 @@ from actions.read_info_action import *  # noqa: E402
 from utils.logger import log_memory  # noqa: E402
 from actions.manual_send_frame import manual_send_frame  # noqa: E402
 from actions.write_info_action import WriteInfo  # noqa: E402
-from src.ota.google_drive_api.GoogleDriveApi import GDriveAPI  # noqa: E402
-
+from src.ota.google_drive_api.GoogleDriveApi import gDrive  # noqa: E402
+from actions.secure_auth import Auth  # noqa: E402
 
 api_bp = Blueprint('api', __name__)
-gDrive = GDriveAPI.getInstance()
 
 
 @api_bp.route('/request_ids', methods=['GET'])
@@ -90,9 +89,19 @@ def get_logs():
 # Google Drive API Endpoints
 @api_bp.route('/drive_update_data', methods=['GET'])
 def update_drive_data():
+    drive_data_json = gDrive.updateDriveData()
+    return jsonify(drive_data_json)
+
+
+@api_bp.route('/authenticate', methods=['GET'])
+def authenticate():
     try:
-        drive_data_str = gDrive.getDriveData()
-        # drive_data = json.loads(drive_data_str)
-        return jsonify(drive_data_str)
+        auth = Auth(API_ID, [0x10, 0x11, 0x12])
+        response_json = auth._auth_to()
+        return jsonify(response_json), 200
+
+    except CustomError as e:
+        return jsonify(e.message), 400
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
