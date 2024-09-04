@@ -139,18 +139,21 @@ class GDriveAPI:
         version = version_with_zip.rstrip('.zip')
         return version
 
-    def __getDriveData(self, file=DRIVE_BASE_FILE):
-
+    def getDriveData(self, file=DRIVE_BASE_FILE):
         folder_data = self.__getFilesFromFolder(file["id"])
         json_file = {
             'name': file['name'],
             'id': file['id'],
             'type': self.__getFileType(file),
-            'children': [],
         }
-        if (json_file['type'] != "folder"):
+        if json_file['type'] != "folder":
             json_file['sw_version'] = self.__getSoftwareVersion(file['name'])
             json_file['size'] = file.get('size', 'N/A')
+        else:
+            children = [self.getDriveData(child_file) for child_file in folder_data['files']]
+            if children:
+                json_file['children'] = children
+
         self.__drive_data_array.append(json_file)
         return json_file
 

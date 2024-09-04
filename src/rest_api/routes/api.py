@@ -1,5 +1,6 @@
 import sys
 import os
+import json
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 sys.path.append(PROJECT_ROOT)
 from flask import request, jsonify, Blueprint  # noqa: E402
@@ -9,11 +10,10 @@ from actions.read_info_action import *  # noqa: E402
 from utils.logger import log_memory  # noqa: E402
 from actions.manual_send_frame import manual_send_frame  # noqa: E402
 from actions.write_info_action import WriteInfo  # noqa: E402
-from src.ota.google_drive_api.GoogleDriveApi import GDriveAPI  # noqa: E402
+from src.ota.google_drive_api.GoogleDriveApi import gDrive  # noqa: E402
 from actions.secure_auth import Auth  # noqa: E402
 
 api_bp = Blueprint('api', __name__)
-gDrive = GDriveAPI.getInstance()
 
 
 @api_bp.route('/request_ids', methods=['GET'])
@@ -90,12 +90,8 @@ def get_logs():
 # Google Drive API Endpoints
 @api_bp.route('/drive_update_data', methods=['GET'])
 def update_drive_data():
-    try:
-        drive_data_str = gDrive.getDriveData()
-        # drive_data = json.loads(drive_data_str)
-        return jsonify(drive_data_str)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    drive_data_json = gDrive.updateDriveData()
+    return jsonify(drive_data_json)
 
 
 @api_bp.route('/authenticate', methods=['GET'])
