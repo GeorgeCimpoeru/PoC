@@ -9,8 +9,9 @@ from actions.read_info_action import *  # noqa: E402
 from utils.logger import log_memory  # noqa: E402
 from actions.manual_send_frame import manual_send_frame  # noqa: E402
 from actions.write_info_action import WriteInfo  # noqa: E402
-from src.ota.google_drive_api.GoogleDriveApi import gDrive  # noqa: E402
+# from src.ota.google_drive_api.GoogleDriveApi import gDrive  # noqa: E402
 from actions.secure_auth import Auth  # noqa: E402
+from actions.diag_session import SessionManager
 
 api_bp = Blueprint('api', __name__)
 
@@ -87,10 +88,10 @@ def get_logs():
 
 
 # Google Drive API Endpoints
-@api_bp.route('/drive_update_data', methods=['GET'])
-def update_drive_data():
-    drive_data_json = gDrive.getDriveData()
-    return jsonify(drive_data_json)
+# @api_bp.route('/drive_update_data', methods=['GET'])
+# def update_drive_data():
+#     drive_data_json = gDrive.getDriveData()
+#     return jsonify(drive_data_json)
 
 
 @api_bp.route('/authenticate', methods=['GET'])
@@ -112,7 +113,7 @@ def change_session():
     data = request.get_json()
     sub_funct = data.get('sub_funct')
     if sub_funct is None:
-        return jsonify({"status": "error", "message": "Missing 'id' or 'sub_funct' parameter"}), 400
-    action_instance = Action(my_id=API_MCU_ID)
-    response = action_instance._change_session(API_MCU_ID, sub_funct)
+        return jsonify({"status": "error", "message": "Missing 'sub_funct' parameter"}), 400
+    session = SessionManager(API_ID)
+    response = session._change_session(id, sub_funct)
     return jsonify(response)
