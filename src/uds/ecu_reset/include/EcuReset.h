@@ -25,7 +25,7 @@ class EcuReset
 private:
     uint32_t can_id;
     uint8_t sub_function;
-    int response_socket;
+    int socket = -1;
     
     Logger& ECUResetLog;
 public:
