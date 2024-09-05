@@ -14,11 +14,11 @@ class SessionManager(Action):
         Returns:
         - A dictionary with the status and message of the operation.
         """
-        
+
         id = (API_ID << 8) + 0x10
 
         try:
-            
+
             session_type = "DEFAULT" if sub_funct == 0x01 else "PROGRAMMING" if sub_funct == 0x02 else "unknown"
             log_info_message(logger, f"Changing session to {session_type} (sub_function: {sub_funct})")
 
