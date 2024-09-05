@@ -474,16 +474,8 @@ void RequestDownloadService::downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_
     py::object gGdrive_object = python_module.attr("gDrive");
 
     /* Call the update method in order to check what files are on drive and can be downloaded. */
-    std::string drive_data = gGdrive_object.attr("updateDriveData")().cast<std::string>();
-    std::cout << drive_data << std::endl;
-
-    /*
-        CODE USED FOR UPLOADING FROM CPP TO GOOGLE DRIVE
-
-    std::map <std::string, std::string> file_to_upload;
-    gGdrive_object.attr("uploadFile")("main.elf", "/home/projectx/accademyprojects/PoC/src/mcu/main", "15b2q_YupkZocnALf4Iq5bHaJMXi8FHm9");
-    version_file_id = "1K3SKcTK8Tgb_Z-JadtGrckKCbHhvs90O";
-    */
+    gGdrive_object.attr("updateDriveData")().cast<std::string>();
+    /* std::cout << drive_data << std::endl; */
 
     /* Call the downloadFile method from GoogleDriveApi.py */
      gGdrive_object.attr("downloadFile")(ecu_id, sw_version);
