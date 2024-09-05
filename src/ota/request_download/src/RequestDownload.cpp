@@ -511,26 +511,7 @@ bool RequestDownloadService::extractZipFile(uint8_t target_id, const std::string
         }
 
         std::string outputFilePath = outputDir + "/" + name + "_new";
-        // if (target_id == 0x10) {
-        //     outputFilePath = outputDir + "/" + name + "_mcu_new";
-        // }
-        // else if (target_id == 0x11) {
-        //     outputFilePath = outputDir + "/" + name + "_battery_new";
-        // }
-        // else if (target_id == 0x12) {
-        //     outputFilePath = outputDir + "/" + name + "_doors_new";
-        // }
-        // else if (target_id == 0x13) {
-        //     outputFilePath = outputDir + "/" + name + "_engine_new";
-        // }
-        // else if (target_id == 0x14) {
-        //     outputFilePath = outputDir + "/" + name + "_hvac_new";
-        // }
-        // else
-        // {
-        //     LOG_ERROR(RDSlogger.GET_LOGGER(), "No valid id to match main file.");
-        //     return false;
-        // }
+
         std::ofstream outFile(outputFilePath, std::ios::binary);
         if (!outFile.is_open()) {
             LOG_ERROR(RDSlogger.GET_LOGGER(), "Error creating output file: " + outputFilePath);

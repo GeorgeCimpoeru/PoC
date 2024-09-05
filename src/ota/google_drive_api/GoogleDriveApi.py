@@ -90,11 +90,13 @@ class GDriveAPI:
                 print(f"{RED}File upload failed. No file ID returned.{RESET}")
         except Exception as e:
             print(f"{RED}An error occurred during file upload:{RESET}", e)
+
     def downloadFile(self, ecu_id, sw_version_byte, path_to_download=DRIVE_DOWNLOAD_PATH):
         try:
             # pylint: disable=maybe-no-member
             sw_version = self.__convertByteToSwVersion(hex(sw_version_byte))
-            print(f"{GREEN}Searching for version {RESET}" + ecu_map[ecu_id] + ' ' + sw_version)
+            print(f"{GREEN}Searching for version {RESET}" +
+                  ecu_map[ecu_id] + ' ' + sw_version)
             file_to_download = [
                 data for data in self.__drive_data_array if data['type'] == ecu_map[ecu_id] and data['sw_version'] == str(sw_version)]
             if not file_to_download:
