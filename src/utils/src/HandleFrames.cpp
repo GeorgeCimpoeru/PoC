@@ -164,16 +164,10 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
             }
             break;
         }
-        case 0x29:
-        {
-            /* Authentication(); */
-            LOG_INFO(_logger.GET_LOGGER(), "Authentication called.");
-            break;
-        }
         case 0x3E:
         {
             LOG_INFO(_logger.GET_LOGGER(), "TesterPresent called.");
-            TesterPresent tester_present(_logger, &mcuDiagnosticSessionControl, can_socket, 1000);
+            TesterPresent tester_present(can_socket, _logger, mcuDiagnosticSessionControl);
             tester_present.handleTesterPresent(frame_id, frame_data);
             break;
         }
