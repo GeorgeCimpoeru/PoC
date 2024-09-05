@@ -20,15 +20,7 @@ const NavBarMain = ({ isVinSubmitted }: NavBarMainProps) => {
               </>
             )}
             <li><a>Login</a></li>
-            <li>
-              <details>
-                <summary>Contact Page</summary>
-                <ul className="bg-base-100 rounded-t-none p-2">
-                  <li><a>Link 1</a></li>
-                  <li><a>Link 2</a></li>
-                </ul>
-              </details>
-            </li>
+            <li><a>Sign Up</a></li>
           </ul>
         </div>
       </div>
