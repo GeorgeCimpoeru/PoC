@@ -41,6 +41,7 @@ namespace MCU
          * @brief Constructor that takes the interface number as an argument.
          * When the constructor is called, it creates a new interface with the
          * given number and starts the interface.
+         * 
          * @param interface_number The number of the vcan interface
         */
         MCUModule(uint8_t interfaces_number);

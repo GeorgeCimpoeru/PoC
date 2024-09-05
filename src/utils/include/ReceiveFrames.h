@@ -162,7 +162,8 @@ public:
      * @brief Parameterized constructor.
      * 
      * @param socket The socket file descriptor.
-     * @param frame_id Frame identifier.
+     * @param current_module_id Frame identifier.
+     * @param receive_logger A logger instance used to record information and errors during the execution.
      */
     ReceiveFrames(int socket, int current_module_id, Logger& receive_logger);
 

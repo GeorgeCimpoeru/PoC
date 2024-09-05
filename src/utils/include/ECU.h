@@ -40,8 +40,8 @@ public:
     /**
      * @brief Construct a new ECU object
      * 
-     * @param module_id 
-     * @param logger 
+     * @param module_id Custom module identifier.
+     * @param logger A logger instance used to record information and errors during the execution.
      */
     ECU(uint8_t module_id, Logger& logger);
 

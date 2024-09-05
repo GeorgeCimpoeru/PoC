@@ -21,11 +21,14 @@ class TransferData
     static constexpr uint8_t TD_SID = 0x34;
     /**
      * @brief Constructor for transfer data object
+     * 
+     * @param socket The socket descriptor used for communication over the CAN bus.
      * @param transfer_data_logger local reference to the parent logger
      */
     TransferData(int socket, Logger transfer_data_logger);
     /**
      * @brief method used to facilitate the transfer of data
+     * 
      * @param can_id frame id that contains the sender and receiver
      * @param transfer_request data to be transferred
      */

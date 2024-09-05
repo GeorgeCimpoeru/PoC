@@ -68,8 +68,7 @@ class SecurityAccess
          * socket for communication and a reference to a Logger object for logging 
          * security-related events.
          *
-         * @param socket_api The api socket descriptor used for communication.
-         * @param socket_canbus The canbus socket descriptor used for communication.
+         * @param socket_api The api socket descriptor used for communication.         
          * @param security_logger Reference to a Logger object for logging security events.
         */
         SecurityAccess(int socket_api, Logger& security_logger);
@@ -79,18 +78,17 @@ class SecurityAccess
          *
          * @param can_id The CAN identifier used for the security access operation.
          * @param data A vector containing the data bytes to be processed.
-         * @return void
-        */
+         */
         void securityAccess(canid_t can_id, const std::vector<uint8_t>& data);
         /**
          * @brief Getter for MCU state access.
          * 
+         * @param security_logger Reference to a Logger object for logging security events.
          * @return The current value of MCU state(true or false).
         */
         static bool getMcuState(Logger& security_logger);
         /**
          * @brief Retrieves the end time for the security timeout.
-         * 
          * This method returns the current value of the `end_time_security` variable,
          * which represents the point in time when the security timeout will expire.
          * 

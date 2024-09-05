@@ -35,7 +35,10 @@ class AccessTimingParameter
 {
 public:
     /**
-     * @brief Constuctor
+     * @brief Constructor
+     * 
+     * @param logger A logger instance used to record information and errors during the execution.
+     * @param socket The socket descriptor used for communication over the CAN bus.
      */
     AccessTimingParameter(Logger logger, int socket);
 
@@ -51,38 +54,43 @@ public:
      * 
      * @param frame_id The id of the received frame. 
      * @param sub_function The sub-function indicating which timing parameter action to perform.
+     * @param frame_data Data from the frame.
      */
     void handleRequest(canid_t frame_id, uint8_t sub_function, std::vector<uint8_t> frame_data);
 
     /**
-     * @brief This method returns the default P2 and P2* time values.
-     * 
+     * @brief This method returns the default P2 and P2* time values. 
      * This method will provide both the default and currently active timing parameter values for the communication.
      * It allows the client to understand what the default and current timeout values are.
+     * 
+     * @param frame_id The id of the received frame.
      */
     void readExtendedTimingParameters(canid_t frame_id);
 
     /**
      * @brief This method sets the timing parameters to their default values.
-     * 
      * This method resets the timing parameters (P2 and P2*) to their default values
      * It ensures that any custom timing settings are reverted back to the standard default values.
+     * 
+     * @param frame_id The id of the received frame.
      */
     void setTimingParametersToDefault(canid_t frame_id);
 
     /**
      * @brief This method returns the currently active P2 and P2* max time values.
-     * 
      * This method provides the current timing parameter values that are actively being used by the communication link.
      * It allows the client to verify the current timeout settings without referring to the default values.
+     * 
+     * @param frame_id The id of the received frame.
      */
     void readCurrentlyActiveTimingParameters(canid_t frame_id);
 
     /**
      * @brief Sets the timing parameters to the provided values.
-     * 
      * Configures the maximum time allowed for different session operations.
      * 
+     * @param frame_id The id of the received frame.
+     * @param data_frame Data from the frame.
      * @param p2_max_time Maximum time for default session operations.
      * @param p2_star_max_time Maximum time for programming session operations.
      */

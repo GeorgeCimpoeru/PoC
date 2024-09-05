@@ -36,7 +36,9 @@ class ReadDTC
         /**
          * @brief Construct a new ReadDTC object
          * 
-         * @param path_folder path to the file containing the dtcs
+         * @param logger A logger instance used to record information and errors during the execution.
+         * @param path_folder Path to the file containing the dtcs
+         * @param socket Socket to send frames
          */
         ReadDTC(Logger logger, std::string path_folder, int socket);
         /**
@@ -57,7 +59,7 @@ class ReadDTC
          * @brief method for 0x01 sub-function. Count the DTC. Send a frame
          * with the amound of DTCs
          * 
-         * @param id ca id
+         * @param id can id
          * @param dtc_status_mask status mask filter
          */
         void number_of_dtc(int id, int dtc_status_mask);
@@ -69,15 +71,16 @@ class ReadDTC
          */
         void report_dtcs(int id, int dtc_status_mask);
         /**
-         * @brief Method from char to int
+         * @brief Method to convert from char to int
          * 
          * @param c character
          * @return int
          */
         int to_int(char c);
         /**
-         * @brief Receive through the can-bus the flow controll frame
+         * @brief Receive through the can-bus the flow control frame
          * 
+         * @param id_module module id
          * @return true 
          * @return false 
          */
