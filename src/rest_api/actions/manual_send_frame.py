@@ -29,7 +29,7 @@ def manual_send_frame(can_id, can_data):
         received_frames = []  # List to store all received frames
         log_info_message(logger, "Starting to receive CAN frames")
         while True:
-            received_frame = bus.recv(timeout=35)  # Adjust timeout as needed
+            received_frame = bus.recv(3)
             if received_frame is None:
                 log_info_message(logger, "No more frames received, exiting receive loop")
                 break
@@ -69,7 +69,6 @@ def manual_send_frame(can_id, can_data):
 
             received_frames.append(received_data)
             log_error_message(logger, f"Authentication failed: {error_text}")
-            received_frames.append(received_data)
 
         log_info_message(logger, f"Total frames received: {len(received_frames)}")
         return {'response': received_frames}

@@ -180,3 +180,7 @@ function changeSession() {
 
     performApiRequest('/api/change_session', 'POST', { sub_funct: sub_funct });
 }
+
+function authenticate() {
+    performApiRequest('/api/authenticate', 'GET');
+}

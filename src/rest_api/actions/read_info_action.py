@@ -1,18 +1,3 @@
-"""
-Author: Mujdei Ruben
-Date: June 2024
-Use the class ReadInfo to read information from different ECUs.
-Methods:
-    -read_from_battery(): Read info from battery module
-    -read_from_custom(identifiers[]): Read specific data
-
-How to use:
-    u = ReadInfo(0x23, [0x11, 0x12, 0x13])
-    u.read_from_battery()
-    #or
-    u.read_from_custom([0x1234, 0x6543])
-"""
-
 import datetime
 from actions.base_actions import *
 from configs.data_identifiers import *

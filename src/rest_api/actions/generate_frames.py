@@ -208,13 +208,11 @@ class GenerateFrame:
         if isinstance(version, str):
             if '.' not in version:
                 version += '.0'
-            major, minor = map(float, version.split('.'))
-            # Reduce the version by 1.0
-            reduced_version = major - 1 + (minor / 10)
-            if reduced_version < 0:
-                raise ValueError(f"Invalid version: {version}. Cannot be less than 1.0")
-            reduced_major, reduced_minor = divmod(reduced_version, 1)
-            version_byte = (int(reduced_major) << 4) | int(reduced_minor * 10)
+            major, minor = map(int, version.split('.'))
+            major -= 1
+            if major < 0 or major > 15 or minor < 0 or minor > 15:
+                raise ValueError(f"Invalid version: {version}. Major and minor must be between 0 and 15.")
+            version_byte = (major << 4) | minor  # Encode directly without reduction
         elif isinstance(version, int):
             # Assume the int is already in the correct format
             version_byte = version
