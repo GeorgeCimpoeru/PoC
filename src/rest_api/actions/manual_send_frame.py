@@ -8,6 +8,7 @@ from actions.base_actions import *
 def manual_send_frame(can_id, can_data):
     log_info_message(logger, "Starting manual_send_frame function")
     data = request.get_json()
+    error_text = None
     try:
         log_info_message(logger, f"Attempting to connect to CAN bus on channel: {Config.CAN_CHANNEL}")
         bus = can.interface.Bus(channel=Config.CAN_CHANNEL, bustype='socketcan')

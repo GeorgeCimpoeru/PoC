@@ -193,11 +193,11 @@ class Action:
         return None
 
     def __verify_frame(self, msg: can.Message, sid: int):
+
         log_info_message(logger, f"Verifying frame with SID: {sid:02X}, message data: {[hex(byte) for byte in msg.data]}")
 
-        # Existing verification logic...
-        if msg.arbitration_id % 0x100 != self.my_id:
-            return False
+        if msg.arbitration_id == self.my_id or msg.arbitration_id == (self.my_id >> 8) | ((self.my_id & 0xFF) << 8):
+            return True
 
         if msg.data[1] == 0x7F and msg.data[3] == 0x78:
             return True
@@ -339,6 +339,30 @@ class Action:
             if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x02:
                 log_info_message(logger, "Authentication successful")
                 return  # Successful authentication
+            
+    def _change_session(self, id, sub_funct):
+        """
+        Changes the session control based on a given sub-function.
+
+        Args:
+        - id: The identifier of the target ECU or device.
+        - sub_funct: The sub-function code to change the session.
+
+        Returns:
+        - A dictionary with the status and message of the operation.
+        """
+        try:
+            session_type = "DEFAULT" if sub_funct == 0x01 else "PROGRAMMING" if sub_funct == 0x02 else "unknown"
+            log_info_message(logger, f"Changing session to {session_type} (sub_function: {sub_funct})")
+
+            self.generate.session_control(id, sub_funct)
+            frame_response = self._passive_response(SESSION_CONTROL, "Error changing session control")
+
+            if frame_response.data[1] == 0x50:
+                log_info_message(logger, f"Session changed to {session_type} successfully")
+                return {"status": "success", "message": "Session changed successfully"}
+        except CustomError as e:
+            return {"status": "error", "message": str(e)}
 
     def __handle_negative_response(self, frame_response):
         """
