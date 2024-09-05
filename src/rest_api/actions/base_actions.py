@@ -339,7 +339,7 @@ class Action:
             if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x02:
                 log_info_message(logger, "Authentication successful")
                 return  # Successful authentication
-            
+
     def _change_session(self, id, sub_funct):
         """
         Changes the session control based on a given sub-function.
