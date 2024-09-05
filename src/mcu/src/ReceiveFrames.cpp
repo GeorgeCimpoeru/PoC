@@ -306,7 +306,7 @@ bool ReceiveFrames::receiveFramesFromAPI()
                 int id = ((sid & 0xFF) << 8) | ((sid >> 8) & 0xFF);
                 LOG_INFO(MCULogger->GET_LOGGER(), "Service with SID {:x} sent the response pending frame.", 0x2E);
                 NegativeResponse negative_response(socket_api, *MCULogger);
-                negative_response.sendNRC(id, 0x2E, 0x78);
+                negative_response.sendNRC(id, sid, 0x78);
                 mcu->stop_flags[sid] = false;
             }
             mcu->stop_flags.erase(sid);
