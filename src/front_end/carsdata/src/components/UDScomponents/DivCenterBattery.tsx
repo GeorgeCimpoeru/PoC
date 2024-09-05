@@ -22,8 +22,58 @@ const DivCenterBattery = (props: any) => {
     const [data, setData] = useState<batteryData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    let popupElement2: any = null;
+    let popupStyleElement2: any = null;
+
+    const displayLoadingCircle = () => {
+        if (popupElement2 || popupStyleElement2) {
+            return;
+        }
+        popupElement2 = document.createElement('div');
+        popupElement2.style.position = 'fixed';
+        popupElement2.style.top = '50%';
+        popupElement2.style.left = '50%';
+        popupElement2.style.transform = 'translate(-50%, -50%)';
+        popupElement2.style.padding = '20px';
+        popupElement2.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        popupElement2.style.borderRadius = '10px';
+        popupElement2.style.zIndex = '1000';
+        popupElement2.style.textAlign = 'center';
+
+        const loadingCircle = document.createElement('div');
+        loadingCircle.style.width = '40px';
+        loadingCircle.style.height = '40px';
+        loadingCircle.style.border = '5px solid white';
+        loadingCircle.style.borderTop = '5px solid transparent';
+        loadingCircle.style.borderRadius = '50%';
+        loadingCircle.style.animation = 'spin 1s linear infinite';
+
+        popupElement2.appendChild(loadingCircle);
+
+        document.body.appendChild(popupElement2);
+
+        popupStyleElement2 = document.createElement('style');
+        popupStyleElement2.type = 'text/css';
+        popupStyleElement2.innerText = `@keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }}`;
+        document.head.appendChild(popupStyleElement2);
+    }
+
+    const removeLoadingCicle = () => {
+        if (popupElement2) {
+            popupElement2.remove();
+            popupElement2 = null;
+        }
+        if (popupStyleElement2) {
+            popupStyleElement2.remove();
+            popupStyleElement2 = null;
+        }
+    }
 
     const readInfoBattery = async () => {
+        displayLoadingCircle();
+        console.log("Reading battery info...");
         await fetch('http://127.0.0.1:5000/api/read_info_battery')
             .then(response => {
                 if (!response.ok) {
@@ -64,11 +114,15 @@ const DivCenterBattery = (props: any) => {
             .catch(error => {
                 setError(error);
                 setLoading(false);
+                removeLoadingCicle();
             });
+        removeLoadingCicle();
     };
 
     useEffect(() => {
+        displayLoadingCircle();
         readInfoBattery();
+        removeLoadingCicle();
     }, []);
 
     const handleInputChange = (input: any, id: string) => {
@@ -141,7 +195,7 @@ const DivCenterBattery = (props: any) => {
                             className="inline-flex items-center justify-center p-2 bg-blue-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-blue-700">
                             {data?.battery_level}%
                         </label>
-                        <ModalUDS id="my_modal_1" cardTitle={'Battery level'} handleInputChange={handleInputChange} handleInputClick={handleInputClick} writeInfoBattery={writeInfoBattery} param="battery_level"/>
+                        <ModalUDS id="my_modal_1" cardTitle={'Battery level'} handleInputChange={handleInputChange} handleInputClick={handleInputClick} writeInfoBattery={writeInfoBattery} param="battery_level" />
                         <p>Battery level</p>
                     </div>
 

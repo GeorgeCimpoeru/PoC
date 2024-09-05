@@ -29,13 +29,13 @@ function Icons({
             onMouseLeave={handleMouseLeave}
             className={activeIcon === index ? 'bg-white/50 p-1 rounded-lg' : ''}
         >
-            <h2 className="mt-3">{tooltipText}</h2>
+            <h2 className="mt-3 font-bold">{tooltipText}</h2>
             <Image
                 src={imageSrc}
                 alt={`${tooltipText} icon`}
                 className="dark:invert m-1 hover:object-scale-down"
-                width={100}
-                height={24}
+                width={50}
+                height={50}
                 priority
             />
         </div>

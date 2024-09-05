@@ -1,5 +1,4 @@
-'use client'
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Table, Tooltip } from 'antd';
 import UpgradeButton from './UpgradeButton';
 import DowngradeButton from './DowngradeButton';
@@ -12,41 +11,6 @@ interface DeviceRecord {
 }
 
 const TableVersionControl = () => {
-    const [newSoftVersions, setNewSoftVersions] = useState<string[]>([])
-    const getNewSoftVersions = async () => {
-        console.log("Getting new soft versions...");
-        try {
-            await fetch('http://127.0.0.1:5000/api/drive_update_data', {
-                method: 'GET',
-            }).then(response => response.json())
-                .then(data => {
-                    const versionsArray: string[] = [];
-                    for (let i = 0; i < data.children[3].children.length; ++i) {
-                        const versionNumber = data.children[3].children[i].name.match(/\d+(\.\d+)*|\d+/)?.[0];
-                        if (versionNumber) {
-                            versionsArray.push(versionNumber);
-                        }
-                    }
-
-                    for (let i = 0; i < data.children[4].children.length; ++i) {
-                        const versionNumber = data.children[4].children[i].name.match(/\d+(\.\d+)*|\d+/)?.[0];
-                        if (versionNumber) {
-                            versionsArray.push(versionNumber);
-                        }
-                    }
-                    setNewSoftVersions(versionsArray);
-                    console.log(data);
-
-                });
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-    useEffect(() => {
-        getNewSoftVersions();
-    }, []);
-
     const columns = [
         {
             title: (
@@ -110,7 +74,7 @@ const TableVersionControl = () => {
             key: '1',
             deviceName: 'Device X',
             currentVersion: '1.2.0',
-            softVersionsAvailable: newSoftVersions,
+            softVersionsAvailable: ['1.2.0', '1.2.1', '1.2.2'],
         },
     ];
 
@@ -120,11 +84,11 @@ const TableVersionControl = () => {
                 columns={columns}
                 dataSource={data}
                 pagination={false}
-                style={{ marginRight: '33px', marginLeft: '20px', fontFamily: 'Arial, sans-serif' }}
-                rowClassName="custom-table-row"
+                style={{ marginRight: '33px', marginLeft: '20px', fontFamily: 'Arial, sans-serif' }} 
+                rowClassName="custom-table-row" 
             />
         </div>
     );
 };
-export default TableVersionControl;
 
+export default TableVersionControl;
