@@ -39,7 +39,7 @@ replace_executable() {
     echo "Replacing $1 with $2"
 
     # Copy the new executable to the current executable path
-    cp "$2" "$1"
+    sudo cp "$2" "$1"
 
     # Check if the copy was successful
     if [ $? -eq 0 ]; then
