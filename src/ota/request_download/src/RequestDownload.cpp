@@ -473,10 +473,6 @@ void RequestDownloadService::downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_
     /* From the module, get the needed functionality (gDrive object) */
     py::object gGdrive_object = python_module.attr("gDrive");
 
-    /* Call the update method in order to check what files are on drive and can be downloaded. */
-    gGdrive_object.attr("updateDriveData")().cast<std::string>();
-    /* std::cout << drive_data << std::endl; */
-
     /* Call the downloadFile method from GoogleDriveApi.py */
      gGdrive_object.attr("downloadFile")(ecu_id, sw_version);
 }
