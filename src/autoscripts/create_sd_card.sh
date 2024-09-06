@@ -81,22 +81,40 @@ if [ -n "$EXISTING_LOOP_DEVICE" ]; then
     echo "Unmounting partitions:"
     for MOUNT_POINT in $MOUNTED_PARTITIONS; do
       echo "Unmounting $MOUNT_POINT..."
-      umount "$MOUNT_POINT"
+      sudo umount "$MOUNT_POINT"
     done
+  fi
+
+  # Reformatting the partitions
+  LOOP_PARTITIONS=$(lsblk -lno NAME | grep "^$(basename $EXISTING_LOOP_DEVICE)p")
+  if [ -n "$LOOP_PARTITIONS" ]; then
+    echo "Reformatting partitions:"
+    for PARTITION in $LOOP_PARTITIONS; do
+      echo "Reformatting /dev/$PARTITION..."
+      sudo mkfs.fat -F 32 "/dev/$PARTITION"  # Reformat as FAT32 (adjust if needed)
+    done
+  else
+    echo "No partitions found for $EXISTING_LOOP_DEVICE."
   fi
 
   # Detach the loop device
   echo "Detaching loop device $EXISTING_LOOP_DEVICE..."
-  losetup -d "$EXISTING_LOOP_DEVICE"
+  sudo losetup -d "$EXISTING_LOOP_DEVICE"
+
+  # Verify that the loop device has been successfully detached
+  if losetup -a | grep -q "$IMG_PATH"; then
+    echo "Loop device $EXISTING_LOOP_DEVICE could not be detached. Forcing detachment..."
+    sudo losetup -D  # Force-detach all loop devices
+  fi
 fi
 
 # Step 7: Check if the image already exists
-if [ -f "$IMG_PATH" ]; then
-  echo "Image already exists at $IMG_PATH."
-else
-  echo "Creating image..."
-  truncate -s +300M "$IMG_PATH"
-fi
+# if [ -f "$IMG_PATH" ]; then
+  # echo "Image already exists at $IMG_PATH."
+sudo rm "$IMG_PATH"
+
+echo "Creating image..."
+sudo truncate -s +300M "$IMG_PATH"
 
 # Step 8: Create a loop device
 LOOP_DEVICE=$(losetup -fP --show "$IMG_PATH")
@@ -105,41 +123,31 @@ echo "Loop device created: $LOOP_DEVICE"
 # Extract the loop number from LOOP_DEVICE
 LOOP_NUMBER=$(basename "$LOOP_DEVICE" | grep -o '[0-9]*')
 
-# Step 9: Check for existing partitions
-if [ "$(lsblk -lno NAME "$LOOP_DEVICE" | grep -c 'p1\|p2')" -gt 0 ]; then
-  echo "Partitions already exist on $LOOP_DEVICE."
-  echo "Skipping partition creation..."
-  PARTITIONS_EXIST=true
-else
-  PARTITIONS_EXIST=false
-fi
+# Step 10: Create partitions
+echo "Creating partitions..."
+(
+echo n # New partition
+echo p # Primary
+echo 1 # Partition number
+echo $START_SECTOR # First sector
+echo $PART1_SIZE # Last sector
+echo n # New partition
+echo p # Primary
+echo 2 # Partition number
+echo   # First sector (Accept default)
+echo   # Last sector (Accept default)
+echo w # Write changes
+) | sudo fdisk "$LOOP_DEVICE"
 
-if [ "$PARTITIONS_EXIST" = false ]; then
-  # Step 10: Create partitions
-  echo "Creating partitions..."
-  (
-  echo n # New partition
-  echo p # Primary
-  echo 1 # Partition number
-  echo $START_SECTOR # First sector
-  echo $PART1_SIZE # Last sector
-  echo n # New partition
-  echo p # Primary
-  echo 2 # Partition number
-  echo   # First sector (Accept default)
-  echo   # Last sector (Accept default)
-  echo Y # Delete sign
-  echo w # Write changes
-  ) | fdisk "$LOOP_DEVICE"
+sudo partprobe "$LOOP_DEVICE"
 
-  # Step 11: Formatting the partitions
-  echo "Formatting partitions..."
-  mkfs.fat -F 32 "${LOOP_DEVICE}p1"
-  mkfs.fat -F 16 "${LOOP_DEVICE}p2"
+# Step 11: Formatting the partitions
+echo "Formatting partitions..."
+sudo mkfs.fat -F 32 "${LOOP_DEVICE}p1"
+sudo mkfs.fat -F 16 "${LOOP_DEVICE}p2"
 
-  # Step 12: Change permissions of the loop device
-  sudo chmod 777 "$LOOP_DEVICE"
-fi
+# Step 12: Change permissions of the loop device
+sudo chmod 777 "$LOOP_DEVICE"
 
 # Step 13: Create mount directory
 echo "Creating mount directory..."
@@ -147,20 +155,20 @@ mkdir -p "$MOUNT_DIR"
 
 # Step 14: Mount partitions
 echo "Mounting partitions..."
-mount -o rw,uid=1000,gid=1000 "${LOOP_DEVICE}p1" "$MOUNT_DIR"
-mount -o rw,uid=1000,gid=1000 "${LOOP_DEVICE}p2" "$MOUNT_DIR"
+sudo mount -o rw,uid=1000,gid=1000 "${LOOP_DEVICE}p1" "$MOUNT_DIR"
+sudo mount -o rw,uid=1000,gid=1000 "${LOOP_DEVICE}p2" "$MOUNT_DIR"
 
 # Step 15: Display partition data
-echo "Reading data from offset $SEEK_OFFSET..."
-xxd -l $DD_COUNT -s $SEEK_OFFSET "$LOOP_DEVICE"
+# echo "Reading data from offset $SEEK_OFFSET..."
+# xxd -l $DD_COUNT -s $SEEK_OFFSET "$LOOP_DEVICE"
 
 # Step 16: Zero out the data at specified offset
-echo "Zeroing out data at offset $SEEK_OFFSET..."
-dd if=/dev/zero of="$LOOP_DEVICE" bs=1 seek=$SEEK_OFFSET count=$DD_COUNT conv=notrunc
+# echo "Zeroing out data at offset $SEEK_OFFSET..."
+# sudo dd if=/dev/zero of="$LOOP_DEVICE" bs=1 seek=$SEEK_OFFSET count=$DD_COUNT conv=notrunc
 
 # Display the created partitions
 echo "Partitions created:"
-lsblk -lno NAME,TYPE,SIZE "$LOOP_DEVICE"
+sudo lsblk -lno NAME,TYPE,SIZE "$LOOP_DEVICE"
 
 # Step 17: Navigate back to initial location
 cd "$INITIAL_DIR"
@@ -191,9 +199,8 @@ cd mcu || { echo "'mcu' directory not found. Exiting."; exit 1; }
 
 # Run make file and make commands
 echo "Running make commands..."
-make clean
+# make clean
 make
 echo "Build completed successfully."
 
 echo "Script completed successfully."
-

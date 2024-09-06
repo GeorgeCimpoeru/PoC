@@ -366,11 +366,11 @@ class Action:
 
         nrc = frame_response.data[3]
         sid = frame_response.data[2]
-        error_message = handle_negative_response(nrc, sid)
-        log_error_message(logger, f"Authentication failed: {error_message}")
+        # error_message = handle_negative_response(nrc, sid)
+        # log_error_message(logger, f"Authentication failed: {error_message}")
 
-        response_json = self._to_json_error(error_message, 1)
-        raise CustomError(response_json)
+        # response_json = self._to_json_error(error_message, 1)
+        # raise CustomError(response_json)
 
     # Implement in the child class
     def _to_json(self, status, no_errors):
