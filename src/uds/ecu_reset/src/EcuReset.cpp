@@ -100,15 +100,12 @@ void EcuReset::hardReset()
     //         break;
     //     }
     // }    
-    uint8_t lowerbits = can_id & 0xFF;
     /* Send response */
     this->ecuResetResponse();
-    switch(lowerbits)
-    {
-        case 0x10:
-            system("./../autoscripts/ecu_reset_hard.sh");            
-            break;
-    }
+
+    system("./../autoscripts/ecu_reset_hard.sh");            
+        
+    
 }
 
 void EcuReset::keyOffReset()
