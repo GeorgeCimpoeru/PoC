@@ -100,6 +100,12 @@ namespace MCU
          */
         void setMcuEcuSocket(uint8_t interface_number);
 
+        /**
+         * @brief Write the default_did or the date before reset in mcu_data.txt
+         * 
+         */
+        void writeDataToFile();
+
     private:
         bool is_running;
         CreateInterface* create_interface;

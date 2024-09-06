@@ -49,14 +49,38 @@ void HVACModule::writeDataToFile()
         throw std::runtime_error("Failed to open file: hvac_data.txt");
     }
 
-    for (const auto& [data_identifier, data] : default_DID_hvac)
+        /* Check if old_engine_data.txt exists */
+    std::string old_file_path = "old_hvac_data.txt";
+    std::ifstream infile(old_file_path);
+
+    if (infile.is_open())
     {
-        hvac_data_file << std::hex << std::setw(4) << std::setfill('0') << data_identifier << " ";
-        for (uint8_t byte : data) 
+        /* Read the current file contents into memory */
+        std::stringstream buffer;
+        /* Read the entire file into the buffer */
+        buffer << infile.rdbuf();
+        infile.close();
+
+        /* Store the original content */
+        std::string original_file_contents = buffer.str();
+
+        /* Write the content of old_mcu_data.txt into mcu_data.txt */
+        hvac_data_file << original_file_contents;
+
+        /* Delete the old file after reading its contents */
+        std::remove(old_file_path.c_str());
+    }
+    else
+    {
+        for (const auto& [data_identifier, data] : default_DID_hvac)
         {
-            hvac_data_file << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
+            hvac_data_file << std::hex << std::setw(4) << std::setfill('0') << data_identifier << " ";
+            for (uint8_t byte : data) 
+            {
+                hvac_data_file << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
+            }
+            hvac_data_file << "\n";
         }
-        hvac_data_file << "\n";
     }
     hvac_data_file.close();
 }

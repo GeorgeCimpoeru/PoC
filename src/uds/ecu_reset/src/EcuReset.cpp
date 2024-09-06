@@ -52,20 +52,50 @@ void EcuReset::hardReset()
     switch(lowerbits)
     {
         case 0x10:
-            system("./../autoscripts/mcu_reset_hard.sh");            
+        {    
+            const char *args[] = {"/bin/bash", "../autoscripts/reset_hard.sh", "main_mcu", NULL};
+            execvp(args[0], const_cast<char *const *>(args));
+
+            perror("execvp failed");
+            exit(EXIT_FAILURE);
             break;
+        }
         case 0x11:
-            system("./../autoscripts/battery_reset_hard.sh");            
+        {
+            const char *args[] = {"/bin/bash", "../../autoscripts/reset_hard.sh", "main_battery", NULL};
+            execvp(args[0], const_cast<char *const *>(args));
+
+            perror("execvp failed");
+            exit(EXIT_FAILURE);
             break;
+        }
         case 0x12:
-            system("./../autoscripts/engine_reset_hard.sh");            
+        {
+            const char *args[] = {"/bin/bash", "../../autoscripts/reset_hard.sh", "main_engine", NULL};
+            execvp(args[0], const_cast<char *const *>(args));
+
+            perror("execvp failed");
+            exit(EXIT_FAILURE);
             break;
+        }
         case 0x13:
-            system("./../autoscripts/doors_reset_hard.sh");            
+        {
+            const char *args[] = {"/bin/bash", "../../autoscripts/reset_hard.sh", "main_doors", NULL};
+            execvp(args[0], const_cast<char *const *>(args));
+
+            perror("execvp failed");
+            exit(EXIT_FAILURE);
             break;
+        }
         case 0x14:
-            system("./../autoscripts/hvac_reset_hard.sh");            
+        {
+            const char *args[] = {"/bin/bash", "../../autoscripts/reset_hard.sh", "main_hvac", NULL};
+            execvp(args[0], const_cast<char *const *>(args));
+
+            perror("execvp failed");
+            exit(EXIT_FAILURE);
             break;
+        }
         default:
             LOG_ERROR(ECUResetLog.GET_LOGGER(), "ECU doesn't exist in hardReset");
     }
@@ -97,7 +127,7 @@ void EcuReset::keyOffReset()
         file_path = "hvac_data.txt";
         break;
     default:
-        LOG_ERROR(ECUResetLog.GET_LOGGER(), "ECU doesn't exist in keyOffReset");
+        LOG_ERROR(ECUResetLog.GET_LOGGER(), "ECU doesn't exist");
         break;
     }
 
@@ -111,18 +141,72 @@ void EcuReset::keyOffReset()
     /* Store the original content */
     std::string original_file_contents = buffer.str(); 
 
-    LOG_INFO(ECUResetLog.GET_LOGGER(), "Contents of the file:\n {}", original_file_contents);
+    switch (lowerbits)
+    {
+    case 0x10:
+    {
+        std::ofstream outfile("old_mcu_data.txt");
+        if (!outfile.is_open())
+        {
+            throw std::runtime_error("Failed to open file: old_mcu_data.txt");
+        }
+        outfile << original_file_contents;
+        outfile.close();
+        break;
+    }
+    case 0x11:
+    {
+        std::ofstream outfile("old_battery_data.txt");
+        if (!outfile.is_open())
+        {
+            throw std::runtime_error("Failed to open file: old_battery_data.txt");
+        }
+        outfile << original_file_contents;
+        outfile.close();
+        break;
+    }
+    case 0x12:
+    {
+        std::ofstream outfile("old_engine_data.txt");
+        if (!outfile.is_open())
+        {
+            throw std::runtime_error("Failed to open file: old_engine_data.txt");
+        }
+        outfile << original_file_contents;
+        outfile.close();
+        break;
+    }
+    case 0x13:
+    {
+        std::ofstream outfile("old_doors_data.txt");
+        if (!outfile.is_open())
+        {
+            throw std::runtime_error("Failed to open file: old_doors_data.txt");
+        }
+        outfile << original_file_contents;
+        outfile.close();
+        break;
+    }
+        break;
+    case 0x14:
+    {
+        std::ofstream outfile("old_hvac_data.txt");
+        if (!outfile.is_open())
+        {
+            throw std::runtime_error("Failed to open file: old_hvac_data.txt");
+        }
+        outfile << original_file_contents;
+        outfile.close();
+        break;
+    }
+        break;
+    default:
+        LOG_ERROR(ECUResetLog.GET_LOGGER(), "ECU doesn't exist");
+        break;
+    }
     
     /* Reset the program */
     hardReset();
-    std::ofstream outfile(file_path, std::ios::out | std::ios::trunc);
-    if (!outfile.is_open()) {
-        LOG_ERROR(ECUResetLog.GET_LOGGER(), "Failed to open the file for writing: {}", file_path);
-        return;
-    }
-    /* Write back the original content to the file */
-    outfile << original_file_contents;
-    outfile.close();
 }
 
 void EcuReset::ecuResetResponse()
