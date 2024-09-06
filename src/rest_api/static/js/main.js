@@ -169,3 +169,19 @@ function writeInfoBattery() {
 function authenticate() {
     performApiRequest('/api/authenticate', 'GET');
 }
+
+function readTimingInfo() {
+    const input = prompt('Enter sub-function code:');
+    if (input === null) {
+        alert('Operation cancelled.');
+        return;
+    };
+
+    const sub_funct = parseInt(input, 10);
+    if (sub_funct !== 1 && sub_funct !== 3) {
+        alert('Invalid input. Please enter 1 or 3.');
+        return;
+    };
+
+    performApiRequest('/api/read_access_timing', 'POST', { sub_funct: sub_funct });
+}
