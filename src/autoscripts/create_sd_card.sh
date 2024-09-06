@@ -9,7 +9,6 @@ if [ "$EUID" -ne 0 ]; then
   exit
 fi
 
-# Step 0: Check if Python version 3.8 or higher is installed
 PYTHON_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
 REQUIRED_VERSION="3.8"
 
@@ -23,16 +22,25 @@ echo "Python version is $PYTHON_VERSION. Proceeding..."
 # Step 1: Change directory to ../rest_api
 cd ../rest_api || { echo "rest_api directory not found. Exiting."; exit 1; }
 
-# Step 2: Check if venv folder exists
-if [ ! -d "venv" ]; then
-  echo "Creating virtual environment..."
-  python3.8 -m venv venv
-fi
+# Step 2
+# Check if the virtual environment exists
+if [ -d "venv" ]; then
+    echo "Creating virtual environment..."
+    python3.8 -m venv venv
+    # Activate the virtual environment
+    source venv/bin/activate
+    echo "Virtual environment activated."
 
-# Step 3: Activate virtual environment and install requirements
-echo "Activating virtual environment and installing requirements..."
-source venv/bin/activate
-pip install -r requirements.txt
+    # Optional: Check if the activation was successful
+    if [ "$VIRTUAL_ENV" != "" ]; then
+        echo "Currently in virtual environment: $VIRTUAL_ENV"
+        pip install -r requirements.txt
+    else
+        echo "Failed to activate the virtual environment."
+    fi
+else
+    echo "Virtual environment not found. Please create it using 'python3 -m venv venv'."
+fi
 
 # Step 4: Change directory back to ../mcu
 cd ../mcu || { echo "mcu directory not found. Exiting."; exit 1; }
@@ -130,7 +138,7 @@ if [ "$PARTITIONS_EXIST" = false ]; then
   mkfs.fat -F 16 "${LOOP_DEVICE}p2"
 
   # Step 12: Change permissions of the loop device
-  chmod 777 "$LOOP_DEVICE"
+  sudo chmod 777 "$LOOP_DEVICE"
 fi
 
 # Step 13: Create mount directory
