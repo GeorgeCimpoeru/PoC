@@ -38,11 +38,13 @@ class GenerateFrame:
             return False
 
     def send_frame(self, id, data):
+        hex_data = [f"0x{byte:02X}" for byte in data]
+
         with can_lock:
             message = can.Message(arbitration_id=id, data=data, is_extended_id=True)
             try:
                 self.bus.send(message)
-                logger.info(f"Sent CAN message with ID: {id}, Data: {data}")
+                logger.info(f"Sent CAN message with ID: 0x{id:03X}, Data: {hex_data}")
             except can.CanError as e:
                 logger.error(f"Message not sent: {e}")
 

@@ -12,6 +12,7 @@ from actions.write_info_action import WriteInfo  # noqa: E402
 from src.ota.google_drive_api.GoogleDriveApi import gDrive  # noqa: E402
 from actions.secure_auth import Auth  # noqa: E402
 from actions.dtc_info import DiagnosticTroubleCode  # noqa: E402
+from actions.diag_session import SessionManager  # noqa: E402
 
 api_bp = Blueprint('api', __name__)
 
@@ -39,7 +40,8 @@ def update_to_version():
 @api_bp.route('/read_info_battery', methods=['GET'])
 def read_info_bat():
     reader = ReadInfo(0xFA, [0x10, 0x11, 0x12])
-    response = reader.read_from_battery()
+    identifier = request.args.get('identifier', default=None, type=str)
+    response = reader.read_from_battery(identifier)
     return jsonify(response)
 
 
@@ -134,3 +136,15 @@ def clear_dtc_info():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@api_bp.route('/change_session', methods=['POST'])
+def change_session():
+    data = request.get_json()
+    sub_funct = data.get('sub_funct')
+    if sub_funct is None:
+        return jsonify({"status": "error", "message": "Missing 'sub_funct' parameter"}), 400
+    session = SessionManager(API_ID)
+    response = session._change_session(id, sub_funct)
+    return jsonify(response)
+  

@@ -106,61 +106,87 @@ class ReadInfo(Action):
         # Return the corresponding state or "Unknown state" if not found
         return state_mapping.get(state_of_charge, "Unknown state")
 
-    def read_from_battery(self):
+    def read_from_battery(self, item=None):
         """
         Method to read information from the battery module.
+
+        Args:
+        - item: Optional identifier for a specific data item to read.
 
         Returns:
         - JSON response.
         """
-        self._auth_mcu()
+        auth_result = self._auth_mcu()
+        if isinstance(auth_result, str):  # If authentication fails and returns a message
+            return auth_result
+
         try:
             log_info_message(logger, "Reading data from battery")
-            id = self.my_id * 0x100 + self.id_ecu[MCU]
+            id_battery = self.id_ecu[ECU_BATTERY]
+            id = self.my_id * 0x100 + id_battery
 
-            level = None
-            voltage = None
-            percentage = None
-            state_of_charge = None
-            life_cycle = None
-            fully_charged = None
-            serial_number = None
-            range_battery = None
-            charging_time = None
-            device_consumption = None
+            # Initialize all potential variables
+            identifiers = {
+                "battery_level": IDENTIFIER_BATTERY_ENERGY_LEVEL,
+                "voltage": IDENTIFIER_BATTERY_VOLTAGE,
+                "percentage": IDENTIFIER_BATTERY_PERCENTAGE,
+                "state_of_charge": IDENTIFIER_BATTERY_STATE_OF_CHARGE,
+                # "life_cycle": IDENTIFIER_BATTERY_LIFE_CYCLE,
+                # "fully_charged": IDENTIFIER_BATTERY_FULLY_CHARGED,
+                # "serial_number": IDENTIFIER_ECU_SERIAL_NUMBER,
+                # "range_battery": IDENTIFIER_BATTERY_RANGE,
+                # "charging_time": IDENTIFIER_BATTERY_CHARGING_TIME,
+                # "device_consumption": IDENTIFIER_DEVICE_CONSUMPTION,
+            }
 
-            level = self._read_by_identifier(id, IDENTIFIER_BATTERY_ENERGY_LEVEL)
-            voltage = self._read_by_identifier(id, IDENTIFIER_BATTERY_VOLTAGE)
-            percentage = self._read_by_identifier(id, IDENTIFIER_BATTERY_PERCENTAGE)
-            state_of_charge = self._read_by_identifier(id, IDENTIFIER_BATTERY_STATE_OF_CHARGE)
-            # life_cycle = self._read_by_identifier(id, IDENTIFIER_BATTERY_LIFE_CYCLE)
-            # fully_charged = self._read_by_identifier(id, IDENTIFIER_BATTERY_FULLY_CHARGED)
-            # serial_number = self._read_by_identifier(id, IDENTIFIER_ECU_SERIAL_NUMBER)
-            # range_battery = self._read_by_identifier(id, IDENTIFIER_BATTERY_RANGE)
-            # charging_time = self._read_by_identifier(id, IDENTIFIER_BATTERY_CHARGING_TIME)
-            # device_consumption = self._read_by_identifier(id, IDENTIFIER_DEVICE_CONSUMPTION)
+            # Storage for the results
+            results = {
+                "battery_level": None,
+                "voltage": None,
+                "percentage": None,
+                "state_of_charge": None,
+                "life_cycle": "No read",
+                "fully_charged": "No read",
+                "serial_number": "No read",
+                "range_battery": "No read",
+                "charging_time": "No read",
+                "device_consumption": "No read"
+            }
 
-            life_cycle = life_cycle if life_cycle is not None else "No read"
-            fully_charged = fully_charged if fully_charged is not None else "No read"
-            serial_number = serial_number if serial_number is not None else "No read"
-            range_battery = range_battery if range_battery is not None else "No read"
-            charging_time = charging_time if charging_time is not None else "No read"
-            device_consumption = device_consumption if device_consumption is not None else "No read"
+            if item:
+                # Read only the specific item if provided
+                if item in identifiers:
+                    identifier = identifiers[item]
+                    results[item] = self._read_by_identifier(id, identifier)
+                    # Process the value if needed
+                    if item == "state_of_charge":
+                        results[item] = self._get_battery_state_of_charge(results[item])
+                else:
+                    results["error"] = "Invalid identifier"
+            else:
+                # Read all items if no specific item is provided
+                for key, identifier in identifiers.items():
+                    results[key] = self._read_by_identifier(id, identifier)
+                    if key == "state_of_charge" and results[key]:
+                        results[key] = self._get_battery_state_of_charge(results[key])
 
-            battery_state_of_charge = self._get_battery_state_of_charge(state_of_charge)
-
-            data = [str(int(level, 16)),
-                    int(voltage, 16),
-                    round(((int(percentage, 16) / 255) * 100), 2),
-                    battery_state_of_charge,
-                    life_cycle,
-                    fully_charged,
-                    serial_number,
-                    range_battery,
-                    charging_time,
-                    device_consumption]
-
-            response_json = BatteryToJSON()._to_json(data)
+            if item:
+                # Return only the requested item if `item` is provided
+                response_json = {item: results.get(item, "No read")}
+            else:
+                # Return all items if no specific item is provided
+                response_json = BatteryToJSON()._to_json([
+                    results["battery_level"],
+                    results["voltage"],
+                    results["percentage"],
+                    results["state_of_charge"],
+                    results["life_cycle"],
+                    results["fully_charged"],
+                    results["serial_number"],
+                    results["range_battery"],
+                    results["charging_time"],
+                    results["device_consumption"]
+                ])
 
             self.bus.shutdown()
             log_info_message(logger, "Sending JSON")

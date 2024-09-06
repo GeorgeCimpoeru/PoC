@@ -67,7 +67,7 @@ class WriteInfo(Action):
             return auth_result
 
         try:
-            id_battery = self.id_ecu[MCU]
+            id_battery = self.id_ecu[ECU_BATTERY]
             id = self.my_id * 0x100 + id_battery
             log_info_message(logger, f"Writing data to ECU ID: {id_battery}")
 
