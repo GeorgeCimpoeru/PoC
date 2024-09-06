@@ -125,6 +125,13 @@ void HandleFrames::handleFrame(int can_socket, const struct can_frame &frame)
 /* Method to call the service or handle the response*/
 void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t sid, std::vector<uint8_t> frame_data, bool is_multi_frame) 
 {
+    auto now_testerpresent = std::chrono::steady_clock::now();
+    if (now_testerpresent >= TesterPresent::getEndTimeProgrammingSession())
+    {
+        mcuDiagnosticSessionControl.sessionControl(can_socket, 0x01);
+        LOG_INFO(_logger.GET_LOGGER(), "Session changed to DEFAULT_SESSION by TesterPresent");
+        TesterPresent::setEndTimeProgrammingSession();
+    }
     switch (sid) {
         case 0x10:
         {

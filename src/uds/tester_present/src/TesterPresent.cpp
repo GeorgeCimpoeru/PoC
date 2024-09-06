@@ -7,6 +7,20 @@ TesterPresent::TesterPresent(int socket, Logger& logger,  DiagnosticSessionContr
                 :  socket(socket), logger(logger),generate_frames(socket, logger),
                 sessionControl(sessionControl)
 {}
+std::chrono::steady_clock::time_point TesterPresent::end_time =
+        std::chrono::steady_clock::now() + std::chrono::hours(24 * 365);
+
+uint32_t TesterPresent::time_left = 0;
+
+std::chrono::steady_clock::time_point TesterPresent::getEndTimeProgrammingSession()
+{
+    return end_time;
+}
+
+void TesterPresent::setEndTimeProgrammingSession()
+{
+    end_time = std::chrono::steady_clock::now() + std::chrono::hours(24 * 365);
+}
 
 void TesterPresent::handleTesterPresent(uint32_t can_id, std::vector<uint8_t> request)
 {
@@ -38,4 +52,6 @@ void TesterPresent::handleTesterPresent(uint32_t can_id, std::vector<uint8_t> re
         sessionControl.sessionControl(can_id, 0x02);
         LOG_INFO(logger.GET_LOGGER(), "Default session changed into programming session");
     }
+    end_time = std::chrono::steady_clock::now() + 
+        std::chrono::seconds(S3_TIMER);
 }
