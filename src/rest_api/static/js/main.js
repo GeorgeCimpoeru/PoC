@@ -184,3 +184,10 @@ function changeSession() {
 function authenticate() {
     performApiRequest('/api/authenticate', 'GET');
 }
+function read_dtc_info() {
+    performApiRequest('/api/read_dtc_info', 'GET');
+}
+
+function clear_dtc_info() {
+    performApiRequest('/api/clear_dtc_info', 'GET');
+}

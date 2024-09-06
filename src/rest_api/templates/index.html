@@ -66,15 +66,18 @@
             <button type="button" class="btn btn-success" onclick="sendFrame()">Send Frame</button>
         </form>
 
+
         <div class="btn-group-box mb-3">
             <h3 class="text-color">Automatic Flow</h3>
             <button type="button" class="btn btn-info mb-2" onclick="requestIds()">Request IDs</button>
+            <button type="button" class="btn btn-success mb-3" onclick="updateToVersion()">Update to Version</button>
             <button type="button" class="btn btn-info mb-2" onclick="readInfoBattery()">Read Info Battery</button>
             <button type="button" class="btn btn-info mb-2" onclick="readInfoEngine()">Read Info Engine</button>
             <button type="button" class="btn btn-info mb-2" onclick="readInfoDoors()">Read Info Doors</button>
             <button type="button" class="btn btn-info mb-2" onclick="gDriveReadData()">Google Drive Info</button>
             <button type="button" class="btn btn-info mb-2" onclick="writeInfoDoors()">Write Doors Info</button>
             <button type="button" class="btn btn-info mb-2" onclick="writeInfoBattery()">Write Battery Info</button>
+            <button type="button" class="btn btn-info mb-3" onclick="gDriveReadData()">Google Drive Info</button>
             
         </div>
 
@@ -82,6 +85,8 @@
             <h3 class="text-color">Semi-Automatic Flow</h3>  
             <button type="button" class="btn btn-success mb-2" onclick="changeSession()">Change Session</button>
             <button type="button" class="btn btn-success mb-2" onclick="authenticate()">Secure Auth</button>
+            <button type="button" class="btn btn-info mb-3" onclick="read_dtc_info()">Read DTC Info</button>
+            <button type="button" class="btn btn-info mb-3" onclick="clear_dtc_info()">Clear DTC positive</button>
         </div>
 
         <div class="mb-4">

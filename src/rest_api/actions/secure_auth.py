@@ -8,14 +8,6 @@ ECU_DOORS = 3
 
 
 class Auth(Action):
-    """
-    ReadInfo class to read information from different ECUs.
-
-    Attributes:
-    - my_id: Identifier for the device initiating the update.
-    - id_ecu: Identifier for the specific ECU being updated.
-    - generate: Instance of GenerateFrame for generating CAN bus frames.
-    """
     def _auth_to(self):
 
         id_mcu = self.id_ecu[MCU]
@@ -26,7 +18,10 @@ class Auth(Action):
             self.generate.session_control(id, 0x02)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
             id = (self.id_ecu[ECU_BATTERY] << 16) + (self.my_id << 8) + self.id_ecu[MCU]
-            self._authentication(id)
+
+            # has already internal logger info
+            response = self._authentication(id)
+            return response
 
         except CustomError as e:
             self.bus.shutdown()
