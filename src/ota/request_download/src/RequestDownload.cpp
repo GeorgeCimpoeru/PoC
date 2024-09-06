@@ -314,7 +314,7 @@ can_frame* RequestDownloadService::read_frame(int id, uint8_t sid)
 void RequestDownloadService::requestDownloadResponse(canid_t id, int memory_address, int max_number_block)
 {
     /* this path is temporary and differs on each VM */
-    std::string path = "/dev/loop25";
+    std::string path = DEV_LOOP;
     /* Rename destination in sender and viceversa */
     uint8_t frame_receiver_id = (id >> 8) & 0xFF;
     LOG_INFO(RDSlogger.GET_LOGGER(), "memory adress: 0x{0:x}", static_cast<int>(memory_address));
@@ -474,16 +474,8 @@ void RequestDownloadService::downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_
     py::object gGdrive_object = python_module.attr("gDrive");
 
     /* Call the update method in order to check what files are on drive and can be downloaded. */
-    std::string drive_data = gGdrive_object.attr("updateDriveData")().cast<std::string>();
-    std::cout << drive_data << std::endl;
-
-    /*
-        CODE USED FOR UPLOADING FROM CPP TO GOOGLE DRIVE
-
-    std::map <std::string, std::string> file_to_upload;
-    gGdrive_object.attr("uploadFile")("main.elf", "/home/projectx/accademyprojects/PoC/src/mcu/main", "15b2q_YupkZocnALf4Iq5bHaJMXi8FHm9");
-    version_file_id = "1K3SKcTK8Tgb_Z-JadtGrckKCbHhvs90O";
-    */
+    gGdrive_object.attr("updateDriveData")().cast<std::string>();
+    /* std::cout << drive_data << std::endl; */
 
     /* Call the downloadFile method from GoogleDriveApi.py */
      gGdrive_object.attr("downloadFile")(ecu_id, sw_version);
@@ -518,27 +510,8 @@ bool RequestDownloadService::extractZipFile(uint8_t target_id, const std::string
             return false;
         }
 
-        std::string outputFilePath;
-        if (target_id == 0x10) {
-            outputFilePath = outputDir + "/" + name + "_mcu_new";
-        }
-        else if (target_id == 0x11) {
-            outputFilePath = outputDir + "/" + name + "_battery_new";
-        }
-        else if (target_id == 0x12) {
-            outputFilePath = outputDir + "/" + name + "_doors_new";
-        }
-        else if (target_id == 0x13) {
-            outputFilePath = outputDir + "/" + name + "_engine_new";
-        }
-        else if (target_id == 0x14) {
-            outputFilePath = outputDir + "/" + name + "_hvac_new";
-        }
-        else
-        {
-            LOG_ERROR(RDSlogger.GET_LOGGER(), "No valid id to match main file.");
-            return false;
-        }
+        std::string outputFilePath = outputDir + "/" + name + "_new";
+
         std::ofstream outFile(outputFilePath, std::ios::binary);
         if (!outFile.is_open()) {
             LOG_ERROR(RDSlogger.GET_LOGGER(), "Error creating output file: " + outputFilePath);

@@ -8,6 +8,12 @@ from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload
 from googleapiclient.http import MediaFileUpload
 
+# Colors used for printing messages
+RED = '\033[91m'
+GREEN = '\033[92m'
+YELLOW = '\033[93m'
+RESET = '\033[0m'
+
 PROJECT_PATH = os.path.abspath(os.path.join(os.getcwd(), "..", ".."))
 CREDS_PATH = PROJECT_PATH + '/key.json'
 OAUTH2_SCOPE = 'https://www.googleapis.com/auth/drive'
@@ -74,21 +80,30 @@ class GDriveAPI:
 
         media = MediaFileUpload(file_path, mimetype='text/plain')
 
-        self.__drive_service.files().create(
-            body=file_metadata, media_body=media, fields='id').execute()
+        try:
+            print(f"{GREEN}Uploading {file_name} to Google Drive..{RESET}")
+            file = self.__drive_service.files().create(
+                body=file_metadata, media_body=media, fields='id').execute()
+            if 'id' in file:
+                print(f"{GREEN}File uploaded successfully. File ID:{RESET}", file['id'])
+            else:
+                print(f"{RED}File upload failed. No file ID returned.{RESET}")
+        except Exception as e:
+            print(f"{RED}An error occurred during file upload:{RESET}", e)
 
     def downloadFile(self, ecu_id, sw_version_byte, path_to_download=DRIVE_DOWNLOAD_PATH):
         try:
             # pylint: disable=maybe-no-member
             sw_version = self.__convertByteToSwVersion(hex(sw_version_byte))
-            print('Searching for version ' + ecu_map[ecu_id] + ' ' + sw_version)
+            print(f"{GREEN}Searching for version {RESET}" +
+                  ecu_map[ecu_id] + ' ' + sw_version)
             file_to_download = [
                 data for data in self.__drive_data_array if data['type'] == ecu_map[ecu_id] and data['sw_version'] == str(sw_version)]
             if not file_to_download:
                 print(
-                    f"No file found with type:{ecu_map[ecu_id]} and version {sw_version}")
+                    f"{RED}No file found with type:{ecu_map[ecu_id]} and version {sw_version}{RESET}")
                 return
-            print('Version found, downloading..')
+            print(f"{GREEN}Version found, downloading..{RESET}")
             file_to_download = file_to_download[0]  # Access the first element
             request = self.__drive_service.files().get_media(
                 fileId=file_to_download['id'])
@@ -98,16 +113,16 @@ class GDriveAPI:
 
             while not done:
                 status, done = downloader.next_chunk()
-                print(f"Download {int(status.progress() * 100)}%.")
+                print(f"{GREEN}Download {int(status.progress() * 100)}%.{RESET}")
 
         except HttpError as error:
-            print(f"An error occurred: {error}")
+            print(f"{RED}An error occurred: {error}{RESET}")
             return
 
         downloaded_file.seek(0)
         with open(f"{path_to_download}/{file_to_download['name']}", 'wb') as f:
             f.write(downloaded_file.read())
-            print(f"File downloaded and saved to {path_to_download}")
+            print(f"{GREEN}File downloaded and saved to {path_to_download}{RESET}")
 
     # PRIVATE METHODS
     def __convertByteToSwVersion(self, software_version_byte):
