@@ -81,7 +81,7 @@ from actions.generate_frames import GenerateFrame as GF
 from utils.logger import *
 from config import Config
 from configs.data_identifiers import *
-from actions.manual_send_frame import handle_negative_response
+# from actions.manual_send_frame import handle_negative_response
 
 logger_singleton = SingletonLogger('base_action.log')
 logger = logger_singleton.logger
@@ -364,8 +364,8 @@ class Action:
         Handles the negative response scenarios.
         """
 
-        nrc = frame_response.data[3]
-        sid = frame_response.data[2]
+        # nrc = frame_response.data[3]
+        # sid = frame_response.data[2]
         # error_message = handle_negative_response(nrc, sid)
         # log_error_message(logger, f"Authentication failed: {error_message}")
 
