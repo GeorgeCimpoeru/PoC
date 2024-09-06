@@ -147,4 +147,3 @@ def change_session():
     session = SessionManager(API_ID)
     response = session._change_session(id, sub_funct)
     return jsonify(response)
-  
