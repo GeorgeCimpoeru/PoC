@@ -38,7 +38,8 @@ def update_to_version():
 @api_bp.route('/read_info_battery', methods=['GET'])
 def read_info_bat():
     reader = ReadInfo(0xFA, [0x10, 0x11, 0x12])
-    response = reader.read_from_battery()
+    identifier = request.args.get('identifier', default=None, type=str)
+    response = reader.read_from_battery(identifier)
     return jsonify(response)
 
 
