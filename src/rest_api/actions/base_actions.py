@@ -193,9 +193,9 @@ class Action:
         return None
 
     def __verify_frame(self, msg: can.Message, sid: int):
+
         log_info_message(logger, f"Verifying frame with SID: {sid:02X}, message data: {[hex(byte) for byte in msg.data]}")
 
-        # Existing verification logic...
         if msg.arbitration_id % 0x100 != self.my_id:
             return False
 

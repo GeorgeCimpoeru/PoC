@@ -165,6 +165,21 @@ function writeInfoBattery() {
     performApiRequest('/api/write_info_battery', 'POST', data);
 }
 
+function changeSession() {
+    const input = prompt('Enter sub-function code (1 for default session, 2 for programming session):');
+    if (input === null) {
+        alert('Operation cancelled.');
+        return;
+    };
+
+    const sub_funct = parseInt(input, 10);
+    if (sub_funct !== 1 && sub_funct !== 2) {
+        alert('Invalid input. Please enter 1 or 2.');
+        return;
+    };
+
+    performApiRequest('/api/change_session', 'POST', { sub_funct: sub_funct });
+}
 
 function authenticate() {
     performApiRequest('/api/authenticate', 'GET');

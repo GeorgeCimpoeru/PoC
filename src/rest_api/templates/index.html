@@ -7,58 +7,90 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
-        padding-top: 20px;
-    }
+            padding-top: 20px;
+            background-color: #f8f9fa;
+        }
         .container {
-        max-width: 800px;
-    }
+            max-width: 900px;
+        }
         .log-container {
-        max-height: 300px;
-        overflow-y: scroll;
-        border: 1px solid #ccc;
-        padding: 10px;
-    }
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 15px;
+            background-color: #ffffff;
+            border-radius: 5px;
+        }
+        .btn-group-box {
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .form-control {
+            border-color: #ced4da;
+            border-radius: 0.25rem;
+        }
+        .form-control:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(38, 143, 255, 0.25);
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .text-color {
+            color: #008080;
+        }
+        h1, h2, h3 {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="mb-4">CAN Interface Control</h1>
-        <button type="button" class="btn btn-primary mb-3" onclick="window.open('/apidocs', '_blank');">Go to Docs</button>
-        <button type="button" class="btn btn-primary mb-3" onclick="window.open('/api/logs', '_blank');">Show Logs</button>
-
-        <form id="can-form" class="mb-4">
+        <h1 class="mb-4 text-center">CAN Interface Control</h1>
+        <div class="mb-3 text-center">
+            <button type="button" class="btn btn-primary mx-2" onclick="window.open('/apidocs', '_blank');">Go to Docs</button>
+            <button type="button" class="btn btn-primary mx-2" onclick="window.open('/api/logs', '_blank');">Show Logs</button>
+        </div>
+        
+        <form id="can-form" class="mb-4 p-4 bg-white border rounded shadow-sm">
+            <h2 class="mb-4 text-color">Manual Flow</h2>
             <div class="form-group">
                 <label for="can-id">CAN ID:</label>
-                <input type="text" class="form-control" id="can-id" name="can-id" pattern="0x[0-9A-Fa-f]{1,4}" placeholder="e.g., 0xFa, 0x1234" required>
+                <input type="text" class="form-control" id="can-id" name="can-id" pattern="0x[0-9A-Fa-f]{1,4}" placeholder="0xFA10" required>
             </div>
             <div class="form-group">
                 <label for="can-data">CAN Data:</label>
-                <input type="text" class="form-control" id="can-data" name="can-data" pattern="(0x[0-9A-Fa-f]{1,2},){0,7}0x[0-9A-Fa-f]{1,2}" placeholder="e.g., 0x12,0x34" required>
+                <input type="text" class="form-control" id="can-data" name="can-data" pattern="(0x[0-9A-Fa-f]{1,2},){0,7}0x[0-9A-Fa-f]{1,2}" placeholder="e.g., 0x02,0x10, 0x01" required>
             </div>
             <button type="button" class="btn btn-success" onclick="sendFrame()">Send Frame</button>
         </form>
 
-        <div class="mb-4">
-            <button type="button" class="btn btn-info mb-3" onclick="requestIds()">Request IDs</button>
-            <button type="button" class="btn btn-success mb-3" onclick="updateToVersion()">Update to Version</button>
-            <button type="button" class="btn btn-info mb-3" onclick="readInfoBattery()">Read Info Battery</button>
-            <button type="button" class="btn btn-info mb-3" onclick="readInfoEngine()">Read Info Engine</button>
-            <button type="button" class="btn btn-info mb-3" onclick="readInfoDoors()">Read Info Doors</button>
-            <button type="button" class="btn btn-info mb-3" onclick="gDriveReadData()">Google Drive Info</button>
+        <div class="btn-group-box mb-3">
+            <h3 class="text-color">Automatic Flow</h3>
+            <button type="button" class="btn btn-info mb-2" onclick="requestIds()">Request IDs</button>
+            <button type="button" class="btn btn-info mb-2" onclick="readInfoBattery()">Read Info Battery</button>
+            <button type="button" class="btn btn-info mb-2" onclick="readInfoEngine()">Read Info Engine</button>
+            <button type="button" class="btn btn-info mb-2" onclick="readInfoDoors()">Read Info Doors</button>
+            <button type="button" class="btn btn-info mb-2" onclick="gDriveReadData()">Google Drive Info</button>
+            <button type="button" class="btn btn-info mb-2" onclick="writeInfoDoors()">Write Doors Info</button>
+            <button type="button" class="btn btn-info mb-2" onclick="writeInfoBattery()">Write Battery Info</button>
+            
+        </div>
 
-            <button type="button" class="btn btn-success mb-3" onclick="writeInfoDoors()">Write Doors Info</button>
-            <button type="button" class="btn btn-success mb-3" onclick="writeInfoBattery()">Write Battery Info</button>
-            <button type="button" class="btn btn-info mb-3" onclick="authenticate()">Secure Auth</button>
-
+        <div class="btn-group-box mb-4">
+            <h3 class="text-color">Semi-Automatic Flow</h3>  
+            <button type="button" class="btn btn-success mb-2" onclick="changeSession()">Change Session</button>
+            <button type="button" class="btn btn-success mb-2" onclick="authenticate()">Secure Auth</button>
         </div>
 
         <div class="mb-4">
-            <h2>Response:</h2>
+            <h2 class="text-color">Response</h2>
             <pre id="response-output" class="bg-light p-3 border rounded"></pre>
         </div>
 
         <div class="mb-4 log-container">
-            <h2>Logs:</h2>
+            <h2 class="text-color">Logs</h2>
             <table class="table table-striped">
                 <thead>
                     <tr>
