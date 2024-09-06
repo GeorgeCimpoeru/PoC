@@ -87,14 +87,15 @@ std::string MemoryManager::runCommand(char command[])
 
 bool MemoryManager::availableAddress(off_t address)
 {
-    char verify_address_command[256];
-    sprintf(verify_address_command, "sudo fdisk -l %s | grep '^/dev/' | grep '*' | awk '{print $3,$4}'", DEV_LOOP);
-
     if (address == -1)
     {
         LOG_ERROR(logger.GET_LOGGER(), "Error: the address was not initialized correctly.");
         return false;
     }
+
+    char verify_address_command[256];
+    sprintf(verify_address_command, "sudo fdisk -l %s | grep '^/dev/' | grep '*' | awk '{print $3,$4}'", DEV_LOOP);
+
     std::string result = runCommand(verify_address_command);
     if (result.length() < 3)
     {
