@@ -4,10 +4,10 @@ import Image from 'next/image';
 const Carousel = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
     const slides = [
-        './resized.jpg',
-        './panoramic_cars.jpg',
-        './vector.jpg',
-        './4-car.jpg'
+        // './resized.jpg',
+        './porsche.jpg',
+        './banner.jpg',
+        './vw(3).jpg'
     ];
 
     useEffect(() => {
