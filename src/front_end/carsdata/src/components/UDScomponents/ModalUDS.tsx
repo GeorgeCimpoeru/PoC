@@ -27,7 +27,6 @@ const ModalUDS = (props: any) => {
                     <div className="modal-action">
                         <label htmlFor={props.id} className="btn">Close</label>
                         <label htmlFor={props.id} className="btn" onClick={handleClickSaveBtn}>Save</label>
-                        <label htmlFor={props.id} className="btn" onClick={handleClickSaveBtn}>Save</label>
                     </div>
                 </div>
             </div>

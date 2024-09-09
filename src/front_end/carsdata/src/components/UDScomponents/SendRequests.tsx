@@ -28,6 +28,7 @@ const SendRequests = () => {
     const [disableInfoEngineBtns, setDisableInfoEngineBtns] = useState<boolean>(false);
     const [disableInfoDoorsBtns, setDisableInfoDoorsBtns] = useState<boolean>(false);
     const [disableConvertBtn, setDisableConvertBtn] = useState<boolean>(true);
+    const [session, setSession] = useState<string>("default");
     let popupElement: any = null;
     let popupStyleElement: any = null;
 
@@ -392,6 +393,49 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
+    const changeSession = async () => {
+        let sessiontype: any;
+        if (session === "default"){
+            sessiontype = {
+                sub_funct: 2,
+            }
+        } else {
+            sessiontype = {
+                sub_funct: 1,
+            }
+        }
+        console.log(sessiontype);
+        displayLoadingCircle();
+        console.log("Changing session...");
+        try {
+            await fetch('http://127.0.0.1:5000/api/change_session', {
+                method: 'POST',
+                mode: 'cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(sessiontype),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    setData23(data);
+                    console.log(data);
+                    fetchLogs();
+                    if (data.status === "success") {
+                        setSession("programming");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    removeLoadingCicle();
+                });
+        } catch (error) {
+            console.log(error);
+            removeLoadingCicle();
+        }
+        removeLoadingCicle();
+    }
+
     useEffect(() => {
         requestIds(true);
     }, []);
@@ -400,12 +444,15 @@ const SendRequests = () => {
         <div className="w-[90%] h-screen flex flex-col items-center">
             <div className="w-[50%] h-screen flex flex-col">
                 <h1 className="text-3xl mt-4">CAN Interface Control</h1>
-                <div>
+                <div className="inline-flex">
                     <button className="btn btn-info w-fit mt-5 text-white">
                         <Link href="http://127.0.0.1:5000/apidocs/" target="_blank" rel="noopener noreferrer">Go to Docs</Link>
                     </button>
                     <button className="btn btn-warning w-fit mt-5 ml-5 text-white" onClick={testerPresent} disabled={disableFrameAndDtcBtns}>Tester present</button>
-
+                    <div className="mt-5 ml-5">
+                        <p>Session: {session}</p>
+                        <input type="checkbox" className="toggle toggle-info" defaultChecked={session === "default" ? false : true} onClick={changeSession}/>
+                    </div>
                 </div>
 
                 <p className="text-xl mt-3">CAN ID:</p>
