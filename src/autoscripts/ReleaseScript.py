@@ -52,7 +52,7 @@ def create_exec(version: str, sw_to_build: str, extra_args: str):
     try:
         # Create the directory
         subprocess.run(
-            ["sudo", "mkdir", "-p", "{0}/{1}".format(PATH_SOFTWARE_RELEASES, dir_name)], check=True)
+            ["mkdir", "-p", "{0}/{1}".format(PATH_SOFTWARE_RELEASES, dir_name)], check=True)
         if sw_to_build == "mcu" or sw_to_build == "all":
             if "clean" in extra_args:
                 print(extra_args)
