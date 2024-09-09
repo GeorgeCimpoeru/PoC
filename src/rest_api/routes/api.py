@@ -9,7 +9,7 @@ from actions.read_info_action import *  # noqa: E402
 from utils.logger import log_memory  # noqa: E402
 from actions.manual_send_frame import manual_send_frame  # noqa: E402
 from actions.write_info_action import WriteInfo  # noqa: E402
-# from src.ota.google_drive_api.GoogleDriveApi import gDrive  # noqa: E402
+from src.ota.google_drive_api.GoogleDriveApi import gDrive  # noqa: E402
 from actions.secure_auth import Auth  # noqa: E402
 from actions.access_timing_action import AccessTiming  # noqa: E402
 
@@ -89,10 +89,10 @@ def get_logs():
 
 
 # Google Drive API Endpoints
-# @api_bp.route('/drive_update_data', methods=['GET'])
-# def update_drive_data():
-#     drive_data_json = gDrive.getDriveData()
-#     return jsonify(drive_data_json)
+@api_bp.route('/drive_update_data', methods=['GET'])
+ def update_drive_data():
+     drive_data_json = gDrive.getDriveData()
+     return jsonify(drive_data_json)
 
 
 @api_bp.route('/authenticate', methods=['GET'])
