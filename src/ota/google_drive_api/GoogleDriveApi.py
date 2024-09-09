@@ -88,6 +88,7 @@ class GDriveAPI:
     def downloadFile(self, ecu_id, sw_version_byte, path_to_download=DRIVE_DOWNLOAD_PATH):
         try:
             # pylint: disable=maybe-no-member
+            self.getDriveData()
             sw_version = self.__convertByteToSwVersion(hex(sw_version_byte))
             print(f"{GREEN}Searching for version {RESET}" +
                   ecu_map[ecu_id] + ' ' + sw_version)

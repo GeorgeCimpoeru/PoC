@@ -40,6 +40,14 @@ def create_exec(version: str, sw_to_build: str, extra_args: str):
         if user_input.lower() == 'y':
             shutil.rmtree(directory_path)
         else:
+            user_input = input(f"{GREEN}Upload to Google Drive?(only if the release already exists locally) y/n: {RESET}")
+            if user_input.lower() == 'y':
+                uploadRelease(directory_path)
+                exit(1)
+            elif user_input.lower() == 'n':
+                print(f"{GREEN}Not uploading.{RESET}")
+            else:
+                print(f"{RED}Invalid input.{RESET}")
             exit(-1)
     try:
         # Create the directory
@@ -50,10 +58,10 @@ def create_exec(version: str, sw_to_build: str, extra_args: str):
                 print(extra_args)
 
                 subprocess.run(
-                    ["make", "clean", "-C", "{0}/../src/mcu/".format(PATH_SOFTWARE_RELEASES)], check=True)
+                    ["sudo", "make", "clean", "-C", "{0}/../src/mcu/".format(PATH_SOFTWARE_RELEASES)], check=True)
             # Build the MCU executable
             subprocess.run(
-                ["make", "-C", "{0}/../src/mcu/".format(PATH_SOFTWARE_RELEASES)], check=True)
+                ["sudo", "make", "-C", "{0}/../src/mcu/".format(PATH_SOFTWARE_RELEASES)], check=True)
             mcu_executable_path = "{0}/../src/mcu/main_mcu".format(
                 PATH_SOFTWARE_RELEASES)
             mcu_archive_name = "{0}/{1}/MCU_SW_VERSION_{2}".format(
@@ -63,10 +71,10 @@ def create_exec(version: str, sw_to_build: str, extra_args: str):
         if sw_to_build == "ecu" or sw_to_build == "all":
             if "clean" in extra_args:
                 subprocess.run(
-                    ["make", "clean", "-C", "{0}/../src/ecu_simulation/BatteryModule".format(PATH_SOFTWARE_RELEASES)], check=True)
+                    ["sudo", "make", "clean", "-C", "{0}/../src/ecu_simulation/BatteryModule".format(PATH_SOFTWARE_RELEASES)], check=True)
             # Build the Battery Module executable
             subprocess.run(
-                ["make", "-C", "{0}/../src/ecu_simulation/BatteryModule".format(PATH_SOFTWARE_RELEASES)], check=True)
+                ["sudo", "make", "-C", "{0}/../src/ecu_simulation/BatteryModule".format(PATH_SOFTWARE_RELEASES)], check=True)
             battery_executable_path = "{0}/../src/ecu_simulation/BatteryModule/main_battery".format(
                 PATH_SOFTWARE_RELEASES)
             battery_archive_name = "{0}/{1}/ECU_BATTERY_SW_VERSION_{2}".format(
