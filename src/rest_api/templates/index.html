@@ -52,7 +52,7 @@
             <button type="button" class="btn btn-primary mx-2" onclick="window.open('/apidocs', '_blank');">Go to Docs</button>
             <button type="button" class="btn btn-primary mx-2" onclick="window.open('/api/logs', '_blank');">Show Logs</button>
         </div>
-        
+
         <form id="can-form" class="mb-4 p-4 bg-white border rounded shadow-sm">
             <h2 class="mb-4 text-color">Manual Flow</h2>
             <div class="form-group">
@@ -78,15 +78,17 @@
             <button type="button" class="btn btn-info mb-2" onclick="writeInfoDoors()">Write Doors Info</button>
             <button type="button" class="btn btn-info mb-2" onclick="writeInfoBattery()">Write Battery Info</button>
             <button type="button" class="btn btn-info mb-3" onclick="gDriveReadData()">Google Drive Info</button>
-            
+
         </div>
 
         <div class="btn-group-box mb-4">
-            <h3 class="text-color">Semi-Automatic Flow</h3>  
+            <h3 class="text-color">Semi-Automatic Flow</h3>
             <button type="button" class="btn btn-success mb-2" onclick="changeSession()">Change Session</button>
             <button type="button" class="btn btn-success mb-2" onclick="authenticate()">Secure Auth</button>
             <button type="button" class="btn btn-info mb-3" onclick="read_dtc_info()">Read DTC Info</button>
             <button type="button" class="btn btn-info mb-3" onclick="clear_dtc_info()">Clear DTC positive</button>
+            <button type="button" class="btn btn-info mb-3" onclick="get_tester_pres()">Tester present</button>
+
         </div>
 
         <div class="mb-4">

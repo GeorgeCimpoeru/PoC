@@ -13,6 +13,7 @@ from src.ota.google_drive_api.GoogleDriveApi import gDrive  # noqa: E402
 from actions.secure_auth import Auth  # noqa: E402
 from actions.dtc_info import DiagnosticTroubleCode  # noqa: E402
 from actions.diag_session import SessionManager  # noqa: E402
+from actions.tester_present import Tester  # noqa: E402
 
 api_bp = Blueprint('api', __name__)
 
@@ -147,3 +148,17 @@ def change_session():
     session = SessionManager(API_ID)
     response = session._change_session(id, sub_funct)
     return jsonify(response)
+
+
+@api_bp.route('/tester_present', methods=['GET'])
+def get_tester_present():
+    try:
+        tester = Tester(API_ID, [0x10, 0x11, 0x12])
+        response = tester.is_present()
+        return jsonify(response), 200
+
+    except CustomError as e:
+        return jsonify(e.message), 400
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

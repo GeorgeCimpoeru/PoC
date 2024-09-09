@@ -102,7 +102,7 @@ CLEAR_DTC = 0X14
 REQUEST_DOWNLOAD = 0X34
 TRANSFER_DATA = 0X36
 REQUEST_TRANSFER_EXIT = 0X37
-
+TESTER_PRESENT = 0x3E
 
 class FrameWithData:
     """Base class for frames with data extraction methods."""

@@ -191,3 +191,7 @@ function read_dtc_info() {
 function clear_dtc_info() {
     performApiRequest('/api/clear_dtc_info', 'GET');
 }
+
+function get_tester_pres() {
+    performApiRequest('/api/tester_present', 'GET');
+}
