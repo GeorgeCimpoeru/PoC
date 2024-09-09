@@ -18,6 +18,7 @@ const TableVersionControl = () => {
         try {
             await fetch('http://127.0.0.1:5000/api/drive_update_data', {
                 method: 'GET',
+                mode: 'cors',
             }).then(response => response.json())
                 .then(data => {
                     const versionsArray: string[] = [];

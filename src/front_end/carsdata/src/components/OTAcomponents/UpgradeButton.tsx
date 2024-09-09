@@ -47,40 +47,31 @@ const UpgradeButton = () => {
                 setMessage('Success: Version 1.2.2 is already installed');
                 setError(null);
             }
+            await fetch('http://127.0.0.1:5000/api/update_to_version', {
+                method: 'POST',
+                mode: 'cors',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ecu_id: "11",
+                    update_file_version: "1.0",
+                    update_file_type: "zip",
+                })
+            }).then(response => response.json())
+                .then(data => {
 
-            // Uncomment and update the URL as necessary
-            // const response = await fetch('http://127.0.0.1:5000/api/update_to_version', { 
-            //     method: 'POST',
-            //     headers: {
-            //         'Content-Type': 'application/json'
-            //     },
-            //     body: JSON.stringify({
-            //         ecu_id: "0x11",
-            //         version: version
-            //     })
-            // });
+                    console.log(data);
 
-            // if (!response.ok) {
-            //     throw new Error(`Network response was not ok: ${response.statusText}`);
-            // }
-
-            // const result = await response.json();
-
-            // if (result.ERROR || result["No of errors"] > 0) {
-            //     setError(`Update failed: ${result.ERROR} - Number of errors: ${result["No of errors"]}`);
-            //     setMessage(null);
-            // } else if (result["already_installed"] === true) {
-            //     setMessage('Already installed');
-            //     setError(null);
-            // } else {
-            //     setMessage('Downloaded successfully!');
-            //     setError(null);
-            // }
+                }).catch(error => {
+                    console.log(error.message)
+                });
 
         } catch (error: unknown) {
             setError(error instanceof Error ? error.message : 'An unknown error occurred');
             setMessage(null);
-        } finally {
+        }
+        finally {
             setTimeout(() => {
                 setIsOverlayVisible(false);
                 setIsProgressModalVisible(false);
@@ -88,7 +79,6 @@ const UpgradeButton = () => {
             }, 4000);
         }
     };
-
     const closePopup = () => {
         setIsStatusModalVisible(false);
         setProgress(0);
@@ -135,7 +125,6 @@ const UpgradeButton = () => {
                     <div>Wait for the response...</div>
                 </Modal>
             )}
-
             {isOverlayVisible && (
                 <div
                     style={{
