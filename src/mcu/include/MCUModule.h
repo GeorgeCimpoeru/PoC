@@ -41,6 +41,7 @@ namespace MCU
          * @brief Constructor that takes the interface number as an argument.
          * When the constructor is called, it creates a new interface with the
          * given number and starts the interface.
+         * 
          * @param interface_number The number of the vcan interface
         */
         MCUModule(uint8_t interfaces_number);
@@ -98,6 +99,12 @@ namespace MCU
          * @param interface_number The interface on which the ECU socket will be created
          */
         void setMcuEcuSocket(uint8_t interface_number);
+
+        /**
+         * @brief Write the default_did or the date before reset in mcu_data.txt
+         * 
+         */
+        void writeDataToFile();
 
     private:
         bool is_running;

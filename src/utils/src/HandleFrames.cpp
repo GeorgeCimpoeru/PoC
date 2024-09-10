@@ -125,6 +125,13 @@ void HandleFrames::handleFrame(int can_socket, const struct can_frame &frame)
 /* Method to call the service or handle the response*/
 void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t sid, std::vector<uint8_t> frame_data, bool is_multi_frame) 
 {
+    auto now_testerpresent = std::chrono::steady_clock::now();
+    if (now_testerpresent >= TesterPresent::getEndTimeProgrammingSession())
+    {
+        mcuDiagnosticSessionControl.sessionControl(can_socket, 0x01);
+        LOG_INFO(_logger.GET_LOGGER(), "Session changed to DEFAULT_SESSION by TesterPresent");
+        TesterPresent::setEndTimeProgrammingSession();
+    }
     switch (sid) {
         case 0x10:
         {
@@ -164,16 +171,10 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
             }
             break;
         }
-        case 0x29:
-        {
-            /* Authentication(); */
-            LOG_INFO(_logger.GET_LOGGER(), "Authentication called.");
-            break;
-        }
         case 0x3E:
         {
             LOG_INFO(_logger.GET_LOGGER(), "TesterPresent called.");
-            TesterPresent tester_present(_logger, &mcuDiagnosticSessionControl, can_socket, 1000);
+            TesterPresent tester_present(can_socket, _logger, mcuDiagnosticSessionControl);
             tester_present.handleTesterPresent(frame_id, frame_data);
             break;
         }
@@ -220,7 +221,7 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
                 off_t memory_size = (frame_data[6] << 8) | frame_data[7];
 
                 /* Create instances of MemoryManager and GenerateFrames as needed */
-                MemoryManager memoryManager(memory_address, "/dev/loop25", _logger);
+                MemoryManager memoryManager(memory_address, DEV_LOOP, _logger);
                 GenerateFrames frameGenerator(_socket, _logger);
                 ReadMemoryByAddress read_memory_by_address(&memoryManager, frameGenerator, _socket, _logger);
 

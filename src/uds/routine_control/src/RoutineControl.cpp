@@ -94,7 +94,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
         else if (access((std::string(PROJECT_PATH) + "/main_battery_new").c_str(), F_OK) == 0 && lowerbits == 0x11) {
             path_to_main = std::string(PROJECT_PATH) + "/main_battery_new";
             command = "./../../../config/installUpdates.sh";
-            MemoryManager* managerInstance = MemoryManager::getInstance(0x0801, "/dev/loop25", rc_logger);
+            MemoryManager* managerInstance = MemoryManager::getInstance(0x0801, DEV_LOOP, rc_logger);
             managerInstance->getAddress();
         }
         else if (access((std::string(PROJECT_PATH) + "/main_doors_new").c_str(), F_OK) == 0 && lowerbits == 0x12) {
@@ -137,7 +137,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 LOG_INFO(rc_logger.GET_LOGGER(), "writeToFile routine called.");
                 binary_data = MemoryManager::readBinary(path_to_main, rc_logger);
                 memory_manager = MemoryManager::getInstance(rc_logger); 
-                adress_data = MemoryManager::readFromAddress("/dev/loop25", memory_manager->getAddress(), binary_data.size(), rc_logger);
+                adress_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), binary_data.size(), rc_logger);
                 MemoryManager::writeToFile(adress_data, selectEcuPath(can_id), rc_logger);
                 routineControlResponse(can_id, request, routine_identifier);
                 break;

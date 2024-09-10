@@ -33,7 +33,12 @@ class CreateInterface
     /* Singleton instance */
     static CreateInterface* create_interface_instance;
 
-    /* Private constructor to prevent direct instantiation */
+    /** 
+     * @brief Private constructor to prevent direct instantiation 
+     * 
+     * @param interface_name The name of the virtual CAN network interface.
+     * @param logger A logger instance used to record information and errors during the execution.
+    */
     CreateInterface(uint8_t interface_name, Logger& logger);
 
     /* Delete copy constructor and assignment operator */
@@ -48,6 +53,9 @@ class CreateInterface
     public:
         /**
         * @brief Method that returns an instance to the object
+        * 
+        * @param interface_name The name of the virtual CAN network interface.
+        * @param logger A logger instance used to record information and errors during the execution.
         */
         static CreateInterface* getInstance(uint8_t interface_name, Logger& logger);
 
@@ -57,10 +65,16 @@ class CreateInterface
          * @return Returns the interface name 
          */
         uint8_t getInterfaceName();
-
+        /**
+         * @brief Create the socket
+         * 
+         * @param interface_number The interface indicator number.
+         * @return Returns the socket file descriptor.
+         */
         int createSocket(uint8_t interface_number);
         /**
         * @brief Set the socket to not block in the reading operation.
+        * 
         * @param socket socket file descriptor needed to be set as non blocking
         * @return int 
         */
@@ -68,20 +82,23 @@ class CreateInterface
         /**
         * @brief Method to create vcan interfaces: one to communicate 
         * with ECU and one to communicate with API
+        * 
         * @return Returns true if interfaces were created and false if an error was encountered.      
         */        
         bool createInterface();
 
         /**
         * @brief Method to start vcan interfaces: one to communicate 
-        * with ECU and one to communicate with API.  
+        * with ECU and one to communicate with API.
+        * 
         * @return Returns true if interfaces were started and false if an error was encountered.      
         */        
         bool startInterface();
 
         /**
         * @brief Method to stop vcan interfaces: one to communicate 
-        * with ECU and one to communicate with API. 
+        * with ECU and one to communicate with API.
+        * 
         * @return Returns true if interfaces were stopped and false if an error was encountered.      
         */    
         bool stopInterface();
@@ -89,6 +106,7 @@ class CreateInterface
         /**
         * @brief Method to delete vcan interfaces when no longer needed: 
         * one to communicate with ECU and one to communicate with API.
+        * 
         * @return Returns true if interfaces were deleted and false if an error was encountered. 
         */    
         bool deleteInterface();

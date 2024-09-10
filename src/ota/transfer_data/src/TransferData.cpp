@@ -58,30 +58,41 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
         }
         else
         {
+            nrc.sendNRC(can_id, TD_SID, NegativeResponse::TDS);
             return;
         }
 
+        /* Read data from the extracted binary */
         std::vector<uint8_t> data = MemoryManager::readBinary(path_to_main, transfer_data_logger);
         MemoryManager* memory_manager = MemoryManager::getInstance(transfer_data_logger);
-        memory_manager->writeToAddress(data);
-        /* clear vector after writing to adress */
-        response.clear();
-        /* prepare positive response */
-        response.push_back(0x02); /* PCI */
-        response.push_back(0x76); /* Service ID */
-        response.push_back(block_sequence_counter); /* block_sequence_counter */
-        /* Send the postive response frame */ 
-        generate_frames.sendFrame(can_id, response);
-        /* send request for TransferExit */
-        /* generate_frames.requestTransferExit(); */
-
-        /* Increment expected_block_sequence_number only if it matches the current block_sequence_counter */
-        expected_block_sequence_number++;
-        
-        /* reset it to 0x01 after it reaches 0xFF and resets to 0*/
-        if (expected_block_sequence_number == 0x00)
+        /* Write the read data to the partition created, at a specifig address */
+        bool write_success = memory_manager->writeToAddress(data);
+        if(write_success == false)
         {
-            expected_block_sequence_number = 0x01;
+            nrc.sendNRC(can_id, TD_SID, NegativeResponse::TDS);
+            return;
+        }
+        else
+        {
+            /* clear vector after writing to adress */
+            response.clear();
+            /* prepare positive response */
+            response.push_back(0x02); /* PCI */
+            response.push_back(0x76); /* Service ID */
+            response.push_back(block_sequence_counter); /* block_sequence_counter */
+            /* Send the postive response frame */ 
+            generate_frames.sendFrame(can_id, response);
+            /* send request for TransferExit */
+            /* generate_frames.requestTransferExit(); */
+
+            /* Increment expected_block_sequence_number only if it matches the current block_sequence_counter */
+            expected_block_sequence_number++;
+            
+            /* reset it to 0x01 after it reaches 0xFF and resets to 0*/
+            if (expected_block_sequence_number == 0x00)
+            {
+                expected_block_sequence_number = 0x01;
+            }
         }
     }
 }

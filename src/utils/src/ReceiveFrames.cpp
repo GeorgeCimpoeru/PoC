@@ -323,7 +323,7 @@ void ReceiveFrames::stopTimer(uint8_t frame_dest_id, uint8_t sid) {
             if (battery->stop_flags[sid]) {
                 int id = ((sid & 0xFF) << 8) | ((sid >> 8) & 0xFF);
                 LOG_INFO(receive_logger.GET_LOGGER(), 
-                         "Service with SID {:x} sent the response pending frame.", 0x2E);
+                         "Service with SID {:x} sent the response pending frame.", sid);
                 
                 NegativeResponse negative_response(socket, receive_logger);
                 negative_response.sendNRC(id, sid, 0x78);
@@ -348,7 +348,7 @@ void ReceiveFrames::stopTimer(uint8_t frame_dest_id, uint8_t sid) {
             if (engine->stop_flags[sid]) {
                 int id = ((sid & 0xFF) << 8) | ((sid >> 8) & 0xFF);
                 LOG_INFO(receive_logger.GET_LOGGER(), 
-                         "Service with SID {:x} sent the response pending frame.", 0x2E);
+                         "Service with SID {:x} sent the response pending frame.", sid);
                 
                 NegativeResponse negative_response(socket, receive_logger);
                 negative_response.sendNRC(id, sid, 0x78);
