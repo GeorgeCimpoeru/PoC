@@ -237,7 +237,7 @@ bool ReceiveFrames::receiveFramesFromAPI()
                         data: {PCI_L, SID(0xD9), MCU_id, BATTERY_id, DOORS_id, ENGINE_id, ECU4_id}
                     */
                     LOG_INFO(MCULogger->GET_LOGGER(), "Received frame to update status of ECUs still up.");
-                    generate_frames.sendFrame(0x10FA,{0x05, 0xD9, ecus_up[0], ecus_up[1], ecus_up[2], ecus_up[3]}, socket_api, DATA_FRAME);
+                    generate_frames.sendFrame(0x10FA,{0x06, 0xD9, MCU_ID, ecus_up[0], ecus_up[1], ecus_up[2], ecus_up[3]}, socket_api, DATA_FRAME);
                     LOG_INFO(MCULogger->GET_LOGGER(), "Frame sent to API on API socket to update status of ECUs still up.");
                 }
                 else
