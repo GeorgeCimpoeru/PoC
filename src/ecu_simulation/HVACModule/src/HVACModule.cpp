@@ -2,6 +2,14 @@
 
 Logger *hvacModuleLogger = nullptr;
 HVACModule *hvac = nullptr;
+std::unordered_map<uint16_t, std::vector<uint8_t>> HVACModule::default_DID_hvac =
+    {
+        {AMBIENT_TEMPERATURE_DID, {DEFAULT_DID_VALUE}}, /* Ambient temperature */
+        {CABIN_TEMPERATURE_DID, {DEFAULT_DID_VALUE}}, /* Cabin temperature */
+        {HVAC_SET_TEMPERATURE_DID, {DEFAULT_DID_VALUE}}, /* HVAC set temperature */
+        {FAN_SPEED_DID, {DEFAULT_DID_VALUE}}, /* Fan speed (Duty cycle) */
+        {HVAC_MODES_DID, {DEFAULT_DID_VALUE}}  /* HVAC modes */
+    };
 
 HVACModule::HVACModule() : _logger(*hvacModuleLogger)
 {

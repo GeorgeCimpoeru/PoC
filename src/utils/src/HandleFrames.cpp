@@ -167,7 +167,7 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
             {
                 int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
                 NegativeResponse negative_response(can_socket, _logger);
-                negative_response.sendNRC(new_id, 0x83, 0x7E);
+                negative_response.sendNRC(new_id, sid, 0x7E);
             }
             break;
         }

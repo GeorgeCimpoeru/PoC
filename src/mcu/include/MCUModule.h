@@ -37,6 +37,8 @@ namespace MCU
         {
             {0x01E0, {IDLE}}
         };
+        static const std::vector<uint16_t> VALID_DID_MCU;
+
         /** 
          * @brief Constructor that takes the interface number as an argument.
          * When the constructor is called, it creates a new interface with the

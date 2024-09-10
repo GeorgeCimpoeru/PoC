@@ -6,6 +6,13 @@ DoorsModule* doors = nullptr;
 std::map<uint8_t, double> DoorsModule::timing_parameters;
 std::map<uint8_t, std::future<void>> DoorsModule::active_timers;
 std::map<uint8_t, std::atomic<bool>> DoorsModule::stop_flags;
+std::unordered_map<uint16_t, std::vector<uint8_t>> DoorsModule::default_DID_doors = {
+        {0x03A0, {0}},  /* Driver Door Status  */
+        {0x03B0, {0}},  /* Passenger Door Status*/
+        {0x03C0, {0}},  /* Door Driver Locked Status*/
+        {0x03D0, {0}},  /* Door Passenger Locked Status*/
+        {0x03E0, {0}}   /* Ajar Warning Status */
+    };
 
 /** Constructor - initializes the DoorsModule with default values,
  * sets up the CAN interface, and prepares the frame receiver. */
@@ -13,24 +20,7 @@ DoorsModule::DoorsModule() : moduleId(0x13),
                              canInterface(CreateInterface::getInstance(0x00, *doorsModuleLogger)),
                              frameReceiver(nullptr)
 {
-    /* Insert the default DID values in the file */
-    std::ofstream outfile("doors_data.txt");
-    if (!outfile.is_open())
-    {
-        throw std::runtime_error("Failed to open file: doors_data.txt");
-    }
-
-    for (const auto& [data_identifier, data] : default_DID_doors)
-    {
-        outfile << std::hex << std::setw(4) << std::setfill('0') << data_identifier << " ";
-        for (uint8_t byte : data) 
-        {
-            outfile << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
-        }
-        outfile << "\n";
-    }
-    outfile.close();
-        
+    writeDataToFile();
     doors_socket = canInterface->createSocket(0x00);
     /* Initialize the Frame Receiver */
     frameReceiver = new ReceiveFrames(doors_socket, moduleId, *doorsModuleLogger);
@@ -46,24 +36,7 @@ DoorsModule::DoorsModule(int _interfaceNumber, int _moduleId) : moduleId(_module
                                                                 canInterface(CreateInterface::getInstance(_interfaceNumber, *doorsModuleLogger)),
                                                                 frameReceiver(nullptr)
 {
-    /* Insert the default DID values in the file */
-    std::ofstream outfile("doors_data.txt");
-    if (!outfile.is_open())
-    {
-        throw std::runtime_error("Failed to open file: doors_data.txt");
-    }
-
-    for (const auto& [data_identifier, data] : default_DID_doors)
-    {
-        outfile << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << data_identifier << " ";
-        for (uint8_t byte : data)
-        {
-            outfile << std::hex << std::setw(1) << std::setfill('0') << static_cast<int>(byte) << " ";
-        }
-        outfile << "\n";
-    }
-    outfile.close();
-
+    writeDataToFile();
     doors_socket = canInterface->createSocket(0x00);
     /* Initialize the Frame Receiver */
     frameReceiver = new ReceiveFrames(doors_socket, moduleId, *doorsModuleLogger);
@@ -189,4 +162,49 @@ int DoorsModule::getDoorsSocket() const
 void DoorsModule::setDoorsSocket(uint8_t interface_number)
 {
     this->doors_socket = this->canInterface->createSocket(interface_number);
+}
+
+void DoorsModule::writeDataToFile()
+{
+    /* Insert the default DID values in the file */
+    std::ofstream outfile("doors_data.txt");
+    if (!outfile.is_open())
+    {
+        throw std::runtime_error("Failed to open file: doors_data.txt");
+    }
+
+    /* Check if old_doors_data.txt exists */
+    std::string old_file_path = "old_doors_data.txt";
+    std::ifstream infile(old_file_path);
+
+    if (infile.is_open())
+    {
+        /* Read the current file contents into memory */
+        std::stringstream buffer;
+        /* Read the entire file into the buffer */
+        buffer << infile.rdbuf();
+        infile.close();
+
+        /* Store the original content */
+        std::string original_file_contents = buffer.str();
+
+        /* Write the content of old_mcu_data.txt into mcu_data.txt */
+        outfile << original_file_contents;
+
+        /* Delete the old file after reading its contents */
+        std::remove(old_file_path.c_str());
+    }
+    else
+    {
+        for (const auto& [data_identifier, data] : default_DID_doors)
+        {
+            outfile << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << data_identifier << " ";
+            for (uint8_t byte : data)
+            {
+                outfile << std::hex << std::setw(1) << std::setfill('0') << static_cast<int>(byte) << " ";
+            }
+            outfile << "\n";
+        }
+    }
+    outfile.close();
 }

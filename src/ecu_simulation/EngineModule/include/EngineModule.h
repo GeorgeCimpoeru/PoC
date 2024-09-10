@@ -34,30 +34,7 @@ public:
     /* Stop flags for each SID. */
     static std::map<uint8_t, std::atomic<bool>> stop_flags;
     /* Variable to store ecu data */
-    std::unordered_map<uint16_t, std::vector<uint8_t>> default_DID_engine = {
-        /* Engine RPM */
-        {0x0100, {0}},
-        /* Engine Coolant Temperature */
-        {0x010C, {0}},
-        /* Throttle Position */
-        {0x0110, {0}},
-        /* Vehicle Speed */
-        {0x0114, {0}},
-        /* Engine Load */
-        {0x011C, {0}},
-        /* Fuel Level */
-        {0x0120, {0}},
-        /* Oil Temperature */
-        {0x0124, {0}},
-        /* Fuel Pressure */
-        {0x012C, {0}},
-        /* Intake Air Temperature */
-        {0x0130, {0}},
-        /* Mass Air Flow (MAF) Sensor */
-        {0x0134, {0}},
-        /* Ambient Air Temperature */
-        {0x0140, {0}}
-    };
+    static std::unordered_map<uint16_t, std::vector<uint8_t>> default_DID_engine;
     /**
      * @brief Default constructor for Engine Module object.
      */
