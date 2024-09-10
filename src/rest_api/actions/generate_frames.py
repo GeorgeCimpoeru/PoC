@@ -165,7 +165,7 @@ class GenerateFrame:
         self.send_frame(id, data)
 
     def tester_present(self, id, response=False):
-        data = [2, 0x7E, 0] if response is False else [2, 0x3E, 0]
+        data = [2, 0x3E, 0] if response is False else [2, 0x7E, 0]
         self.send_frame(id, data)
 
     def access_timing_parameters(self, id, sub_function, response=False):

@@ -60,3 +60,60 @@ IDENTIFIER_ENGINE_STATE_OF_RUNNING = 0x0146
 IDENTIFIER_ENGINE_CURRENT_SPEED = 0x0147
 IDENTIFIER_ENGINE_STATE = 0x0148
 IDENTIFIER_ENGINE_SERIAL_NUMBER = 0x0149
+
+data_identifiers = {
+        "MCU_Identifiers": {
+            "software_version": hex(IDENTIFIER_VERSION_SOFTWARE_MCU),
+            "vin": hex(IDENTIFIER_VEHICLE_IDENTIFICATION_NUMBER_VIN),
+            "ecu_serial_number": hex(IDENTIFIER_ECU_SERIAL_NUMBER),
+            "ecu_hardware_number": hex(IDENTIFIER_SYSTEM_SUPPLIER_ECU_HARDWARE_NUMBER),
+            "ecu_software_number": hex(IDENTIFIER_SYSTEM_SUPPLIER_ECU_SOFTWARE_NUMBER),
+            "engine_type": hex(IDENTIFIER_SYSTEM_NAME_OR_ENGINE_TYPE),
+            "ecu_software_version_number": hex(IDENTIFIER_SYSTEM_SUPPLIER_ECU_SOFTWARE_VERSION_NUMBER),
+            "ecu_hardware_version_number": hex(IDENTIFIER_SYSTEM_SUPPLIER_ECU_HARDWARE_VERSION_NUMBER),
+            "ecu_manufacturing_date": hex(IDENTIFIER_SYSTEM_SUPPLIER_ECU_MANUFACTURING_DATE),
+            "ecu_part_number": hex(IDENTIFIER_SYSTEM_SUPPLIER_ECU_CODING_CONFIGURATION_PART_NUMBER),
+        },
+        "Engine_Identifiers": {
+            # "engine_rpm": hex(IDENTIFIER_ENGINE_RPM),
+            # "coolant_temperature": hex(IDENTIFIER_ENGINE_COOLANT_TEMPERATURE),
+            # "throttle_position": hex(IDENTIFIER_THROTTLE_POSITION),
+            # "vehicle_speed": hex(IDENTIFIER_VEHICLE_SPEED),
+            # "engine_load": hex(IDENTIFIER_ENGINE_LOAD),
+            # "fuel_level": hex(IDENTIFIER_FUEL_LEVEL),
+            # "oil_temperature": hex(IDENTIFIER_OIL_TEMPERATURE),
+            # "fuel_pressure": hex(IDENTIFIER_FUEL_PRESSURE),
+            # "intake_air_temperature": hex(IDENTIFIER_INTAKE_AIR_TEMPERATURE),
+            # "maf_sensor": hex(IDENTIFIER_MASS_AIR_FLOW_MAF_SENSOR),
+            # "ambient_air_temperature": hex(IDENTIFIER_AMBIENT_AIR_TEMPERATURE),
+            # "power_output": hex(IDENTIFIER_ENGINE_POWER_OUTPUT),
+            # "weight": hex(IDENTIFIER_ENGINE_WEIGHT),
+            # "fuel_consumption": hex(IDENTIFIER_ENGINE_FUEL_CONSUMPTION),
+            # "torque": hex(IDENTIFIER_ENGINE_TORQUE),
+            # "fuel_used": hex(IDENTIFIER_ENGINE_FUEL_USED),
+            # "state_of_running": hex(IDENTIFIER_ENGINE_STATE_OF_RUNNING),
+            # "current_speed": hex(IDENTIFIER_ENGINE_CURRENT_SPEED),
+            # "engine_state": hex(IDENTIFIER_ENGINE_STATE),
+            # "serial_number": hex(IDENTIFIER_ENGINE_SERIAL_NUMBER)
+        },
+        "Battery_Identifiers": {
+            "energy_level": hex(IDENTIFIER_BATTERY_ENERGY_LEVEL),
+            "voltage": hex(IDENTIFIER_BATTERY_VOLTAGE),
+            "percentage": hex(IDENTIFIER_BATTERY_PERCENTAGE),
+            "state_of_charge": hex(IDENTIFIER_BATTERY_STATE_OF_CHARGE),
+            # "temperature": IDENTIFIER_BATTERY_TEMPERATURE,
+            # "life_cycle": IDENTIFIER_BATTERY_LIFE_CYCLE,
+            # "fully_charged": IDENTIFIER_BATTERY_FULLY_CHARGED,
+            # "range": IDENTIFIER_BATTERY_RANGE,
+            # "charging_time": IDENTIFIER_BATTERY_CHARGING_TIME,
+            # "device_consumption": IDENTIFIER_DEVICE_CONSUMPTION
+        },
+        "Doors_Identifiers": {
+            # "door": hex(IDENTIFIER_DOOR),
+            # "door_serial_number": hex(IDENTIFIER_DOOR_SERIALNUMBER),
+            # "lighter_voltage": hex(IDENTIFIER_LIGHTER_VOLTAGE),
+            # "light_state": hex(IDENTIFIER_LIGHT_STATE),
+            # "belt_state": hex(IDENTIFIER_BELT_STATE),
+            # "windows_closed": hex(IDENTIFIER_WINDOWS_CLOSED)
+        }
+    }

@@ -192,6 +192,13 @@ function clear_dtc_info() {
     performApiRequest('/api/clear_dtc_info', 'GET');
 }
 
+function get_tester_pres() {
+    performApiRequest('/api/tester_present', 'GET');
+}
+
+function get_data_ids() {
+    performApiRequest('/api/get_identifiers', 'GET');
+}
 function readTimingInfo() {
     const input = prompt('Enter sub-function code:');
     if (input === null) {
