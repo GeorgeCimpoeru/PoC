@@ -55,18 +55,6 @@ IDENTIFIER_ENGINE_CURRENT_SPEED = 0x0147
 IDENTIFIER_ENGINE_STATE = 0x0148
 IDENTIFIER_ENGINE_SERIAL_NUMBER = 0x0149
 
-def convert_identifiers_to_hex(identifiers):
-    """
-    Converts the values in the identifiers dictionary to hex format.
-
-    Args:
-    - identifiers: A dictionary of identifiers with integer values.
-
-    Returns:
-    - A dictionary with hex string values.
-    """
-    return {key: hex(value) for key, value in identifiers.items()}
-
 data_identifiers = {
         "MCU_Identifiers": {
             "software_version": hex(IDENTIFIER_VERSION_SOFTWARE_MCU),

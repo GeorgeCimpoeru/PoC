@@ -129,7 +129,7 @@ class ReadInfo(Action):
             results = {}
 
             if item:
-            # Validate the requested item
+                # Validate the requested item
                 if item in identifiers:
                     identifier = identifiers[item]
                     result_value = self._read_by_identifier(id, identifier)

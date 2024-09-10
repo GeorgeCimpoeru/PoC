@@ -1,4 +1,5 @@
 import sys
+from configs.data_identifiers import data_identifiers
 import os
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 sys.path.append(PROJECT_ROOT)
@@ -14,7 +15,6 @@ from actions.secure_auth import Auth  # noqa: E402
 from actions.dtc_info import DiagnosticTroubleCode  # noqa: E402
 from actions.diag_session import SessionManager  # noqa: E402
 from actions.tester_present import Tester  # noqa: E402
-from configs.data_identifiers import data_identifiers
 
 api_bp = Blueprint('api', __name__)
 
@@ -169,9 +169,7 @@ def get_tester_present():
 def get_data_identifiers():
     try:
         return jsonify(data_identifiers)
-
     except CustomError as e:
         return jsonify(e.message), 400
-
     except Exception as e:
         return jsonify({"error": str(e)}), 500

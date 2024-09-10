@@ -104,6 +104,7 @@ TRANSFER_DATA = 0X36
 REQUEST_TRANSFER_EXIT = 0X37
 TESTER_PRESENT = 0x3E
 
+
 class FrameWithData:
     """Base class for frames with data extraction methods."""
     def _data_from_frame(self):
