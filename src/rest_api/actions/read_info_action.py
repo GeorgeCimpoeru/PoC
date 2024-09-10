@@ -117,7 +117,7 @@ class ReadInfo(Action):
         - JSON response.
         """
         auth_result = self._auth_mcu()
-        if isinstance(auth_result, str):  # If authentication fails and returns a message
+        if isinstance(auth_result, str):
             return auth_result
 
         try:
@@ -125,71 +125,57 @@ class ReadInfo(Action):
             id_battery = self.id_ecu[ECU_BATTERY]
             id = self.my_id * 0x100 + id_battery
 
-            # Initialize all potential variables
-            identifiers = {
-                "battery_level": IDENTIFIER_BATTERY_ENERGY_LEVEL,
-                "voltage": IDENTIFIER_BATTERY_VOLTAGE,
-                "percentage": IDENTIFIER_BATTERY_PERCENTAGE,
-                "state_of_charge": IDENTIFIER_BATTERY_STATE_OF_CHARGE,
-                # "life_cycle": IDENTIFIER_BATTERY_LIFE_CYCLE,
-                # "fully_charged": IDENTIFIER_BATTERY_FULLY_CHARGED,
-                # "serial_number": IDENTIFIER_ECU_SERIAL_NUMBER,
-                # "range_battery": IDENTIFIER_BATTERY_RANGE,
-                # "charging_time": IDENTIFIER_BATTERY_CHARGING_TIME,
-                # "device_consumption": IDENTIFIER_DEVICE_CONSUMPTION,
-            }
-
-            # Storage for the results
-            results = {
-                "battery_level": None,
-                "voltage": None,
-                "percentage": None,
-                "state_of_charge": None,
-                "life_cycle": "No read",
-                "fully_charged": "No read",
-                "serial_number": "No read",
-                "range_battery": "No read",
-                "charging_time": "No read",
-                "device_consumption": "No read"
-            }
+            identifiers = data_identifiers["Battery_Identifiers"]
+            results = {}
 
             if item:
-                # Read only the specific item if provided
+            # Validate the requested item
                 if item in identifiers:
                     identifier = identifiers[item]
-                    results[item] = self._read_by_identifier(id, identifier)
-                    # Process the value if needed
-                    if item == "state_of_charge":
-                        results[item] = self._get_battery_state_of_charge(results[item])
+                    result_value = self._read_by_identifier(id, identifier)
+
+                    # Process special cases like state_of_charge
+                    if item == "state_of_charge" and result_value:
+                        result_value = self._get_battery_state_of_charge(result_value)
+
+                    # Construct a response for the requested item
+                    results[item] = result_value if result_value else "No data"
                 else:
-                    results["error"] = "Invalid identifier"
+                    return {"error": f"Invalid parameter '{item}'. Use /get_identifiers to see valid parameters."}
             else:
-                # Read all items if no specific item is provided
+                # Read all items and populate the results dictionary
                 for key, identifier in identifiers.items():
-                    results[key] = self._read_by_identifier(id, identifier)
-                    if key == "state_of_charge" and results[key]:
-                        results[key] = self._get_battery_state_of_charge(results[key])
+                    result_value = self._read_by_identifier(id, identifier)
 
-            if item:
-                # Return only the requested item if `item` is provided
-                response_json = {item: results.get(item, "No read")}
-            else:
-                # Return all items if no specific item is provided
-                response_json = BatteryToJSON()._to_json([
-                    results["battery_level"],
-                    results["voltage"],
-                    results["percentage"],
-                    results["state_of_charge"],
-                    results["life_cycle"],
-                    results["fully_charged"],
-                    results["serial_number"],
-                    results["range_battery"],
-                    results["charging_time"],
-                    results["device_consumption"]
-                ])
+                    if key == "state_of_charge" and result_value:
+                        result_value = self._get_battery_state_of_charge(result_value)
 
+                    # Only include the items with valid data
+                    if result_value:
+                        results[key] = result_value
+                    else:
+                        results[key] = "No data"
+
+            # Construct the JSON response dynamically based on available or requested data
+            response_json = {
+                "battery_level": results.get("energy_level", "No data"),
+                "voltage": results.get("voltage", "No data"),
+                "percentage": results.get("percentage", "No data"),
+                "battery_state_of_charge": results.get("state_of_charge", "No data"),
+                "life_cycle": results.get("life_cycle", "No data"),
+                "fully_charged": results.get("fully_charged", "No data"),
+                "serial_number": results.get("serial_number", "No data"),
+                "range_battery": results.get("range", "No data"),
+                "charging_time": results.get("charging_time", "No data"),
+                "device_consumption": results.get("device_consumption", "No data"),
+                "time_stamp": datetime.datetime.now().isoformat()
+            }
+
+            # Shutdown the CAN bus
             self.bus.shutdown()
-            log_info_message(logger, "Sending JSON")
+
+            # Log and return the response
+            log_info_message(logger, "Sending JSON response")
             return response_json
 
         except CustomError as e:

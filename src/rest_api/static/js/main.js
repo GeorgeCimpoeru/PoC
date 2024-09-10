@@ -195,3 +195,7 @@ function clear_dtc_info() {
 function get_tester_pres() {
     performApiRequest('/api/tester_present', 'GET');
 }
+
+function get_data_ids() {
+    performApiRequest('/api/get_identifiers', 'GET');
+}
