@@ -7,6 +7,12 @@ BatteryModule* battery = nullptr;
 std::map<uint8_t, double> BatteryModule::timing_parameters;
 std::map<uint8_t, std::future<void>> BatteryModule::active_timers;
 std::map<uint8_t, std::atomic<bool>> BatteryModule::stop_flags;
+std::unordered_map<uint16_t, std::vector<uint8_t>> BatteryModule::default_DID_battery = {
+        {0x01A0, {0}},  /* Energy Level */
+        {0x01B0, {0}},  /* Voltage */
+        {0x01C0, {0}},  /* Percentage */
+        {0x01D0, {0}}   /* State of Charge */
+};
 
 /** Constructor - initializes the BatteryModule with default values,
  * sets up the CAN interface, and prepares the frame receiver. */

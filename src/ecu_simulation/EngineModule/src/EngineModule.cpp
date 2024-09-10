@@ -6,6 +6,26 @@ EngineModule* engine = nullptr;
 std::map<uint8_t, double> EngineModule::timing_parameters;
 std::map<uint8_t, std::future<void>> EngineModule::active_timers;
 std::map<uint8_t, std::atomic<bool>> EngineModule::stop_flags;
+std::unordered_map<uint16_t, std::vector<uint8_t>> EngineModule::default_DID_engine = {
+        /* Engine RPM */
+        {0x0100, {0}},
+        /* Engine Coolant Temperature */
+        {0x010C, {0}},
+        /* Throttle Position */
+        {0x0110, {0}},
+        /* Vehicle Speed */
+        {0x0114, {0}},
+        /* Engine Load */
+        {0x011C, {0}},
+        /* Fuel Level */
+        {0x0120, {0}},
+        /* Oil Temperature */
+        {0x0124, {0}},
+        /* Fuel Pressure */
+        {0x012C, {0}},
+        /* Intake Air Temperature */
+        {0x0130, {0}}
+    };
 
 /** Constructor - initializes the EngineModule with default values,
  * sets up the CAN interface, and prepares the frame receiver. */

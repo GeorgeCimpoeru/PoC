@@ -23,6 +23,7 @@
 #include<linux/can.h>
 #include <unordered_set>
 #include<iomanip>
+#include <algorithm>
 
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../../utils/include/Logger.h"

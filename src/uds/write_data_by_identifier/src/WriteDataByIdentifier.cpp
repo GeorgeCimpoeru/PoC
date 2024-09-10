@@ -1,6 +1,8 @@
 #include "../include/WriteDataByIdentifier.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
+#include "../../../ecu_simulation/DoorsModule/include/DoorsModule.h"
+#include "../../../ecu_simulation/HVACModule/include/HVACModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
 /* Helper function to load data from a file into a map */
@@ -115,6 +117,61 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
 
         /* Extract Data Identifier (DID) */
         DID did = (frame_data[2] << 8) | frame_data[3];
+        
+        // Uncomment after release
+        // switch (receiver_id)
+        // {
+        // case 0x10:
+        //     if((std::find(MCU::mcu->VALID_DID_MCU.begin(), MCU::mcu->VALID_DID_MCU.end(), did)) != MCU::mcu->VALID_DID_MCU.end())
+        //     {
+        //         LOG_ERROR(wdbi_logger.GET_LOGGER(), "Request Out Of Range: Identifier not found in memory");
+        //         nrc.sendNRC(id,WDBI_SID,NegativeResponse::ROOR);
+        //         MCU::mcu->stop_flags[0x2E] = false;
+        //         return;
+        //     }
+        //     break;
+        // case 0x11:
+        //     if(battery->default_DID_battery.find(did) != battery->default_DID_battery.end())
+        //     {
+        //         LOG_ERROR(wdbi_logger.GET_LOGGER(), "Request Out Of Range: Identifier not found in memory");
+        //         nrc.sendNRC(id,WDBI_SID,NegativeResponse::ROOR);
+        //         battery->stop_flags[0x2E] = false;
+        //         return;
+        //     }
+        //     break;
+        // case 0x12:
+        //     if(engine->default_DID_engine.find(did) != engine->default_DID_engine.end())
+        //     {
+        //         LOG_ERROR(wdbi_logger.GET_LOGGER(), "Request Out Of Range: Identifier not found in memory");
+        //         nrc.sendNRC(id,WDBI_SID,NegativeResponse::ROOR);
+        //         engine->stop_flags[0x2E] = false;
+        //         return;
+        //     }
+        //     break;
+        // case 0x13:
+        //     if(doors->default_DID_doors.find(did) != doors->default_DID_doors.end())
+        //     {
+        //         LOG_ERROR(wdbi_logger.GET_LOGGER(), "Request Out Of Range: Identifier not found in memory");
+        //         nrc.sendNRC(id,WDBI_SID,NegativeResponse::ROOR);
+        //         doors->stop_flags[0x2E] = false;
+        //         return;
+        //     }
+        //     break;
+        // case 0x14:
+        //     if(hvac->default_DID_hvac.find(did) != hvac->default_DID_hvac.end())
+        //     {
+        //         LOG_ERROR(wdbi_logger.GET_LOGGER(), "Request Out Of Range: Identifier not found in memory");
+        //         nrc.sendNRC(id,WDBI_SID,NegativeResponse::ROOR);
+        //         // Uncomment when its added the flags in HVACModule
+        //         // hvac->stop_flags[0x2E] = false;
+        //         return;
+        //     }
+        //     break;
+        // default:
+        //     LOG_ERROR(wdbi_logger.GET_LOGGER(), "Invalid module.");
+        //     break;
+        // }
+
 
         /* List of valid DIDs */
         std::unordered_set<uint16_t> valid_dids = {

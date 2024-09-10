@@ -53,12 +53,7 @@ public:
     /* Stop flags for each SID. */
     static std::map<uint8_t, std::atomic<bool>> stop_flags;
     /* Variable to store ecu data */
-    std::unordered_map<uint16_t, std::vector<uint8_t>> default_DID_battery = {
-        {0x01A0, {0}},  /* Energy Level */
-        {0x01B0, {0}},  /* Voltage */
-        {0x01C0, {0}},  /* Percentage */
-        {0x01D0, {0}}   /* State of Charge */
-    };
+    static std::unordered_map<uint16_t, std::vector<uint8_t>> default_DID_battery;
     /**
      * @brief Default constructor for Battery Module object.
      */

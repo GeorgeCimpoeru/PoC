@@ -3,11 +3,12 @@
 
 #define HVAC_ECU_ID 0x14
 
+#define MASS_AIR_FLOW_SENSOR      0x0134
 #define AMBIENT_TEMPERATURE_DID   0x0140
-#define CABIN_TEMPERATURE_DID     0x0150
-#define HVAC_SET_TEMPERATURE_DID  0x01C0
-#define FAN_SPEED_DID             0x01D0
-#define HVAC_MODES_DID            0x01F0
+#define CABIN_TEMPERATURE_DID     0x04A0
+#define HVAC_SET_TEMPERATURE_DID  0x04B0
+#define FAN_SPEED_DID             0x04C0
+#define HVAC_MODES_DID            0x04D0
 
 #define DEFAULT_DID_VALUE 0x00
 

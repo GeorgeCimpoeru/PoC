@@ -7,6 +7,39 @@ namespace MCU
     std::map<uint8_t, double> MCUModule::timing_parameters;
     std::map<uint8_t, std::future<void>> MCUModule::active_timers;
     std::map<uint8_t, std::atomic<bool>> MCUModule::stop_flags;
+    const std::vector<uint16_t> MCUModule::VALID_DID_MCU =
+    {
+        /* Vehicle Identification Number (VIN) */
+        0xF190,
+        /** ECU Serial Number */
+        0xF17F,
+        /* System Supplier ECU Hardware Number */
+        0xF18C,
+        /* System Supplier ECU Software Number */
+        0xF1A0,
+        /* System Name or Engine Type */
+        0xF187,
+        /* System Supplier ECU Software Version Number */
+        0xF1A2,
+        /* System Supplier ECU Hardware Version Number */
+        0xF1A1,
+        /* System Supplier ECU Manufacturing Date */
+        0xF1A4,
+        /* System Supplier ECU Coding/Configuration Part Number */
+        0xF1A5,
+        /* System Calibration Identification Number */
+        0xF1A8,
+        /* System Calibration Verification Number (CVN) */
+        0xF1A9,
+        /* System ECU Boot Software Identification Number */
+        0xF1AA,
+        /* System ECU Application Software Identification Number */
+        0xF1AB,
+        /* System ECU Data Set Identification Number */
+        0xF1AC,
+        /* System ECU Flash Software Version Number */
+        0xF1AD
+    };
     /* Constructor */
     MCUModule::MCUModule(uint8_t interfaces_number) : 
                     is_running(false),

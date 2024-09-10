@@ -48,13 +48,7 @@ public:
     /* Stop flags for each SID. */
     static std::map<uint8_t, std::atomic<bool>> stop_flags;
     /* Variable to store ecu data: 0:closed; 1:open; 0:unlocked; 1:locked; 0:no warning; 1: warning */
-    std::unordered_map<uint16_t, std::vector<uint8_t>> default_DID_doors = {
-        {0x03A0, {0}},  /* Driver Door Status  */
-        {0x03B0, {0}},  /* Passenger Door Status*/
-        {0x03C0, {0}},  /* Door Driver Locked Status*/
-        {0x03D0, {0}},  /* Door Passenger Locked Status*/
-        {0x03E0, {0}}   /* Ajar Warning Status */
-    };
+    static std::unordered_map<uint16_t, std::vector<uint8_t>> default_DID_doors;
     /**
      * @brief Default constructor for Doors Module object.
      */
@@ -104,6 +98,12 @@ public:
      * @param interface_number The interface on which the socket will be created.
      */
     void setDoorsSocket(uint8_t interface_number);
+
+    /**
+     * @brief Write the default_did or the date before reset in doors_data.txt
+     * 
+     */
+    void writeDataToFile();
 };
 extern DoorsModule* doors;
 
