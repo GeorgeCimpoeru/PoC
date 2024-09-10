@@ -83,7 +83,7 @@ def write_info_doors():
 def write_info_battery():
     data = request.get_json()
     writer = WriteInfo(API_ID, [0x10, 0x11, 0x12], data)
-    response = writer.write_to_battery()
+    response = writer.write_to_battery(data)
     return jsonify(response)
 
 

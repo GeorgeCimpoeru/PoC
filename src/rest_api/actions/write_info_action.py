@@ -46,13 +46,22 @@ class WriteInfo(Action):
         Args:
         - item: Optional identifier for a specific data item or list of items to write. If None, writes all items.
 
+        curl -X POST "http://localhost:5000/api/write_info_battery" \
+        -H "Content-Type: application/json" \
+        -d '{
+            "battery_level": 80,
+            "voltage": 12.5,
+            "percentage": 50,
+            "battery_state_of_charge": 75
+            }'
+
         Returns:
         - JSON response.
         """
 
         # Step 1: Authenticate the MCU
         auth_result = self._auth_mcu()
-        if isinstance(auth_result, str):  # If authentication fails and returns a message
+        if isinstance(auth_result, str):
             return auth_result
 
         try:
@@ -63,60 +72,45 @@ class WriteInfo(Action):
             # Step 2: Retrieve valid battery identifiers from data_identifiers
             valid_battery_identifiers = data_identifiers["Battery_Identifiers"]
 
-            # Step 3: Prepare all possible data
+            # Step 3: Prepare all possible data and ensure they are integers
             all_identifiers = {
-                valid_battery_identifiers["energy_level"]: int(self.data.get('battery_level')),
-                valid_battery_identifiers["voltage"]: int(self.data.get('voltage')),
-                valid_battery_identifiers["percentage"]: int(self.data.get('percentage')),
-                valid_battery_identifiers["state_of_charge"]: int(self.data.get('battery_state_of_charge')),
-                # valid_battery_identifiers["temperature"]: int(self.data.get('temperature')),
-                # valid_battery_identifiers["life_cycle"]: int(self.data.get('life_cycle')),
-                # valid_battery_identifiers["device_consumption"]: int(self.data.get('device_consumption'))
+                valid_battery_identifiers["energy_level"]: int(self.data.get('battery_level', 0)),
+                valid_battery_identifiers["voltage"]: int(self.data.get('voltage', 0) * 10),  # Convert to integer
+                valid_battery_identifiers["percentage"]: int(self.data.get('percentage', 0)),
+                valid_battery_identifiers["state_of_charge"]: int(self.data.get('battery_state_of_charge', 0)),
             }
 
             # Step 4: Filter the data to write based on the item argument
             data_to_write = []
+
             if item:
                 if isinstance(item, str):
-                    # Single item: Cross-check if the requested item is valid
-                    if item in valid_battery_identifiers:
-                        identifier = valid_battery_identifiers[item]
+                    item = [item]  # Convert to list for uniform handling
+
+                for single_item in item:
+                    if single_item in valid_battery_identifiers:
+                        identifier = valid_battery_identifiers[single_item]
                         value = all_identifiers.get(identifier)
                         if value is not None:
                             data_to_write.append((identifier, value))
                         else:
-                            return {"error": f"Value for '{item}' is missing."}
+                            return {"error": f"Value for '{single_item}' is missing or invalid."}
                     else:
-                        return {"error": f"Invalid parameter '{item}'. Use /get_identifiers to see valid parameters."}
-
-                elif isinstance(item, list):
-                    # Multiple items: Cross-check each one
-                    for single_item in item:
-                        if single_item in valid_battery_identifiers:
-                            identifier = valid_battery_identifiers[single_item]
-                            value = all_identifiers.get(identifier)
-                            if value is not None:
-                                data_to_write.append((identifier, value))
-                            else:
-                                return {"error": f"Value for '{single_item}' is missing."}
-                        else:
-                            return {"error": f"Invalid parameter '{single_item}'. Use /get_identifiers to see valid parameters."}
-
+                        return {"error": f"Invalid parameter '{single_item}'. Use /get_identifiers to see valid parameters."}
             else:
-                # No specific item: Write all data that has values
                 data_to_write = [(identifier, value) for identifier, value in all_identifiers.items() if value is not None]
 
             # Step 5: Perform the write operation for each identifier
             for identifier, value in data_to_write:
                 if value is not None:
                     value_list = self._number_to_byte_list(value)
-                    log_info_message(logger, f"Write by identifier {identifier}")
+                    log_info_message(logger, f"Writing {value} to identifier {identifier}")
 
                     if isinstance(value_list, list) and len(value_list) > 4:
-                        self.generate.write_data_by_identifier_long(id, identifier, value_list)
+                        self.generate.write_data_by_identifier_long(id, int(identifier, 16), value_list)
                     else:
-                        self.generate.write_data_by_identifier(id, identifier, value_list)
-                        self._passive_response(WRITE_BY_IDENTIFIER, f"Error writing {identifier}")
+                        self.generate.write_data_by_identifier(id, int(identifier, 16), value_list)
+                    self._passive_response(WRITE_BY_IDENTIFIER, f"Error writing {identifier}")
 
             # Step 6: Success message
             log_info_message(logger, f"Data written successfully to ECU ID: {id_battery}")
