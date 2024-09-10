@@ -129,34 +129,28 @@ class ReadInfo(Action):
             results = {}
 
             if item:
-                # Validate the requested item
                 if item in identifiers:
                     identifier = identifiers[item]
-                    result_value = self._read_by_identifier(id, identifier)
+                    result_value = self._read_by_identifier(id, int(identifier, 16))
 
-                    # Process special cases like state_of_charge
                     if item == "state_of_charge" and result_value:
                         result_value = self._get_battery_state_of_charge(result_value)
 
-                    # Construct a response for the requested item
                     results[item] = result_value if result_value else "No data"
                 else:
                     return {"error": f"Invalid parameter '{item}'. Use /get_identifiers to see valid parameters."}
             else:
-                # Read all items and populate the results dictionary
                 for key, identifier in identifiers.items():
-                    result_value = self._read_by_identifier(id, identifier)
+                    result_value = self._read_by_identifier(id, int(identifier, 16))
 
                     if key == "state_of_charge" and result_value:
                         result_value = self._get_battery_state_of_charge(result_value)
 
-                    # Only include the items with valid data
                     if result_value:
                         results[key] = result_value
                     else:
                         results[key] = "No data"
 
-            # Construct the JSON response dynamically based on available or requested data
             response_json = {
                 "battery_level": results.get("energy_level", "No data"),
                 "voltage": results.get("voltage", "No data"),
@@ -171,10 +165,7 @@ class ReadInfo(Action):
                 "time_stamp": datetime.datetime.now().isoformat()
             }
 
-            # Shutdown the CAN bus
             self.bus.shutdown()
-
-            # Log and return the response
             log_info_message(logger, "Sending JSON response")
             return response_json
 
@@ -213,7 +204,6 @@ class ReadInfo(Action):
             module = EngineToJSON()
             response = module._to_json(data)
 
-            # Shutdown the CAN bus interface
             self.bus.shutdown()
 
             log_info_message(logger, "Sending JSON")
