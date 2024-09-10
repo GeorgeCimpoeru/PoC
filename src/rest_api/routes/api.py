@@ -185,4 +185,3 @@ def access_timing():
     requester = ReadAccessTiming(API_ID, [0x10, 0x11, 0x12])
     response = requester._read_timing_info(id, sub_funct)
     return jsonify(response)
-
