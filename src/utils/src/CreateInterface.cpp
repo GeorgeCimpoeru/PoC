@@ -55,21 +55,29 @@ bool CreateInterface::createInterface()
     /* flag to track the succes or failure of each command */
     bool command_check = true;
 
-    /* Create interface command for the first interface (for ECU communication) */
-    std::string cmd_ecu = "sudo ip link add vcan" + std::to_string(first_four_bits) + " type vcan";   
-    /* Create interface command for the second interface (for API communication) */
-    std::string cmd_api = "sudo ip link add vcan" + std::to_string(last_four_bits) + " type vcan";
-    
-    if (system(cmd_ecu.c_str())) {        
-        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to create the first interface");
-        /* Set the flag to false if the first command fails */
-        command_check  = false;
+    std::string command = "ip link show vcan" + std::to_string(first_four_bits) + " > /dev/null 2>&1";
+    if(system(command.c_str()) != 0)
+    {
+        /* Create interface command for the first interface (for ECU communication) */
+        std::string cmd_ecu = "sudo ip link add vcan" + std::to_string(first_four_bits) + " type vcan";   
+        if (system(cmd_ecu.c_str()))
+        {        
+            LOG_ERROR(logger.GET_LOGGER(),"Error when trying to create the first interface");
+            /* Set the flag to false if the first command fails */
+            command_check  = false;
+        }
     }
-
-    if (system(cmd_api.c_str())) {        
-        LOG_ERROR(logger.GET_LOGGER(),"Error when trying to create the second interface");
-        /* Set the flag to false if the second command fails */
-        command_check = false;
+    command = "ip link show vcan" + std::to_string(first_four_bits) + " >/dev/null 2>&1";
+    if(system(command.c_str()) != 0)
+    {
+        /* Create interface command for the second interface (for API communication) */
+        std::string cmd_api = "sudo ip link add vcan" + std::to_string(last_four_bits) + " type vcan";
+        if (system(cmd_api.c_str()))
+        {        
+            LOG_ERROR(logger.GET_LOGGER(),"Error when trying to create the second interface");
+            /* Set the flag to false if the second command fails */
+            command_check = false;
+        }
     }
 
     return command_check;
