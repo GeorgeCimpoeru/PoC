@@ -48,9 +48,9 @@ public:
 
     /**
      * @brief Method that checks the subfunction and calls either hardReset() or keyOffReset().
-     * 
+     * data A vector containing the data bytes to be processed.
      */
-    void ecuResetRequest(); 
+    void ecuResetRequest(const std::vector<uint8_t>& data); 
 
     /**
      * @brief Method that does the Hard Reset.

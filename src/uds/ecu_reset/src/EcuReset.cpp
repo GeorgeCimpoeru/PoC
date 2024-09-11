@@ -12,13 +12,32 @@ EcuReset::~EcuReset()
 {
 }
 
-void EcuReset::ecuResetRequest()
+void EcuReset::ecuResetRequest(const std::vector<uint8_t>& request)
 {
     uint8_t lowerbits = can_id & 0xFF;
     uint8_t upperbits = can_id >> 8 & 0xFF;
     uint32_t new_id = (upperbits << 8) | lowerbits;
 
     NegativeResponse nrc(socket, ECUResetLog);
+    if ((request.size() < 3) ||
+            (request[2] == 0x02 && request[0] == 2)
+            || (request.size() != static_cast<size_t>(request[0] + 1)))
+    {
+        nrc.sendNRC(can_id,0x11,NegativeResponse::IMLOIF);
+        if (lowerbits == 0x10)
+        {
+            MCU::mcu->stop_flags[0x11] = false;
+        }
+        else if (lowerbits == 0x11)
+        {
+            battery->stop_flags[0x11] = false;
+        }
+        else if (lowerbits == 0x12)
+        {
+            engine->stop_flags[0x11] = false;
+        }
+        return;
+    }
 
     if (sub_function != 0x01 && sub_function != 0x02)
     {
@@ -35,11 +54,14 @@ void EcuReset::ecuResetRequest()
         }
     }
     /* Hard Reset case */
-    else if (sub_function == 0x01) {
+    else if (sub_function == 0x01)
+    {
         LOG_INFO(ECUResetLog.GET_LOGGER(), "Reset Mode: Hard Reset");
         this->hardReset();
     /* Keys off Reset case */
-    } else if (sub_function == 0x02) {
+    }
+    else if (sub_function == 0x02)
+    {
         LOG_INFO(ECUResetLog.GET_LOGGER(), "Reset Mode: Key Off Reset");
         this->keyOffReset();
     }

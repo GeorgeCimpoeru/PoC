@@ -151,7 +151,7 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
             /* Calls ECU Reset */      
             /* This service can be called in any session. */
             EcuReset ecu_reset(frame_id, sub_function, can_socket, _logger);
-            ecu_reset.ecuResetRequest();       
+            ecu_reset.ecuResetRequest(frame_data);       
             break;
         }
         case 0x27:
