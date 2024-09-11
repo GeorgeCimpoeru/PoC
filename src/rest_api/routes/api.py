@@ -188,7 +188,6 @@ def access_timing():
     return jsonify(response)
 
 
-
 @api_bp.route('/reset_ecu', methods=['POST'])
 def reset_module():
     data = request.get_json()
