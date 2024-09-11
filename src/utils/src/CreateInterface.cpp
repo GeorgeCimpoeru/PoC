@@ -67,7 +67,7 @@ bool CreateInterface::createInterface()
             command_check  = false;
         }
     }
-    command_check_vcan_exists = "ip link show vcan" + std::to_string(first_four_bits) + " >/dev/null 2>&1";
+    command_check_vcan_exists = "ip link show vcan" + std::to_string(last_four_bits) + " >/dev/null 2>&1";
     if(system(command_check_vcan_exists.c_str()) != 0)
     {
         /* Create interface command for the second interface (for API communication) */
