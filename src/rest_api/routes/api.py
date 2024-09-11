@@ -16,6 +16,7 @@ from actions.dtc_info import DiagnosticTroubleCode  # noqa: E402
 from actions.diag_session import SessionManager  # noqa: E402
 from actions.tester_present import Tester  # noqa: E402
 from actions.access_timing_action import ReadAccessTiming  # noqa: E402
+from actions.ecu_reset import Reset  # noqa: E402
 
 api_bp = Blueprint('api', __name__)
 
@@ -184,4 +185,19 @@ def access_timing():
         return jsonify({"status": "error", "message": "Missing 'sub_funct' parameter"}), 400
     requester = ReadAccessTiming(API_ID, [0x10, 0x11, 0x12])
     response = requester._read_timing_info(id, sub_funct)
+    return jsonify(response)
+
+
+
+@api_bp.route('/reset_ecu', methods=['POST'])
+def reset_module():
+    data = request.get_json()
+    sub_funct = data.get('sub_funct')
+    if sub_funct is None:
+        return jsonify({"status": "error", "message": "Missing 'sub_funct' parameter"}), 400
+    wh_id = data.get('id')
+    if wh_id is None:
+        return jsonify({"status": "error", "message": "Missing 'id' parameter"}), 400
+    reseter = Reset(API_ID, [0x10, 0x11, 0x12])
+    response = reseter._reset_ecu(wh_id, sub_funct)
     return jsonify(response)

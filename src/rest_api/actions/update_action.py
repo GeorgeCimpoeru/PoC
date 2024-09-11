@@ -57,9 +57,9 @@ class Updates(Action):
             self._download_data(type, version, id)
             log_info_message(logger, "Download finished, restarting ECU...")
 
-            log_info_message(logger, "Changing session to default")
-            self.generate.session_control(self.id, 0x01)
-            self._passive_response(SESSION_CONTROL, "Error changing session control")
+            # log_info_message(logger, "Changing session to default")
+            # self.generate.session_control(self.id, 0x01)
+            # self._passive_response(SESSION_CONTROL, "Error changing session control")
 
             # Reset the ECU to apply the update
             # self.id = (self.my_id * 0x100) + int(ecu_id, 16)

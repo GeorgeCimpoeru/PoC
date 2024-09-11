@@ -88,7 +88,7 @@ logger = logger_singleton.logger
 logger_frame = logger_singleton.logger_frame
 
 SESSION_CONTROL = 0x10
-RESET_ECU = 0x11
+RESET_ECU = 0x51
 READ_BY_ADDRESS = 0x23
 READ_BY_IDENTIFIER = 0x022
 AUTHENTICATION_SEND = 0x27
