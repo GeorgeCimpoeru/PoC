@@ -57,7 +57,7 @@ const DowngradeButton = () => {
     const closePopup = () => setIsPopupVisible(false);
 
     return (
-        <div>
+        <div className="m-1">
             <Button
                 type="default"
                 danger

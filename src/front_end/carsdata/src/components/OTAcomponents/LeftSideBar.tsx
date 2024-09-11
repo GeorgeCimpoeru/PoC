@@ -20,11 +20,11 @@ function LeftSideBar(props: any) {
     };
 
     const iconsData = [
-        { index: 1, imageSrc: '/ECUfinal.svg', tooltipText: 'ECU 1' },
-        { index: 2, imageSrc: '/mcu.svg', tooltipText: 'MCU 1' },
-        { index: 3, imageSrc: '/ECUfinal.svg', tooltipText: 'ECU 2' },
-        { index: 4, imageSrc: '/ECUfinal.svg', tooltipText: 'ECU 3' },
-        { index: 5, imageSrc: '/mcu.svg', tooltipText: 'MCU 2' },
+        { index: 1, imageSrc: '/mcu.svg', tooltipText: 'MCU' },
+        { index: 2, imageSrc: '/ECUfinal.svg', tooltipText: 'Battery' },
+        { index: 3, imageSrc: '/ECUfinal.svg', tooltipText: 'Engine' },
+        { index: 4, imageSrc: '/ECUfinal.svg', tooltipText: 'Doors' },
+        { index: 5, imageSrc: '/ECUfinal.svg', tooltipText: 'HVAC' },
     ];
 
     return (

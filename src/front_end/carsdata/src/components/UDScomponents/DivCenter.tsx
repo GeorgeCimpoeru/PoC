@@ -1,8 +1,9 @@
 'use client'
 import React, { useState } from 'react';
 import Image from 'next/image';
+import ModalUDS from '@/src/components/UDScomponents/ModalUDS';
 import './style.css';
-import ModalUDS from '../sharedComponents/ModalUDS';
+
 
 const DivCenter = (props: any) => {
     const [jsonResp, setJsonResp] = useState('');
