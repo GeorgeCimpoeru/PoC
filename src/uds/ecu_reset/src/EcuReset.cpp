@@ -23,7 +23,7 @@ void EcuReset::ecuResetRequest(const std::vector<uint8_t>& request)
             (request[2] == 0x02 && request[0] == 2)
             || (request.size() != static_cast<size_t>(request[0] + 1)))
     {
-        nrc.sendNRC(can_id,0x11,NegativeResponse::IMLOIF);
+        nrc.sendNRC(new_id,0x11,NegativeResponse::IMLOIF);
         if (lowerbits == 0x10)
         {
             MCU::mcu->stop_flags[0x11] = false;
@@ -52,9 +52,22 @@ void EcuReset::ecuResetRequest(const std::vector<uint8_t>& request)
         {
             engine->stop_flags[0x11] = false;
         }
+        return;
+    }
+    if (lowerbits == 0x10 && !SecurityAccess::getMcuState(ECUResetLog))
+    {
+        nrc.sendNRC(new_id, 0x11, NegativeResponse::SAD);
+        MCU::mcu->stop_flags[0x11] = false;
+        return;
+    }
+    if (lowerbits == 0x11 && !ReceiveFrames::getBatteryState())
+    {
+        nrc.sendNRC(new_id, 0x11, NegativeResponse::SAD);
+        battery->stop_flags[0x11] = false;
+        return;
     }
     /* Hard Reset case */
-    else if (sub_function == 0x01)
+    if (sub_function == 0x01)
     {
         LOG_INFO(ECUResetLog.GET_LOGGER(), "Reset Mode: Hard Reset");
         this->hardReset();
