@@ -48,25 +48,7 @@ namespace MCU
                     mcu_api_socket(create_interface->createSocket(interfaces_number)),
                     mcu_ecu_socket(create_interface->createSocket(interfaces_number >> 4))
                     {
-
-        /* Insert the default DID values in the file */
-        std::ofstream outfile("mcu_data.txt");
-        if (!outfile.is_open())
-        {
-            throw std::runtime_error("Failed to open file: mcu_data.txt");
-        }
-
-        for (const auto& [data_identifier, data] : default_DID_MCU)
-        {
-            outfile << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << data_identifier << " ";
-            for (uint8_t byte : data)
-            {
-                outfile << std::hex << std::setw(1) << std::setfill('0') << static_cast<int>(byte) << " ";
-            }
-            outfile << "\n";
-        }
-        outfile.close();
-
+        writeDataToFile();
         receive_frames = new ReceiveFrames(mcu_ecu_socket, mcu_api_socket);
     }
 
@@ -75,23 +57,7 @@ namespace MCU
                          create_interface(CreateInterface::getInstance(0x01, *MCULogger)),
                          receive_frames(nullptr)
     {
-        /* Insert the default DID values in the file */
-        std::ofstream outfile("mcu_data.txt");
-        if (!outfile.is_open())
-        {
-            throw std::runtime_error("Failed to open file: mcu_data.txt");
-        }
-
-        for (const auto& [data_identifier, data] : default_DID_MCU)
-        {
-            outfile << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << data_identifier << " ";
-            for (uint8_t byte : data)
-            {
-                outfile << std::hex << std::setw(1) << std::setfill('0') << static_cast<int>(byte) << " ";
-            }
-            outfile << "\n";
-        }
-        outfile.close();
+        writeDataToFile();
     }
 
     /* Destructor */
@@ -99,6 +65,7 @@ namespace MCU
     {
         create_interface->stopInterface();
         delete receive_frames;
+        system("pkill main_mcu");
     }
 
     /* Start the module */
@@ -160,5 +127,50 @@ namespace MCU
             queue_thread_process.join();
             queue_thread_listen.join();
         }
+    }
+    void MCUModule::writeDataToFile()
+    {
+        /* Insert the default DID values in the file */
+        std::ofstream outfile("mcu_data.txt");
+        if (!outfile.is_open())
+        {
+            throw std::runtime_error("Failed to open file: mcu_data.txt");
+        }
+
+        /* Check if old_mcu_data.txt exists */
+        std::string old_file_path = "old_mcu_data.txt";
+        std::ifstream infile(old_file_path);
+
+        if (infile.is_open())
+        {
+            /* Read the current file contents into memory */
+            std::stringstream buffer;
+            /* Read the entire file into the buffer */
+            buffer << infile.rdbuf();
+            infile.close();
+
+            /* Store the original content */
+            std::string original_file_contents = buffer.str();
+
+            /* Write the content of old_mcu_data.txt into mcu_data.txt */
+            outfile << original_file_contents;
+
+            /* Delete the old file after reading its contents */
+            std::remove(old_file_path.c_str());
+        }
+        else
+        {
+            /* Write the default DID values to mcu_data.txt */
+            for (const auto& [data_identifier, data] : default_DID_MCU)
+            {
+                outfile << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << data_identifier << " ";
+                for (uint8_t byte : data)
+                {
+                    outfile << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
+                }
+                outfile << "\n";
+            }
+        }
+        outfile.close();
     }
 }

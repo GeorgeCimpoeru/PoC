@@ -23,23 +23,7 @@ BatteryModule::BatteryModule() : moduleId(0x11),
                                  canInterface(CreateInterface::getInstance(0x00, *batteryModuleLogger)),
                                  frameReceiver(nullptr)
 {
-    /* Insert the default DID values in the file */
-    std::ofstream outfile("battery_data.txt");
-    if (!outfile.is_open())
-    {
-        throw std::runtime_error("Failed to open file: battery_data.txt");
-    }
-
-    for (const auto& [data_identifier, data] : default_DID_battery)
-    {
-        outfile << std::hex << std::setw(4) << std::setfill('0') << data_identifier << " ";
-        for (uint8_t byte : data) 
-        {
-            outfile << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
-        }
-        outfile << "\n";
-    }
-    outfile.close();
+    writeDataToFile();
 
     battery_socket = canInterface->createSocket(0x00);
     /* Initialize the Frame Receiver */
@@ -59,24 +43,7 @@ BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_mo
                                                                     canInterface(CreateInterface::getInstance(_interfaceNumber, *batteryModuleLogger)),
                                                                     frameReceiver(nullptr)
 {
-    /* Insert the default DID values in the file */
-    std::ofstream outfile("battery_data.txt");
-    if (!outfile.is_open())
-    {
-        throw std::runtime_error("Failed to open file: battery_data.txt");
-    }
-
-    for (const auto& [data_identifier, data] : default_DID_battery)
-    {
-        outfile << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << data_identifier << " ";
-        for (uint8_t byte : data)
-        {
-            outfile << std::hex << std::setw(1) << std::setfill('0') << static_cast<int>(byte) << " ";
-        }
-        outfile << "\n";
-    }
-    outfile.close();
-
+    writeDataToFile();
     battery_socket = canInterface->createSocket(0x00);
     /* Initialize the Frame Receiver */
     frameReceiver = new ReceiveFrames(battery_socket, moduleId, *batteryModuleLogger);
@@ -308,4 +275,49 @@ int BatteryModule::getBatterySocket() const
 void BatteryModule::setBatterySocket(uint8_t interface_number)
 {
     this->battery_socket = this->canInterface->createSocket(interface_number);
+}
+
+void BatteryModule::writeDataToFile()
+{
+    /* Insert the default DID values in the file */
+    std::ofstream outfile("battery_data.txt");
+    if (!outfile.is_open())
+    {
+        throw std::runtime_error("Failed to open file: battery_data.txt");
+    }
+
+    /* Check if old_battery_data.txt exists */
+    std::string old_file_path = "old_battery_data.txt";
+    std::ifstream infile(old_file_path);
+
+    if (infile.is_open())
+    {
+        /* Read the current file contents into memory */
+        std::stringstream buffer;
+        /* Read the entire file into the buffer */
+        buffer << infile.rdbuf();
+        infile.close();
+
+        /* Store the original content */
+        std::string original_file_contents = buffer.str();
+
+        /* Write the content of old_mcu_data.txt into mcu_data.txt */
+        outfile << original_file_contents;
+
+        /* Delete the old file after reading its contents */
+        std::remove(old_file_path.c_str());
+    }
+    else
+    {
+        for (const auto& [data_identifier, data] : default_DID_battery)
+        {
+            outfile << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << data_identifier << " ";
+            for (uint8_t byte : data)
+            {
+                outfile << std::hex << std::setw(1) << std::setfill('0') << static_cast<int>(byte) << " ";
+            }
+            outfile << "\n";
+        }
+    }
+    outfile.close();
 }

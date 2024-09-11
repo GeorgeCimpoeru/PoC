@@ -51,19 +51,15 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
         }
         return;
     }
-    else if (!SecurityAccess::getMcuState(rc_logger))
+    else if (lowerbits == 0x10 && !SecurityAccess::getMcuState(rc_logger))
     {
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
-        if (lowerbits == 0x10)
-        {
-            MCU::mcu->stop_flags[0x31] = false;
-        } else if (lowerbits == 0x11)
-        {
-            battery->stop_flags[0x31] = false;
-        } else if (lowerbits == 0x12)
-        {
-            engine->stop_flags[0x31] = false;
-        }
+        MCU::mcu->stop_flags[0x31] = false;
+    }
+    else if (lowerbits == 0x11 && !ReceiveFrames::getBatteryState())
+    {
+        nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
+        battery->stop_flags[0x31] = false;
     }
     /* when our identifiers will be defined, this range should be smaller */
     else if (routine_identifier < 0x0100 || routine_identifier > 0xEFFF)

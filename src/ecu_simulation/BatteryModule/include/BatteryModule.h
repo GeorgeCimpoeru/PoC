@@ -154,6 +154,12 @@ public:
      * @param interface_number The interface on which the socket will be created.
      */
     void setBatterySocket(uint8_t interface_number);
+
+    /**
+     * @brief Write the default_did or the date before reset in battery_data.txt
+     * 
+     */
+    void writeDataToFile();
 };
 extern BatteryModule* battery;
 
