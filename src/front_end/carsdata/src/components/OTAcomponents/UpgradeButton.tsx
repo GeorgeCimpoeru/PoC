@@ -1,8 +1,8 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Modal } from 'antd';
 
-const UpgradeButton = () => {
+const UpgradeButton = (props: any) => {
     const [isVersionPopupVisible, setIsVersionPopupVisible] = useState(false);
     const [isProgressModalVisible, setIsProgressModalVisible] = useState(false);
     const [isStatusModalVisible, setIsStatusModalVisible] = useState(false);
@@ -14,69 +14,44 @@ const UpgradeButton = () => {
 
     const showVersionPopup = () => setIsVersionPopupVisible(true);
 
-    const handleVersionSelect = (version: string) => {
-        setSelectedVersion(version);
-        setIsVersionPopupVisible(false);
-        handleUpdate(version);
-    };
-
-    const handleUpdate = async (version: string) => {
+    const updateToVersion = async (version: string) => {
+        let ecuId: string = "";
+        if (props.device === "MCU") {
+            ecuId = "10";
+        } else if (props.device === "Battery") {
+            ecuId = "11";
+        } else if (props.device === "Engine") {
+            ecuId = "12";
+        } else if (props.device === "Doors") {
+            ecuId = "13";
+        } else if (props.device === "HVAC") {
+            ecuId = "14";
+        }
+        console.log({
+            ecu_id: ecuId,
+            update_file_version: props.softVersDataForUpdate[version].swVersion,
+            update_file_type: props.softVersDataForUpdate[version].type,
+        });
+        console.log("Updating version...")
         try {
-            setProgress(0);
-            setIsOverlayVisible(true);
-            setIsProgressModalVisible(true);
-
-            const simulateProgress = setInterval(() => {
-                setProgress(prev => {
-                    if (prev < 100) {
-                        return prev + 10;
-                    } else {
-                        clearInterval(simulateProgress);
-                        return 100;
-                    }
-                });
-            }, 500);
-
-            if (version === '1') {
-                setMessage('Success: Version 1.2.0 installed successfully!');
-                setError(null);
-            } else if (version === '2') {
-                setMessage(null);
-                setError('Error: Failed to install Version 1.2.1');
-            } else if (version === '3') {
-                setMessage('Success: Version 1.2.2 is already installed');
-                setError(null);
-            }
             await fetch('http://127.0.0.1:5000/api/update_to_version', {
                 method: 'POST',
-                mode: 'cors',
+                // mode: 'no-cors',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    ecu_id: "11",
-                    update_file_version: "1.0",
-                    update_file_type: "zip",
+                    update_file_version: props.softVersDataForUpdate[version].swVersion,
+                    update_file_type: "zip",//props.softVersDataForUpdate[version].type,
+                    ecu_id: ecuId,
                 })
             }).then(response => response.json())
                 .then(data => {
-
                     console.log(data);
-
-                }).catch(error => {
-                    console.log(error.message)
                 });
-
         } catch (error: unknown) {
             setError(error instanceof Error ? error.message : 'An unknown error occurred');
             setMessage(null);
-        }
-        finally {
-            setTimeout(() => {
-                setIsOverlayVisible(false);
-                setIsProgressModalVisible(false);
-                setIsStatusModalVisible(true);
-            }, 4000);
         }
     };
     const closePopup = () => {
@@ -84,8 +59,12 @@ const UpgradeButton = () => {
         setProgress(0);
     };
 
+    useEffect(() => {
+        
+    }, [props.softVersions]); /////////?????????????
+
     return (
-        <div>
+        <div className="m-1">
             <Button
                 type="primary"
                 onClick={showVersionPopup}
@@ -98,18 +77,11 @@ const UpgradeButton = () => {
                 title="Select Version"
                 open={isVersionPopupVisible}
                 onCancel={() => setIsVersionPopupVisible(false)}
-                footer={[
-                    <Button key="version1" onClick={() => handleVersionSelect('1')}>
-                        Version 1.2.0
-                    </Button>,
-                    <Button key="version2" onClick={() => handleVersionSelect('2')}>
-                        Version 1.2.1
-                    </Button>,
-                    <Button key="version3" onClick={() => handleVersionSelect('3')}>
-                        Version 1.2.2
+                footer={props.softVersions.map((version: any, index: any) => (
+                    <Button className="m-1" key={version} onClick={() => updateToVersion(index)}>
+                        {`Version ${version}`}
                     </Button>
-                ]}
-            >
+                ))}>
                 <p>Select one of the following versions for Upgrade:</p>
             </Modal>
 

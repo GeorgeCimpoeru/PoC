@@ -106,9 +106,10 @@ const TableHistory = (props: any) => {
                                     border: '1px solid #ddd',
                                     padding: '8px',
                                     textAlign: 'center',
+                                    color: item.status === 'Failed' ? 'red' : item.status === 'Succeded' ? 'green' : 'black',
                                 }}
                             >
-                                Failed
+                                {item.status}
                             </td>
                             <td
                                 style={{
@@ -117,7 +118,7 @@ const TableHistory = (props: any) => {
                                     textAlign: 'center',
                                 }}
                             >
-                                Incomplete
+                                {item.startTime}
                             </td>
                             <td
                                 style={{
@@ -126,7 +127,7 @@ const TableHistory = (props: any) => {
                                     textAlign: 'center',
                                 }}
                             >
-                                Completed
+                                {item.size}
                             </td>
                             <td
                                 style={{
@@ -135,7 +136,7 @@ const TableHistory = (props: any) => {
                                     textAlign: 'center',
                                 }}
                             >
-                                Failed
+                                {item.uploadedBy}
                             </td>
                             <td
                                 style={{

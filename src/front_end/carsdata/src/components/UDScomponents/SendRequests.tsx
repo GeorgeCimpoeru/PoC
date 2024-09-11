@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import { clearInterval } from 'timers';
 
 interface batteryData {
     battery_level: any,
@@ -29,8 +30,10 @@ const SendRequests = () => {
     const [disableInfoDoorsBtns, setDisableInfoDoorsBtns] = useState<boolean>(false);
     const [disableConvertBtn, setDisableConvertBtn] = useState<boolean>(true);
     const [session, setSession] = useState<string>("default");
+    const [testerPres, setTesterPres] = useState<string>("disabled");
     let popupElement: any = null;
     let popupStyleElement: any = null;
+    // const intervalID: any = useRef<number | null>(null);
 
     const displayLoadingCircle = () => {
         if (popupElement || popupStyleElement) {
@@ -94,13 +97,13 @@ const SendRequests = () => {
 
     const hexToAscii = () => {
         let asciiString = '';
-        console.log(data23.response.can_data);
-        const hexArray: string[] = data23.response.can_data;
+        // console.log(data23.response.can_data);
+        // const hexArray: string[] = data23?.response.can_data;
 
-        hexArray.forEach(hexStr => {
-            const decimal = parseInt(hexStr.slice(2), 16);
-            asciiString += String.fromCharCode(decimal);
-        });
+        // hexArray.forEach(hexStr => {
+        //     const decimal = parseInt(hexStr.slice(2), 16);
+        //     asciiString += String.fromCharCode(decimal);
+        // });
 
         setData23(asciiString);
     }
@@ -131,33 +134,76 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
+    const readDTC = async () => {
+        displayLoadingCircle();
+        console.log("Reading DTC...");
+        try {
+            await fetch('http://127.0.0.1:5000/api/read_dtc_info', {
+                method: 'GET',
+            }).then(response => response.json())
+                .then(data => {
+                    setData23(data);
+                    console.log(data);
+                    fetchLogs();
+                });
+        } catch (error) {
+            removeLoadingCicle();
+        }
+        removeLoadingCicle();
+    }
 
-    const testerPresent = async () => {
-        const displayPopup = () => {
-            const popup = document.createElement('div');
-            popup.innerText = "Tester present is still active";
-            popup.style.position = 'fixed';
-            popup.style.top = '50%';
-            popup.style.left = '50%';
-            popup.style.transform = 'translate(-50%, -50%)';
-            popup.style.padding = '20px';
-            popup.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-            popup.style.color = 'white';
-            popup.style.borderRadius = '10px';
-            popup.style.zIndex = '1000';
-            popup.style.textAlign = 'center';
+    const intervalID: any = useRef<NodeJS.Timeout | null>(null);
 
-            document.body.appendChild(popup);
+    const checkTesterPresent = async () => {
+        console.log("Checking state of tester present...");
+        try {
+            await fetch('http://127.0.0.1:5000/api/tester_present', {
+                method: 'GET',
+            }).then(response => response.json())
+                .then(data => {
+                    setData23(data);
+                    console.log(data);
+                });
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
-            setTimeout(() => {
-                document.body.removeChild(popup);
-            }, 4000);
-        };
+    const testerPresent = () => {
+        console.log("Current testerPres state:", testerPres);
 
-        displayPopup();
-        // setInterval(() => {
-        //     displayPopup();
-        // }, 10000);
+        if (testerPres === "disabled") {
+            console.log("Starting interval (Entering 'if' branch)");
+
+            setTesterPres("enabled"); // Change state to "enabled"
+
+            // Start the interval if it's not already running
+            if (!intervalID.current) {
+                intervalID.current = window.setInterval(() => {
+                    checkTesterPresent();
+                    console.log("Interval running, checking tester presence...");
+                }, 2000);
+                console.log("Interval started with ID:", intervalID.current);
+            } else {
+                console.log("An interval is already running with ID:", intervalID.current);
+            }
+
+        } else {
+            console.log("Stopping interval (Entering 'else' branch)");
+
+            setTesterPres("disabled"); // Change state to "disabled"
+
+            // Clear the interval if it exists
+            console.log(intervalID.current);
+            if (intervalID.current) {
+                console.log(intervalID.current);
+                clearInterval(intervalID.current);
+                console.log("Interval stopped with ID:", intervalID.current);
+                intervalID.current = null; // Reset intervalID after stopping
+            } else {
+                console.log("No interval to stop (intervalID is null).");
+            }
+        }
     };
 
     const requestIds = async (initialRequest: boolean) => {
@@ -209,6 +255,11 @@ const SendRequests = () => {
         displayLoadingCircle();
         const ecuId = prompt('Enter ECU ID:');
         const version = prompt('Enter Version:');
+        const updateData = {
+            ecu_id: ecuId,
+            version: version,
+        }
+        console.log(updateData)
         console.log("Updateing version...");
         try {
             await fetch('http://127.0.0.1:5000/api/update_to_version', {
@@ -395,7 +446,7 @@ const SendRequests = () => {
 
     const changeSession = async () => {
         let sessiontype: any;
-        if (session === "default"){
+        if (session === "default") {
             sessiontype = {
                 sub_funct: 2,
             }
@@ -404,7 +455,6 @@ const SendRequests = () => {
                 sub_funct: 1,
             }
         }
-        console.log(sessiontype);
         displayLoadingCircle();
         console.log("Changing session...");
         try {
@@ -421,11 +471,102 @@ const SendRequests = () => {
                     setData23(data);
                     console.log(data);
                     fetchLogs();
-                    if (data.status === "success") {
+                    if (data.status === "success" && session === "default") {
                         setSession("programming");
+                    } else if (data.status === "success") {
+                        setSession("default");
                     }
                 })
                 .catch(error => {
+                    console.error('Error:', error);
+                    removeLoadingCicle();
+                });
+        } catch (error) {
+            console.log(error);
+            removeLoadingCicle();
+        }
+        removeLoadingCicle();
+    }
+
+    const authenticate = async () => {
+        console.log("Authenticating...");
+        displayLoadingCircle();
+        try {
+            await fetch('http://127.0.0.1:5000/api/authenticate', {
+                method: 'GET',
+            }).then(response => response.json())
+                .then(data => {
+                    setData23(data);
+                    console.log(data);
+                    fetchLogs();
+                }).catch(error => {
+                    console.error('Error:', error);
+                    removeLoadingCicle();
+                });
+        } catch (error) {
+            console.log(error);
+            removeLoadingCicle();
+        }
+        removeLoadingCicle();
+
+    }
+
+    const readAccessTiming = async () => {
+        console.log("Reading access timing...");
+        let readAccessTimingType: any;
+        if (testerPres === "default") {
+            readAccessTimingType = {
+                sub_funct: 3,
+            }
+        } else {
+            readAccessTimingType = {
+                sub_funct: 1,
+            }
+        }
+        displayLoadingCircle();
+        try {
+            await fetch('http://127.0.0.1:5000/api/read_access_timing', {
+                method: 'POST',
+                mode: 'cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(readAccessTimingType),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    setData23(data);
+                    console.log(data);
+                    fetchLogs();
+                    if (data.status === "success" && testerPres === "default") {
+                        setTesterPres("programming");
+                    } else if (data.status === "success") {
+                        setTesterPres("default");
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    removeLoadingCicle();
+                });
+        } catch (error) {
+            console.log(error);
+            removeLoadingCicle();
+        }
+        removeLoadingCicle();
+    }
+
+    const getIdentifiers = async () => {
+        console.log("Reading all data identifiers...");
+        displayLoadingCircle();
+        try {
+            await fetch('http://127.0.0.1:5000/api/get_identifiers', {
+                method: 'GET',
+            }).then(response => response.json())
+                .then(data => {
+                    setData23(data);
+                    console.log(data);
+                    fetchLogs();
+                }).catch(error => {
                     console.error('Error:', error);
                     removeLoadingCicle();
                 });
@@ -441,31 +582,40 @@ const SendRequests = () => {
     }, []);
 
     return (
-        <div className="w-[90%] h-screen flex flex-col items-center">
+        <div className="bg-gray-100 w-[90%] h-screen flex flex-col items-center">
             <div className="w-[50%] h-screen flex flex-col">
                 <h1 className="text-3xl mt-4">CAN Interface Control</h1>
                 <div className="inline-flex">
                     <button className="btn btn-info w-fit mt-5 text-white">
                         <Link href="http://127.0.0.1:5000/apidocs/" target="_blank" rel="noopener noreferrer">Go to Docs</Link>
                     </button>
-                    <button className="btn btn-warning w-fit mt-5 ml-5 text-white" onClick={testerPresent} disabled={disableFrameAndDtcBtns}>Tester present</button>
+                    <div className="mt-5 ml-5">
+                        <p>Tester present: {testerPres}</p>
+                        <input type="checkbox" className="toggle toggle-info" checked={testerPres === "disabled" ? false : true} onClick={testerPresent} />
+                        {/* <>checked?????????????</> */}
+                    </div>
                     <div className="mt-5 ml-5">
                         <p>Session: {session}</p>
-                        <input type="checkbox" className="toggle toggle-info" defaultChecked={session === "default" ? false : true} onClick={changeSession}/>
+                        <input type="checkbox" className="toggle toggle-info" checked={session === "default" ? false : true} onClick={changeSession} />
+                        {/* <>checked?????????????</> */}
                     </div>
                 </div>
-
-                <p className="text-xl mt-3">CAN ID:</p>
-                <input type="text" placeholder="e.g., 0xFa, 0x1234" className="input input-bordered w-full" onChange={e => setCanId(e.target.value)} />
-                <p className="text-xl mt-3">CAN Data:</p>
-                <input type="text" placeholder="e.g., 0x12, 0x34" className="input input-bordered w-full" onChange={e => setCanData(e.target.value)} />
                 <div>
+                    <p className="text-xl mt-3">CAN ID:</p>
+                    <input type="text" placeholder="e.g., 0xFa, 0x1234" className="input input-bordered w-full" onChange={e => setCanId(e.target.value)} />
+                    <p className="text-xl mt-3">CAN Data:</p>
+                    <input type="text" placeholder="e.g., 0x12, 0x34" className="input input-bordered w-full" onChange={e => setCanData(e.target.value)} />
                     <button className="btn btn-success w-fit mt-5 text-white" onClick={sendFrame} disabled={disableFrameAndDtcBtns}>Send Frame</button>
-                    <b> or </b>
-                    <button className="btn btn-success w-fit mt-5 text-white" onClick={sendFrame} disabled={disableFrameAndDtcBtns}>Read DTC</button>
-                    <button className="btn btn-success w-fit ml-5 mt-5 text-white" onClick={hexToAscii} disabled={disableConvertBtn}>Convert response to ASCII</button>
+                </div>
+                <div className="w-full h-px mt-4 bg-gray-300"></div>
+                <div>
+                    <button className="btn btn-success w-fit mt-5 text-white" onClick={readDTC} disabled={disableFrameAndDtcBtns}>Read DTC</button>
+                    {/* <button className="btn btn-success w-fit ml-5 mt-5 text-white" onClick={hexToAscii} disabled={disableConvertBtn}>Convert response to ASCII</button> */}
                     <br></br>
-                    <button className="btn btn-warning w-fit mt-5 text-white" onClick={getNewSoftVersions} disabled={disableFrameAndDtcBtns}>Check new soft versions</button>
+                    <button className="btn btn-warning w-fit ml-1 mt-5 text-white" onClick={getNewSoftVersions} disabled={disableFrameAndDtcBtns}>Check new soft versions</button>
+                    <button className="btn btn-warning w-fit ml-1 mt-5 text-white" onClick={authenticate} disabled={disableFrameAndDtcBtns}>Authenticate</button>
+                    <button className="btn btn-warning w-fit ml-1 mt-5 text-white" onClick={readAccessTiming} disabled={disableFrameAndDtcBtns}>Read access timing</button>
+                    <button className="btn btn-warning w-fit ml-1 mt-5 text-white" onClick={getIdentifiers} disabled={disableFrameAndDtcBtns}>Read identifiers</button>
                 </div>
                 <div className="w-full h-px mt-4 bg-gray-300"></div>
                 <div className="mt-4">
@@ -502,7 +652,7 @@ const SendRequests = () => {
                     </table>
                 </div>
             </div>
-        </div>
+        </div >
     )
 }
 

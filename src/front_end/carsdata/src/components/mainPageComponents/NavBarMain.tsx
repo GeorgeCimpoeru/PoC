@@ -19,8 +19,8 @@ const NavBarMain = ({ isVinSubmitted }: NavBarMainProps) => {
                 <li><Link href="/UDS">UDS Page</Link></li>
               </>
             )}
-            <li><a>Login</a></li>
-            <li><a>Sign Up</a></li>
+            <li><Link href="/login">Log In</Link></li>
+            <li><Link href="/signup">Sign Up</Link></li>
           </ul>
         </div>
       </div>
