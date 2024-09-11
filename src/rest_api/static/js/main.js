@@ -214,3 +214,12 @@ function readTimingInfo() {
 
     performApiRequest('/api/read_access_timing', 'POST', { sub_funct: sub_funct });
 }
+
+
+function resetECU() {
+    const data = {
+        type: prompt('Enter type of reset(soft or hard):') || null,
+        ecu_id: prompt('Enter ECU ID(from 10 to 12):') || null,
+    };
+    performApiRequest('/api/reset_ecu', 'POST', data);
+}
