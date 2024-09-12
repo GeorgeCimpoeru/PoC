@@ -97,7 +97,7 @@ data_identifiers = {
             # "serial_number": hex(IDENTIFIER_ENGINE_SERIAL_NUMBER)
         },
         "Battery_Identifiers": {
-            "energy_level": hex(IDENTIFIER_BATTERY_ENERGY_LEVEL),
+            "battery_level": hex(IDENTIFIER_BATTERY_ENERGY_LEVEL),
             "voltage": hex(IDENTIFIER_BATTERY_VOLTAGE),
             "percentage": hex(IDENTIFIER_BATTERY_PERCENTAGE),
             "state_of_charge": hex(IDENTIFIER_BATTERY_STATE_OF_CHARGE),
