@@ -14,7 +14,7 @@ class Reset(Action):
         if ecu_id == "10":
             id = self.my_id * 0x100 + self.id_ecu[0]
         if ecu_id == "11":
-            id = (self.id_ecu[1] << 16) + self.my_id * 0x100 + self.id_ecu[0]
+            id = self.my_id * 0x100 + self.id_ecu[1]
 
         try:
             # has already internal logger info
