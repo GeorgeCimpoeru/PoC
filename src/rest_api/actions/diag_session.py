@@ -19,7 +19,7 @@ class SessionManager(Action):
 
         try:
 
-            session_type = "DEFAULT" if sub_funct == "1" else "PROGRAMMING" if sub_funct == "2" else "unknown"
+            session_type = "DEFAULT" if sub_funct == 1 else "PROGRAMMING" if sub_funct == 2 else "unknown"
 
             if session_type == "DEFAULT":
                 self.generate.session_control(id, 0x01)

@@ -152,9 +152,9 @@ class ReadInfo(Action):
                         results[key] = "No data"
 
             response_json = {
-                "battery_level": results.get("energy_level", "No data"),
-                "voltage": results.get("voltage", "No data"),
-                "percentage": results.get("percentage", "No data"),
+                "battery_level": int(results.get("battery_level", "No data"), 16),
+                "voltage": int(results.get("voltage", "No data"), 16),
+                "percentage": int(results.get("percentage", "No data"), 16),
                 "battery_state_of_charge": results.get("state_of_charge", "No data"),
                 "life_cycle": results.get("life_cycle", "No data"),
                 "fully_charged": results.get("fully_charged", "No data"),

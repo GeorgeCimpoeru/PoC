@@ -72,7 +72,7 @@ class WriteInfo(Action):
             log_info_message(logger, f"Writing data to ECU ID: {id_battery}")
 
             key_to_identifier_map = {
-                "battery_level": IDENTIFIER_BATTERY_PERCENTAGE,
+                "battery_level": IDENTIFIER_BATTERY_ENERGY_LEVEL,
                 "voltage": IDENTIFIER_BATTERY_VOLTAGE,
                 "percentage": IDENTIFIER_BATTERY_PERCENTAGE,
                 "state_of_charge": IDENTIFIER_BATTERY_STATE_OF_CHARGE,
