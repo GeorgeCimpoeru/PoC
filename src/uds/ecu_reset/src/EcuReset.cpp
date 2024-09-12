@@ -19,8 +19,10 @@ void EcuReset::ecuResetRequest(const std::vector<uint8_t>& request)
     uint32_t new_id = (upperbits << 8) | lowerbits;
 
     NegativeResponse nrc(socket, ECUResetLog);
-    if ((request.size() < 3)
-            || (request.size() != static_cast<size_t>(request[0] + 1)))
+        // if ((request.size() < 3) ||
+        //     (request[2] == 0x02 && request[0] == 2)
+        //     || (request.size() != static_cast<size_t>(request[0] + 1)))
+    if (request.size() < 3 || (request.size() != static_cast<size_t>(request[0] + 1)))
     {
         nrc.sendNRC(new_id,0x11,NegativeResponse::IMLOIF);
         if (lowerbits == 0x10)
@@ -249,9 +251,9 @@ void EcuReset::ecuResetResponse()
     GenerateFrames generate_frames(socket, ECUResetLog);
 
     uint8_t lowerbits = can_id & 0xFF;
-    uint8_t upperbits = can_id >> 8 & 0xFF;
     
-    uint32_t new_id = (upperbits << 8) | lowerbits;
+    // uint32_t new_id = (upperbits << 8) | lowerbits;
+    uint32_t new_id = ((can_id & 0xFF) << 8) | ((can_id >> 8) & 0xFF);
 
     switch(lowerbits)
     {
