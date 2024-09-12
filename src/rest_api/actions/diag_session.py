@@ -19,10 +19,13 @@ class SessionManager(Action):
 
         try:
 
-            session_type = "DEFAULT" if sub_funct == 0x01 else "PROGRAMMING" if sub_funct == 0x02 else "unknown"
-            log_info_message(logger, f"Changing session to {session_type} (sub_function: {sub_funct})")
+            session_type = "DEFAULT" if sub_funct == "1" else "PROGRAMMING" if sub_funct == "2" else "unknown"
 
-            self.generate.session_control(id, 0x01)
+            if session_type == "DEFAULT":
+                self.generate.session_control(id, 0x01)
+            else:
+                self.generate.session_control(id, 0x02)
+
             frame_response = self._passive_response(SESSION_CONTROL, "Error changing session control")
 
             if frame_response.data[1] == 0x50:

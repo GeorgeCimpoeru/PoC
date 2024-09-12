@@ -117,3 +117,4 @@ data_identifiers = {
             # "windows_closed": hex(IDENTIFIER_WINDOWS_CLOSED)
         }
     }
+

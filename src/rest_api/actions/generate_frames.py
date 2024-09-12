@@ -69,7 +69,7 @@ class GenerateFrame:
         self.send_frame(id, data)
 
     def ecu_reset(self, id, subfunct, response=False):
-        data = [2, 0x11, subfunct] if response is False else [2, 0x51, 0x03, subfunct]
+        data = [2, 0x11, subfunct] if response is False else [2, 0x51, subfunct]
         self.send_frame(id, data)
 
     def read_data_by_identifier(self, id, identifier, response=[]):

@@ -146,8 +146,6 @@ def clear_dtc_info():
 def change_session():
     data = request.get_json()
     sub_funct = data.get('sub_funct')
-    if sub_funct is None:
-        return jsonify({"status": "error", "message": "Missing 'sub_funct' parameter"}), 400
     session = SessionManager(API_ID)
     response = session._change_session(id, sub_funct)
     return jsonify(response)
@@ -191,12 +189,8 @@ def access_timing():
 @api_bp.route('/reset_ecu', methods=['POST'])
 def reset_module():
     data = request.get_json()
-    sub_funct = data.get('sub_funct')
-    if sub_funct is None:
-        return jsonify({"status": "error", "message": "Missing 'sub_funct' parameter"}), 400
-    wh_id = data.get('id')
-    if wh_id is None:
-        return jsonify({"status": "error", "message": "Missing 'id' parameter"}), 400
+    type_reset = data.get('type_reset')
+    wh_id = data.get('ecu_id')
     reseter = Reset(API_ID, [0x10, 0x11, 0x12])
-    response = reseter._reset_ecu(wh_id, sub_funct)
+    response = reseter.reset_ecu(wh_id, type_reset)
     return jsonify(response)
