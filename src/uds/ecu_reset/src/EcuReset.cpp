@@ -19,8 +19,7 @@ void EcuReset::ecuResetRequest(const std::vector<uint8_t>& request)
     uint32_t new_id = (upperbits << 8) | lowerbits;
 
     NegativeResponse nrc(socket, ECUResetLog);
-    if ((request.size() < 3) ||
-            (request[2] == 0x02 && request[0] == 2)
+    if ((request.size() < 3)
             || (request.size() != static_cast<size_t>(request[0] + 1)))
     {
         nrc.sendNRC(new_id,0x11,NegativeResponse::IMLOIF);
