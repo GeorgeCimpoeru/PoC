@@ -306,6 +306,7 @@ void BatteryModule::writeDataToFile()
 
         /* Delete the old file after reading its contents */
         std::remove(old_file_path.c_str());
+        outfile.close();
     }
     else
     {
@@ -318,6 +319,7 @@ void BatteryModule::writeDataToFile()
             }
             outfile << "\n";
         }
+        outfile.close();
+        fetchBatteryData();
     }
-    outfile.close();
 }
