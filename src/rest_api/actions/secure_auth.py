@@ -16,20 +16,12 @@ class Auth(Action):
 
         try:
             id = (self.id_ecu[ECU_BATTERY] << 16) + (self.my_id << 8) + self.id_ecu[MCU]
-            response = self._authentication(id)
-            response_nrc = handle_negative_response(response.data[3, response.data[2]])
-
-            if response.data[1] == 0x51 and response.data[2] == 0x00:
-                response_json = {
-                    "message": "Auth succesfull",
-                    "can_id": f"0x{id:03X}",
-                }
-            else:
-                # If the response is not valid, raise an error
-                response_json = self._to_json_error("invalid response", 2)
-                response_json["nrc"] = response_nrc
-
-            return response
+            self._authentication(id)
+            response_json = {
+                "message": "Auth succesfull",
+                "can_id": f"0x{id:03X}",
+            }
+            return response_json
 
         except CustomError as e:
             self.bus.shutdown()
