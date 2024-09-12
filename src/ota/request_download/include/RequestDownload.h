@@ -87,12 +87,6 @@ private:
      */
     bool isValidMemoryRange(const int &memory_address, const int &memory_size);
     /**
-     * @brief Method to authenticate the download request based on the provided identifiers
-     * 
-     * @return true 
-     */
-    bool isRequestAuthenticated();
-    /**
      * @brief Method to check last software version
      * 
      * @return true 

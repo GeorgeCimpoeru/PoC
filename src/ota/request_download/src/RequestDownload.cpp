@@ -1,5 +1,6 @@
 #include "../../../mcu/include/MCUModule.h"
 #include "../include/RequestDownload.h"
+#include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 
 RequestDownloadService::RequestDownloadService(Logger& RDSlogger)
                         : RDSlogger(RDSlogger), generate_frames(socket, RDSlogger)
@@ -64,16 +65,22 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     int memory_size = address_and_size.second;
 
 
-    /* Authenticate the request */
-    if (!isRequestAuthenticated())
+    if (receiver_id == 0x10 && !SecurityAccess::getMcuState(RDSlogger))
     {
-        LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Authentication failed");
         /* Authentication failed */
         nrc.sendNRC(id, RDS_SID, NegativeResponse::SAD);
         return;
     }
+
+    if (receiver_id == 0x11 && !ReceiveFrames::getBatteryState())
+    {
+        /* Authentication failed */
+        nrc.sendNRC(id, RDS_SID, NegativeResponse::SAD);
+        return;
+    }
+
     /* Validate memory address and size */
-    else if (!isValidMemoryRange(memory_address, memory_size))
+    if (!isValidMemoryRange(memory_address, memory_size))
     {
         LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Invalid memory range");
         /* Request out of range */
@@ -418,20 +425,6 @@ bool RequestDownloadService::isValidMemoryRange(const int &memory_address, const
     LOG_INFO(RDSlogger.GET_LOGGER(), "Validated Memory Size: 0x{0:x}", memory_size);
 
     return true;
-}
-
-bool RequestDownloadService::isRequestAuthenticated()
-{
-    /* Logic to check security access */
-    
-    LOG_INFO(RDSlogger.GET_LOGGER(), "MCU authentication state");
-    bool is_authenticated = SecurityAccess::getMcuState(RDSlogger);
-    /* Check MCU state if unlocked */
-    if (is_authenticated) 
-    {
-        LOG_INFO(RDSlogger.GET_LOGGER(), "MCU authentication state: {}", is_authenticated);
-    }
-    return is_authenticated;
 }
 
 bool RequestDownloadService::isLatestSoftwareVersion()
