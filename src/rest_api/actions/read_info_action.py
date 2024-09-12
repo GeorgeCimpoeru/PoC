@@ -128,6 +128,13 @@ class ReadInfo(Action):
             identifiers = data_identifiers["Battery_Identifiers"]
             results = {}
 
+            def hex_to_dec(value):
+                """Helper function to convert hex to decimal if not 'No data'."""
+                try:
+                    return int(value, 16)
+                except (ValueError, TypeError):
+                    return value
+
             if item:
                 if item in identifiers:
                     identifier = identifiers[item]
@@ -146,22 +153,20 @@ class ReadInfo(Action):
                     if key == "state_of_charge" and result_value:
                         result_value = self._get_battery_state_of_charge(result_value)
 
-                    if result_value:
-                        results[key] = result_value
-                    else:
-                        results[key] = "No data"
+                    results[key] = result_value if result_value else "No data"
 
+            # Convert hex results to decimal
             response_json = {
-                "battery_level": int(results.get("battery_level", "No data"), 16),
-                "voltage": int(results.get("voltage", "No data"), 16),
-                "percentage": int(results.get("percentage", "No data"), 16),
+                "battery_level": hex_to_dec(results.get("battery_level", "No data")),
+                "voltage": hex_to_dec(results.get("voltage", "No data")),
+                "percentage": hex_to_dec(results.get("percentage", "No data")),
                 "battery_state_of_charge": results.get("state_of_charge", "No data"),
-                "life_cycle": results.get("life_cycle", "No data"),
-                "fully_charged": results.get("fully_charged", "No data"),
-                "serial_number": results.get("serial_number", "No data"),
-                "range_battery": results.get("range", "No data"),
-                "charging_time": results.get("charging_time", "No data"),
-                "device_consumption": results.get("device_consumption", "No data"),
+                "life_cycle": hex_to_dec(results.get("life_cycle", "No data")),
+                "fully_charged": hex_to_dec(results.get("fully_charged", "No data")),
+                "serial_number": hex_to_dec(results.get("serial_number", "No data")),
+                "range_battery": hex_to_dec(results.get("range", "No data")),
+                "charging_time": hex_to_dec(results.get("charging_time", "No data")),
+                "device_consumption": hex_to_dec(results.get("device_consumption", "No data")),
                 "time_stamp": datetime.datetime.now().isoformat()
             }
 
