@@ -15,8 +15,7 @@ EcuReset::~EcuReset()
 void EcuReset::ecuResetRequest(const std::vector<uint8_t>& request)
 {
     uint8_t lowerbits = can_id & 0xFF;
-    uint8_t upperbits = can_id >> 8 & 0xFF;
-    uint32_t new_id = (upperbits << 8) | lowerbits;
+    uint32_t new_id = ((can_id & 0xFF) << 8) | ((can_id >> 8) & 0xFF);
 
     NegativeResponse nrc(socket, ECUResetLog);
         // if ((request.size() < 3) ||
@@ -140,8 +139,6 @@ void EcuReset::hardReset()
 void EcuReset::keyOffReset()
 {
     uint8_t lowerbits = can_id & 0xFF;
-    /* Send response */
-    this->ecuResetResponse();
 
     std::string file_path;
     /* Path to the data file */
@@ -252,7 +249,6 @@ void EcuReset::ecuResetResponse()
 
     uint8_t lowerbits = can_id & 0xFF;
     
-    // uint32_t new_id = (upperbits << 8) | lowerbits;
     uint32_t new_id = ((can_id & 0xFF) << 8) | ((can_id >> 8) & 0xFF);
 
     switch(lowerbits)
