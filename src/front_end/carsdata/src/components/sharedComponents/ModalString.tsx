@@ -28,7 +28,7 @@ const ModalString = (props: any) => {
                     <input type="text" placeholder="Type here" className="input input-bordered w-full max-w-xs"
                         value={input} onClick={handleClick} onChange={handleChange} />
                     <div className="modal-action" style={{ position: 'absolute', bottom: '10px', right: '10px' }}>
-                        <label htmlFor={props.id} className="btn">Save</label>
+                        <label htmlFor={props.id} className="btn">Close</label>
                     </div>
                 </div>
             </div>
