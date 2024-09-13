@@ -4,15 +4,29 @@ import UpgradeButton from './UpgradeButton';
 import DowngradeButton from './DowngradeButton';
 
 const TableVersionControl = (props: any) => {
-    const [newSoftVersDataForUpdate, setNewSoftVersDataForUpdate] =  useState<{ swVersion: string, type: string }[]>([]);
     const [newSoftVersions, setNewSoftVersions] = useState<string[]>([]);
-    let popupElement: any = null;
-    let popupStyleElement: any = null;
+    let popupElement: HTMLDivElement | null = null;
+    let popupStyleElement: HTMLStyleElement | null = null;
+    let overlayElement: HTMLDivElement | null = null;
 
     const displayLoadingCircle = () => {
-        if (popupElement || popupStyleElement) {
+        if (popupElement || popupStyleElement || overlayElement) {
             return;
         }
+    
+        overlayElement = document.createElement('div');
+        overlayElement.style.position = 'fixed';
+        overlayElement.style.top = '0';
+        overlayElement.style.left = '0';
+        overlayElement.style.width = '100vw';
+        overlayElement.style.height = '100vh';
+        overlayElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+        overlayElement.style.zIndex = '999';
+        overlayElement.style.pointerEvents = 'all';
+        overlayElement.style.cursor = 'not-allowed';
+    
+        document.body.appendChild(overlayElement);
+    
         popupElement = document.createElement('div');
         popupElement.style.position = 'fixed';
         popupElement.style.top = '50%';
@@ -23,7 +37,7 @@ const TableVersionControl = (props: any) => {
         popupElement.style.borderRadius = '10px';
         popupElement.style.zIndex = '1000';
         popupElement.style.textAlign = 'center';
-
+    
         const loadingCircle = document.createElement('div');
         loadingCircle.style.width = '40px';
         loadingCircle.style.height = '40px';
@@ -31,16 +45,18 @@ const TableVersionControl = (props: any) => {
         loadingCircle.style.borderTop = '5px solid transparent';
         loadingCircle.style.borderRadius = '50%';
         loadingCircle.style.animation = 'spin 1s linear infinite';
-
+    
         popupElement.appendChild(loadingCircle);
-
+    
         document.body.appendChild(popupElement);
-
+    
         popupStyleElement = document.createElement('style');
         popupStyleElement.type = 'text/css';
-        popupStyleElement.innerText = `@keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }}`;
+        popupStyleElement.innerText = `
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }`;
         document.head.appendChild(popupStyleElement);
     };
 
@@ -66,13 +82,14 @@ const TableVersionControl = (props: any) => {
     };
 
     const removeLoadingCicle = () => {
-        if (popupElement) {
-            popupElement.remove();
+        if (popupElement && popupStyleElement && overlayElement) {
+            document.body.removeChild(popupElement);
+            document.head.removeChild(popupStyleElement);
+            document.body.removeChild(overlayElement);
+    
             popupElement = null;
-        }
-        if (popupStyleElement) {
-            popupStyleElement.remove();
             popupStyleElement = null;
+            overlayElement = null;
         }
     };
 
@@ -81,24 +98,21 @@ const TableVersionControl = (props: any) => {
         displayLoadingCircle();
         setNewSoftVersions([]);
         try {
-            await fetch('http://127.0.0.1:5000/api/drive_update_data', {
+            await fetch(`http://127.0.0.1:5000/api/drive_update_data`, {
                 method: 'GET',
                 mode: 'cors',
             }).then(response => response.json())
                 .then(data => {
                     console.log(data);
                     const versionsArray: string[] = [];
-                    const softVersDataForUpdate: { swVersion: string, type: string }[] = [];
                     let aux = 5;
                     if (props.device !== "MCU") {
                         aux = 4;
                     }
                     for (let i = 0; i < data.children[aux].children.length; ++i) {
-                        softVersDataForUpdate.push({ swVersion: data.children[aux].children[i].sw_version, type: data.children[aux].children[i].type })
                         versionsArray.push(data.children[aux].children[i].sw_version);
                     }
                     setNewSoftVersions(versionsArray);
-                    setNewSoftVersDataForUpdate(softVersDataForUpdate);
                 });
         } catch (error) {
             console.log(error);
@@ -108,7 +122,6 @@ const TableVersionControl = (props: any) => {
         }
         removeLoadingCicle();
         console.log(newSoftVersions);
-        console.log(newSoftVersDataForUpdate);
     };
 
     useEffect(() => {
@@ -159,7 +172,7 @@ const TableVersionControl = (props: any) => {
                     </div>
                     <div className="p-2.5 xl:p-5">
                         <h5 className="flex">
-                            <UpgradeButton device={props.device} softVersions={newSoftVersions} softVersDataForUpdate={newSoftVersDataForUpdate} />
+                            <UpgradeButton device={props.device} softVersions={newSoftVersions} />
                             <DowngradeButton />
                         </h5>
                     </div>

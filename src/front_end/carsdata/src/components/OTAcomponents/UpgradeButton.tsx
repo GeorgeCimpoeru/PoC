@@ -4,17 +4,99 @@ import { Button, Modal } from 'antd';
 
 const UpgradeButton = (props: any) => {
     const [isVersionPopupVisible, setIsVersionPopupVisible] = useState(false);
-    const [isProgressModalVisible, setIsProgressModalVisible] = useState(false);
-    const [isStatusModalVisible, setIsStatusModalVisible] = useState(false);
-    const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
-    const [message, setMessage] = useState<string | null>(null);
-    const [error, setError] = useState<string | null>(null);
-    const [progress, setProgress] = useState<number>(0);
-    const [isOverlayVisible, setIsOverlayVisible] = useState(false);
+    let popupElement: HTMLDivElement | null = null;
+    let popupStyleElement: HTMLStyleElement | null = null;
+    let overlayElement: HTMLDivElement | null = null;
+
+    const displayLoadingCircle = () => {
+        if (popupElement || popupStyleElement || overlayElement) {
+            return;
+        }
+    
+        overlayElement = document.createElement('div');
+        overlayElement.style.position = 'fixed';
+        overlayElement.style.top = '0';
+        overlayElement.style.left = '0';
+        overlayElement.style.width = '100vw';
+        overlayElement.style.height = '100vh';
+        overlayElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+        overlayElement.style.zIndex = '999';
+        overlayElement.style.pointerEvents = 'all';
+        overlayElement.style.cursor = 'not-allowed';
+    
+        document.body.appendChild(overlayElement);
+    
+        popupElement = document.createElement('div');
+        popupElement.style.position = 'fixed';
+        popupElement.style.top = '50%';
+        popupElement.style.left = '50%';
+        popupElement.style.transform = 'translate(-50%, -50%)';
+        popupElement.style.padding = '20px';
+        popupElement.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        popupElement.style.borderRadius = '10px';
+        popupElement.style.zIndex = '1000';
+        popupElement.style.textAlign = 'center';
+    
+        const loadingCircle = document.createElement('div');
+        loadingCircle.style.width = '40px';
+        loadingCircle.style.height = '40px';
+        loadingCircle.style.border = '5px solid white';
+        loadingCircle.style.borderTop = '5px solid transparent';
+        loadingCircle.style.borderRadius = '50%';
+        loadingCircle.style.animation = 'spin 1s linear infinite';
+    
+        popupElement.appendChild(loadingCircle);
+    
+        document.body.appendChild(popupElement);
+    
+        popupStyleElement = document.createElement('style');
+        popupStyleElement.type = 'text/css';
+        popupStyleElement.innerText = `
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }`;
+        document.head.appendChild(popupStyleElement);
+    };
+
+    const displayErrorPopup = (text: string) => {
+        const popup = document.createElement('div');
+        popup.innerText = text;
+        popup.style.position = 'fixed';
+        popup.style.top = '50%';
+        popup.style.left = '50%';
+        popup.style.transform = 'translate(-50%, -50%)';
+        popup.style.padding = '20px';
+        popup.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        popup.style.color = 'white';
+        popup.style.borderRadius = '10px';
+        popup.style.zIndex = '1000';
+        popup.style.textAlign = 'center';
+
+        document.body.appendChild(popup);
+
+        setTimeout(() => {
+            document.body.removeChild(popup);
+        }, 2000);
+    };
+
+    const removeLoadingCicle = () => {
+        if (popupElement && popupStyleElement && overlayElement) {
+            document.body.removeChild(popupElement);
+            document.head.removeChild(popupStyleElement);
+            document.body.removeChild(overlayElement);
+    
+            popupElement = null;
+            popupStyleElement = null;
+            overlayElement = null;
+        }
+    };
 
     const showVersionPopup = () => setIsVersionPopupVisible(true);
 
     const updateToVersion = async (version: string) => {
+        setIsVersionPopupVisible(false);
+        displayLoadingCircle();
         let ecuId: string = "";
         if (props.device === "MCU") {
             ecuId = "10";
@@ -28,35 +110,38 @@ const UpgradeButton = (props: any) => {
             ecuId = "14";
         }
         console.log({
+            update_file_version: props.softVersions[version],
+            update_file_type: "zip",
             ecu_id: ecuId,
-            update_file_version: props.softVersDataForUpdate[version].swVersion,
-            update_file_type: props.softVersDataForUpdate[version].type,
-        });
+        })
         console.log("Updating version...")
         try {
-            await fetch('http://127.0.0.1:5000/api/update_to_version', {
+            await fetch(`http://127.0.0.1:5000/api/update_to_version`, {
                 method: 'POST',
                 // mode: 'no-cors',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    update_file_version: props.softVersDataForUpdate[version].swVersion,
-                    update_file_type: "zip",//props.softVersDataForUpdate[version].type,
+                    update_file_version: props.softVersions[version],
+                    update_file_type: "zip",
                     ecu_id: ecuId,
                 })
             }).then(response => response.json())
                 .then(data => {
                     console.log(data);
+                    removeLoadingCicle();
+                    if (data?.errors === "No errors.") {
+                        displayErrorPopup("Upgrade successful");
+                    } else {
+                        displayErrorPopup("Upgrade failed");
+                    }
                 });
-        } catch (error: unknown) {
-            setError(error instanceof Error ? error.message : 'An unknown error occurred');
-            setMessage(null);
+        } catch (error: any) {
+            console.log(error);
+            removeLoadingCicle();
         }
-    };
-    const closePopup = () => {
-        setIsStatusModalVisible(false);
-        setProgress(0);
+        // removeLoadingCicle();
     };
 
     useEffect(() => {
@@ -84,48 +169,6 @@ const UpgradeButton = (props: any) => {
                 ))}>
                 <p>Select one of the following versions for Upgrade:</p>
             </Modal>
-
-            {isProgressModalVisible && (
-                <Modal
-                    title="Updating..."
-                    open={true}
-                    footer={null}
-                    closable={false}
-                    maskClosable={false}
-                >
-                    <progress value={progress} max={100} style={{ width: '100%' }}></progress>
-                    <div>Wait for the response...</div>
-                </Modal>
-            )}
-            {isOverlayVisible && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        zIndex: 999,
-                    }}
-                />
-            )}
-
-            {isStatusModalVisible && (
-                <Modal
-                    title="Update Status"
-                    open={true}
-                    onCancel={closePopup}
-                    footer={[
-                        <Button key="ok" onClick={closePopup}>
-                            OK
-                        </Button>
-                    ]}
-                >
-                    {message && <div className="text-green-700">{message}</div>}
-                    {error && <div className="text-red-500">{error}</div>}
-                </Modal>
-            )}
         </div>
     );
 };

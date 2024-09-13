@@ -23,7 +23,7 @@ const DivCenterEngine = (props: any) => {
 
     // useEffect(() => {
     //     const getDataFromApi = async () => {
-    //         await fetch('http://127.0.0.1:5000/api/read_info_engine')  // Replace with your actual API URL
+    //         await fetch(`http://127.0.0.1:5000/api/read_info_engine`)  // Replace with your actual API URL
     //             .then(response => {
     //                 if (!response.ok) {
     //                     throw new Error('Network response was not ok');

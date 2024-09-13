@@ -106,6 +106,7 @@ const TableHistory = (props: any) => {
                                     border: '1px solid #ddd',
                                     padding: '8px',
                                     textAlign: 'center',
+                                    fontWeight: 'bold',
                                     color: item.status === 'Failed' ? 'red' : item.status === 'Succeded' ? 'green' : 'black',
                                 }}
                             >
