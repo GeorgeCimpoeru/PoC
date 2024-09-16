@@ -68,8 +68,27 @@ class NegativeResponse
         /* Voltage Too Low */
         static constexpr uint8_t VTL = 0x93;
 
+        /**
+        * @brief Default constructor for Negative Response object.
+        * 
+        * @param socket The socket descriptor used for communication over the CAN bus.
+        * @param nrc_logger A logger instance used to record information and errors during the execution.
+        */
         NegativeResponse(int socket, Logger& nrc_logger);
+        /**
+        * @brief Method to retrieve the description of a negative response code (nrc)
+        * 
+        * @param[in] code
+        * @return Returns the corresponding descriptive string for the nrc code in a predefined map
+        */
         std::string getDescription(uint8_t code);
+        /**
+        * @brief Method to send a nrc for a specified service
+        * 
+        * @param[in] id An unique identifier for the CAN frame.
+        * @param[in] sid Service identifier.
+        * @param[in] nrc Negative response codes.
+        */
         void sendNRC(int id, uint8_t sid, uint8_t nrc);
 
     private:

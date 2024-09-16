@@ -81,6 +81,7 @@ from actions.generate_frames import GenerateFrame as GF
 from utils.logger import *
 from config import Config
 from configs.data_identifiers import *
+# from actions.manual_send_frame import handle_negative_response
 
 logger_singleton = SingletonLogger('base_action.log')
 logger = logger_singleton.logger
@@ -101,6 +102,8 @@ CLEAR_DTC = 0X14
 REQUEST_DOWNLOAD = 0X34
 TRANSFER_DATA = 0X36
 REQUEST_TRANSFER_EXIT = 0X37
+TESTER_PRESENT = 0x3E
+ACCESS_TIMING_PARAMETERS = 0X83
 
 
 class FrameWithData:
@@ -167,9 +170,14 @@ class Action:
         """
         flag = False
         msg_ext = None
-        msg = self.bus.recv(3)
-        print(msg)
+        msg = self.bus.recv(99)
         while msg is not None:
+            # Check if the message is a "response pending"
+            if msg.data[1] == 0x7F and msg.data[3] == 0x78:
+                # If response pending, continue to wait for the actual response
+                log_info_message(logger, f"Response pending for SID {msg.data[2]:02X}. Waiting for the actual response...")
+                msg = self.bus.recv(Config.BUS_RECEIVE_TIMEOUT)
+                continue
             # First Frame
             if msg.data[0] == 0x10:
                 flag = True
@@ -188,30 +196,29 @@ class Action:
         return None
 
     def __verify_frame(self, msg: can.Message, sid: int):
-        """
-        Verifies the validity of the received CAN message.
 
-        Args:
-        - msg: The received CAN message.
-        - sid: Service identifier to verify the response.
+        log_info_message(logger, f"Verifying frame with SID: {sid:02X}, message data: {[hex(byte) for byte in msg.data]}")
 
-        Returns:
-        - True if the frame is valid, False otherwise.
-        """
         if msg.arbitration_id % 0x100 != self.my_id:
             return False
+
+        if msg.data[1] == 0x7F and msg.data[3] == 0x78:
+            return True
+
         if msg.data[1] == 0x7F:
             self.__handle_negative_response(msg)
             return False
+
         if msg.data[0] != 0x10:
             if msg.data[1] == 0x67 and msg.data[2] == 0x00:
                 log_info_message(logger, "Authentication successful")
-                return True  # Successful authentication frame
+                return True
             if msg.data[1] != sid + 0x40:
                 return False
         else:
             if msg.data[2] != sid + 0x40:
                 return False
+
         return True
 
     def _passive_response(self, sid, error_str="Error service"):
@@ -275,25 +282,26 @@ class Action:
 
     def _write_by_identifier(self, id, identifier, value):
         """
-        Function to read data from a specific identifier. The function requests, reads the data, and processes it.
+        Function to write data to a specific identifier.
 
         Args:
+        - id: Identifier of the request.
         - identifier: Identifier of the data.
+        - value: Value to write.
 
         Returns:
-        - Data as a string.
+        - True if the operation is triggered.
         """
-        log_info_message(logger, "Write by identifier {identifier}")
+        log_info_message(logger, f"Write by identifier {identifier}")
+
         value_list = self._number_to_list(value)
 
         if isinstance(value_list, list) and len(value_list) > 4:
             self.generate.write_data_by_identifier_long(id, identifier, value_list)
         else:
             self.generate.write_data_by_identifier(id, identifier, value_list)
-            self._passive_response(WRITE_BY_IDENTIFIER, f"Error writing {identifier}")
 
-        self.generate.write_data_by_identifier(id, identifier, value_list)
-        self._passive_response(WRITE_BY_IDENTIFIER, f"Error reading data from identifier {identifier}")
+        self._passive_response(WRITE_BY_IDENTIFIER, f"Operation complete for identifier {identifier}")
 
         return True
 
@@ -307,23 +315,32 @@ class Action:
     def _authentication(self, id):
         """
         Function to authenticate. Makes the proper request to the ECU.
+        Returns a JSON response with detailed information about the authentication process.
         """
         log_info_message(logger, "Authenticating")
+
+        # Send the request for authentication seed
         self.generate.authentication_seed(id,
                                           sid_send=AUTHENTICATION_SEND,
                                           sid_recv=AUTHENTICATION_RECV,
                                           subf=AUTHENTICATION_SUBF_REQ_SEED)
         frame_response = self._passive_response(AUTHENTICATION_SEND,
                                                 "Error requesting seed")
-        if frame_response.data[1] == 0x67 and \
-            frame_response.data[2] == 0x01 and \
-                frame_response.data[3] == 0x00:
+
+        # Check if the initial response is successful
+        if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x01 and frame_response.data[3] == 0x00:
             log_info_message(logger, "Authentication successful")
-            return  # Successful authentication
+            return {
+                "message": "Authentication successful"
+            }
+
         else:
+            # Extract seed and compute key
             seed = self._data_from_frame(frame_response)
             key = self.__algorithm(seed)
             log_info_message(logger, f"Key: {key}")
+
+            # Send the key for authentication
             self.generate.authentication_key(id,
                                              key=key,
                                              sid_send=AUTHENTICATION_RECV,
@@ -331,29 +348,31 @@ class Action:
                                              subf=AUTHENTICATION_SUBF_SEND_KEY)
             frame_response = self._passive_response(AUTHENTICATION_SEND,
                                                     "Error sending key")
+
+            # Check if the key authentication response is successful
             if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x02:
                 log_info_message(logger, "Authentication successful")
-                return  # Successful authentication
+                return {
+                    "message": "Authentication successful",
+                }
+            else:
+                log_info_message(logger, "Authentication failed")
+                return {
+                    "message": "Authentication failed",
+                }
 
     def __handle_negative_response(self, frame_response):
         """
         Handles the negative response scenarios.
         """
-        negative_responses = {
-            0x12: "SubFunctionNotSupported",
-            0x13: "IncorrectMessageLengthOrInvalidFormat",
-            0x24: "RequestSequenceError",
-            0x35: "InvalidKey",
-            0x36: "ExceededNumberOfAttempts",
-            0x37: "RequiredTimeDelayNotExpired"
-        }
 
-        nrc = frame_response.data[3]
-        error_message = negative_responses.get(nrc, "Unknown error")
-        log_error_message(logger, f"Authentication failed: {error_message}")
+        # nrc = frame_response.data[3]
+        # sid = frame_response.data[2]
+        # error_message = handle_negative_response(nrc, sid)
+        # log_error_message(logger, f"Authentication failed: {error_message}")
 
-        response_json = self._to_json_error(error_message, 1)
-        raise CustomError(response_json)
+        # response_json = self._to_json_error(error_message, 1)
+        # raise CustomError(response_json)
 
     # Implement in the child class
     def _to_json(self, status, no_errors):

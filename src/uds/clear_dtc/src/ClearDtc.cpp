@@ -1,19 +1,19 @@
 #include "../include/ClearDtc.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
 ClearDtc::ClearDtc(std::string path_to_dtc, Logger& logger, int socket)
+                : path_to_dtc(path_to_dtc), logger(logger), socket(socket)
 {
-    this->path_to_dtc = path_to_dtc;
-    this->logger = &logger;
-    this->socket = socket;
+
 }
 
 void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
 {
-    LOG_INFO(logger->GET_LOGGER(), "Clear DTC Service");
+    LOG_INFO(logger.GET_LOGGER(), "Clear DTC Service");
 
-    this->generate = new GenerateFrames(socket,*logger);
+    this->generate = new GenerateFrames(socket, logger);
     uint8_t lowerbits = id & 0xFF;
     uint8_t upperbits = id >> 8 & 0xFF;
     uint32_t group_of_dtc = data[2] * 0x10000 + data[3] * 0x100 + data[4];
@@ -22,16 +22,32 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
     /* NRC 0x13 */
     if (data.size() != 5)
     {
-        LOG_ERROR(logger->GET_LOGGER(), "Incorrect message length or invalid format");
+        LOG_ERROR(logger.GET_LOGGER(), "Incorrect message length or invalid format");
         this->generate->negativeResponse(new_id, 0x14, 0x13);
+        if (lowerbits == 0x10) {
+            MCU::mcu->stop_flags[0x14] = false;
+        } else if (lowerbits == 0x11) {
+            battery->stop_flags[0x14] = false;
+        } else if (lowerbits == 0x12) {
+            engine->stop_flags[0x14] = false;
+        }
         return;
     }
 
     /* NRC 0x31 */
     if (!verifyGroupDtc(group_of_dtc))
     {
-        LOG_ERROR(logger->GET_LOGGER(), "RequestOutOfRange NRC:Specified Group of DTC parameter is not supported");
+        LOG_ERROR(logger.GET_LOGGER(), "RequestOutOfRange NRC:Specified Group of DTC parameter is not supported");
         this->generate->negativeResponse(new_id, 0x14, 0x31);
+        if (lowerbits == 0x10)
+        {
+            MCU::mcu->stop_flags[0x14] = false;
+        } else if (lowerbits == 0x11)
+        {
+            battery->stop_flags[0x14] = false;
+        } else if (lowerbits == 0x12) {
+            engine->stop_flags[0x14] = false;
+        }
     }
 
     std::ofstream temp;
@@ -49,17 +65,23 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
             case 0x10:
                 /* Send response frame */
                 this->generate->clearDiagnosticInformation(new_id,{}, true);
-                LOG_INFO(logger->GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x14);
+                LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x14);
                 MCU::mcu->stop_flags[0x14] = false;
                 break;
             case 0x11:
                 /* Send response frame */
                 this->generate->clearDiagnosticInformation(new_id,{}, true);
-                LOG_INFO(logger->GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x14);
+                LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x14);
                 battery->stop_flags[0x14] = false;
                 break;
+            case 0x12:
+                /* Send response frame */
+                this->generate->clearDiagnosticInformation(new_id,{}, true);
+                LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x14);
+                engine->stop_flags[0x14] = false;
+                break;
             default:
-                LOG_ERROR(logger->GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);
+                LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);
         }
         return;
     }
@@ -75,8 +97,18 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
     }
     catch(const std::exception& e)
     {
-        LOG_ERROR(logger->GET_LOGGER(), "conditionsNotCorrect NRC: Error trying to open the DTC file");
+        LOG_ERROR(logger.GET_LOGGER(), "conditionsNotCorrect NRC: Error trying to open the DTC file");
         this->generate->negativeResponse(new_id, 0x14, 0x22);
+        if (lowerbits == 0x10)
+        {
+            MCU::mcu->stop_flags[0x14] = false;
+        } else if (lowerbits == 0x11)
+        {
+            battery->stop_flags[0x14] = false;
+        } else if (lowerbits == 0x12)
+        {
+            engine->stop_flags[0x14] = false;
+        }
         return;
     }
     std::string line;
@@ -98,18 +130,24 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
     {
         case 0x10:
             /* Send response frame */
-            LOG_INFO(logger->GET_LOGGER(), "DTCs cleared succesffuly");
+            LOG_INFO(logger.GET_LOGGER(), "DTCs cleared succesffuly");
             this->generate->clearDiagnosticInformation(new_id,{}, true);
             MCU::mcu->stop_flags[0x14] = false;
             break;
         case 0x11:
             /* Send response frame */
-            LOG_INFO(logger->GET_LOGGER(), "DTCs cleared succesffuly");
+            LOG_INFO(logger.GET_LOGGER(), "DTCs cleared succesffuly");
             this->generate->clearDiagnosticInformation(new_id,{}, true);
             battery->stop_flags[0x14] = false;
             break;
+        case 0x12:
+            /* Send response frame */
+            LOG_INFO(logger.GET_LOGGER(), "DTCs cleared succesffuly");
+            this->generate->clearDiagnosticInformation(new_id,{}, true);
+            engine->stop_flags[0x14] = false;
+            break;
         default:
-            LOG_ERROR(logger->GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);
+            LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);
     }
 }
 

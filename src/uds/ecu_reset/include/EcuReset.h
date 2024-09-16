@@ -19,13 +19,14 @@
 #include <iostream>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 class EcuReset
 {
 private:
     uint32_t can_id;
     uint8_t sub_function;
-    int response_socket;
+    int socket = -1;
     
     Logger& ECUResetLog;
 public:
@@ -47,9 +48,9 @@ public:
 
     /**
      * @brief Method that checks the subfunction and calls either hardReset() or keyOffReset().
-     * 
+     * data A vector containing the data bytes to be processed.
      */
-    void ecuResetRequest(); 
+    void ecuResetRequest(const std::vector<uint8_t>& data); 
 
     /**
      * @brief Method that does the Hard Reset.

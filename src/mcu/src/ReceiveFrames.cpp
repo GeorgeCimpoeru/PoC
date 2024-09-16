@@ -1,11 +1,12 @@
 #include "../include/ReceiveFrames.h"
 #include "../include/MCUModule.h"
+#include "../../uds/authentication/include/SecurityAccess.h"
 
 namespace MCU
 {
     ReceiveFrames::ReceiveFrames(int socket_canbus, int socket_api)
         : timeout_duration(120), running(true), socket_canbus(socket_canbus), 
-        socket_api(socket_api), handler(socket_api, socket_canbus),
+        socket_api(socket_api), handler(socket_api, *MCULogger),
         generate_frames(socket_canbus, *MCULogger)
         
     {
@@ -176,7 +177,7 @@ bool ReceiveFrames::receiveFramesFromAPI()
             /* Compare the CAN ID with the expected hexValueId */
             if (receiver_id == hex_value_id) 
             {
-                if (frame.data[1] == 0xff) 
+                if (frame.data[1] == 0xD9) 
                 {
                     LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Frame received to notify MCU that ECU with ID: 0x{:x} is up", sender_id));
                     /* Set the corresponding value from the array with the ECU id */
@@ -204,7 +205,18 @@ bool ReceiveFrames::receiveFramesFromAPI()
                 {
                     LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Received frame for MCU to execute service with SID: 0x{:x}", frame.data[1]));
                     LOG_INFO(MCULogger->GET_LOGGER(), "Calling HandleFrames module to execute the service and parse the frame.");
-                    handler.handleFrame(frame);
+                    handler.handleFrame(getMcuSocket(sender_id), frame);
+                    std::vector<uint8_t> response;
+                    if (!SecurityAccess::getMcuState(*MCULogger))
+                    {
+                        securityNotifyECU({0x01,0xCF});
+                        LOG_INFO(MCULogger->GET_LOGGER(), "Server is locked.");
+                    }
+                    else
+                    {
+                        securityNotifyECU({0x01,0xCE});
+                        LOG_INFO(MCULogger->GET_LOGGER(), "Server is unlocked.");
+                    }
                 }
             }
             else if (receiver_id == 0xFA) 
@@ -225,7 +237,7 @@ bool ReceiveFrames::receiveFramesFromAPI()
                         data: {PCI_L, SID(0xD9), MCU_id, BATTERY_id, DOORS_id, ENGINE_id, ECU4_id}
                     */
                     LOG_INFO(MCULogger->GET_LOGGER(), "Received frame to update status of ECUs still up.");
-                    generate_frames.sendFrame(0x10FA,{0x07, 0xD9, (uint8_t)hex_value_id, ecus_up[0], ecus_up[1], ecus_up[2], ecus_up[3]}, socket_api, DATA_FRAME);
+                    generate_frames.sendFrame(0x10FA,{0x06, 0xD9, MCU_ID, ecus_up[0], ecus_up[1], ecus_up[2], ecus_up[3]}, socket_api, DATA_FRAME);
                     LOG_INFO(MCULogger->GET_LOGGER(), "Frame sent to API on API socket to update status of ECUs still up.");
                 }
                 else
@@ -294,7 +306,7 @@ bool ReceiveFrames::receiveFramesFromAPI()
                 int id = ((sid & 0xFF) << 8) | ((sid >> 8) & 0xFF);
                 LOG_INFO(MCULogger->GET_LOGGER(), "Service with SID {:x} sent the response pending frame.", 0x2E);
                 NegativeResponse negative_response(socket_api, *MCULogger);
-                negative_response.sendNRC(id, 0x2E, 0x78);
+                negative_response.sendNRC(id, sid, 0x78);
                 mcu->stop_flags[sid] = false;
             }
             mcu->stop_flags.erase(sid);
@@ -395,8 +407,9 @@ bool ReceiveFrames::receiveFramesFromAPI()
                         {
                             ecus_up[i] = 0;
                         }/* Send request frame */
-                        std::vector<uint8_t> data = {0x01};
-                        ReceiveFrames::generate_frames.sendFrame(0x1011, data);
+                        std::vector<uint8_t> data = {0x01, 0x99};
+                        uint16_t id = (0x10 << 8) | it->first;
+                        ReceiveFrames::generate_frames.sendFrame(id, data);
                         it = ecu_timers.erase(it);
                     } else {
                         ++it;
@@ -407,6 +420,31 @@ bool ReceiveFrames::receiveFramesFromAPI()
             std::cerr << "Exception in timerCheck: " << e.what() << std::endl;
         } catch (...) {
             std::cerr << "Unknown exception in timerCheck" << std::endl;
+        }
+    }
+    void ReceiveFrames::securityNotifyECU(std::vector<uint8_t> response)
+    {
+        /* MCU ID as sender */
+        uint8_t lowerbits = 0x10;
+        /* Battery, Engine, Doors, HVAC receivers */
+        uint8_t upperbits[] = {0x11, 0x12, 0x13, 0x14};
+
+        // Send frames to each receiver
+        for (uint8_t upper : upperbits)
+        {
+            generate_frames.sendFrame((lowerbits << 8) | upper, response, DATA_FRAME);
+        }
+    }
+
+    int ReceiveFrames::getMcuSocket(uint8_t sender_id)
+    {
+        if(sender_id == API_ID)
+        {
+            return socket_api;
+        }
+        else
+        {
+            return socket_canbus;
         }
     }
 }

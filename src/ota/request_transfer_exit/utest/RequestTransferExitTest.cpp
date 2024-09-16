@@ -97,7 +97,7 @@ protected:
     void SetUp() override
     {
         /* Populate some test data for MCU */
-        MCU::mcu.mcu_data[0x01E0] = {0x31, 0x02, 0x03, 0x04};      
+        MCU::mcu->default_DID_MCU[0x01E0] = {0x31, 0x02, 0x03, 0x04};      
     }
 
     void TearDown() override 
@@ -191,7 +191,7 @@ TEST_F(RequestTransferExitTest, PositiveResponse)
 /* Test for Request Sequence Error */
 TEST_F(RequestTransferExitTest, RequestSequenceError) 
 {       
-    MCU::mcu.mcu_data[0x01E0] = {0x01, 0x02, 0x03, 0x04};
+    MCU::mcu->default_DID_MCU[0x01E0] = {0x01, 0x02, 0x03, 0x04};
     std::vector<uint8_t> request = {0x03, 0x37, 0x01};
     std::vector<uint8_t> expected_response = {0x02, 0x7F, 0x37, 0x24};
 
@@ -205,7 +205,7 @@ TEST_F(RequestTransferExitTest, RequestSequenceError)
 /* Test for OTA_UPDATE_STATUS_DID */
 TEST_F(RequestTransferExitTest, OTAUpStDIDNotFound) 
 {       
-    MCU::mcu.mcu_data.clear();
+    MCU::mcu->default_DID_MCU.clear();
     std::vector<uint8_t> request = {0x03, 0x37, 0x01};
     
     /* redirect stdout to capture the output */

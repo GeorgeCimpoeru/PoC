@@ -7,15 +7,20 @@
 #ifndef POC_MCU_MODULE_H
 #define POC_MCU_MODULE_H
 
-#include "HandleFrames.h"
+#include "../../utils/include/HandleFrames.h"
 #include "../../utils/include/CreateInterface.h"
 #include "ReceiveFrames.h"
 #include "../include/MCULogger.h"
 #include "../../uds/write_data_by_identifier/include/WriteDataByIdentifier.h"
 #include "../../uds/tester_present/include/TesterPresent.h"
+#include "../../uds/tester_present/include/TesterPresent.h"
 
 #include <thread>
 #include <future>
+#include <fstream>
+#include <stdexcept>
+#include <filesystem>
+
 namespace MCU
 {
     class MCUModule {
@@ -28,14 +33,17 @@ namespace MCU
         static std::map<uint8_t, std::atomic<bool>> stop_flags;
 
         /* Variable to store mcu data */
-        std::unordered_map<uint16_t, std::vector<uint8_t>> mcu_data = 
+        std::unordered_map<uint16_t, std::vector<uint8_t>> default_DID_MCU = 
         {
             {0x01E0, {IDLE}}
         };
+        static const std::vector<uint16_t> VALID_DID_MCU;
+
         /** 
          * @brief Constructor that takes the interface number as an argument.
          * When the constructor is called, it creates a new interface with the
          * given number and starts the interface.
+         * 
          * @param interface_number The number of the vcan interface
         */
         MCUModule(uint8_t interfaces_number);
@@ -66,31 +74,6 @@ namespace MCU
          * from the CAN bus.
         */
         void recvFrames();
-
-        /**
-         * @brief Getter for securityAccess_seed
-         * @return The current value of securityAccess_seed
-         */
-        std::vector<uint8_t> getSecurityAccessSeed();
-
-        /**
-         * @brief Setter for securityAccess_seed
-         * @param seed The new value to set for securityAccess_seed
-         */
-        void setSecurityAccessSeed(const std::vector<uint8_t>& seed);
-
-        /**
-         * @brief Getter for MCU state access
-         * @return The current value of MCU state
-         */
-        bool getMCUState() const;
-
-        /**
-         * @brief Setter for MCU state access
-         * @return The current value of MCU state
-         */
-        void setMCUState(bool state);
-
         /**
          * @brief Get the Mcu Api Socket
          * 
@@ -118,6 +101,12 @@ namespace MCU
          * @param interface_number The interface on which the ECU socket will be created
          */
         void setMcuEcuSocket(uint8_t interface_number);
+
+        /**
+         * @brief Write the default_did or the date before reset in mcu_data.txt
+         * 
+         */
+        void writeDataToFile();
 
     private:
         bool is_running;

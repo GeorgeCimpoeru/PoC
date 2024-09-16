@@ -43,21 +43,29 @@ class GenerateFrames
         /**
          * @brief Construct a new Generate Frames object
          * 
-         * @param socket 
+         * @param socket The socket descriptor used for communication over the CAN bus.
+         * @param logger A logger instance used to record information and errors during the execution.
          */
         GenerateFrames(int socket, Logger& logger);
+        /**
+         * @brief Method to get the socket
+         * 
+         * @return Returns an integer socket
+         */
         int getSocket();
         /**
          * @brief method to send response back to API
-         * @param api_id 
-         * @param sid 
-         * @param battery_id 
-         * @param doors_id 
-         * @param engine_id
+         * 
+         * @param api_id identifier for the API that will send the frame.
+         * @param sid service id.
+         * @param battery_id id of the battery component.
+         * @param doors_id id of the doors component.
+         * @param engine_id id of the engine component.
         */ 
         void apiResponse(uint32_t api_id, uint8_t sid, uint8_t battery_id, uint8_t doors_id, uint8_t engine_id);
         /**
          * @brief Method for creation of custom frames
+         * 
          * @param id id of the frame
          * @param data data to be sent through CAN
          * @param s socket needed for sendFrame
@@ -66,9 +74,11 @@ class GenerateFrames
         int sendFrame(int can_id, std::vector<uint8_t> data, int s, FrameType frameType = DATA_FRAME);
         /**
          * @brief Method for creation of custom frames
+         * 
          * @param id id of the frame
          * @param data data to be sent through CAN
          * @param frameType default value: DATA_FRAME. More values: REMOTE_FRAME, ERROR_FRAME
+         * @return Returns a boolean if the CAN frame was send or not
          */
         bool sendFrame(int id, std::vector<uint8_t > data, FrameType frameType = DATA_FRAME);
         /**
@@ -96,17 +106,19 @@ class GenerateFrames
          */
         /**
          * @brief Frame for Session Control Service
+         * 
          * @param id id of the frame(sender id and receiver id)
          * @param sub_function subfunction of the service
-         * @param response varaible for request or response frame
+         * @param response variable for request or response frame
          * Response&Request
         */
         void sessionControl(int id, uint8_t sub_function, bool response=false);
         /**
          * @brief Frame for ECU reset Service
+         * 
          * @param id id of the frame(sender id and receiver id)
          * @param sub_function the sub_function of the ECU Reset
-         * @param response varaible for request or response frame
+         * @param response variable for request or response frame
          * Response&Request
          */
         void ecuReset(int id, uint8_t sub_function, bool response=false);
@@ -116,7 +128,7 @@ class GenerateFrames
          * @param id id of the frame(sender id and receiver id)
          * @param sub_function the sub_function of the ECU Reset
          * @param socket socket used to send the frame through the bus
-         * @param response varaible for request or response frame
+         * @param response variable for request or response frame
          */
         void ecuReset(int id, uint8_t sub_function, int socket, bool response=false);
         /**
@@ -136,6 +148,7 @@ class GenerateFrames
          *     }
          * PS: Same for writeDataByIdentifier(), readMemoryByAddress() and transferDataLong()
          * but different size bytes.
+         * 
          * @param id id of the frame(sender id and receiver id)
          * @param identifier identifier of the data to be read
          * @param response the data that is sent (if not set, the frame is a request)
@@ -144,6 +157,7 @@ class GenerateFrames
         void readDataByIdentifier(int id, int identifier, std::vector<uint8_t> response = {});
         /**
          * @brief Frame for Read data by Identifier Service. Use this method when the response need to be send through more frames
+         * 
          * @param id id of the frame(sender id and receiver id)
          * @param identifier identifier of the data to be read
          * @param response the data that is sent 
@@ -158,51 +172,58 @@ class GenerateFrames
         void flowControlFrame(int id);
         /**
          * @brief Frame for Authentication Service, sub-function 0x01(Request seed)
+         * 
          * @param id id of the frame(sender id and receiver id)
          * @param seed the requested seed(if not set the frame is a request)
         Response&Request */
         void securityAccessRequestSeed(int id, const std::vector<uint8_t>& seed = {});
         /**
          * @brief Frame for Authentication Service, sub-function 0x01(Request seed)
+         * 
          * @param id id of the frame(sender id and receiver id)
          * @param key if not set, the frame is a response
         Response&Request */
         void securityAccessSendKey(int id, const std::vector<uint8_t>& key = {});
         /**
          * @brief Frame for Routine Control Service
+         * 
          * @param id id of the frame(sender id and receiver id)
          * @param sub_function 0x01,0x02,0x03(START, STOP, RESET)
          * @param routine_identifier Identifier of the routine to be run
-         * @param response varaible for request or response frame
+         * @param response variable for request or response frame
         Response&Request */
         void routineControl(int id, uint8_t sub_function, uint16_t routine_identifier, bool response=false);
         /**
          * @brief Frame for Tester Present Service
+         * 
          * @param id id of the frame(sender id and receiver id)
-         * @param response varaible for request or response frame
+         * @param response variable for request or response frame
          * Response&Request
          */
         void testerPresent(int id, bool response=false);
         /**
          * @brief Frame for Read data by Address. Check the commentary from the readDataByIdentifier() method
+         * 
          * @param id id of the frame(sender id and receiver id)
          * @param memory_size Memory size variable
          * @param memory_address Memory address variable
-         * @param response varaible for request or response frame
+         * @param response variable for request or response frame
          * Response&Request
          */
         void readMemoryByAddress(int id, int memory_address, int memory_size, std::vector<uint8_t> response = {});
         /**
          * @brief Frame for Read data by Address. Check the commentary from the readDataByIdentifier() method
+         * 
          * @param id id of the frame(sender id and receiver id)
          * @param memory_size Memory size variable
          * @param memory_address Memory address variable
-         * @param response varaible for request or response frame
+         * @param response variable for request or response frame
          * @param first_frame set as true if it is the first frame (default) or false for the rest of the frames.
          */
         void readMemoryByAddressLongResponse(int id, int memory_address, int memory_size, std::vector<uint8_t> response, bool first_frame = true);
         /**
          * @brief Frame for Write data by Identifier. Check the commentary from the readDataByIdentifier() method
+         * 
          * @param id id of the frame(sender id and receiver id)
          * @param identifier identifier of the data to be read
          * @param data_parameter data to be write in the identifier
@@ -211,6 +232,7 @@ class GenerateFrames
         void writeDataByIdentifier(int id, uint16_t identifier, std::vector<uint8_t> data_parameter = {});
         /**
          * @brief Frame for Write data by Identifier. Check the commentary from the readDataByIdentifier() method
+         * 
          * @param id id of the frame(sender id and receiver id)
          * @param identifier identifier of the data to be read
          * @param data_parameter data to be write in the identifier
@@ -219,6 +241,7 @@ class GenerateFrames
         void writeDataByIdentifierLongData(int id, uint16_t identifier, std::vector<uint8_t> data_parameter, bool first_frame = true);
         /**
          * @brief Frame for Read DTC Information Request
+         * 
          * @param id id of the frame(sender id and receiver id)
          * @param sub_function can be use only for subfunction 'Number of DTCs'(17/6/2024)
          * @param dtc_status_mask DTC status Mask variable
@@ -239,7 +262,7 @@ class GenerateFrames
          * @param id id of the frame(sender id and receiver id)
          * @param status_availability_mask Status availability mask variable
          * @param dtc Specific Data trouble code(DTC)
-         * @param status_mask Statusm mask of the dtc
+         * @param status_mask Status mask of the dtc
          */
         void readDtcInformationResponse02(int id, uint8_t status_availability_mask, std::vector<std::pair<int,int>> dtc_and_status_list);
         /**
@@ -253,23 +276,28 @@ class GenerateFrames
         void readDtcInformationResponse02Long(int id, uint8_t status_availability_mask, std::vector<std::pair<int,int>> dtc_and_status_list, bool first_frame = true);
         /**
          * @brief Frame for Clear Diagnostic Information Service
+         * 
          * @param id id of the frame(sender id and receiver id)
          * @param group_of_dtc if not set, the default value(FFFFFF) clear all DTCs
-         * @param response varaible for request or response frame
+         * @param response variable for request or response frame
          Response&Request
          */
         void clearDiagnosticInformation(int id, std::vector<uint8_t> group_of_dtc = {0xFF, 0xFF, 0xFF}, bool response=false);
         /**
-         * @brief Frame for Access timing parameters 
+         * @brief Frame for Access timing parameters
+         * 
          * @param id id of the frame(sender id and receiver id)
          * @param sub_function Value of the sub function for the service
-         * @param response varaible for request or response frame
+         * @param data_parameter data to be write in the identifier
+         * @param response variable for request or response frame
          * Response&Request
          */
         void accessTimingParameters(int id, uint8_t sub_function,std::vector<uint8_t> data_parameter, bool response=false);
         /**
+         * @brief Method to manage the negative response
+         * 
          * @param id id of the frame(sender id and receiver id)
-         * @param sid sid of the service id for which the Negativ response is send
+         * @param sid sid of the service id for which the Negative response is send
          * @param nrc Negative response code
          */
         void negativeResponse(int id, uint8_t sid, uint8_t nrc);
@@ -279,21 +307,34 @@ class GenerateFrames
         */
         /**
          * @brief Frame for Request Download
+         * 
          * @param id id of the frame(sender id and receiver id)
          * @param data_format_identifier Data format identifier variable
          * @param memory_address Memory address variable
          * @param memory_size Memory size variable
+         * @param download_type The type of download: manual or automatic
          */
         void requestDownload(int id, uint8_t data_format_identifier, int memory_address, int memory_size, uint8_t download_type);
         /**
-         * @brief Response to requestDownload
+         * @brief Frame for Request Download long
+         * 
          * @param id id of the frame(sender id and receiver id)
-         * @param max_number_block Max number of blocks variable
+         * @param data_format_identifier Data format identifier variable
+         * @param memory_address Memory address variable
+         * @param memory_size Memory size variable
+         * @param download_type The type of download: manual or automatic
          */
         void requestDownloadLong(int id, uint8_t data_format_identifier, int memory_address, int memory_size, uint8_t download_type, bool first_frame = true);
+        /**
+         * @brief Response to requestDownload
+         * 
+         * @param id id of the frame(sender id and receiver id)
+         * @param max_number_block Max number of blocks variable
+         */        
         void requestDownloadResponse(int id, int max_number_block);
         /**
          * @brief Frame for Transfer Data service. Check the commentary from the readDataByIdentifier() method
+         * 
          * @param id id of the frame(sender id and receiver id)
          * @param block_sequence_counter Block sequence counter variable
          * @param transfer_request Data to be transfer
@@ -302,6 +343,7 @@ class GenerateFrames
         void transferData(int id, uint8_t block_sequence_counter, std::vector<uint8_t> transfer_request = {});
         /**
          * @brief Frame for Transfer Data service. Check the commentary from the readDataByIdentifier() method
+         * 
          * @param id id of the frame(sender id and receiver id)
          * @param block_sequence_counter Block sequence counter variable
          * @param transfer_request Data to be transfer
@@ -310,8 +352,9 @@ class GenerateFrames
         void transferDataLong(int id, uint8_t block_sequence_counter, std::vector<uint8_t> transfer_request, bool first_frame = true);
         /**
          * @brief Frame for Request transfer exit service
+         * 
          * @param id id of the frame(sender id and receiver id)
-         * @param response varaible for request or response frame
+         * @param response variable for request or response frame
          * Response&Request
          */
         void requestTransferExit(int id, bool response=false);
@@ -323,7 +366,7 @@ class GenerateFrames
         /**
          * @brief Set the socket parameter
          * 
-         * @param socket 
+         * @param socket The socket descriptor used for communication over the CAN bus.
          */
         void addSocket(int socket);
         /**
@@ -337,7 +380,9 @@ class GenerateFrames
         struct can_frame createFrame(int& id, std::vector<uint8_t>& data, FrameType frameType = DATA_FRAME);
         /**
          * @brief Count the number of digits in a number
-         * @param number
+         * 
+         * @param number The integer whose digits are to be counted.
+         * @return The number of digits for a given integer.
          */
         int countDigits(int number);
         /**
@@ -345,7 +390,7 @@ class GenerateFrames
          * 
          * @param[out] byteVector Vector in which the data will be inserted
          * @param num number to be inserted
-         * @param numBytes 
+         * @param numBytes the number of bytes to extract from the integer num and inserted into bytevector.
          */
         void insertBytes(std::vector<uint8_t>& byteVector, unsigned int num, int numBytes);
         /**

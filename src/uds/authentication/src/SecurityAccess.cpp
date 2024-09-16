@@ -13,19 +13,46 @@ std::vector<uint8_t> SecurityAccess::security_access_seed;
 /* By default we dont have delay timer */
 uint32_t SecurityAccess::time_left = 0;
 
-/**
- * Set end_time to a distant future point. This ensures that it is always
- * greater than the current time unless a specific delay timer is activated.
-*/
-static std::chrono::steady_clock::time_point end_time = std::chrono::steady_clock::now() + \
-                                                        std::chrono::hours(24 * 365);
+std::chrono::steady_clock::time_point SecurityAccess::end_time =
+        std::chrono::steady_clock::now() + std::chrono::hours(24 * 365);
 
-SecurityAccess::SecurityAccess(int socket, Logger& security_logger)
-                :  security_logger(security_logger), socket(socket)
+std::chrono::steady_clock::time_point SecurityAccess::end_time_security =
+        std::chrono::steady_clock::now() + std::chrono::hours(24 * 365);
+
+SecurityAccess::SecurityAccess(int socket_api, Logger& security_logger)
+                :  security_logger(security_logger), socket_api(socket_api)
 {}
 
-bool SecurityAccess::getMcuState()
+std::chrono::steady_clock::time_point SecurityAccess::getEndTimeSecurity()
 {
+    return end_time_security;
+}
+
+bool SecurityAccess::getMcuState(Logger& security_logger)
+{
+    auto security_now = std::chrono::steady_clock::now();
+    if (security_now >= end_time_security)
+    {
+        mcu_state = false;
+    }
+
+    if (security_now < end_time_security && mcu_state)
+    {
+        uint32_t time_left_security = static_cast<uint32_t>
+        (
+            std::chrono::duration_cast<std::chrono::milliseconds>
+            (
+                SecurityAccess::getEndTimeSecurity() - security_now
+            ).count()
+        );
+        uint32_t seconds = time_left_security / 1000;
+        uint32_t milliseconds = time_left_security % 1000;
+        LOG_INFO(security_logger.GET_LOGGER(), "Security timer activated." \
+            " {} seconds and {} milliseconds until the security expires.",
+        seconds,milliseconds);
+        LOG_INFO(security_logger.GET_LOGGER(), "Server is unlocked.");
+    }
+    
     return mcu_state;
 }
 
@@ -94,13 +121,14 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
     /* Extract the first 8 bits of can_id. */
     uint8_t lowerbits = can_id & 0xFF;
     uint8_t upperbits = can_id >> 8 & 0xFF;
-    NegativeResponse nrc(socket, security_logger);
+    NegativeResponse nrc(socket_api, security_logger);
 
     /* Reverse ids */
     can_id = ((lowerbits << 8) | upperbits);
     if (upperbits == 0xFA) 
     {
-        generate_frames = new GenerateFrames(socket, security_logger);
+        generate_frames = new GenerateFrames(socket_api, security_logger);
+        GenerateFrames generate_frames_ECU(socket_api, security_logger);
         /** 
          * Check if the delay timer has expired.
          * Set the nr of attempts to default. Delay timer will be 0.
@@ -189,6 +217,23 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                         generate_frames->sendFrame(can_id,response,DATA_FRAME);
                         LOG_INFO(security_logger.GET_LOGGER(), "Security Access granted successfully.");
                         mcu_state = true;
+                        response.clear();
+                        end_time_security = std::chrono::steady_clock::now() +
+                                    std::chrono::seconds(SECURITY_TIMEOUT_IN_SECONDS);
+                        auto security_now = std::chrono::steady_clock::now();
+                        uint32_t time_left_security = static_cast<uint32_t>
+                        (
+                            std::chrono::duration_cast<std::chrono::milliseconds>
+                            (
+                                end_time_security - security_now
+                            ).count()
+                        );
+                        uint32_t seconds = time_left_security / 1000;
+                        uint32_t milliseconds = time_left_security % 1000;
+                        LOG_INFO(security_logger.GET_LOGGER(), "Security timer activated." \
+                            " {} seconds and {} milliseconds until the security expires.",
+                        seconds,milliseconds);
+                        
                     }
                     else
                     {   
@@ -212,13 +257,19 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                             /* Start the delay timer clock. */
                             end_time = std::chrono::steady_clock::now() + std::chrono::seconds(TIMEOUT_IN_SECONDS);
                             now = std::chrono::steady_clock::now();
-                            time_left = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(end_time - now).count());
+                            time_left = static_cast<uint32_t>
+                            (
+                                std::chrono::duration_cast<std::chrono::milliseconds>
+                                (
+                                    end_time - now
+                                ).count()
+                            );
                             LOG_INFO(security_logger.GET_LOGGER(), "Delay timer activated.");
                             uint32_t time_left_copy = time_left;
                             uint32_t seconds = time_left_copy / 1000;
                             uint32_t milliseconds = time_left_copy % 1000;
                             LOG_ERROR(security_logger.GET_LOGGER(), "Please wait {} seconds and {} milliseconds" \
-                                "before sending key again.", seconds,milliseconds);
+                                " before sending key again.", seconds,milliseconds);
                         }
                     }
                 }
@@ -228,12 +279,18 @@ void SecurityAccess::securityAccess(canid_t can_id, const std::vector<uint8_t>& 
                      * for the requested security level.
                     */
                     now = std::chrono::steady_clock::now();
-                    time_left = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(end_time - now).count());
+                    time_left = static_cast<uint32_t>
+                    (
+                        std::chrono::duration_cast<std::chrono::milliseconds>
+                        (
+                            end_time - now
+                        ).count()
+                    );
                     uint32_t time_left_copy = time_left;
                     uint32_t seconds = time_left_copy / 1000;
                     uint32_t milliseconds = time_left_copy % 1000;
                     LOG_ERROR(security_logger.GET_LOGGER(), "Please wait {} seconds and {} milliseconds" \
-                        "before sending key again.", seconds,milliseconds);
+                        " before sending key again.", seconds,milliseconds);
                     response = convertTimeToCANFrame(time_left);
                     generate_frames->sendFrame(can_id,response,DATA_FRAME);
                 }

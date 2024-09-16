@@ -21,7 +21,7 @@ RequestTransferExit::~RequestTransferExit()
 {    
 }
 
-/* Define the service identifier for Read Data By Identifier */
+/* Define the service identifier for Request Transfer Exit */
 const uint8_t RTES_SERVICE_ID = 0x37;
 
 /* Method to set the callback function */
@@ -55,24 +55,47 @@ bool RequestTransferExit::requestTransferExit(int id, bool transferSuccess)
 /* frame format = {PCI_L, SID(0x37), transfer_request_parameter_record}*/
 void RequestTransferExit::requestTRansferExitRequest(canid_t can_id, const std::vector<uint8_t>& request_transfer_exit_data)
 {
+    NegativeResponse nrc(socket, RTESLogger);
     std::vector<uint8_t> response;
+    /* Extract and switch sender and receiver */
+    uint8_t receiver_id = can_id  & 0xFF;
+    uint8_t sender_id = (can_id >> 8) & 0xFF;
+    /* Reverse IDs */
+    can_id = (receiver_id << 8) | sender_id;
     /* Check the frame data */
     if (request_transfer_exit_data.size() < 3)
     {
         /* Incorrect message length or invalid format - prepare a negative response */
-        uint8_t nrc = 0x13; 
         /* Send the negative response frame */        
-        generate_frames.negativeResponse(can_id, RTES_SERVICE_ID, nrc);
+        nrc.sendNRC(can_id, RTES_SERVICE_ID, NegativeResponse::IMLOIF);
         return;
     }
     else    
     {
-        /* Retrieve transfer_status based on the OTA_UPDATE_STATUS_DID if it exists */
-        if ( MCU::mcu->mcu_data.find(0x01E0) != MCU::mcu->mcu_data.end())
+        std::ifstream file("mcu_data.txt");
+        std::string line;
+        uint8_t value;
+        bool did_found = false;
+        
+        while (std::getline(file, line))
         {
-            uint8_t transfer_status = MCU::mcu->mcu_data.at(0x01E0)[0];
+            std::istringstream iss(line);
+            std::string key_str;
+            uint16_t key;
+            
+            if (iss >> std::hex >> key && key == 0x01E0)
+            {
+                /* Read the first byte associated with the DID */
+                iss >> std::hex >> value;
+                did_found = true;
+                break;
+            }
+        }
+        /* Retrieve transfer_status based on the OTA_UPDATE_STATUS_DID if it exists */
+        if (did_found != 01)
+        {
             /* Check if the transfer data has been completed */
-            if (transfer_status == 0x31)        
+            if (value == 0x31)        
                 {
                 /* prepare positive response */
                 response.push_back(0x02); /* PCI */
@@ -84,9 +107,8 @@ void RequestTransferExit::requestTRansferExitRequest(canid_t can_id, const std::
                 else
                 {                                
                 /* Request sequence error - prepare a negative response */
-                uint8_t nrc = 0x24;
                 /* Send the negative response frame */ 
-                generate_frames.negativeResponse(can_id, RTES_SERVICE_ID, nrc);
+                nrc.sendNRC(can_id, RTES_SERVICE_ID, NegativeResponse::RSE);
                 return;
                 }       
         }

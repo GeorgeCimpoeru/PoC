@@ -67,11 +67,17 @@ public:
      * @brief Construct a new Logger object and add a file logger to it. The file logger is specific to this logger,
      *  but can be used in another module to log to it.
      *  
-     * @param[i] loggerName 
-     * @param[i] filePath 
+     * @param[in] loggerName Logger instance name used to categorize the log messages from different modules.
+     * @param[in] filePath The path of the file where the logger will output the messages.
      */
     Logger(std::string loggerName, std::string filePath);
 
+    /**
+     * @brief Set the file logger for this Logger object.
+     *  
+     * @param[in] loggerName Logger instance name used to categorize the log messages from different modules.
+     * @param[in] filePath The path of the file where the logger will output the messages.
+     */
     void setFileLogger(std::string& loggerName, std::string& filePath);
 
     /**
@@ -82,11 +88,17 @@ public:
      */
     static std::shared_ptr<spdlog::logger> getConsoleLogger();
 
+    /**
+     * @brief Retrieve the file logger associated with this Logger object.
+     * 
+     * @return std::shared_ptr<spdlog::logger> 
+     */
     std::shared_ptr<spdlog::logger> getFileLogger() const;
+
     /**
      * @brief Remove a specific logger knowing its name.
      * 
-     * @param[i] loggerName 
+     * @param[in] loggerName Logger instance name used to categorize the log messages from different modules.
      */
     void removeLogger(std::string loggerName);
 

@@ -46,5 +46,12 @@ void NegativeResponse::sendNRC(int id, uint8_t sid, uint8_t nrc)
 {
     GenerateFrames generate_frames(socket, nrc_logger);
     generate_frames.negativeResponse(id, sid, nrc);
-    LOG_ERROR(nrc_logger.GET_LOGGER(), fmt::format(getDescription(nrc) + " for requested service with SID 0x{:x}",sid));
+    if(nrc != 0x78)
+    {
+        LOG_ERROR(nrc_logger.GET_LOGGER(), fmt::format(getDescription(nrc) + " for requested service with SID 0x{:x}",sid));
+    }
+    else
+    {
+        LOG_WARN(nrc_logger.GET_LOGGER(), fmt::format(getDescription(nrc) + " for requested service with SID 0x{:x}",sid));
+    }
 }
