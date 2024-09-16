@@ -38,11 +38,13 @@ class GenerateFrame:
             return False
 
     def send_frame(self, id, data):
+        hex_data = [f"0x{byte:02X}" for byte in data]
+
         with can_lock:
             message = can.Message(arbitration_id=id, data=data, is_extended_id=True)
             try:
                 self.bus.send(message)
-                logger.info(f"Sent CAN message with ID: {id}, Data: {data}")
+                logger.info(f"Sent CAN message with ID: 0x{id:03X}, Data: {hex_data}")
             except can.CanError as e:
                 logger.error(f"Message not sent: {e}")
 
@@ -66,8 +68,8 @@ class GenerateFrame:
         data = [2, 0x10, sub_funct] if response is False else [2, 0x50, sub_funct]
         self.send_frame(id, data)
 
-    def ecu_reset(self, id, response=False):
-        data = [2, 0x11, 0x03] if response is False else [2, 0x51, 0x03]
+    def ecu_reset(self, id, subfunct, response=False):
+        data = [2, 0x11, subfunct] if response is False else [2, 0x51, subfunct]
         self.send_frame(id, data)
 
     def read_data_by_identifier(self, id, identifier, response=[]):
@@ -163,7 +165,7 @@ class GenerateFrame:
         self.send_frame(id, data)
 
     def tester_present(self, id, response=False):
-        data = [2, 0x7E, 0] if response is False else [2, 0x3E, 0]
+        data = [2, 0x3E, 0] if response is False else [2, 0x7E, 0]
         self.send_frame(id, data)
 
     def access_timing_parameters(self, id, sub_function, response=False):
@@ -208,13 +210,11 @@ class GenerateFrame:
         if isinstance(version, str):
             if '.' not in version:
                 version += '.0'
-            major, minor = map(float, version.split('.'))
-            # Reduce the version by 1.0
-            reduced_version = major - 1 + (minor / 10)
-            if reduced_version < 0:
-                raise ValueError(f"Invalid version: {version}. Cannot be less than 1.0")
-            reduced_major, reduced_minor = divmod(reduced_version, 1)
-            version_byte = (int(reduced_major) << 4) | int(reduced_minor * 10)
+            major, minor = map(int, version.split('.'))
+            major -= 1
+            if major < 0 or major > 15 or minor < 0 or minor > 15:
+                raise ValueError(f"Invalid version: {version}. Major and minor must be between 0 and 15.")
+            version_byte = (major << 4) | minor  # Encode directly without reduction
         elif isinstance(version, int):
             # Assume the int is already in the correct format
             version_byte = version

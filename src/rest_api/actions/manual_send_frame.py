@@ -8,6 +8,7 @@ from actions.base_actions import *
 def manual_send_frame(can_id, can_data):
     log_info_message(logger, "Starting manual_send_frame function")
     data = request.get_json()
+    error_text = None
     try:
         log_info_message(logger, f"Attempting to connect to CAN bus on channel: {Config.CAN_CHANNEL}")
         bus = can.interface.Bus(channel=Config.CAN_CHANNEL, bustype='socketcan')
@@ -28,7 +29,7 @@ def manual_send_frame(can_id, can_data):
         received_frames = []  # List to store all received frames
         log_info_message(logger, "Starting to receive CAN frames")
         while True:
-            received_frame = bus.recv(timeout=35)  # Adjust timeout as needed
+            received_frame = bus.recv(3)
             if received_frame is None:
                 log_info_message(logger, "No more frames received, exiting receive loop")
                 break
@@ -61,14 +62,13 @@ def manual_send_frame(can_id, can_data):
                     log_info_message(logger, f"Retries exceeded. Try again in: {time_delay_s} s")
                     received_data['retry_timeout_ms'] = time_delay_ms
                 else:
-                    error_text = handle_negative_response(received_frame.data)
+                    # error_text = handle_negative_response(received_frame.data, )
                     received_data['auth_status'] = 'failed'
                     received_data['error_text'] = error_text
                     log_error_message(logger, f"Authentication failed: {error_text}")
 
             received_frames.append(received_data)
             log_error_message(logger, f"Authentication failed: {error_text}")
-            received_frames.append(received_data)
 
         log_info_message(logger, f"Total frames received: {len(received_frames)}")
         return {'response': received_frames}
@@ -116,15 +116,27 @@ def handle_negative_response(nrc, service_id):
 
     # General negative response codes
     negative_responses = {
-        0x12: "SubFunctionNotSupported",
-        0x13: "IncorrectMessageLengthOrInvalidFormat",
-        0x24: "RequestSequenceError",
-        0x31: "RequestOutOfRange",
-        0x33: "SecurityAccessDenied",
-        0x35: "InvalidKey",
-        0x36: "ExceededNumberOfAttempts",
-        0x37: "RequiredTimeDelayNotExpired",
-        0x78: "ResponsePending"
+        0x12: "SubFunction Not Supported",
+        0x13: "Incorrect Message Length Or Invalid Format",
+        0x14: "Incorrect Message Length Or Invalid Format",
+        0x22: "Conditions Not Correct",
+        0x24: "Request Sequence Error",
+        0x25: "No Response From Subnet Component",
+        0x31: "Request Out Of Range",
+        0x33: "Security Access Denied",
+        0x34: "Authentication Required",
+        0x35: "Invalid Key",
+        0x36: "Exceeded Number Of Attempts",
+        0x37: "Required Time Delay Not Expired",
+        0x70: "Upload Download Not Accepted",
+        0x71: "Transfer Data Suspended",
+        0x72: "General Programming Failure",
+        0x73: "Wrong Block Sequence Counter",
+        0x92: "Voltage Too High",
+        0x93: "Voltage Too Low",
+        0x78: "Request Correctly Received-Response Pending",
+        0x7E: "SubFunction Not Supported In Active Session",
+        0x7F: "Function Not Supported In Active Session"
     }
 
     # Check if the NRC is within the allowed list for the service
