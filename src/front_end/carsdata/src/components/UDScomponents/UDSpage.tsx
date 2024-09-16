@@ -35,7 +35,7 @@ const UDSpage = () => {
             selectedModule === "2" ? <><DivCenterBattery image={"/battery.svg"}/><DivRight></DivRight></> :
             selectedModule === "3" ? <><DivCenterEngine image={"/engine.svg"}/><DivRight></DivRight></> : 
             selectedModule === "4" ? <><DivCenterDoors image={"/door.svg"}/><DivRight></DivRight></> :
-            selectedModule === "5" ? <><DivCenterHVAC image={"/hvac2.svg"}/><DivRight></DivRight></> : <SendRequests></SendRequests>}
+            selectedModule === "5" ? <><DivCenterHVAC image={"/hvac-icon.svg"}/><DivRight></DivRight></> : <SendRequests></SendRequests>}
         </div>
     );
 }

@@ -7,14 +7,14 @@ const LoginButton = () => {
         // here we will create an event listener for all the logic behind login
     };
     return (
-        <div>
+        <div className="m-4">
             <button
                 id="loginButton"
-                className="mt-4 bg-blue-600 hover:bg-blue-700 px-4 py-2 text-white uppercase rounded text-xs tracking-wider"
+                className="btn btn-primary"
                 type="button"
                 onClick={handleLogin}
             >
-                Login
+                Log In
             </button>
         </div>
     )

@@ -20,101 +20,152 @@ interface batteryData {
 
 const DivCenterBattery = (props: any) => {
     const [data, setData] = useState<batteryData | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    let popupElement: HTMLDivElement | null = null;
+    let popupStyleElement: HTMLStyleElement | null = null;
+    let overlayElement: HTMLDivElement | null = null;
+
+    const displayLoadingCircle = () => {
+        if (popupElement || popupStyleElement || overlayElement) {
+            return;
+        }
+
+        overlayElement = document.createElement('div');
+        overlayElement.style.position = 'fixed';
+        overlayElement.style.top = '0';
+        overlayElement.style.left = '0';
+        overlayElement.style.width = '100vw';
+        overlayElement.style.height = '100vh';
+        overlayElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+        overlayElement.style.zIndex = '999';
+        overlayElement.style.pointerEvents = 'all';
+        overlayElement.style.cursor = 'not-allowed';
+
+        document.body.appendChild(overlayElement);
+
+        popupElement = document.createElement('div');
+        popupElement.style.position = 'fixed';
+        popupElement.style.top = '50%';
+        popupElement.style.left = '50%';
+        popupElement.style.transform = 'translate(-50%, -50%)';
+        popupElement.style.padding = '20px';
+        popupElement.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        popupElement.style.borderRadius = '10px';
+        popupElement.style.zIndex = '1000';
+        popupElement.style.textAlign = 'center';
+
+        const loadingCircle = document.createElement('div');
+        loadingCircle.style.width = '40px';
+        loadingCircle.style.height = '40px';
+        loadingCircle.style.border = '5px solid white';
+        loadingCircle.style.borderTop = '5px solid transparent';
+        loadingCircle.style.borderRadius = '50%';
+        loadingCircle.style.animation = 'spin 1s linear infinite';
+
+        popupElement.appendChild(loadingCircle);
+
+        document.body.appendChild(popupElement);
+
+        popupStyleElement = document.createElement('style');
+        popupStyleElement.type = 'text/css';
+        popupStyleElement.innerText = `
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }`;
+        document.head.appendChild(popupStyleElement);
+    };
+
+    const displayErrorPopup = (text: string) => {
+        const popup = document.createElement('div');
+        popup.innerText = text;
+        popup.style.position = 'fixed';
+        popup.style.top = '50%';
+        popup.style.left = '50%';
+        popup.style.transform = 'translate(-50%, -50%)';
+        popup.style.padding = '20px';
+        popup.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        popup.style.color = 'white';
+        popup.style.borderRadius = '10px';
+        popup.style.zIndex = '1000';
+        popup.style.textAlign = 'center';
+
+        document.body.appendChild(popup);
+
+        setTimeout(() => {
+            document.body.removeChild(popup);
+        }, 2000);
+    };
+
+    const removeLoadingCicle = () => {
+        if (popupElement && popupStyleElement && overlayElement) {
+            document.body.removeChild(popupElement);
+            document.head.removeChild(popupStyleElement);
+            document.body.removeChild(overlayElement);
+
+            popupElement = null;
+            popupStyleElement = null;
+            overlayElement = null;
+        }
+    };
 
     const readInfoBattery = async () => {
-        await fetch('http://127.0.0.1:5000/api/read_info_battery')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                setData(data);
-                // setBatteryLevel(data.battery_level);
-                // switch (data.battery_state_of_charge) {
-                //     case 'Unknown state':
-                //         setBatteryStateOfCharge('0');
-                //         break;
-                //     case 'Charging':
-                //         setBatteryStateOfCharge('1');
-                //         break;
-                //     case 'Discharging':
-                //         setBatteryStateOfCharge('2');
-                //         break;
-                //     case 'Empty':
-                //         setBatteryStateOfCharge('3');
-                //         break;
-                //     case 'Fully charged':
-                //         setBatteryStateOfCharge('4');
-                //         break;
-                //     case 'Pending charge':
-                //         setBatteryStateOfCharge('5');
-                //         break;
-                //     default: // 'Pending discharge':
-                //         setBatteryStateOfCharge('6');
-                //         break;
-                // }
-                // setPercentage(data.percentage.toString().split(".")[0]);
-                // setVoltage(data.voltage.toString());
-                setLoading(false);
-            })
-            .catch(error => {
-                setError(error);
-                setLoading(false);
-            });
+        displayLoadingCircle();
+        console.log("Reading battery info...");
+        try {
+            await fetch(`http://127.0.0.1:5000/api/read_info_battery?identifier=`, {
+                method: 'GET',
+            }).then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    setData(data);
+                    if (data?.ERROR === "interrupted") {
+                        displayErrorPopup("Connection failed");
+                    }
+                });
+        } catch (error) {
+            console.log(error);
+            removeLoadingCicle();
+            displayErrorPopup("Connection failed");
+        }
+        removeLoadingCicle();
     };
 
     useEffect(() => {
         readInfoBattery();
     }, []);
 
-    const handleInputChange = (input: any, id: string) => {
-        // if (id === "my_modal_1") {
-        //     setBatteryLevel(input);
-        // } else if (id === "my_modal_8") {
-        //     setPercentage(input);
-        // } else if (id === "my_modal_10") {
-        //     setVoltage(input);
-        // }
-    }
-
-    const handleInputClick = (id: string) => {
-        // if (id === "my_modal_1") {
-        //     setBatteryLevel("0");
-        // } else if (id === "my_modal_8") {
-        //     setPercentage("0");
-        // } else if (id === "my_modal_10") {
-        //     setVoltage("0");
-        // }
-    }
 
     const writeInfoBattery = async (variable: string, newValue: string) => {
+        console.log("Writing battery info...");
+        let identifier: string = "";
         let data2;
         if (variable === "battery_level") {
             data2 = {
-                battery_level: newValue
+                energy_level: parseInt(newValue)
             };
+            identifier = "battery_level";
         } else if (variable === "battery_state_of_charge") {
             data2 = {
-                battery_state_of_charge: newValue
+                state_of_charge: parseInt(newValue)
             };
+            identifier = "state_of_charge";
         } else if (variable === "percentage") {
             data2 = {
-                percentage: newValue
+                percentage: parseInt(newValue)
             };
+            identifier = "percentage";
         } else if (variable === "voltage") {
             data2 = {
-                voltage: newValue
+                voltage: parseInt(newValue)
             };
+            identifier = "voltage";
         }
-        console.log(data2);
 
-        await fetch('http://127.0.0.1:5000/api/write_info_battery', {
+        console.log(data2);
+        displayLoadingCircle();
+        await fetch(`http://127.0.0.1:5000/api/write_info_battery?identifier=${identifier}`, {
             method: 'POST',
-            mode: 'no-cors',
+            // mode: 'no-cors',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -123,9 +174,11 @@ const DivCenterBattery = (props: any) => {
             .then(response => response.json())
             .then(data => {
                 console.log(data);
+                removeLoadingCicle();
             })
             .catch(error => {
-                console.error('Error:', error);
+                console.error(error);
+                removeLoadingCicle();
             });
         readInfoBattery();
     }
@@ -141,7 +194,7 @@ const DivCenterBattery = (props: any) => {
                             className="inline-flex items-center justify-center p-2 bg-blue-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-blue-700">
                             {data?.battery_level}%
                         </label>
-                        <ModalUDS id="my_modal_1" cardTitle={'Battery level'} handleInputChange={handleInputChange} handleInputClick={handleInputClick} writeInfoBattery={writeInfoBattery} param="battery_level"/>
+                        <ModalUDS id="my_modal_1" cardTitle={'Battery level'} writeInfoBattery={writeInfoBattery} param="battery_level" />
                         <p>Battery level</p>
                     </div>
 
@@ -227,7 +280,7 @@ const DivCenterBattery = (props: any) => {
                         className="inline-flex items-center justify-center p-2 bg-green-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-green-700">
                         {data?.percentage}%
                     </label>
-                    <ModalUDS id="my_modal_8" cardTitle={'Battery percentage'} handleInputChange={handleInputChange} handleInputClick={handleInputClick} writeInfoBattery={writeInfoBattery} param="percentage" />
+                    <ModalUDS id="my_modal_8" cardTitle={'Battery percentage'} writeInfoBattery={writeInfoBattery} param="percentage" />
                     <p>Battery percentage</p>
                 </div>
 
@@ -246,7 +299,7 @@ const DivCenterBattery = (props: any) => {
                         className="inline-flex items-center justify-center p-2 bg-purple-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-purple-700">
                         {data?.voltage}V
                     </label>
-                    <ModalUDS id="my_modal_10" cardTitle={'Voltage'} handleInputChange={handleInputChange} handleInputClick={handleInputClick} writeInfoBattery={writeInfoBattery} param="voltage" />
+                    <ModalUDS id="my_modal_10" cardTitle={'Voltage'} writeInfoBattery={writeInfoBattery} param="voltage" />
                     <p>Voltage</p>
                 </div>
 

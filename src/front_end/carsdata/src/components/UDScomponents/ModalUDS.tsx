@@ -36,4 +36,4 @@ const ModalUDS = (props: any) => {
     )
 }
 
-export default ModalUDS
+export default ModalUDS;

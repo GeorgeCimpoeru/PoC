@@ -5,14 +5,16 @@ import LoginTitle from '@/src/components/loginComponents//LoginTitle';
 
 const LoginPage = () => {
     return (
-        <section className="h-screen flex flex-col md:flex-row justify-center space-y-10 md:space-y-0 md:space-x-16 items-center my-2 mx-5 md:mx-0 md:my-0">
-            <div className="md:w-1/3 max-w-sm flex flex-col items-center">
-                <LoginTitle />
-                <InputsLoginPage />
-                <LoginButton />
-                <GoToRegister />
+        <div className="bg-gray-200 w-full min-h-screen flex justify-center items-center">
+            <div className="card card-compact w-96 bg-base-100 shadow-xl">
+                <div className="w-100 p-2 bg-white rounded-x1 fit-content">
+                    <LoginTitle />
+                    <InputsLoginPage />
+                    <LoginButton />
+                    <GoToRegister />
+                </div>
             </div>
-        </section>
+        </div>
     )
 }
 
