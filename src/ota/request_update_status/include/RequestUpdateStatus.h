@@ -28,7 +28,10 @@
 #include "../../../utils/include/NegativeResponse.h"
 #include "../../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
 #include "../../../utils/include/GenerateFrames.h"
+<<<<<<< HEAD
 #include "../../../utils/include/Logger.h"
+=======
+>>>>>>> DEV_BE
 
 #define REQUEST_UPDATE_STATUS_REQUEST_SIZE      0x02
 #define REQUEST_UPDATE_STATUS_RESPONSE_SUCCESS_SIZE	    0x03

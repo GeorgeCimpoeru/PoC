@@ -3,10 +3,8 @@
 
 #POC Project root path
 PROJECT_PATH := $(shell cd $(shell pwd)/../../../ && pwd)
-
 #Python flags
 PYTHON_INCL_DIR=-I/usr/include/python3.8
-PYTHON_LDFLAGS = -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -lcrypt -ldl -lutil -lm -lpthread
 PYTHON_LDFLAGS = -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -lcrypt -ldl -lutil -lm -lpthread
 # Compiler flags
 CXX = g++
@@ -762,11 +760,6 @@ $(UDS_DIR)/tester_present/utest/TesterPresent_test.o: $(UDS_DIR)/tester_present/
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/tester_present/utest/TesterPresentTest.cpp -o $(UDS_DIR)/tester_present/utest/TesterPresent_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 
-$(UDS_DIR)/tester_present/utest/testerPresentTest.out: $(OBJ_DIR) $(OBJS_TESTERPRESENT_TEST) $(UDS_DIR)/tester_present/utest/TesterPresent_test.o
-	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/tester_present/utest/testerPresentTest.out $(UDS_DIR)/tester_present/utest/TesterPresent_test.o $(OBJS_TESTERPRESENT_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(UDS_DIR)/tester_present/utest/TesterPresent_test.o: $(UDS_DIR)/tester_present/utest/TesterPresentTest.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/tester_present/utest/TesterPresentTest.cpp -o $(UDS_DIR)/tester_present/utest/TesterPresent_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 # RoutineControl Unit tests
 routineControlTest: $(OBJ_DIR) $(UDS_DIR)/routine_control/utest/routineControlTest.out

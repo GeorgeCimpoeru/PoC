@@ -93,7 +93,9 @@ class GDriveAPI:
             print(f"{GREEN}Searching for version {RESET}" +
                   ecu_map[ecu_id] + ' ' + sw_version)
             file_to_download = [
-                data for data in self.__drive_data_array if data['type'] == ecu_map[ecu_id] and data['sw_version'] == str(sw_version)]
+                data for data in self.__drive_data_array
+                if search_string in data['name'].upper() == ecu_map[ecu_id] and data['sw_version'] == str(sw_version)]
+
             if not file_to_download:
                 print(
                     f"{RED}No file found with type:{ecu_map[ecu_id]} and version {sw_version}{RESET}")
@@ -155,16 +157,16 @@ class GDriveAPI:
             'name': file['name'],
             'id': file['id'],
             'type': self.__getFileType(file),
+            'children': [],
         }
-        if json_file['type'] != "folder":
+        if (json_file['type'] != "folder"):
             json_file['sw_version'] = self.__getSoftwareVersion(file['name'])
             json_file['size'] = file.get('size', 'N/A')
-        else:
-            children = [self.getDriveData(child_file) for child_file in folder_data['files']]
-            if children:
-                json_file['children'] = children
-
         self.__drive_data_array.append(json_file)
+        if json_file['type'] == "folder":
+            json_file['children'].extend(self.__getDriveData(file)
+                                         for file in folder_data['files'])
+
         return json_file
 
 

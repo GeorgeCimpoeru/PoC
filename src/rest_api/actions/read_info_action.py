@@ -122,8 +122,7 @@ class ReadInfo(Action):
 
         try:
             log_info_message(logger, "Reading data from battery")
-            id_battery = self.id_ecu[ECU_BATTERY]
-            id = self.my_id * 0x100 + id_battery
+            id = self.my_id * 0x100 + self.id_ecu[MCU]
 
             identifiers = data_identifiers["Battery_Identifiers"]
             results = {}

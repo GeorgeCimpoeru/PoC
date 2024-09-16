@@ -47,7 +47,24 @@ class Updates(Action):
             self.id = (int(id, 16) << 16) + (self.my_id << 8) + self.id_ecu[0]
 
             log_info_message(logger, "Changing session to programming")
-            self.generate.session_control(self.id, 0x02)
+            self.generate.session_control(self.id, sub_funct=0x02)
+            self._passive_response(SESSION_CONTROL, "Error changing session control")
+
+            self._authentication(self.id)
+
+            log_info_message(logger, "Changing session to default")
+            self.generate.session_control(self.id, 0x01)
+            self._passive_response(SESSION_CONTROL, "Error changing session control")
+
+            # log_info_message(logger, "Reading data from battery")
+            # current_version = self._verify_version(version)
+            # if current_version == version:
+            #     response_json = ToJSON()._to_json(f"Version {version} already installed", 0)
+            #     self.bus.shutdown()
+            #     return response_json
+
+            log_info_message(logger, "Changing session to programming")
+            self.generate.session_control(self.id, sub_funct=0x02)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
 
             log_info_message(logger, "Authenticating...")
