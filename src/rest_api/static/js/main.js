@@ -165,3 +165,61 @@ function writeInfoBattery() {
     performApiRequest('/api/write_info_battery', 'POST', data);
 }
 
+function changeSession() {
+    const input = prompt('Enter sub-function code (1 for default session, 2 for programming session):');
+    if (input === null) {
+        alert('Operation cancelled.');
+        return;
+    };
+
+    const sub_funct = parseInt(input, 10);
+    if (sub_funct !== 1 && sub_funct !== 2) {
+        alert('Invalid input. Please enter 1 or 2.');
+        return;
+    };
+
+    performApiRequest('/api/change_session', 'POST', { sub_funct: sub_funct });
+}
+
+function authenticate() {
+    performApiRequest('/api/authenticate', 'GET');
+}
+function read_dtc_info() {
+    performApiRequest('/api/read_dtc_info', 'GET');
+}
+
+function clear_dtc_info() {
+    performApiRequest('/api/clear_dtc_info', 'GET');
+}
+
+function get_tester_pres() {
+    performApiRequest('/api/tester_present', 'GET');
+}
+
+function get_data_ids() {
+    performApiRequest('/api/get_identifiers', 'GET');
+}
+function readTimingInfo() {
+    const input = prompt('Enter sub-function code:');
+    if (input === null) {
+        alert('Operation cancelled.');
+        return;
+    };
+
+    const sub_funct = parseInt(input, 10);
+    if (sub_funct !== 1 && sub_funct !== 3) {
+        alert('Invalid input. Please enter 1 or 3.');
+        return;
+    };
+
+    performApiRequest('/api/read_access_timing', 'POST', { sub_funct: sub_funct });
+}
+
+
+function resetECU() {
+    const data = {
+        type: prompt('Enter type of reset(soft or hard):') || null,
+        ecu_id: prompt('Enter ECU ID(from 10 to 12):') || null,
+    };
+    performApiRequest('/api/reset_ecu', 'POST', data);
+}

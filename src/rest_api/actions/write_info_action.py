@@ -38,7 +38,7 @@ class WriteInfo(Action):
             self.bus.shutdown()
             return e.message
 
-    def write_to_battery(self, item=None):
+    def write_to_battery(self, data_dict=None):
         """
         Method to write information to the battery module. Handles authentication, data preparation,
         and writing operations.
@@ -50,7 +50,7 @@ class WriteInfo(Action):
         - JSON response.
         """
         auth_result = self._auth_mcu()
-        if isinstance(auth_result, str):  # If authentication fails and returns a message
+        if isinstance(auth_result, str):
             return auth_result
 
         try:
@@ -58,34 +58,24 @@ class WriteInfo(Action):
             id = self.my_id * 0x100 + id_battery
             log_info_message(logger, f"Writing data to ECU ID: {id_battery}")
 
-            # Data preparation
-            all_identifiers = {
-                IDENTIFIER_BATTERY_ENERGY_LEVEL: int(self.data.get('battery_level')),
-                IDENTIFIER_BATTERY_VOLTAGE: int(self.data.get('voltage')),
-                IDENTIFIER_BATTERY_PERCENTAGE: int(self.data.get('percentage')),
-                IDENTIFIER_BATTERY_STATE_OF_CHARGE: int(self.data.get('battery_state_of_charge')),
-                IDENTIFIER_BATTERY_TEMPERATURE: int(self.data.get('temperature')),
-                IDENTIFIER_BATTERY_LIFE_CYCLE: int(self.data.get('life_cycle')),
-                IDENTIFIER_BATTERY_FULLY_CHARGED: int(self.data.get('fully_charged')),
-                IDENTIFIER_BATTERY_RANGE: int(self.data.get('range_battery')),
-                IDENTIFIER_BATTERY_CHARGING_TIME: int(self.data.get('charging_time')),
-                IDENTIFIER_DEVICE_CONSUMPTION: int(self.data.get('device_consumption'))
+            key_to_identifier_map = {
+                "battery_level": IDENTIFIER_BATTERY_ENERGY_LEVEL,
+                "voltage": IDENTIFIER_BATTERY_VOLTAGE,
+                "percentage": IDENTIFIER_BATTERY_PERCENTAGE,
+                "state_of_charge": IDENTIFIER_BATTERY_STATE_OF_CHARGE,
             }
 
-            # Determine which data to write
-            data_to_write = [(item, all_identifiers.get(item))] if item else [(id_, value) for id_, value in all_identifiers.items() if value is not None]
-
-            # Write data
-            for identifier, value in data_to_write:
-                if value is not None:
-                    value_list = self._number_to_byte_list(value)
-                    log_info_message(logger, f"Write by identifier {identifier}")
-
-                    if isinstance(value_list, list) and len(value_list) > 4:
-                        self.generate.write_data_by_identifier_long(id, identifier, value_list)
-                    else:
-                        self.generate.write_data_by_identifier(id, identifier, value_list)
-                        self._passive_response(WRITE_BY_IDENTIFIER, f"Error writing {identifier}")
+            for key, value in data_dict.items():
+                if key in key_to_identifier_map:
+                    identifier = key_to_identifier_map[key]
+                else:
+                    print(f"ERROR: Unknown key '{key}'")
+                    continue
+                data_parameter = [value]
+                if len(data_parameter) <= 4:
+                    self.generate.write_data_by_identifier(id, identifier, data_parameter)
+                else:
+                    self.generate.write_data_by_identifier_long(id, identifier, data_parameter)
 
             log_info_message(logger, f"Data written successfully to ECU ID: {id_battery}")
             response_json = self._to_json("success", 0)

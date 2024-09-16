@@ -1,18 +1,3 @@
-"""
-Author: Mujdei Ruben
-Date: June 2024
-Use the class ReadInfo to read information from different ECUs.
-Methods:
-    -read_from_battery(): Read info from battery module
-    -read_from_custom(identifiers[]): Read specific data
-
-How to use:
-    u = ReadInfo(0x23, [0x11, 0x12, 0x13])
-    u.read_from_battery()
-    #or
-    u.read_from_custom([0x1234, 0x6543])
-"""
-
 import datetime
 from actions.base_actions import *
 from configs.data_identifiers import *
@@ -121,64 +106,71 @@ class ReadInfo(Action):
         # Return the corresponding state or "Unknown state" if not found
         return state_mapping.get(state_of_charge, "Unknown state")
 
-    def read_from_battery(self):
+    def read_from_battery(self, item=None):
         """
         Method to read information from the battery module.
+
+        Args:
+        - item: Optional identifier for a specific data item to read.
 
         Returns:
         - JSON response.
         """
-        self._auth_mcu()
+        auth_result = self._auth_mcu()
+        if isinstance(auth_result, str):
+            return auth_result
+
         try:
             log_info_message(logger, "Reading data from battery")
             id = self.my_id * 0x100 + self.id_ecu[MCU]
 
-            level = None
-            voltage = None
-            percentage = None
-            state_of_charge = None
-            life_cycle = None
-            fully_charged = None
-            serial_number = None
-            range_battery = None
-            charging_time = None
-            device_consumption = None
+            identifiers = data_identifiers["Battery_Identifiers"]
+            results = {}
 
-            level = self._read_by_identifier(id, IDENTIFIER_BATTERY_ENERGY_LEVEL)
-            voltage = self._read_by_identifier(id, IDENTIFIER_BATTERY_VOLTAGE)
-            percentage = self._read_by_identifier(id, IDENTIFIER_BATTERY_PERCENTAGE)
-            state_of_charge = self._read_by_identifier(id, IDENTIFIER_BATTERY_STATE_OF_CHARGE)
-            # life_cycle = self._read_by_identifier(id, IDENTIFIER_BATTERY_LIFE_CYCLE)
-            # fully_charged = self._read_by_identifier(id, IDENTIFIER_BATTERY_FULLY_CHARGED)
-            # serial_number = self._read_by_identifier(id, IDENTIFIER_ECU_SERIAL_NUMBER)
-            # range_battery = self._read_by_identifier(id, IDENTIFIER_BATTERY_RANGE)
-            # charging_time = self._read_by_identifier(id, IDENTIFIER_BATTERY_CHARGING_TIME)
-            # device_consumption = self._read_by_identifier(id, IDENTIFIER_DEVICE_CONSUMPTION)
+            def hex_to_dec(value):
+                """Helper function to convert hex to decimal if not 'No data'."""
+                try:
+                    return int(value, 16)
+                except (ValueError, TypeError):
+                    return value
 
-            life_cycle = life_cycle if life_cycle is not None else "No read"
-            fully_charged = fully_charged if fully_charged is not None else "No read"
-            serial_number = serial_number if serial_number is not None else "No read"
-            range_battery = range_battery if range_battery is not None else "No read"
-            charging_time = charging_time if charging_time is not None else "No read"
-            device_consumption = device_consumption if device_consumption is not None else "No read"
+            if item:
+                if item in identifiers:
+                    identifier = identifiers[item]
+                    result_value = self._read_by_identifier(id, int(identifier, 16))
 
-            battery_state_of_charge = self._get_battery_state_of_charge(state_of_charge)
+                    if item == "state_of_charge" and result_value:
+                        result_value = self._get_battery_state_of_charge(result_value)
 
-            data = [str(int(level, 16)),
-                    int(voltage, 16),
-                    round(((int(percentage, 16) / 255) * 100), 2),
-                    battery_state_of_charge,
-                    life_cycle,
-                    fully_charged,
-                    serial_number,
-                    range_battery,
-                    charging_time,
-                    device_consumption]
+                    results[item] = result_value if result_value else "No data"
+                else:
+                    return {"error": f"Invalid parameter '{item}'. Use /get_identifiers to see valid parameters."}
+            else:
+                for key, identifier in identifiers.items():
+                    result_value = self._read_by_identifier(id, int(identifier, 16))
 
-            response_json = BatteryToJSON()._to_json(data)
+                    if key == "state_of_charge" and result_value:
+                        result_value = self._get_battery_state_of_charge(result_value)
+
+                    results[key] = result_value if result_value else "No data"
+
+            # Convert hex results to decimal
+            response_json = {
+                "battery_level": hex_to_dec(results.get("battery_level", "No data")),
+                "voltage": hex_to_dec(results.get("voltage", "No data")),
+                "percentage": hex_to_dec(results.get("percentage", "No data")),
+                "battery_state_of_charge": results.get("state_of_charge", "No data"),
+                "life_cycle": hex_to_dec(results.get("life_cycle", "No data")),
+                "fully_charged": hex_to_dec(results.get("fully_charged", "No data")),
+                "serial_number": hex_to_dec(results.get("serial_number", "No data")),
+                "range_battery": hex_to_dec(results.get("range", "No data")),
+                "charging_time": hex_to_dec(results.get("charging_time", "No data")),
+                "device_consumption": hex_to_dec(results.get("device_consumption", "No data")),
+                "time_stamp": datetime.datetime.now().isoformat()
+            }
 
             self.bus.shutdown()
-            log_info_message(logger, "Sending JSON")
+            log_info_message(logger, "Sending JSON response")
             return response_json
 
         except CustomError as e:
@@ -216,7 +208,6 @@ class ReadInfo(Action):
             module = EngineToJSON()
             response = module._to_json(data)
 
-            # Shutdown the CAN bus interface
             self.bus.shutdown()
 
             log_info_message(logger, "Sending JSON")
