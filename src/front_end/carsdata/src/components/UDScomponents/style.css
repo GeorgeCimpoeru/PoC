@@ -1,0 +1,21 @@
+.math-paper {
+    background-image:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+        linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+        /* linear-gradient(90deg, rgba(255, 255, 255, 0.3) 5px, transparent 1px),
+        linear-gradient(rgba(255, 255, 255, 0.3) 5px, transparent 1px); */
+    background-size:
+        4% 4%, /* Thin vertical lines */
+        4.5% 4.5%; /* Thin horizontal lines */
+        
+    background-position:
+        0 0,
+        0 0,
+        0 0,
+        0 0;
+}
+
+.invert {
+    filter: invert(100%);
+    /* filter: invert(100%) brightness(120%) contrast(90%); */
+}
