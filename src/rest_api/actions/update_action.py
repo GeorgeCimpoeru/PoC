@@ -18,6 +18,18 @@ class ToJSON():
 
 
 class Updates(Action):
+    # def _auth_mcu(self):
+    #     id = self.my_id * 0x100 + self.id_ecu[0]
+    #     try:
+    #         log_info_message(logger, "Changing session to default")
+    #         self.generate.session_control(id, 0x02)
+    #         self._passive_response(SESSION_CONTROL, "Error changing session control")
+    #         self._authentication(id)
+
+    #     except CustomError as e:
+    #         self.bus.shutdown()
+    #         return e.message
+
     """
     Update class for managing software updates on an Electronic Control Unit (ECU).
 
@@ -66,6 +78,7 @@ class Updates(Action):
             log_info_message(logger, "Changing session to programming")
             self.generate.session_control(self.id, sub_funct=0x02)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
+            self._authentication(self.my_id * 0x100 + self.id_ecu[0])
 
             log_info_message(logger, "Authenticating...")
             self._authentication(self.id)

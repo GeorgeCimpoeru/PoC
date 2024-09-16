@@ -40,20 +40,8 @@ class WriteInfo(Action):
 
     def write_to_battery(self, data_dict=None):
         """
-        Method to write information to the battery module. Handles changin session, authentication, data preparation,
+        Method to write information to the battery module. Handles authentication, data preparation,
         and writing operations.
-
-        curl -X POST http://localhost:5000/api/write_info_battery \
-        -H "Content-Type: application/json" \
-        -d '{
-            "battery_level": 80,
-            "voltage": 12,
-            "percentage": 50,
-            "battery_state_of_charge": 75,
-            "temperature": 25,
-            "life_cycle": 300,
-            "device_consumption": 10
-        }'
 
         Args:
         - item: Optional identifier for a specific data item to write.
@@ -61,13 +49,12 @@ class WriteInfo(Action):
         Returns:
         - JSON response.
         """
-
         auth_result = self._auth_mcu()
         if isinstance(auth_result, str):
             return auth_result
 
         try:
-            id_battery = self.id_ecu[MCU]
+            id_battery = self.id_ecu[ECU_BATTERY]
             id = self.my_id * 0x100 + id_battery
             log_info_message(logger, f"Writing data to ECU ID: {id_battery}")
 
