@@ -12,9 +12,7 @@
 #include "../include/RequestUpdateStatus.h"
 
 RequestUpdateStatus::RequestUpdateStatus(int socket, Logger& logger) : socket(socket), _logger(logger)
-{
-    
-}
+{}
 
 std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id, std::vector<uint8_t> request)
 {
@@ -56,11 +54,8 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
         uint8_t status = RIDB_response[0];
         if (isValidStatus(RIDB_response[0]) == 0)
         {
-            LOG_WARN(_logger.GET_LOGGER(), "Status value {} read from readDataByIdentifier is invalid.", status);
-            response.push_back(PCI_L);           /* PCI_l*/
-            response.push_back(NEGATIVE_RESPONSE);           /* Negative response */
-            response.push_back(REQUEST_UPDATE_STATUS_SID);  /* SID */
-            response.push_back(REQUEST_OUT_OF_RANGE);           /* Negative response code */
+            LOG_WARN(rus_logger.GET_LOGGER(), "Status value {} read from readDataByIdentifier is invalid.", status);
+            nrc.sendNRC(response_id, REQUEST_UPDATE_STATUS_SID, NegativeResponse::ROOR);
         }
         else
         {
