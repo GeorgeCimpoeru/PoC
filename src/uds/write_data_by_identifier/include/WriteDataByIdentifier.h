@@ -23,6 +23,7 @@
 #include<linux/can.h>
 #include <unordered_set>
 #include<iomanip>
+#include <algorithm>
 
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../../utils/include/Logger.h"
@@ -42,9 +43,8 @@ public:
     /**
      * @brief Construct a new Write Data By Identifier object
      * 
-     * @param frame_id 
-     * @param frame_data 
-     * @param WDBILogger 
+     * @param socket The socket descriptor used for communication over the CAN bus.
+     * @param wdbi_logger A logger instance used to record information and errors during the execution.
      */
     WriteDataByIdentifier(Logger& wdbi_logger, int socket);
     /**
@@ -58,8 +58,8 @@ public:
      * This function performs the WriteDataByIdentifier service, writing the received data to the specified
      * Data Identifier (DID) and sending the appropriate response frame or a negative response if an error occurs.
      * 
-     * @param frame_id 
-     * @param frame_data 
+     * @param frame_id The frame id.
+     * @param frame_data Data of the frame.
      */
     void WriteDataByIdentifierService(canid_t frame_id, std::vector<uint8_t> frame_data);
 };

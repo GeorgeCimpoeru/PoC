@@ -1,15 +1,16 @@
 #include "../../../mcu/include/MCUModule.h"
 #include "../include/RequestDownload.h"
+#include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 
 RequestDownloadService::RequestDownloadService(Logger& RDSlogger)
-                        : generate_frames(socket, RDSlogger)
+                        : RDSlogger(RDSlogger), generate_frames(socket, RDSlogger)
 {
-   this->RDSlogger = RDSlogger;
+
 }
 RequestDownloadService::RequestDownloadService(int socket, Logger& RDSlogger)
-                        : socket(socket), generate_frames(socket, RDSlogger)
+                        : socket(socket), RDSlogger(RDSlogger), generate_frames(socket, RDSlogger)
 {
-    this->RDSlogger = RDSlogger;
+
 }
 RequestDownloadService::~RequestDownloadService()
 {
@@ -18,11 +19,13 @@ RequestDownloadService::~RequestDownloadService()
 
 /**RequestDownload- request method 
  * Expected request:  pci_l + sid + data_format_identifier  +  address_memory_length + memory_address[] +  memory_size[]               +          download_type
+ * Expected request:  pci_l + sid + data_format_identifier  +  address_memory_length + memory_address[] +  memory_size[]               +          download_type
  *  Index               [0]   [1]              [2]                  [3]             [3 + size(memory_adress)]  [3+size(memory_adress+memory_size)]  [3+size(memory_adress+memory_size)+1]
  */
 void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint8_t> stored_data)
 {
     LOG_INFO(RDSlogger.GET_LOGGER(), "Service 0x34 RequestDownload");
+
 
     /* Extract and switch sender and receiver */
     uint8_t receiver_id = id  & 0xFF;
@@ -62,16 +65,22 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     int memory_size = address_and_size.second;
 
 
-    /* Authenticate the request */
-    if (!isRequestAuthenticated())
+    if (receiver_id == 0x10 && !SecurityAccess::getMcuState(RDSlogger))
     {
-        LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Authentication failed");
         /* Authentication failed */
         nrc.sendNRC(id, RDS_SID, NegativeResponse::SAD);
         return;
     }
+
+    if (receiver_id == 0x11 && !ReceiveFrames::getBatteryState())
+    {
+        /* Authentication failed */
+        nrc.sendNRC(id, RDS_SID, NegativeResponse::SAD);
+        return;
+    }
+
     /* Validate memory address and size */
-    else if (!isValidMemoryRange(memory_address, memory_size))
+    if (!isValidMemoryRange(memory_address, memory_size))
     {
         LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Invalid memory range");
         /* Request out of range */
@@ -138,15 +147,6 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
                 LOG_ERROR(RDSlogger.GET_LOGGER(), "No valid zip file file found in PROJECT_PATH.");
                 return;
             }
-
-            std::string outputDir = std::string(PROJECT_PATH);
-
-            if (extractZipFile(target_id, zipFilePath, outputDir)) {
-                LOG_INFO(RDSlogger.GET_LOGGER(), "Files extracted successfully");
-            } else {
-                LOG_ERROR(RDSlogger.GET_LOGGER(), "Failed to extract files from ZIP archive.");
-            }
-        }
 
             std::string outputDir = std::string(PROJECT_PATH);
 
@@ -321,7 +321,7 @@ can_frame* RequestDownloadService::read_frame(int id, uint8_t sid)
 void RequestDownloadService::requestDownloadResponse(canid_t id, int memory_address, int max_number_block)
 {
     /* this path is temporary and differs on each VM */
-    std::string path = "/dev/loop25";
+    std::string path = DEV_LOOP;
     /* Rename destination in sender and viceversa */
     uint8_t frame_receiver_id = (id >> 8) & 0xFF;
     LOG_INFO(RDSlogger.GET_LOGGER(), "memory adress: 0x{0:x}", static_cast<int>(memory_address));
@@ -427,26 +427,11 @@ bool RequestDownloadService::isValidMemoryRange(const int &memory_address, const
     return true;
 }
 
-bool RequestDownloadService::isRequestAuthenticated()
-{
-    /* Logic to check security access */
-    
-    LOG_INFO(RDSlogger.GET_LOGGER(), "MCU authentication state");
-    return true;
-    bool is_authenticated = SecurityAccess::getMcuState();
-    /* Check MCU state if unlocked */
-    if (is_authenticated) 
-    {
-        LOG_INFO(RDSlogger.GET_LOGGER(), "MCU authentication state: {}", is_authenticated);
-    }
-    return is_authenticated;
-}
-
 bool RequestDownloadService::isLatestSoftwareVersion()
 {
     /* Logic to check version */
     return true;
-    ReadDataByIdentifier software_version(this->socket, &RDSlogger);
+    ReadDataByIdentifier software_version(this->socket, RDSlogger);
     LOG_INFO(RDSlogger.GET_LOGGER(), "Check software version");
     uint16_t IDENTIFIER_SOFTWARE = 0x1234; //dummy
     std::vector<uint8_t> current_version = software_version.readDataByIdentifier(0x0,{0x0,0x22, uint8_t(IDENTIFIER_SOFTWARE / 0x100), uint8_t(IDENTIFIER_SOFTWARE % 0x100)},false );
@@ -472,6 +457,7 @@ void RequestDownloadService::downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_
     std::string project_path = PROJECT_PATH;
     std::string path_to_drive_api = project_path + "/src/ota/google_drive_api";
 
+
     auto sys = py::module::import("sys");
     sys.attr("path").attr("append")(path_to_drive_api);
 
@@ -479,18 +465,6 @@ void RequestDownloadService::downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_
     py::module python_module = py::module::import("GoogleDriveApi");
     /* From the module, get the needed functionality (gDrive object) */
     py::object gGdrive_object = python_module.attr("gDrive");
-
-    /* Call the update method in order to check what files are on drive and can be downloaded. */
-    std::string drive_data = gGdrive_object.attr("updateDriveData")().cast<std::string>();
-    std::cout << drive_data << std::endl;
-
-    /*
-        CODE USED FOR UPLOADING FROM CPP TO GOOGLE DRIVE
-
-    std::map <std::string, std::string> file_to_upload;
-    gGdrive_object.attr("uploadFile")("main.elf", "/home/projectx/accademyprojects/PoC/src/mcu/main", "15b2q_YupkZocnALf4Iq5bHaJMXi8FHm9");
-    version_file_id = "1K3SKcTK8Tgb_Z-JadtGrckKCbHhvs90O";
-    */
 
     /* Call the downloadFile method from GoogleDriveApi.py */
      gGdrive_object.attr("downloadFile")(ecu_id, sw_version);
@@ -525,27 +499,8 @@ bool RequestDownloadService::extractZipFile(uint8_t target_id, const std::string
             return false;
         }
 
-        std::string outputFilePath;
-        if (target_id == 0x10) {
-            outputFilePath = outputDir + "/" + name + "_mcu_new";
-        }
-        else if (target_id == 0x11) {
-            outputFilePath = outputDir + "/" + name + "_battery_new";
-        }
-        else if (target_id == 0x12) {
-            outputFilePath = outputDir + "/" + name + "_doors_new";
-        }
-        else if (target_id == 0x13) {
-            outputFilePath = outputDir + "/" + name + "_engine_new";
-        }
-        else if (target_id == 0x14) {
-            outputFilePath = outputDir + "/" + name + "_hvac_new";
-        }
-        else
-        {
-            LOG_ERROR(RDSlogger.GET_LOGGER(), "No valid id to match main file.");
-            return false;
-        }
+        std::string outputFilePath = outputDir + "/" + name + "_new";
+
         std::ofstream outFile(outputFilePath, std::ios::binary);
         if (!outFile.is_open()) {
             LOG_ERROR(RDSlogger.GET_LOGGER(), "Error creating output file: " + outputFilePath);
@@ -573,64 +528,3 @@ bool RequestDownloadService::extractZipFile(uint8_t target_id, const std::string
     zip_close(archive);
     return true;
 }
-
-
-/** Use libraries for tar
- * #include <archive.h>
- * #include <archive_entry.h>
- * Add flag -larchive to makefiles LDFLAGS
- */
-/**Methods for decompress using TAR: To be included in .h
- * std::vector<uint8_t> decompressTar(const std::vector<uint8_t>& tarData);
- * std::vector<uint8_t> processPayload(const std::vector<uint8_t> &stored_data, uint8_t compression_type, uint8_t start_index, Logger& RDSlogger);
- */
-
-/**Method implementation for decompress using TAR, To be included in .cpp
- * std::vector<uint8_t> RequestDownloadService::decompressTar(const std::vector<uint8_t> &tarData)
- * {
- *  struct archive *archive;
- *  struct archive_entry *entry;
- *  std::vector<uint8_t> decompressedData;
- *
- *  archive = archive_read_new();
- *  archive_read_support_format_tar(archive);
- *
- *  if (archive_read_open_memory(archive, tarData.data(), tarData.size()) != ARCHIVE_OK)
- *  {
- *      throw std::runtime_error("Failed to open tar archive");
- *   }
- *
- *  while (archive_read_next_header(archive, &entry) == ARCHIVE_OK)
- *  {
- *      size_t size = archive_entry_size(entry);
- *      std::vector<uint8_t> buffer(size);
- *      if (archive_read_data(archive, buffer.data(), size) < 0)
- *      {
- *          throw std::runtime_error("Failed to read data from tar archive");
- *      }
- *
- *      decompressedData.insert(decompressedData.end(), buffer.begin(), buffer.end());
- *  }
- *
- *  archive_read_free(archive);
- *  return decompressedData;
- * }
- *
- * std::vector<uint8_t> RequestDownloadService::processPayload(const std::vector<uint8_t> &stored_data, uint8_t compression_type, uint8_t start_index, Logger &RDSlogger)
- * {
- *  LOG_INFO(RDSlogger.GET_LOGGER(), "Compression Type: 0x{0:x}", static_cast<int>(compression_type));
- *  std::vector<uint8_t> payload(stored_data.begin() + start_index, stored_data.end());
- *  if (compression_type == 0x1)
- *  {
- *      return decompressTar(payload);
- *  }
- *  else if (compression_type == 0x0)
- *  {
- *  LOG_INFO(RDSlogger.GET_LOGGER(), "No compression method used");
- *  }
- *  else
- *  LOG_ERROR(RDSlogger.GET_LOGGER(), "Unknown compression method used");
- *   sendNegativeResponse(id, 0x34, 0x31); // Request out of range -the specified dataFormatIdentifier is not valid
- *  return payload;
- * }
- */

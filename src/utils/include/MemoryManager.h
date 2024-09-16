@@ -6,7 +6,7 @@
  * @date 2024-07-16
  * 
  * @copyright Copyright (c) 2024
- *  * !!!!Run wtih sudo when run programm
+ *  * !!!!Run wtih sudo when run program
  * 
  * Commands to create sdcard
  *  ->this creates an img, run it only once
@@ -82,6 +82,8 @@
 
 #include "Logger.h"
 
+#define DEV_LOOP "/dev/loop16"
+
 class MemoryManager
 {
     private:
@@ -93,37 +95,12 @@ class MemoryManager
         Logger& logger;
 
         /**
-         * @brief Construct a new Memory Manager object
-         * 
-         * @param address 
-         * @param path 
-         * @param logger 
-         */
-        MemoryManager(off_t address, std::string path, Logger& logger);
-
-        /**
          * @brief Method to transform a string number to type integer
          * 
          * @param number 
          * @return int 
          */
         int to_int(std::string number);
-
-        /**
-         * @brief Method to check if the address is available
-         * 
-         * @param address 
-         * @return true or false
-         */
-        bool availableAddress(off_t address);
-
-        /**
-         * @brief Method to check if the amount of memory is available
-         * 
-         * @param size_of_data 
-         * @return true or false
-         */
-        bool availableMemory(off_t size_of_data);
 
         /**
          * @brief Method to run a command in the bash terminal
@@ -135,8 +112,18 @@ class MemoryManager
 
     public:
         /**
+         * @brief Construct a new Memory Manager object
+         * 
+         * @param address 
+         * @param path 
+         * @param logger 
+         */
+        MemoryManager(off_t address, std::string path, Logger& logger);
+        
+        /**
          * @brief Get the Instance object
          * 
+         * @param logger
          * @return MemoryManager*, the only instance
          */
         static MemoryManager* getInstance(Logger& logger);
@@ -189,17 +176,35 @@ class MemoryManager
         /**
          * @brief Method to read a binary file. This is a static method.
          * 
-         * @param path_to_binary 
+         * @param path_to_binary
+         * @param logger
          * @return std::vector<uint8_t> 
          */
         static std::vector<uint8_t> readBinary(std::string path_to_binary, Logger& logger);
 
+        /**
+         * @brief Method to check if the address is available
+         * 
+         * @param address 
+         * @return true or false
+         */
+        bool availableAddress(off_t address);
+
+        /**
+         * @brief Method to check if the amount of memory is available
+         * 
+         * @param size_of_data 
+         * @return true or false
+         */
+        bool availableMemory(off_t size_of_data);
+        
         /**
          * @brief Method to read from an address. This is a static method.
          * 
          * @param path Path to a sd, usb, etc
          * @param address_start Start address
          * @param size Amount of size to read
+         * @param logger
          * @return std::vector<uint8_t> 
          */
         static std::vector<uint8_t> readFromAddress(std::string path, off_t address_start, off_t size, Logger& logger);
@@ -215,8 +220,9 @@ class MemoryManager
         /**
          * @brief Method to write data in a specific file. This is a static method.
          * 
-         * @param data 
-         * @param path_file 
+         * @param data
+         * @param path_file
+         * @param logger
          * @return true or false
          */
         static bool writeToFile(std::vector<uint8_t> &data, std::string path_file, Logger& logger);

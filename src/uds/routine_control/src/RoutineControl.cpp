@@ -1,5 +1,6 @@
 #include "../include/RoutineControl.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
 RoutineControl::RoutineControl(int socket, Logger& rc_logger) 
@@ -22,23 +23,59 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     {
         /* Incorrect message length or invalid format - prepare a negative response */
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::IMLOIF);
+        if (lowerbits == 0x10)
+        {
+            MCU::mcu->stop_flags[0x31] = false;
+        } else if (lowerbits == 0x11)
+        {
+            battery->stop_flags[0x31] = false;
+        } else if (lowerbits == 0x12)
+        {
+            engine->stop_flags[0x31] = false;
+        }
         return;
     }
     else if (request[2] < 0x01 || request [2] > 0x03)
     {
         /* Sub Function not supported - prepare a negative response */
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SFNS);
+        if (lowerbits == 0x10)
+        {
+            MCU::mcu->stop_flags[0x31] = false;
+        } else if (lowerbits == 0x11)
+        {
+            battery->stop_flags[0x31] = false;
+        } else if (lowerbits == 0x12)
+        {
+            engine->stop_flags[0x31] = false;
+        }
         return;
     }
-    else if (!SecurityAccess::getMcuState())
+    else if (lowerbits == 0x10 && !SecurityAccess::getMcuState(rc_logger))
     {
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
+        MCU::mcu->stop_flags[0x31] = false;
+    }
+    else if (lowerbits == 0x11 && !ReceiveFrames::getBatteryState())
+    {
+        nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
+        battery->stop_flags[0x31] = false;
     }
     /* when our identifiers will be defined, this range should be smaller */
     else if (routine_identifier < 0x0100 || routine_identifier > 0xEFFF)
     {
         /* Request Out of Range - prepare a negative response */
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::ROOR);
+        if (lowerbits == 0x10)
+        {
+            MCU::mcu->stop_flags[0x31] = false;
+        } else if (lowerbits == 0x11)
+        {
+            battery->stop_flags[0x31] = false;
+        } else if (lowerbits == 0x12)
+        {
+            engine->stop_flags[0x31] = false;
+        }
         return;
     }
     else
@@ -53,7 +90,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
         else if (access((std::string(PROJECT_PATH) + "/main_battery_new").c_str(), F_OK) == 0 && lowerbits == 0x11) {
             path_to_main = std::string(PROJECT_PATH) + "/main_battery_new";
             command = "./../../../config/installUpdates.sh";
-            MemoryManager* managerInstance = MemoryManager::getInstance(0x0801, "/dev/loop25", rc_logger);
+            MemoryManager* managerInstance = MemoryManager::getInstance(0x0801, DEV_LOOP, rc_logger);
             managerInstance->getAddress();
         }
         else if (access((std::string(PROJECT_PATH) + "/main_doors_new").c_str(), F_OK) == 0 && lowerbits == 0x12) {
@@ -96,7 +133,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 LOG_INFO(rc_logger.GET_LOGGER(), "writeToFile routine called.");
                 binary_data = MemoryManager::readBinary(path_to_main, rc_logger);
                 memory_manager = MemoryManager::getInstance(rc_logger); 
-                adress_data = MemoryManager::readFromAddress("/dev/loop25", memory_manager->getAddress(), binary_data.size(), rc_logger);
+                adress_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), binary_data.size(), rc_logger);
                 MemoryManager::writeToFile(adress_data, selectEcuPath(can_id), rc_logger);
                 routineControlResponse(can_id, request, routine_identifier);
                 break;

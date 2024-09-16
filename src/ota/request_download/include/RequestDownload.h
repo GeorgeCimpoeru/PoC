@@ -38,18 +38,17 @@ class RequestDownloadService
 {
 public:
     static constexpr uint8_t RDS_SID = 0x34;
-    Logger RDSlogger;
     /**
      * @brief Construct a new Request Download Service object
      * 
-     * @param RDSlogger 
+     * @param RDSlogger A logger instance used to record information and errors during the execution.
      */
     RequestDownloadService(Logger &RDSlogger);
     /**
      * @brief Construct a new Request Download Service object
      * 
-     * @param socket 
-     * @param RDSlogger 
+     * @param socket The socket descriptor used for communication over the CAN bus.
+     * @param RDSlogger A logger instance used to record information and errors during the execution.
      */
     RequestDownloadService(int socket, Logger &RDSlogger);
     /**
@@ -60,35 +59,33 @@ public:
     /**
      * @brief Request download method to validate and prepare the system to receive data
      * 
-     * @param id 
+     * @param id An unique identifier.
      * @param stored_data 
      */
     void requestDownloadRequest(canid_t id, std::vector<uint8_t> stored_data);
     /**
      * @brief Response method from manual Request Download service to start the download in MCU
      * 
-     * @param id 
-     * @param max_number_block 
+     * @param id An unique identifier.
+     * @param memory_address Starting address of the memory where the data needs to be written.
+     * @param max_number_block Used while sending a positive response to tell the number of data bytes to consider.
      */
     void requestDownloadResponse(canid_t id, int memory_address, int max_number_block);
 
 private:
     int socket = -1;
+    Logger& RDSlogger;
+
     GenerateFrames generate_frames;
     /**
      * @brief Method for validation of the provided memory address and size, ensuring they are within acceptable bounds and logical ranges.
      *
-     * @param memory_address
-     * @param memory_size
+     * @param id An unique identifier.
+     * @param memory_address Starting address of the memory where the data needs to be written.
+     * @param memory_size Indicates the number of bytes in the block that needs to be downloaded in the server’s flash memory.
      * @return true
      */
     bool isValidMemoryRange(const int &memory_address, const int &memory_size);
-    /**
-     * @brief Method to authenticate the download request based on the provided identifiers
-     * 
-     * @return true 
-     */
-    bool isRequestAuthenticated();
     /**
      * @brief Method to check last software version
      * 
@@ -99,46 +96,47 @@ private:
     /**
      * @brief Extract size and address
      * 
-     * @param stored_data 
-     * @param length_memory_address 
-     * @param length_memory_size 
+     * @param stored_data A vector used to store the data received in the service request.
+     * @param length_memory_address The length of the memory address field in the stored_data.
+     * @param length_memory_size The length of the memory size field in the stored_data.
      * @return std::pair<int,int> 
      */
     std::pair<int,int> extractSizeAndAddress( std::vector<uint8_t> stored_data, uint8_t length_memory_address, uint8_t length_memory_size );
     /**
      * @brief Extract size and address length
      * 
-     * @param stored_data 
+     * @param stored_data A vector used to store the data received in the service request.
      * @return std::pair<int,int> 
      */
     std::pair<int,int> extractSizeAndAddressLength(canid_t id, std::vector<uint8_t> stored_data);
     /**
      * @brief Response to request download
      * 
-     * @param receiver_id 
-     * @param memory_address 
-     * @param max_number_block 
+     * @param receiver_id The receiver identifier.
+     * @param memory_address Starting address of the memory where the data needs to be written.
+     * @param max_number_block Used while sending a positive response to tell the number of data bytes to consider.
      */
     void requestDownloadAutomatic(canid_t receiver_id, int memory_address, int max_number_block);
     /**
      * @brief Method to calculate max_number_block
      * 
+     * @param memory_size Indicates the number of bytes in the block that needs to be downloaded in the server’s flash memory.
      * @return int 
      */
     int calculate_max_number_block(int memory_size);
     /**
      * @brief Method to read frame from can bus
      * 
-     * @param id 
-     * @param sid 
+     * @param id An unique identifier.
+     * @param sid Request download service id.
      * @return can_frame* 
      */
     can_frame* read_frame(int id, uint8_t sid);
     /**
      * @brief Method to download data in ECU
      * 
-     * @param id 
-     * @param memory_address 
+     * @param id An unique identifier.
+     * @param memory_address Starting address of the memory where the data needs to be written.
      * @return true 
      */
     void downloadInEcu(int id, int memory_address);
@@ -146,16 +144,17 @@ private:
     /**
      * @brief Method for downloading software version from google drive.
      * 
-     * @param version_file_id 
+     * @param ecu_id The identifier of ECU.
+     * @param sw_version The software version.
      */
     void downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_version);
 
     /**
      * @brief Method to extract the zipped file.
      * 
-     * @param target_id targeted ecu for file unzipping.
-     * @param zipFilePath path to zip file
-     * @param outputDir path for the extracted file
+     * @param target_id Targeted ecu for file unzipping.
+     * @param zipFilePath Path to zip file.
+     * @param outputDir Path for the extracted file.
      */
     bool extractZipFile(uint8_t target_id, const std::string &zipFilePath, const std::string &outputDir);
 };

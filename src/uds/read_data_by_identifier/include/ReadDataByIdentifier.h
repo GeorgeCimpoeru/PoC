@@ -16,6 +16,9 @@
 #include <vector>
 #include <unordered_map>
 #include <bitset>
+#include <fstream>
+#include <sstream>
+#include <string>
 
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../utils/include/Logger.h"
@@ -29,12 +32,16 @@ class ReadDataByIdentifier
     static constexpr uint8_t RDBI_SERVICE_ID = 0x22;
     /**
     * @brief Default constructor
+    * 
+    * @param socket The socket descriptor used for communication over the CAN bus.
+    * @param rdbi_logger A logger instance used to record information and errors during the execution.
     */
-    ReadDataByIdentifier(int socket, Logger* rdbi_logger);
+    ReadDataByIdentifier(int socket, Logger& rdbi_logger);
     /**
     * @brief Method that retrieves some data based on a DID.
+    * 
     * @param can_id The frame id.
-    * @param request Data from a can frame that contains PCI, SID and DID
+    * @param request Data from a can frame that contains PCI, SID and DID.
     * @param use_send_frame true if you want to send a response frame, false if you need only the return
     */
     std::vector<uint8_t> readDataByIdentifier(canid_t can_id, const std::vector<uint8_t>& request, bool use_send_frame);

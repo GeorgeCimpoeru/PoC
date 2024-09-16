@@ -1,5 +1,3 @@
-import React from 'react';
-
 const InputsLoginPage = () => {
     return (
         <div className="text-center md:text-left flex-grow">

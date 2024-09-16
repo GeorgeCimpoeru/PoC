@@ -1,109 +1,72 @@
 #include "../include/TesterPresent.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
-TesterPresent::TesterPresent(Logger* logger, DiagnosticSessionControl* sessionControl, int socket, int timeout_duration)
+TesterPresent::TesterPresent(int socket, Logger& logger,  DiagnosticSessionControl& sessionControl)
+                :  socket(socket), logger(logger),generate_frames(socket, logger),
+                sessionControl(sessionControl)
+{}
+std::chrono::steady_clock::time_point TesterPresent::end_time =
+        std::chrono::steady_clock::now() + std::chrono::hours(24 * 365);
+
+uint32_t TesterPresent::time_left = 0;
+
+std::chrono::steady_clock::time_point TesterPresent::getEndTimeProgrammingSession()
 {
-    this->logger = logger;
-    this->sessionControl = sessionControl;
-    this->timeout_duration = timeout_duration;
-    this->socket = socket;
-    this->generate = new GenerateFrames(socket, *logger);
-    startTimerThread();
+    return end_time;
 }
-
-TesterPresent::TesterPresent()
+void TesterPresent::stopAccessTimingFlags(uint32_t can_id)
 {
-
-}
-
-TesterPresent::~TesterPresent()
-{
-    stopTimerThread();
-    delete this->generate;
-}
-
-void TesterPresent::handleTesterPresent(uint32_t can_id, std::vector<uint8_t> data)
-{
-    if (data.size() != 3)
+    uint8_t receiver_id = can_id & 0xFF;;
+    if (receiver_id == 0x10)
     {
-        LOG_ERROR(logger->GET_LOGGER(), "Incorrect message length");
-        this->generate->negativeResponse(can_id, 0x3E, 0x13);
+        MCU::mcu->stop_flags[0x3E] = false;
+    }
+    else if (receiver_id == 0x11)
+    {
+        battery->stop_flags[0x3E] = false;
+    }
+}
+
+void TesterPresent::setEndTimeProgrammingSession()
+{
+    end_time = std::chrono::steady_clock::now() + std::chrono::hours(24 * 365);
+}
+
+void TesterPresent::handleTesterPresent(uint32_t can_id, std::vector<uint8_t> request)
+{
+    uint8_t lowerbits = can_id & 0xFF;
+    uint8_t upperbits = can_id >> 8 & 0xFF;
+    uint32_t can_id_response;
+    NegativeResponse nrc(socket, logger);
+
+    /* Reverse ids */
+    can_id_response = ((lowerbits << 8) | upperbits);
+    if ((request.size() != 3) ||
+        (request.size() != static_cast<size_t>(request[0] + 1)))
+    {
+        nrc.sendNRC(can_id_response,TESTER_PRESENT_SID,NegativeResponse::IMLOIF);
+        stopAccessTimingFlags(can_id);
         return;
     }
-
-    uint8_t sub_function = data[2];
-
-    if (sub_function != 0x00)
+    uint8_t sf = request[2];
+    /* Subfunction not supported, we use only 00 subfunction */
+    if (sf != 0x00)
     {
-        LOG_ERROR(logger->GET_LOGGER(), "Sub-function not supported");
-        this->generate->negativeResponse(can_id, 0x3E, 0x12);
+        nrc.sendNRC(can_id_response,TESTER_PRESENT_SID,NegativeResponse::SFNS);
+        stopAccessTimingFlags(can_id);
         return;
     }
-
-    LOG_INFO(logger->GET_LOGGER(), "Tester Present Service Received");
-
-    uint8_t receiver_id = can_id & 0xFF;
-    switch(receiver_id)
+    /* Send positive response from tester present */
+    generate_frames.testerPresent(can_id_response, true);
+    stopAccessTimingFlags(can_id);
+    if(DiagnosticSessionControl::getCurrentSessionToString() == "DEFAULT_SESSION")
     {
-        case 0x10:
-            /* Send response frame */
-            this->generate->testerPresent(can_id, true);
-            LOG_INFO(logger->GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x3E);
-            MCU::mcu->stop_flags[0x3E] = false;
-            break;
-        case 0x11:
-            /* Send response frame */
-            this->generate->testerPresent(can_id, true);
-            LOG_INFO(logger->GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x3E);
-            battery->stop_flags[0x3E] = false;
-            break;
-        default:
-            LOG_ERROR(logger->GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
+        /* Change default session to programming session */
+        sessionControl.sessionControl(can_id, 0x02);
+        LOG_INFO(logger.GET_LOGGER(), "Default session changed into programming session");
     }
-
-    /* Reset the S3 timer */
-    running = false;
-    startTimerThread();
-
-    if (sessionControl->getCurrentSession() != DEFAULT_SESSION)
-    {
-        LOG_INFO(logger->GET_LOGGER(), "Session maintained. Current session: {}", sessionControl->getCurrentSessionToString());
-    }
-}
-
-void TesterPresent::startTimerThread()
-{
-    running = true;
-    timerThread = std::thread(&TesterPresent::timerFunction, this);
-}
-
-void TesterPresent::stopTimerThread()
-{
-    running = false;
-    if (timerThread.joinable())
-    {
-        timerThread.join();
-    }
-}
-
-void TesterPresent::timerFunction()
-{
-    auto start = std::chrono::system_clock::now();
-    while (running)
-    {
-        auto now = std::chrono::system_clock::now();
-        std::chrono::duration<double> elapsed_seconds = now - start;
-
-        if (elapsed_seconds.count() >= timeout_duration)
-        {
-            LOG_WARN(logger->GET_LOGGER(), "S3 timer expired. Returning to default session.");
-            
-            /* Handle returning to default session here */
-            sessionControl->sessionControl(0x3E, 0x01);
-
-            running = false;
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
+    end_time = std::chrono::steady_clock::now() + 
+        std::chrono::seconds(S3_TIMER);
 }

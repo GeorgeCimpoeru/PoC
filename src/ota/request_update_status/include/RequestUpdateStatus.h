@@ -49,7 +49,7 @@
 #define NEGATIVE_RESPONSE 0x7F
 #define REQUEST_OUT_OF_RANGE 0x31
 
-#define MCU_ID 0x10
+#define MCU_ID ((uint8_t)0x10)
 #define API_ID 0xFA
 
 /**
@@ -94,6 +94,7 @@ private:
 	Logger rus_logger;
 public:
 	int socket = -1;
+	Logger& _logger;
 	RequestUpdateStatus(int socket, Logger& logger);
 	/**
 	 * @brief Service method. Receive a request for reading Ota Update Status.
@@ -101,15 +102,16 @@ public:
 	 * 	Gets the response from the service directly through return, not from can-bus.
 	 * 	Sends the response back to the initial sender.
 	 * 
-	 * @param[i] frame_id 
-	 * @param[i] frame_data 
+	 * @param[in] frame_id The id of the received frame. 
+	 * @param[in] frame_data Data of the frame.
+	 * @return std::vector<uint8_t>
 	 */
 	std::vector<uint8_t> requestUpdateStatus(canid_t frame_id, std::vector<uint8_t> frame_data);
 
 	/**
 	 * @brief Method used for checking if a 8 bit number represents a valid OTA status.
 	 * 
-	 * @param[i] status 
+	 * @param[in] status Represents the current OTA update status.
 	 * @return true 
 	 * @return false 
 	 */
