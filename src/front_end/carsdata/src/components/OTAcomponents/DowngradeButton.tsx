@@ -19,7 +19,7 @@ const DowngradeButton = () => {
 
     const handleDowngrade = async (version: string) => {
         try {
-            const response = await fetch('http://127.0.0.1:5000/api/downgrade_to_version', {
+            const response = await fetch(`http://127.0.0.1:5000/api/downgrade_to_version`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -57,7 +57,7 @@ const DowngradeButton = () => {
     const closePopup = () => setIsPopupVisible(false);
 
     return (
-        <div>
+        <div className="m-1">
             <Button
                 type="default"
                 danger
