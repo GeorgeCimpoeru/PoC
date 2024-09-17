@@ -108,6 +108,22 @@ namespace MCU
          */
         void writeDataToFile();
 
+        /**
+         * @brief Set the Did Value object
+         * 
+         * @param did 
+         * @param value 
+         */
+        void setDidValue(const uint16_t did, const std::vector<uint8_t>& value);
+
+        /**
+         * @brief Get the Did Value object
+         * 
+         * @param did 
+         * @return std::vector<uint8_t> 
+         */
+        std::vector<uint8_t> getDidValue(const uint16_t did) const;
+
     private:
         bool is_running;
         CreateInterface* create_interface;

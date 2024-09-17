@@ -173,4 +173,22 @@ namespace MCU
         }
         outfile.close();
     }
+
+    void MCUModule::setDidValue(const uint16_t did, const std::vector<uint8_t>& value)
+    {
+        auto did_it = default_DID_MCU.find(did);
+
+        if(did_it == default_DID_MCU.end())
+        {
+            LOG_WARN(MCULogger->GET_LOGGER(), "DID {} not found when trying to set value", did);
+            return;
+        }
+        did_it->second = value;
+        writeDataToFile();
+    }
+
+    std::vector<uint8_t> MCUModule::getDidValue(const uint16_t did) const
+    {
+        return default_DID_MCU.at(did);
+    }
 }
