@@ -125,6 +125,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 /* Install updates */
                 /* call installUpdates routine*/
                 LOG_INFO(rc_logger.GET_LOGGER(), "installUpdates routine called.");
+                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE});
                 system(command.c_str());
                 routineControlResponse(can_id, request, routine_identifier);
                 break;
@@ -136,6 +137,43 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 adress_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), binary_data.size(), rc_logger);
                 MemoryManager::writeToFile(adress_data, selectEcuPath(can_id), rc_logger);
                 routineControlResponse(can_id, request, routine_identifier);
+                break;
+            case 0x0401:
+                /* Initialise OTA Update */
+                LOG_INFO(rc_logger.GET_LOGGER(), "Initialise OTA update routine called.");
+                if(initialiseOta() == true)
+                {
+                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {INIT});
+                }
+                else
+                {
+                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {IDLE});
+                }
+                break;
+            case 0x0501:
+                LOG_INFO(rc_logger.GET_LOGGER(), "Verify installation routine called.");
+                if(verifySoftware() == true)
+                {
+                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {VERIFY_COMPLETE});
+                }
+                else
+                {
+                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {VERIFY_FAILED});
+                }
+                break;
+            case 0x0601:
+                LOG_INFO(rc_logger.GET_LOGGER(), "Rollback routine called.");
+                break;
+            case 0x0701:
+                LOG_INFO(rc_logger.GET_LOGGER(), "Activate software routine called.");
+                if(activateSoftware() == true)
+                {
+                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_COMPLETE});
+                }
+                else
+                {
+                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_FAILED});
+                }
                 break;
             default:
                 LOG_INFO(rc_logger.GET_LOGGER(), "Unknown routine.");
@@ -212,4 +250,14 @@ std::string RoutineControl::selectEcuPath(canid_t can_id)
             break;
         }
     return "no path found";
+}
+
+bool RoutineControl::initialiseOta()
+{
+    return true;
+}
+
+bool RoutineControl::verifySoftware()
+{
+    return true;
 }

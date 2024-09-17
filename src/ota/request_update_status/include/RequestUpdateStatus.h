@@ -82,7 +82,9 @@ typedef enum OtaUpdateStatesEnum
     WAIT_DOWNLOAD_COMPLETED = 0x41,        /* The FOTA Handler has successfully processed the last received data chunk, returned the Dcm callout function, and is waiting for the next data chunk */
     WAIT_DOWNLOAD_FAILED = 0x42,        /* The FOTA Handler has successfully processed the last received data chunk, returned the Dcm callout function, and is waiting for the next data chunk */	
 	VERIFY = 0x50,      /* Optional and implementer specific step, since the FOTA Target does not specify  any details on the verification process */
-    ACTIVATE = 0x60,    /* FOTA installation has finished and received a respective service job from the FOTA Master that indicates the partition switch during the next boot process */
+	VERIFY_COMPLETE = 0x51,      /* Optional and implementer specific step, since the FOTA Target does not specify  any details on the verification process */
+	VERIFY_FAILED = 0x52,      /* Optional and implementer specific step, since the FOTA Target does not specify  any details on the verification process */
+	ACTIVATE = 0x60,    /* FOTA installation has finished and received a respective service job from the FOTA Master that indicates the partition switch during the next boot process */
     ACTIVATE_INSTALL_COMPLETE = 0x61,    /* FOTA installation has finished and received a respective service job from the FOTA Master that indicates the partition switch during the next boot process */
     ACTIVATE_INSTALL_FAILED = 0x62,    /* FOTA installation has finished and received a respective service job from the FOTA Master that indicates the partition switch during the next boot process */
 	ERROR = 0x70       /* Optional and implementer specific. Reserved state for e.g., implementer specific error handling, which is not (yet) covered by the FOTA Target */

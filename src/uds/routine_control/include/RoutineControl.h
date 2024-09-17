@@ -51,6 +51,23 @@ class RoutineControl
     * @param can_id The frame id.
     * @return Returns a path string
     */
+
+    /**
+     * @brief 
+     * 
+     * @return true 
+     * @return false 
+     */
+    bool initialiseOta();
+
+    /**
+     * @brief 
+     * 
+     * @return true 
+     * @return false 
+     */
+    bool activateSoftware();
+    
     std::string selectEcuPath(canid_t can_id);
     private:
     GenerateFrames generate_frames;

@@ -14,6 +14,7 @@ uint8_t TransferData::expected_block_sequence_number = 0x01;  /* Start from 1 */
 /* frame format = {PCI_L, SID(0x36), block_sequence_counter, transfer_request_parameter_record}*/
 void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_request)
 {
+    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING});
     NegativeResponse nrc(socket, transfer_data_logger);
     uint8_t block_sequence_counter = transfer_request[2];
     std::vector<uint8_t> response;
@@ -29,12 +30,14 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
     {
         /* Incorrect message length or invalid format - prepare a negative response */
         nrc.sendNRC(can_id, TD_SID, NegativeResponse::IMLOIF);
+        MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_FAILED});
         return;
     }
     else if (expected_block_sequence_number != block_sequence_counter)
     {
         /* Wrong block sequence counter - prepare a negative response */
         nrc.sendNRC(can_id, TD_SID, NegativeResponse::WBSC);
+        MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_FAILED});
         return;
     }
     else
@@ -59,6 +62,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
         else
         {
             nrc.sendNRC(can_id, TD_SID, NegativeResponse::TDS);
+            MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_FAILED});
             return;
         }
 
@@ -70,6 +74,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
         if(write_success == false)
         {
             nrc.sendNRC(can_id, TD_SID, NegativeResponse::TDS);
+            MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_FAILED});
             return;
         }
         else
@@ -82,6 +87,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
             response.push_back(block_sequence_counter); /* block_sequence_counter */
             /* Send the postive response frame */ 
             generate_frames.sendFrame(can_id, response);
+            MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_COMPLETE});
             /* send request for TransferExit */
             /* generate_frames.requestTransferExit(); */
 
