@@ -67,6 +67,14 @@ class RoutineControl
      * @return false 
      */
     bool activateSoftware();
+
+    /**
+     * @brief 
+     * 
+     * @return true 
+     * @return false 
+     */
+    bool verifySoftware();
     
     std::string selectEcuPath(canid_t can_id);
     private:

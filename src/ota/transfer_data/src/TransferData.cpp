@@ -1,4 +1,5 @@
 #include "../include/TransferData.h"
+#include "../../../src/mcu/include/MCUModule.h"
 
 TransferData::TransferData(int socket, Logger transfer_data_logger)
                 : transfer_data_logger(transfer_data_logger), 

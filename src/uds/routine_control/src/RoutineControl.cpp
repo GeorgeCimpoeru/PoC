@@ -257,6 +257,10 @@ bool RoutineControl::initialiseOta()
     return true;
 }
 
+bool RoutineControl::activateSoftware()
+{
+    return true;
+}
 bool RoutineControl::verifySoftware()
 {
     return true;
