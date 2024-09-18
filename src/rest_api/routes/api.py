@@ -10,12 +10,12 @@ from actions.read_info_action import *  # noqa: E402
 from utils.logger import log_memory  # noqa: E402
 from actions.manual_send_frame import manual_send_frame  # noqa: E402
 from actions.write_info_action import WriteInfo  # noqa: E402
-from src.ota.google_drive_api.GoogleDriveApi import gDrive  # noqa: E402
+# from src.ota.google_drive_api.GoogleDriveApi import gDrive  # noqa: E402
 from actions.secure_auth import Auth  # noqa: E402
 from actions.dtc_info import DiagnosticTroubleCode  # noqa: E402
 from actions.diag_session import SessionManager  # noqa: E402
 from actions.tester_present import Tester  # noqa: E402
-from actions.access_timing_action import ReadAccessTiming  # noqa: E402
+from actions.access_timing_action import *  # noqa: E402
 from actions.ecu_reset import Reset  # noqa: E402
 
 api_bp = Blueprint('api', __name__)
@@ -94,10 +94,10 @@ def get_logs():
 
 
 # Google Drive API Endpoints
-@api_bp.route('/drive_update_data', methods=['GET'])
-def update_drive_data():
-    drive_data_json = gDrive.getDriveData()
-    return jsonify(drive_data_json)
+# @api_bp.route('/drive_update_data', methods=['GET'])
+# def update_drive_data():
+#     drive_data_json = gDrive.getDriveData()
+#     return jsonify(drive_data_json)
 
 
 @api_bp.route('/authenticate', methods=['GET'])
@@ -194,3 +194,25 @@ def reset_module():
     reseter = Reset(API_ID, [0x10, 0x11, 0x12])
     response = reseter.reset_ecu(wh_id, type_reset)
     return jsonify(response)
+
+
+@api_bp.route('/write_timing', methods=['POST'])
+def write_timing():
+    data = request.get_json()
+
+    if not data or 'p2_max' not in data or 'p2_star_max' not in data:
+        return jsonify({"status": "error", "message": "Missing required parameters"}), 400
+
+    p2_max = data.get('p2_max')
+    p2_star_max = data.get('p2_star_max')
+
+    timing_values = {
+        "p2_max": p2_max,
+        "p2_star_max": p2_star_max
+    }
+
+    writer = WriteAccessTiming(API_ID, [0x10, 0x11, 0x12])
+    result = writer._write_timing_info(id, timing_values)
+
+    return jsonify(result)
+

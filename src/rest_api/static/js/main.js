@@ -199,6 +199,7 @@ function get_tester_pres() {
 function get_data_ids() {
     performApiRequest('/api/get_identifiers', 'GET');
 }
+
 function readTimingInfo() {
     const input = prompt('Enter sub-function code:');
     if (input === null) {
@@ -215,11 +216,39 @@ function readTimingInfo() {
     performApiRequest('/api/read_access_timing', 'POST', { sub_funct: sub_funct });
 }
 
-
 function resetECU() {
     const data = {
         type: prompt('Enter type of reset(soft or hard):') || null,
         ecu_id: prompt('Enter ECU ID(from 10 to 12):') || null,
     };
     performApiRequest('/api/reset_ecu', 'POST', data);
+}
+
+function writeTimingInfo() {
+    const p2Max = prompt('Enter value for P2 Max Time:');
+    if (p2Max === null) {
+        alert('Operation cancelled.');
+        return;
+    }
+
+    const p2StarMax = prompt('Enter value for P2 Star Max Time:');
+    if (p2StarMax === null) {
+        alert('Operation cancelled.');
+        return;
+    }
+
+    const parsedP2Max = parseInt(p2Max, 10);
+    const parsedP2StarMax = parseInt(p2StarMax, 10);
+
+    if (isNaN(parsedP2Max) || isNaN(parsedP2StarMax)) {
+        alert('Invalid input. Please enter numeric values.');
+        return;
+    }
+
+    const data = {
+        p2_max: parsedP2Max,
+        p2_star_max: parsedP2StarMax
+    };
+
+    performApiRequest('/api/write_timing', 'POST', data);
 }
