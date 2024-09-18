@@ -1,6 +1,8 @@
 #include "../include/ReceiveFrames.h"
 #include "../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../ecu_simulation/EngineModule/include/EngineModule.h"
+#include "../../ecu_simulation/DoorsModule/include/DoorsModule.h"
+#include "../../ecu_simulation/HVACModule/include/HVACModule.h"
 bool ReceiveFrames::battery_state = false;
 bool ReceiveFrames::engine_state = false;
 bool ReceiveFrames::doors_state = false;
@@ -291,6 +293,21 @@ void ReceiveFrames::startTimer(uint8_t frame_dest_id, uint8_t sid) {
         });
         break;
     case 0x13:
+        doors->timing_parameters[sid] = start_time.time_since_epoch().count();
+
+        // Initialize stop flag for this SID
+        doors->stop_flags[sid] = true;
+
+        doors->active_timers[sid] = std::async(std::launch::async, [sid, this, start_time, timer_value, frame_dest_id]() {
+            while (doors->stop_flags[sid]) {
+                auto now = std::chrono::steady_clock::now();
+                std::chrono::duration<double> elapsed = now - start_time;
+                if (elapsed.count() > timer_value / 20.0) {
+                    stopTimer(frame_dest_id, sid);
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
+        });
         break;
     case 0x14:
         break;

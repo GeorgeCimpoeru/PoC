@@ -69,6 +69,13 @@ public:
      * 
      */
     void ecuResetResponse();
+
+    /**
+     * @brief Stop the processing timer for the module with an id equal to the receiver id
+     * 
+     * @param receiver_id 
+     */
+    void stopTimingFlag(uint8_t receiver_id );
 };
 
 #endif /* ECU_RESET_H */ 

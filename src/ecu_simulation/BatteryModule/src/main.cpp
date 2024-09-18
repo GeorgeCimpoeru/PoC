@@ -10,7 +10,6 @@ int main() {
     std::thread receiveFrThread([]()
                                { battery->receiveFrames(); });
     sleep(200);
-    battery->stopFrames();
     receiveFrThread.join();
     return 0;
 }

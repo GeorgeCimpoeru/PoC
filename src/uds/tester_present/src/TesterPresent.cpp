@@ -1,6 +1,8 @@
 #include "../include/TesterPresent.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
+#include "../../../ecu_simulation/DoorsModule/include/DoorsModule.h"
+#include "../../../ecu_simulation/HVACModule/include/HVACModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
 TesterPresent::TesterPresent(int socket, Logger& logger,  DiagnosticSessionControl& sessionControl)
@@ -19,13 +21,26 @@ std::chrono::steady_clock::time_point TesterPresent::getEndTimeProgrammingSessio
 void TesterPresent::stopAccessTimingFlags(uint32_t can_id)
 {
     uint8_t receiver_id = can_id & 0xFF;;
-    if (receiver_id == 0x10)
+    switch(receiver_id)
     {
-        MCU::mcu->stop_flags[0x3E] = false;
-    }
-    else if (receiver_id == 0x11)
-    {
-        battery->stop_flags[0x3E] = false;
+        case 0x10:
+            MCU::mcu->stop_flags[0x3E] = false;
+            break;
+        case 0x11:
+            battery->stop_flags[0x3E] = false;
+            break;
+        case 0x12:
+            engine->stop_flags[0x3E] = false;
+            break;
+        case 0x13:
+            doors->stop_flags[0x3E] = false;
+            break;
+        case 0x14:
+            hvac->_ecu->stop_flags[0x3E] = false;
+            break;
+        default:
+            LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
+            break; 
     }
 }
 

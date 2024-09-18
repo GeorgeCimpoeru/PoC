@@ -114,6 +114,9 @@ $(OBJ_DIR)/BatteryModule.o: $(BATTERY_DIR)/BatteryModule.cpp
 $(OBJ_DIR)/HVACModule.o: $(HVAC_DIR)/HVACModule.cpp
 	$(CXX) $(CFLAGS) -c $(HVAC_DIR)/HVACModule.cpp -o $(OBJ_DIR)/HVACModule.o
 
+$(OBJ_DIR)/ECU.o: $(UTILS_DIR)/ECU.cpp
+	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/ECU.cpp -o $(OBJ_DIR)/ECU.o
+
 $(OBJ_DIR)/EngineModule.o: $(ENGINE_DIR)/EngineModule.cpp
 	$(CXX) $(CFLAGS) -c $(ENGINE_DIR)/EngineModule.cpp -o $(OBJ_DIR)/EngineModule.o
 

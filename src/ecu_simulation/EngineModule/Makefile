@@ -22,6 +22,8 @@ UTILS_DIR = ../../utils/src
 UDS_DIR = ../../uds
 MCU_DIR = ../../mcu/src
 BATTERY_DIR = ../BatteryModule/src
+DOORS_DIR = ../DoorsModule/src
+HVAC_DIR = ../HVACModule/src
 OTA_DIR = ../../ota
 OBJ_DIR = obj
 
@@ -37,6 +39,12 @@ BATTERY_OBJS = $(OBJ_DIR)/BatteryModule.o \
 # MCU object files
 MCU_OBJS = $(OBJ_DIR)/MCUModule.o \
 		   $(OBJ_DIR)/MCUModule_ReceiveFrames.o 
+
+# Doors object files
+DOORS_OBJS = $(OBJ_DIR)/DoorsModule.o \
+
+# HVAC object files
+HVAC_OBJS = $(OBJ_DIR)/HVACModule.o \
 		   
 # Utils object files
 UTILS_OBJS = $(OBJ_DIR)/MemoryManager.o \
@@ -45,7 +53,8 @@ UTILS_OBJS = $(OBJ_DIR)/MemoryManager.o \
              $(OBJ_DIR)/CreateInterface.o \
              $(OBJ_DIR)/NegativeResponse.o \
 			 $(OBJ_DIR)/ReceiveFrames.o \
-			 $(OBJ_DIR)/HandleFrames.o
+			 $(OBJ_DIR)/HandleFrames.o \
+			 $(OBJ_DIR)/ECU.o
 
 # UDS object files
 UDS_OBJS = $(OBJ_DIR)/DiagnosticSessionControl.o \
@@ -69,6 +78,8 @@ OTA_OBJS = $(OBJ_DIR)/RequestUpdateStatus.o \
 OBJS = $(MCU_OBJS) \
        $(ENGINE_OBJS) \
 	   $(BATTERY_OBJS) \
+	   $(DOORS_OBJS) \
+	   $(HVAC_OBJS) \
        $(UTILS_OBJS) \
        $(UDS_OBJS) \
        $(OTA_OBJS)
@@ -98,6 +109,15 @@ $(OBJ_DIR)/BatteryModule.o: $(BATTERY_DIR)/BatteryModule.cpp
 
 $(OBJ_DIR)/EngineModule.o: $(SRC_DIR)/EngineModule.cpp
 	$(CXX) $(CFLAGS) -c $(SRC_DIR)/EngineModule.cpp -o $(OBJ_DIR)/EngineModule.o
+
+$(OBJ_DIR)/DoorsModule.o: $(DOORS_DIR)/DoorsModule.cpp
+	$(CXX) $(CFLAGS) -c $(DOORS_DIR)/DoorsModule.cpp -o $(OBJ_DIR)/DoorsModule.o
+
+$(OBJ_DIR)/HVACModule.o: $(HVAC_DIR)/HVACModule.cpp
+	$(CXX) $(CFLAGS) -c $(HVAC_DIR)/HVACModule.cpp -o $(OBJ_DIR)/HVACModule.o
+
+$(OBJ_DIR)/ECU.o: $(UTILS_DIR)/ECU.cpp
+	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/ECU.cpp -o $(OBJ_DIR)/ECU.o
 
 $(OBJ_DIR)/GenerateFrames.o: $(UTILS_DIR)/GenerateFrames.cpp
 	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/GenerateFrames.cpp -o $(OBJ_DIR)/GenerateFrames.o

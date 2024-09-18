@@ -193,6 +193,7 @@ void DoorsModule::writeDataToFile()
 
         /* Delete the old file after reading its contents */
         std::remove(old_file_path.c_str());
+        outfile.close();
     }
     else
     {
@@ -205,6 +206,7 @@ void DoorsModule::writeDataToFile()
             }
             outfile << "\n";
         }
+        fetchDoorsData();
+        outfile.close();
     }
-    outfile.close();
 }

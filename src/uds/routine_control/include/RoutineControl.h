@@ -77,6 +77,14 @@ class RoutineControl
     bool verifySoftware();
     
     std::string selectEcuPath(canid_t can_id);
+
+    /**
+     * @brief Stop the processing timer for the module with an id equal to the receiver id
+     * 
+     * @param receiver_id 
+     */
+    void stopTimingFlag(uint8_t receiver_id );
+
     private:
     GenerateFrames generate_frames;
     int socket = -1;

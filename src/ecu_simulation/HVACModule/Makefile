@@ -24,6 +24,7 @@ UDS_DIR = ../../uds
 MCU_DIR = ../../mcu/src
 BATTERY_DIR = ../BatteryModule/src
 ENGINE_DIR = ../EngineModule/src
+DOORS_DIR = ../DoorsModule/src
 OTA_DIR = ../../ota
 OBJ_DIR = obj
 
@@ -42,6 +43,9 @@ MCU_OBJS = $(OBJ_DIR)/MCUModule.o \
 
 # Engine object files
 ENGINE_OBJS = $(OBJ_DIR)/EngineModule.o \
+
+# Doors object files
+DOORS_OBJS = $(OBJ_DIR)/DoorsModule.o \
 
 # Utils object files
 UTILS_OBJS = $(OBJ_DIR)/MemoryManager.o \
@@ -76,6 +80,7 @@ OBJS = $(MCU_OBJS) \
        $(BATTERY_OBJS) \
 	   $(HVAC_OBJS) \
 	   $(ENGINE_OBJS) \
+	   $(DOORS_OBJS) \
        $(UTILS_OBJS) \
        $(UDS_OBJS) \
        $(OTA_OBJS)
@@ -109,6 +114,9 @@ $(OBJ_DIR)/HVACModule.o: $(SRC_DIR)/HVACModule.cpp
 
 $(OBJ_DIR)/EngineModule.o: $(ENGINE_DIR)/EngineModule.cpp
 	$(CXX) $(CFLAGS) -c $(ENGINE_DIR)/EngineModule.cpp -o $(OBJ_DIR)/EngineModule.o
+
+$(OBJ_DIR)/DoorsModule.o: $(DOORS_DIR)/DoorsModule.cpp
+	$(CXX) $(CFLAGS) -c $(DOORS_DIR)/DoorsModule.cpp -o $(OBJ_DIR)/DoorsModule.o
 
 $(OBJ_DIR)/GenerateFrames.o: $(UTILS_DIR)/GenerateFrames.cpp
 	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/GenerateFrames.cpp -o $(OBJ_DIR)/GenerateFrames.o

@@ -42,6 +42,13 @@ class ClearDtc
          * @param data Data from the frame.
          */
         void clearDtc(int id, std::vector<uint8_t> data);
+
+        /**
+         * @brief Stop the processing timer for the module with an id equal to the receiver id
+         * 
+         * @param receiver_id 
+         */
+        void stopTimingFlag(uint8_t receiver_id );
     private:
         /**
          * @brief Method for extract groupDTC base on the DTC

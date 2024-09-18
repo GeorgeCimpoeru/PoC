@@ -1,6 +1,8 @@
 #include "../include/ClearDtc.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
+#include "../../../ecu_simulation/DoorsModule/include/DoorsModule.h"
+#include "../../../ecu_simulation/HVACModule/include/HVACModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
 ClearDtc::ClearDtc(std::string path_to_dtc, Logger& logger, int socket)
@@ -24,13 +26,7 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
     {
         LOG_ERROR(logger.GET_LOGGER(), "Incorrect message length or invalid format");
         this->generate->negativeResponse(new_id, 0x14, 0x13);
-        if (lowerbits == 0x10) {
-            MCU::mcu->stop_flags[0x14] = false;
-        } else if (lowerbits == 0x11) {
-            battery->stop_flags[0x14] = false;
-        } else if (lowerbits == 0x12) {
-            engine->stop_flags[0x14] = false;
-        }
+        stopTimingFlag(lowerbits);
         return;
     }
 
@@ -39,15 +35,7 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
     {
         LOG_ERROR(logger.GET_LOGGER(), "RequestOutOfRange NRC:Specified Group of DTC parameter is not supported");
         this->generate->negativeResponse(new_id, 0x14, 0x31);
-        if (lowerbits == 0x10)
-        {
-            MCU::mcu->stop_flags[0x14] = false;
-        } else if (lowerbits == 0x11)
-        {
-            battery->stop_flags[0x14] = false;
-        } else if (lowerbits == 0x12) {
-            engine->stop_flags[0x14] = false;
-        }
+        stopTimingFlag(lowerbits);
     }
 
     std::ofstream temp;
@@ -60,29 +48,10 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
         remove(p);
         rename("temp_dtc.txt", p);
 
-        switch(lowerbits)
-        {
-            case 0x10:
-                /* Send response frame */
-                this->generate->clearDiagnosticInformation(new_id,{}, true);
-                LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x14);
-                MCU::mcu->stop_flags[0x14] = false;
-                break;
-            case 0x11:
-                /* Send response frame */
-                this->generate->clearDiagnosticInformation(new_id,{}, true);
-                LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x14);
-                battery->stop_flags[0x14] = false;
-                break;
-            case 0x12:
-                /* Send response frame */
-                this->generate->clearDiagnosticInformation(new_id,{}, true);
-                LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x14);
-                engine->stop_flags[0x14] = false;
-                break;
-            default:
-                LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);
-        }
+        this->generate->clearDiagnosticInformation(new_id,{}, true);
+        LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x14);
+
+        stopTimingFlag(lowerbits);
         return;
     }
 
@@ -99,16 +68,7 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
     {
         LOG_ERROR(logger.GET_LOGGER(), "conditionsNotCorrect NRC: Error trying to open the DTC file");
         this->generate->negativeResponse(new_id, 0x14, 0x22);
-        if (lowerbits == 0x10)
-        {
-            MCU::mcu->stop_flags[0x14] = false;
-        } else if (lowerbits == 0x11)
-        {
-            battery->stop_flags[0x14] = false;
-        } else if (lowerbits == 0x12)
-        {
-            engine->stop_flags[0x14] = false;
-        }
+        stopTimingFlag(lowerbits);
         return;
     }
     std::string line;
@@ -126,29 +86,10 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
     remove(p);
     rename("temp_dtc.txt", p);
 
-    switch(lowerbits)
-    {
-        case 0x10:
-            /* Send response frame */
-            LOG_INFO(logger.GET_LOGGER(), "DTCs cleared succesffuly");
-            this->generate->clearDiagnosticInformation(new_id,{}, true);
-            MCU::mcu->stop_flags[0x14] = false;
-            break;
-        case 0x11:
-            /* Send response frame */
-            LOG_INFO(logger.GET_LOGGER(), "DTCs cleared succesffuly");
-            this->generate->clearDiagnosticInformation(new_id,{}, true);
-            battery->stop_flags[0x14] = false;
-            break;
-        case 0x12:
-            /* Send response frame */
-            LOG_INFO(logger.GET_LOGGER(), "DTCs cleared succesffuly");
-            this->generate->clearDiagnosticInformation(new_id,{}, true);
-            engine->stop_flags[0x14] = false;
-            break;
-        default:
-            LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);
-    }
+    LOG_INFO(logger.GET_LOGGER(), "DTCs cleared succesffuly");
+    this->generate->clearDiagnosticInformation(new_id,{}, true);
+
+    stopTimingFlag(lowerbits);
 }
 
 uint32_t ClearDtc::extractGroup(std::string dtc)
@@ -174,4 +115,29 @@ bool ClearDtc::verifyGroupDtc(uint32_t group_of_dtc)
         }
     }
     return false;
+}
+
+void ClearDtc::stopTimingFlag(uint8_t receiver_id)
+{
+        switch(receiver_id)
+        {
+            case 0x10:
+                MCU::mcu->stop_flags[0x14] = false;
+                break;
+            case 0x11:
+                battery->stop_flags[0x14] = false;
+                break;
+            case 0x12:
+                engine->stop_flags[0x14] = false;
+                break;
+            case 0x13:
+                doors->stop_flags[0x14] = false;
+                break;
+            case 0x14:
+                hvac->_ecu->stop_flags[0x14] = false;
+                break;
+            default:
+                LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
+                break; 
+        }
 }

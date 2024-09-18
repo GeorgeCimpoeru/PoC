@@ -26,6 +26,7 @@
 #include "../../../utils/include/Logger.h"
 #include "../../../utils/include/NegativeResponse.h"
 
+
 #include <linux/can.h>
 #include <cstdlib>
 #include <sys/ioctl.h>
@@ -95,6 +96,13 @@ public:
      * @param p2_star_max_time Maximum time for programming session operations.
      */
     void setTimingParameters(canid_t frame_id, std::vector<uint8_t> data_frame);
+
+    /**
+     * @brief Stop the processing timer for the module with an id equal to the receiver id
+     * 
+     * @param receiver_id 
+     */
+    void stopTimingFlag(uint8_t receiver_id );
     
     /* The default maximum time for the default session in milliseconds */
     static const uint16_t DEFAULT_P2_MAX_TIME;

@@ -1,6 +1,8 @@
 #include "../include/RoutineControl.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
+#include "../../../ecu_simulation/DoorsModule/include/DoorsModule.h"
+#include "../../../ecu_simulation/HVACModule/include/HVACModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
 RoutineControl::RoutineControl(int socket, Logger& rc_logger) 
@@ -23,32 +25,14 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     {
         /* Incorrect message length or invalid format - prepare a negative response */
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::IMLOIF);
-        if (lowerbits == 0x10)
-        {
-            MCU::mcu->stop_flags[0x31] = false;
-        } else if (lowerbits == 0x11)
-        {
-            battery->stop_flags[0x31] = false;
-        } else if (lowerbits == 0x12)
-        {
-            engine->stop_flags[0x31] = false;
-        }
+        stopTimingFlag(lowerbits);
         return;
     }
     else if (request[2] < 0x01 || request [2] > 0x03)
     {
         /* Sub Function not supported - prepare a negative response */
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SFNS);
-        if (lowerbits == 0x10)
-        {
-            MCU::mcu->stop_flags[0x31] = false;
-        } else if (lowerbits == 0x11)
-        {
-            battery->stop_flags[0x31] = false;
-        } else if (lowerbits == 0x12)
-        {
-            engine->stop_flags[0x31] = false;
-        }
+        stopTimingFlag(lowerbits);
         return;
     }
     else if (lowerbits == 0x10 && !SecurityAccess::getMcuState(rc_logger))
@@ -61,21 +45,27 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
         battery->stop_flags[0x31] = false;
     }
+    else if (lowerbits == 0x12 && !ReceiveFrames::getEngineState())
+    {
+        nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
+        engine->stop_flags[0x31] = false;
+    }
+    else if (lowerbits == 0x13 && !ReceiveFrames::getDoorsState())
+    {
+        nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
+        doors->stop_flags[0x31] = false;
+    }
+    else if (lowerbits == 0x14 && !ReceiveFrames::getHvacState())
+    {
+        nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
+        hvac->_ecu->stop_flags[0x31] = false;
+    }
     /* when our identifiers will be defined, this range should be smaller */
     else if (routine_identifier < 0x0100 || routine_identifier > 0xEFFF)
     {
         /* Request Out of Range - prepare a negative response */
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::ROOR);
-        if (lowerbits == 0x10)
-        {
-            MCU::mcu->stop_flags[0x31] = false;
-        } else if (lowerbits == 0x11)
-        {
-            battery->stop_flags[0x31] = false;
-        } else if (lowerbits == 0x12)
-        {
-            engine->stop_flags[0x31] = false;
-        }
+        stopTimingFlag(lowerbits);
         return;
     }
     else
@@ -185,42 +175,11 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
 void RoutineControl::routineControlResponse(canid_t can_id, const std::vector<uint8_t>& request, const uint16_t& routine_identifier)
 {
     uint8_t receiver_id = can_id >> 8 & 0xFF;
-    switch(receiver_id)
-        {
-            case 0x10:
-                /* Send response frame to MCU */
-                generate_frames.routineControl(can_id, request[2], routine_identifier, true);
-                LOG_INFO(rc_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame for routine: {:2x}", 0x31, routine_identifier);
-                MCU::mcu->stop_flags[0x31] = false;
-                break;
-            case 0x11:
-                /* Send response frame to Battery */
-                generate_frames.routineControl(can_id, request[2], routine_identifier, true);
-                LOG_INFO(rc_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame for routine: {:2x}", 0x31, routine_identifier);
-                battery->stop_flags[0x31] = false;
-                break;
-            case 0x12:
-                /* Send response frame to Doors */
-                generate_frames.routineControl(can_id, request[2], routine_identifier, true);
-                LOG_INFO(rc_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame for routine: {:2x}", 0x31, routine_identifier);
-                /* doors->stop_flags[0x31] = false; */
-                break;
-            case 0x13:
-                /* Send response frame to Engine */
-                generate_frames.routineControl(can_id, request[2], routine_identifier, true);
-                LOG_INFO(rc_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame for routine: {:2x}", 0x31, routine_identifier);
-                /* engine->stop_flags[0x31] = false; */
-                break;
-            case 0x14:
-                /* Send response frame to HVAC*/
-                generate_frames.routineControl(can_id, request[2], routine_identifier, true);
-                LOG_INFO(rc_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame for routine: {:2x}", 0x31, routine_identifier);
-                /* hvac->stop_flags[0x31] = false; */
-                break;
-            default:
-                LOG_ERROR(rc_logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
-                break;
-        }
+
+    generate_frames.routineControl(can_id, request[2], routine_identifier, true);
+    LOG_INFO(rc_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame for routine: {:2x}", 0x31, routine_identifier);
+                
+    stopTimingFlag(receiver_id);
 }
 
 std::string RoutineControl::selectEcuPath(canid_t can_id)

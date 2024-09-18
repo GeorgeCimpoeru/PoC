@@ -98,7 +98,8 @@ void EngineModule::fetchEngineData()
         std::stringstream data_ss;
         for (auto& byte : data)
         {
-            byte = dist(gen);  // Generate a random value between 0 and 255
+            byte = dist(gen);  
+            /* Generate a random value between 0 and 255 */
             data_ss << std::hex << std::setw(2) << std::setfill('0') << std::uppercase << static_cast<int>(byte) << " ";
         }
         updated_values[did] = data_ss.str();
@@ -205,6 +206,7 @@ void EngineModule::writeDataToFile()
 
         /* Delete the old file after reading its contents */
         std::remove(old_file_path.c_str());
+        outfile.close();
     }
     else
     {
@@ -217,6 +219,7 @@ void EngineModule::writeDataToFile()
             }
             outfile << "\n";
         }
+        fetchEngineData();
+        outfile.close();
     }
-    outfile.close();
 }
