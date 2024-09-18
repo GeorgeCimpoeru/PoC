@@ -84,7 +84,7 @@ class Updates(Action):
             self._authentication(self.id)
 
             log_info_message(logger, "Downloading... Please wait")
-            self._download_data(type, version, id)
+            self._download_data(type, version)
             log_info_message(logger, "Download finished, restarting ECU...")
 
             # log_info_message(logger, "Changing session to default")
@@ -119,7 +119,7 @@ class Updates(Action):
             self.bus.shutdown()
             return e.message
 
-    def _download_data(self, type, version, ecu_id):
+    def _download_data(self, type, version):
         """
         Request Sid = 0x34
         Response Sid = 0x74
@@ -160,7 +160,7 @@ class Updates(Action):
         """
         self.generate.request_download(self.id,
                                        data_format_identifier=type,  # No compression/encryption
-                                       memory_address=0x8001,  # Memory address starting from 2049
+                                       memory_address=0x0801,  # Memory address starting from 2049
                                        memory_size=0x01,  # Memory size
                                        version=version)  # Version 2
         self._passive_response(REQUEST_DOWNLOAD, "Error requesting download")

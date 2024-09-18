@@ -202,9 +202,10 @@ class GenerateFrame:
         memory_size_bytes = memory_size.to_bytes((memory_size.bit_length() + 7) // 8, byteorder='big') if isinstance(memory_size, int) else memory_size
 
         # Calculate the Address and Length Format Identifier
-        address_length = len(memory_address_bytes)
-        size_length = len(memory_size_bytes)
-        address_and_length_format_identifier = (size_length << 4) | address_length
+        address_length = len(memory_address_bytes)  # noqa: F841
+        size_length = len(memory_size_bytes)  # noqa: F841
+        # address_and_length_format_identifier = (size_length << 4) | address_length
+        address_and_length_format_identifier = 0x21
 
         # Handle version
         if isinstance(version, str):

@@ -1,87 +1,9 @@
-"""
-Author: Mujdei Ruben
-
-The Action class is a utility class designed to be inherited by specific action classes.
-It provides a set of pre-created methods that facilitate various tasks such as reading frames,
-processing these frames, creating responses, and additional functionalities. This class
-serves as a foundation, offering reusable components and standardizing the way frames are
-sent and received.
-
-Please note that only the protected methods can be used in your child class.
-
-    _passive_response()
-        Collects the response frame from a specific request, verifies it,
-        and returns the data carried by the frame.
-
-    _data_from_frame()
-        Extracts just the data from the CAN message based on the frame type (excluding SIDs, identifiers, sub-functions, etc).
-        Works for read by address, read by identifier, and authentication seed.
-
-    _authentication()
-        Sends a sequence of frames for authentication.
-
-    _read_by_identifier()
-        Sends a frame for reading by identifier, collects the response, and returns the data carried.
-
-    _to_json()
-        Needs to be overridden and implemented in the child class.
-
-    _to_json_error()
-        Creates a JSON response for error messages.
-
-    _list_to_number()
-        Transforms a list of numbers into a string. Example: [1, 2, 3] -> "010203".
-
-PS: Use: raise CustomError(response_json), every time you want to send a premature JSON response and finish the program.
-Check _passive_response() as example.
-
-
-How to create a new class action, example:
-
-    class CustomAction(Action):
-
-        def run(self):
-            try:
-                # Example of frame stack
-
-                # Send frame, passive response
-                self.generate.frame(self.id)
-
-                # Verify response and provide error message if the frame is not the desired one
-                self._passive_response(sid, "Error message")
-
-                # Send frame, request data
-                self.generate.frame_request_data(self.id)
-
-                # Collect frame and data from frame, then process it with a custom method
-                data_response = self._data_from_frame(self._passive_response(sid, "Error message"))
-                self.process_data(data_response)
-
-                # Send all the frames that you need and collect the response if necessary as in the example above
-                .......
-
-                # Generate a JSON response. Need to override this method and write the implementation
-                response_json = self._to_json()
-
-                # Shutdown the CAN bus interface
-                self.bus.shutdown()
-
-                return response_json
-
-            except CustomError as e:
-                # Handle custom errors from frames
-                self.bus.shutdown()
-                return e.message
-
-"""
-
 import can
 import datetime
 from actions.generate_frames import GenerateFrame as GF
 from utils.logger import *
 from config import Config
 from configs.data_identifiers import *
-# from actions.manual_send_frame import handle_negative_response
 
 logger_singleton = SingletonLogger('base_action.log')
 logger = logger_singleton.logger
@@ -206,7 +128,6 @@ class Action:
             return True
 
         if msg.data[1] == 0x7F:
-            self.__handle_negative_response(msg)
             return False
 
         if msg.data[0] != 0x10:
@@ -361,20 +282,80 @@ class Action:
                     "message": "Authentication failed",
                 }
 
-    def __handle_negative_response(self, frame_response):
+    def handle_negative_response(self):
         """
-        Handles the negative response scenarios.
+        Handles the negative response scenarios for various services.
         """
+        msg = self.bus.recv(5)
+        nrc = msg.data[3]
+        service_id = msg.data[2]
 
-        # nrc = frame_response.data[3]
-        # sid = frame_response.data[2]
-        # error_message = handle_negative_response(nrc, sid)
-        # log_error_message(logger, f"Authentication failed: {error_message}")
+        service_error_mapping = {
+            # Write Data by Identifier (0x2E)
+            0x2E: {0x13, 0x31, 0x33},
 
-        # response_json = self._to_json_error(error_message, 1)
-        # raise CustomError(response_json)
+            # Security Access (0x27)
+            0x27: {0x12, 0x24, 0x35, 0x36},
 
-    # Implement in the child class
+            # Diagnostic Session Control Service (0x10)
+            0x10: {0x12},
+
+            # Access Timing Parameter Service (0x83)
+            0x83: {0x12, 0x13, 0x78},
+
+            # Clear Diagnostic Information (0x14)
+            0x14: {0x13, 0x31},
+
+            # Read DTC Information (0x19)
+            0x19: {0x12, 0x13},
+
+            # Routine Control (0x31)
+            0x31: {0x12, 0x31},
+
+            # Tester Present (0x3E)
+            0x3E: {0x12, 0x13}
+        }
+
+        # General negative response codes
+        negative_responses = {
+            0x12: "SubFunction Not Supported",
+            0x13: "Incorrect Message Length Or Invalid Format",
+            0x14: "Incorrect Message Length Or Invalid Format",
+            0x22: "Conditions Not Correct",
+            0x24: "Request Sequence Error",
+            0x25: "No Response From Subnet Component",
+            0x31: "Request Out Of Range",
+            0x33: "Security Access Denied",
+            0x34: "Authentication Required",
+            0x35: "Invalid Key",
+            0x36: "Exceeded Number Of Attempts",
+            0x37: "Required Time Delay Not Expired",
+            0x70: "Upload Download Not Accepted",
+            0x71: "Transfer Data Suspended",
+            0x72: "General Programming Failure",
+            0x73: "Wrong Block Sequence Counter",
+            0x92: "Voltage Too High",
+            0x93: "Voltage Too Low",
+            0x78: "Request Correctly Received-Response Pending",
+            0x7E: "SubFunction Not Supported In Active Session",
+            0x7F: "Function Not Supported In Active Session"
+        }
+
+        if service_id in service_error_mapping and nrc in service_error_mapping[service_id]:
+            error_message = negative_responses.get(nrc, "Unknown error")
+        else:
+            error_message = "Unknown service or error"
+
+        logger.error(f"Negative response received: NRC={hex(nrc)}, Error={error_message} (Code: {hex(nrc)})")
+
+        response = {
+            "service_id": hex(service_id),
+            "nrc": hex(nrc),
+            "error_message": error_message
+        }
+
+        return response
+
     def _to_json(self, status, no_errors):
         response_to_frontend = {
             "status": status,

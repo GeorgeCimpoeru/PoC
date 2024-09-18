@@ -1,4 +1,3 @@
-from database.mcu_ids_database_handler import McuIdsDatabaseHandler
 from actions.base_actions import *
 import time
 from config import Config
@@ -20,15 +19,12 @@ class IDsToJson():
 
 class RequestIdAction(Action):
     def read_ids(self):
-        self.mcu_db_handler = McuIdsDatabaseHandler()
         self.id = self.my_id
         try:
             self._send_request_frame()
             response_data = self._read_response_frames()
             response_json = IDsToJson()._to_json(response_data)
 
-            # Log the contents of the MCU IDs database before closing the handler
-            self.mcu_db_handler.read_all_mcu_ids()
             self._close_db_handler()
             self.bus.shutdown()
 
@@ -61,13 +57,6 @@ class RequestIdAction(Action):
                         "mcu_id": f"{mcu_id:02X}",
                         "ecu_ids": [f"{ecu_id:02X}" for ecu_id in ecu_ids]
                     }
-                    # Save data to the database
-                    id_mcu = mcu_id
-                    id_ecu1 = ecu_ids[0] if len(ecu_ids) > 0 else None
-                    id_ecu2 = ecu_ids[1] if len(ecu_ids) > 1 else None
-                    id_ecu3 = ecu_ids[2] if len(ecu_ids) > 2 else None
-                    id_ecu4 = ecu_ids[3] if len(ecu_ids) > 3 else None
-                    self.mcu_db_handler.save_mcu_id(id_mcu, id_ecu1, id_ecu2, id_ecu3, id_ecu4)
                 else:
                     # Negative response or unexpected data
                     data_dict = {
@@ -80,9 +69,3 @@ class RequestIdAction(Action):
                 return data_dict
 
         return {"status": "No response received within timeout"}
-
-    def _close_db_handler(self):
-        """
-        Closes the database handlers.
-        """
-        self.mcu_db_handler.close()
