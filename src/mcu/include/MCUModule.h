@@ -11,7 +11,6 @@
 #include "../../utils/include/CreateInterface.h"
 #include "ReceiveFrames.h"
 #include "../include/MCULogger.h"
-#include "../../uds/write_data_by_identifier/include/WriteDataByIdentifier.h"
 #include "../../uds/tester_present/include/TesterPresent.h"
 
 #include <thread>

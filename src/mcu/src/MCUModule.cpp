@@ -176,7 +176,8 @@ namespace MCU
 
     void MCUModule::setDidValue(const uint16_t did, const std::vector<uint8_t>& value)
     {
-        auto did_it = default_DID_MCU.find(did);
+        auto data_map = FileManager::readMapFromFile("mcu_data.txt");
+        auto did_it = data_map.find(did);
 
         if(did_it == default_DID_MCU.end())
         {
@@ -184,11 +185,13 @@ namespace MCU
             return;
         }
         did_it->second = value;
-        writeDataToFile();
+        FileManager::writeMapToFile("mcu_data.txt", data_map);
     }
 
     std::vector<uint8_t> MCUModule::getDidValue(const uint16_t did) const
     {
-        return default_DID_MCU.at(did);
+        /* Should also contain validation */
+        auto data_map = FileManager::readMapFromFile("mcu_data.txt");
+        return data_map.at(did);
     }
 }
