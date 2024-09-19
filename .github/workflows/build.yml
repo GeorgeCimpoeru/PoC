@@ -32,7 +32,25 @@ jobs:
           cd src/ecu_simulation/BatteryModule
           make  # Run the `make` command
         continue-on-error: true  # Ensure the workflow continues even if this step fails
-
+        
+      - name: Run Makefile in src/ecu_simulation/EngineModule
+      	run: |
+      	  cd src/ecu_simulation/EngineModule
+      	  make
+      	continue-on-error: true
+      	
+      - name: Run Makefile in src/ecu_simulation/DoorsModule
+      	run: |
+      	  cd src/ecu_simulation/DoorsModule
+      	  make
+      	continue-on-error: true
+      	
+      - name: Run Makefile in src/ecu_simulation/HVACModule
+      	run: |
+      	  cd src/ecu_simulation/HVACModule
+      	  make
+      	continue-on-error: true
+      	
       - name: Notify of Results
         run: |
           if [ $? -ne 0 ]; then
