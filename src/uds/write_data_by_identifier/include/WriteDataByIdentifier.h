@@ -29,6 +29,7 @@
 #include "../../../utils/include/Logger.h"
 #include "../../../utils/include/NegativeResponse.h"
 #include "../../authentication/include/SecurityAccess.h"
+#include "../../../utils/include/FileManager.h"
 
 class WriteDataByIdentifier
 {

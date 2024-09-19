@@ -48,7 +48,8 @@ UTILS_OBJS = $(OBJ_DIR)/MemoryManager.o \
              $(OBJ_DIR)/CreateInterface.o \
              $(OBJ_DIR)/NegativeResponse.o \
 			 $(OBJ_DIR)/ECU_ReceiveFrames.o \
-			 $(OBJ_DIR)/HandleFrames.o
+			 $(OBJ_DIR)/HandleFrames.o \
+			 $(OBJ_DIR)/FileManager.o
 
 # UDS object files
 UDS_OBJS = $(OBJ_DIR)/DiagnosticSessionControl.o \
@@ -153,6 +154,9 @@ $(OBJ_DIR)/RequestDownload.o: $(OTA_DIR)/request_download/src/RequestDownload.cp
 
 $(OBJ_DIR)/MemoryManager.o: $(UTILS_DIR)/MemoryManager.cpp
 	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/MemoryManager.cpp -o $(OBJ_DIR)/MemoryManager.o
+
+$(OBJ_DIR)/FileManager.o: $(UTILS_DIR)/FileManager.cpp
+	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/FileManager.cpp -o $(OBJ_DIR)/FileManager.o
 
 $(OBJ_DIR)/TransferData.o: $(OTA_DIR)/transfer_data/src/TransferData.cpp
 	$(CXX) $(CFLAGS) -c $(OTA_DIR)/transfer_data/src/TransferData.cpp -o $(OBJ_DIR)/TransferData.o
