@@ -25,14 +25,14 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     {
         /* Incorrect message length or invalid format - prepare a negative response */
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::IMLOIF);
-        stopTimingFlag(lowerbits);
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x31);
         return;
     }
     else if (request[2] < 0x01 || request [2] > 0x03)
     {
         /* Sub Function not supported - prepare a negative response */
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SFNS);
-        stopTimingFlag(lowerbits);
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x31);
         return;
     }
     else if (lowerbits == 0x10 && !SecurityAccess::getMcuState(rc_logger))
@@ -43,17 +43,17 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     else if (lowerbits == 0x11 && !ReceiveFrames::getBatteryState())
     {
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
-        battery->stop_flags[0x31] = false;
+        battery->_ecu->stop_flags[0x31] = false;
     }
     else if (lowerbits == 0x12 && !ReceiveFrames::getEngineState())
     {
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
-        engine->stop_flags[0x31] = false;
+        engine->_ecu->stop_flags[0x31] = false;
     }
     else if (lowerbits == 0x13 && !ReceiveFrames::getDoorsState())
     {
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
-        doors->stop_flags[0x31] = false;
+        doors->_ecu->stop_flags[0x31] = false;
     }
     else if (lowerbits == 0x14 && !ReceiveFrames::getHvacState())
     {
@@ -65,7 +65,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     {
         /* Request Out of Range - prepare a negative response */
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::ROOR);
-        stopTimingFlag(lowerbits);
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x31);
         return;
     }
     else
@@ -179,7 +179,7 @@ void RoutineControl::routineControlResponse(canid_t can_id, const std::vector<ui
     generate_frames.routineControl(can_id, request[2], routine_identifier, true);
     LOG_INFO(rc_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame for routine: {:2x}", 0x31, routine_identifier);
                 
-    stopTimingFlag(receiver_id);
+    AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
 }
 
 std::string RoutineControl::selectEcuPath(canid_t can_id)

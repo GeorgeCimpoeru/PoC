@@ -29,7 +29,7 @@ void ReadDTC::read_dtc(int id, std::vector<uint8_t> data)
     {
         LOG_ERROR(logger.GET_LOGGER(), "Incorrect message length or invalid format");
         this->generate->negativeResponse(new_id, 0x19, 0x13);
-        stopTimingFlag(lowerbits);
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x19);
         return;
     }
     int sub_function = data[2];
@@ -39,21 +39,22 @@ void ReadDTC::read_dtc(int id, std::vector<uint8_t> data)
     {
         case 0x01:
             LOG_INFO(logger.GET_LOGGER(), "Sub-function 1");
-            number_of_dtc(new_id,dtc_status_mask);
+            number_of_dtc(id,dtc_status_mask);
             break;
         case 0x02:
             LOG_INFO(logger.GET_LOGGER(), "Sub-function 2");
-            report_dtcs(new_id,dtc_status_mask);
+            report_dtcs(id,dtc_status_mask);
             break;
         default:
             this->generate->negativeResponse(new_id, 0x19, 0x12);
             LOG_ERROR(logger.GET_LOGGER(), "Sub-function not supported");
-            stopTimingFlag(lowerbits);
+            AccessTimingParameter::stopTimingFlag(lowerbits, 0x19);
     }
 }
 
 void ReadDTC::number_of_dtc(int id, int dtc_status_mask)
 {
+    int new_id = ((id & 0xFF) << 8) | ((id >> 8) & 0xFF);
     std::ifstream MyReadFile;
     try
     {
@@ -67,9 +68,9 @@ void ReadDTC::number_of_dtc(int id, int dtc_status_mask)
     {
         LOG_ERROR(logger.GET_LOGGER(), "Unable to read DTCs");
         /* NRC Resource temporarily unavailable */
-        this->generate->negativeResponse(id, 0x19, 0x94);
+        this->generate->negativeResponse(new_id, 0x19, 0x94);
         uint8_t lowerbits = id & 0xFF;
-        stopTimingFlag(lowerbits);
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x19);
         return;
     }
 
@@ -92,16 +93,17 @@ void ReadDTC::number_of_dtc(int id, int dtc_status_mask)
     /* dtc format_idtf 0x01 -> ISO_14229-1_DTCFormat */
     int dtc_format_identifier = 0x01;
 
-    uint8_t receiver_id = id >> 8 & 0xFF;
+    uint8_t receiver_id = id & 0xFF;
 
-    this->generate->readDtcInformationResponse01(id,status_availability_mask,dtc_format_identifier,number_of_dtc);
+    this->generate->readDtcInformationResponse01(new_id,status_availability_mask,dtc_format_identifier,number_of_dtc);
     LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x19);
 
-    stopTimingFlag(receiver_id);
+    AccessTimingParameter::stopTimingFlag(receiver_id, 0x19);
 }
 
 void ReadDTC::report_dtcs(int id, int dtc_status_mask)
 {
+    int new_id = ((id & 0xFF) << 8) | ((id >> 8) & 0xFF);
     std::ifstream MyReadFile;
     try
     {
@@ -115,9 +117,9 @@ void ReadDTC::report_dtcs(int id, int dtc_status_mask)
     {
         LOG_ERROR(logger.GET_LOGGER(), "Unable to read DTCs");
         /* NRC Resource temporarily unavailable */
-        this->generate->negativeResponse(id, 0x19, 0x94);
+        this->generate->negativeResponse(new_id, 0x19, 0x94);
         uint8_t lowerbits = id & 0xFF;
-        stopTimingFlag(lowerbits);
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x19);
         return;
     }
     
@@ -141,13 +143,13 @@ void ReadDTC::report_dtcs(int id, int dtc_status_mask)
     /* Send a frame/frames with all dtcs founded */
     if (dtc_and_status_list.size() > 1)
     {   
-        uint8_t lowerbits = id >> 8 & 0xFF;
+        uint8_t lowerbits = id & 0xFF;
 
-        this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,true);
-        this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,false);
+        this->generate->readDtcInformationResponse02Long(new_id,status_availability_mask,dtc_and_status_list,true);
+        this->generate->readDtcInformationResponse02Long(new_id,status_availability_mask,dtc_and_status_list,false);
         LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the first response frame.", 0x19);
 
-        stopTimingFlag(lowerbits);
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x19);
                 
 /** flow control frame not implemented yet -> uncomment this when ready
         if (receive_flow_control(id / 0x100))
@@ -183,12 +185,12 @@ void ReadDTC::report_dtcs(int id, int dtc_status_mask)
     }
     else 
     {
-        uint8_t lowerbits = id >> 8 & 0xFF;
+        uint8_t lowerbits = id & 0xFF;
 
-        this->generate->readDtcInformationResponse02(id,status_availability_mask,dtc_and_status_list);
+        this->generate->readDtcInformationResponse02(new_id,status_availability_mask,dtc_and_status_list);
         LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the first response frame.", 0x19);
         
-        stopTimingFlag(lowerbits);
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x19);
     }
 }
 
@@ -245,29 +247,4 @@ bool ReadDTC::receive_flow_control(int id_module)
 int ReadDTC::to_int(char c)
 {
     return (c >= 'A') ? (c - 'A' + 10) : (c - '0');
-}
-
-void ReadDTC::stopTimingFlag(uint8_t receiver_id)
-{
-        switch(receiver_id)
-        {
-            case 0x10:
-                MCU::mcu->stop_flags[0x19] = false;
-                break;
-            case 0x11:
-                battery->stop_flags[0x19] = false;
-                break;
-            case 0x12:
-                engine->stop_flags[0x19] = false;
-                break;
-            case 0x13:
-                doors->stop_flags[0x19] = false;
-                break;
-            case 0x14:
-                hvac->_ecu->stop_flags[0x19] = false;
-                break;
-            default:
-                LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
-                break; 
-        }
 }

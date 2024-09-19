@@ -23,14 +23,14 @@ void EcuReset::ecuResetRequest(const std::vector<uint8_t>& request)
     if (request.size() < 3 || (request.size() != static_cast<size_t>(request[0] + 1)))
     {
         nrc.sendNRC(new_id,0x11,NegativeResponse::IMLOIF);
-        stopTimingFlag(lowerbits);
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x11);
         return;
     }
 
     if (sub_function != 0x01 && sub_function != 0x02)
     {
         nrc.sendNRC(new_id,0x11,NegativeResponse::SFNS);
-        stopTimingFlag(lowerbits);
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x11);
         return;
     }
     if (lowerbits == 0x10 && !SecurityAccess::getMcuState(ECUResetLog))
@@ -43,21 +43,21 @@ void EcuReset::ecuResetRequest(const std::vector<uint8_t>& request)
     if (lowerbits == 0x11 && !ReceiveFrames::getBatteryState())
     {
         nrc.sendNRC(new_id, 0x11, NegativeResponse::SAD);
-        battery->stop_flags[0x11] = false;
+        battery->_ecu->stop_flags[0x11] = false;
         return;
     }
     else
     if (lowerbits == 0x12 && !ReceiveFrames::getEngineState())
     {
         nrc.sendNRC(new_id, 0x11, NegativeResponse::SAD);
-        engine->stop_flags[0x11] = false;
+        engine->_ecu->stop_flags[0x11] = false;
         return;
     }
     else
     if (lowerbits == 0x13 && !ReceiveFrames::getDoorsState())
     {
         nrc.sendNRC(new_id, 0x11, NegativeResponse::SAD);
-        doors->stop_flags[0x11] = false;
+        doors->_ecu->stop_flags[0x11] = false;
         return;
     }
     else
@@ -255,30 +255,5 @@ void EcuReset::ecuResetResponse()
     generate_frames.ecuReset(new_id, sub_function, socket, true);
     LOG_INFO(ECUResetLog.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x11);
     
-    stopTimingFlag(lowerbits);
-}
-
-void EcuReset::stopTimingFlag(uint8_t receiver_id)
-{
-        switch(receiver_id)
-        {
-            case 0x10:
-                MCU::mcu->stop_flags[0x11] = false;
-                break;
-            case 0x11:
-                battery->stop_flags[0x11] = false;
-                break;
-            case 0x12:
-                engine->stop_flags[0x11] = false;
-                break;
-            case 0x13:
-                doors->stop_flags[0x11] = false;
-                break;
-            case 0x14:
-                hvac->_ecu->stop_flags[0x11] = false;
-                break;
-            default:
-                LOG_ERROR(ECUResetLog.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
-                break; 
-        }
+    AccessTimingParameter::stopTimingFlag(lowerbits, 0x11);
 }

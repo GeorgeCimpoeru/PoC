@@ -56,7 +56,7 @@ UTILS_OBJS = $(OBJ_DIR)/MemoryManager.o \
              $(OBJ_DIR)/NegativeResponse.o \
 			 $(OBJ_DIR)/ReceiveFrames.o \
 			 $(OBJ_DIR)/HandleFrames.o \
-			 $(OBJ_DIR)/FileManager.o
+			 $(OBJ_DIR)/FileManager.o \
 			 $(OBJ_DIR)/ECU.o
 
 # UDS object files

@@ -3,9 +3,6 @@
 Logger* doorsModuleLogger = nullptr;
 DoorsModule* doors = nullptr;
 
-std::map<uint8_t, double> DoorsModule::timing_parameters;
-std::map<uint8_t, std::future<void>> DoorsModule::active_timers;
-std::map<uint8_t, std::atomic<bool>> DoorsModule::stop_flags;
 std::unordered_map<uint16_t, std::vector<uint8_t>> DoorsModule::default_DID_doors = {
         {0x03A0, {0}},  /* Driver Door Status  */
         {0x03B0, {0}},  /* Passenger Door Status*/
@@ -16,57 +13,18 @@ std::unordered_map<uint16_t, std::vector<uint8_t>> DoorsModule::default_DID_door
 
 /** Constructor - initializes the DoorsModule with default values,
  * sets up the CAN interface, and prepares the frame receiver. */
-DoorsModule::DoorsModule() : moduleId(0x13),                                 
-                             canInterface(CreateInterface::getInstance(0x00, *doorsModuleLogger)),
-                             frameReceiver(nullptr)
+DoorsModule::DoorsModule()
 {
+    /* ECU object responsible for common functionalities for all ECUs (sockets, frames, parameters) */
+    _ecu = new ECU(DOORS_ID, *doorsModuleLogger);
     writeDataToFile();
-    doors_socket = canInterface->createSocket(0x00);
-    /* Initialize the Frame Receiver */
-    frameReceiver = new ReceiveFrames(doors_socket, moduleId, *doorsModuleLogger);
-
-    LOG_INFO(doorsModuleLogger->GET_LOGGER(), "Doors object created successfully, ID : 0x{:X}", this->moduleId);
-
-    /* Send Up-Notification to MCU */
-    sendNotificationToMCU();
-}
-
-/* Parameterized Constructor - initializes the DoorsModule with provided interface number and module ID */
-DoorsModule::DoorsModule(int _interfaceNumber, int _moduleId) : moduleId(_moduleId),                                                                    
-                                                                canInterface(CreateInterface::getInstance(_interfaceNumber, *doorsModuleLogger)),
-                                                                frameReceiver(nullptr)
-{
-    writeDataToFile();
-    doors_socket = canInterface->createSocket(0x00);
-    /* Initialize the Frame Receiver */
-    frameReceiver = new ReceiveFrames(doors_socket, moduleId, *doorsModuleLogger);
-
-    LOG_INFO(doorsModuleLogger->GET_LOGGER(), "Doors object created successfully using Parameterized Constructor, ID : 0x{:X}", this->moduleId);
-
-    /* Send Up-Notification to MCU */ 
-    sendNotificationToMCU();
+    LOG_INFO(doorsModuleLogger->GET_LOGGER(), "Doors object created successfully");
 }
 
 /* Destructor */
 DoorsModule::~DoorsModule()
 {
-    delete frameReceiver;
     LOG_INFO(doorsModuleLogger->GET_LOGGER(), "Doors object out of scope");
-}
-
-/* Function to notify MCU if the module is Up & Running */
-void DoorsModule::sendNotificationToMCU()
-{
-    /* Create an instance of GenerateFrames with the CAN socket */
-    GenerateFrames notifyFrame = GenerateFrames(doors_socket, *doorsModuleLogger);
-
-    /* Create a vector of uint8_t (bytes) containing the data to be sent */
-    std::vector<uint8_t> data = {0x01, 0xD9};
-
-    /* Send the CAN frame with ID 0x22130 and the data vector */
-    notifyFrame.sendFrame(0x1310, data);
-
-    LOG_INFO(doorsModuleLogger->GET_LOGGER(), "Doors module sent UP notification to MCU");
 }
 
 /* Function to fetch data with simulated door data */
@@ -132,36 +90,9 @@ void DoorsModule::fetchDoorsData()
     LOG_INFO(doorsModuleLogger->GET_LOGGER(), "Doors data file updated with random values.");
 }
 
-/* Function to receive CAN frames */
-void DoorsModule::receiveFrames()
-{
-    LOG_INFO(doorsModuleLogger->GET_LOGGER(), "Doors module starts the frame receiver");
-
-    /* Create a HandleFrames object to process received frames */
-    HandleFrames handleFrames(this->doors_socket, *doorsModuleLogger);
-
-    /* Receive a CAN frame using the frame receiver and process it with handleFrames */
-    frameReceiver->receive(handleFrames);
-
-    /* Sleep for 100 milliseconds before receiving the next frame to prevent busy-waiting */
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-}
-
-/* Functon to Stop receiving frames */
-void DoorsModule::stopFrames()
-{
-    frameReceiver->stop();
-    LOG_INFO(doorsModuleLogger->GET_LOGGER(), "Doors module stopped the frame receiver");
-}
-
 int DoorsModule::getDoorsSocket() const
 {
-    return doors_socket;
-}
-
-void DoorsModule::setDoorsSocket(uint8_t interface_number)
-{
-    this->doors_socket = this->canInterface->createSocket(interface_number);
+    return _ecu->_ecu_socket;
 }
 
 void DoorsModule::writeDataToFile()
@@ -206,7 +137,7 @@ void DoorsModule::writeDataToFile()
             }
             outfile << "\n";
         }
-        fetchDoorsData();
         outfile.close();
+        fetchDoorsData();
     }
 }

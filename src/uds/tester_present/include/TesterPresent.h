@@ -72,13 +72,6 @@ public:
      * time. It is used to restart the duration of the session.
     */
     static void setEndTimeProgrammingSession();
-    /**
-     * @brief Stops or resets the access timing flags for a given CAN message.
-     * 
-     * This function stops flags for access timing associated with a specific CAN identifier.
-     * @param can_id CAN ID the CAN message whose timing flags need to be stopped.
-    */
-    void stopAccessTimingFlags(uint32_t can_id);
 };
 
 #endif

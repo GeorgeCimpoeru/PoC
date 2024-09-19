@@ -46,7 +46,7 @@ void DiagnosticSessionControl::sessionControl(canid_t frame_id, uint8_t sub_func
         NegativeResponse negative_response(socket, dsc_logger);
         negative_response.sendNRC(frame_id, 0x10, 0x12);
         uint8_t receiver_id = frame_id & 0xFF;
-        stopTimingFlag(receiver_id);
+        AccessTimingParameter::stopTimingFlag(receiver_id, 0x10);
         break;
     }
 }
@@ -76,7 +76,7 @@ void DiagnosticSessionControl::switchToDefaultSession(canid_t frame_id)
     response_frame.sessionControl(id, 0x01, true);
     LOG_INFO(dsc_logger.GET_LOGGER(), "Sent positive response");
      
-    stopTimingFlag(receiver_id);
+    AccessTimingParameter::stopTimingFlag(receiver_id, 0x10);
 }
 
 /* Method to switch current session to Programming Session */
@@ -99,7 +99,7 @@ void DiagnosticSessionControl::switchToProgrammingSession(canid_t frame_id)
     response_frame.sessionControl(id, 0x02, true);
     LOG_INFO(dsc_logger.GET_LOGGER(), "Sent positive response");
     
-    stopTimingFlag(receiver_id);
+    AccessTimingParameter::stopTimingFlag(receiver_id, 0x10);
 }
 
 /* Method to get the current session of module */
@@ -120,29 +120,4 @@ std::string DiagnosticSessionControl::getCurrentSessionToString()
     default:
         return "UNKNOWN_SESSION";
     }
-}
-
-void DiagnosticSessionControl::stopTimingFlag(uint8_t receiver_id)
-{
-        switch(receiver_id)
-        {
-            case 0x10:
-                MCU::mcu->stop_flags[0x10] = false;
-                break;
-            case 0x11:
-                battery->stop_flags[0x10] = false;
-                break;
-            case 0x12:
-                engine->stop_flags[0x10] = false;
-                break;
-            case 0x13:
-                doors->stop_flags[0x10] = false;
-                break;
-            case 0x14:
-                hvac->_ecu->stop_flags[0x10] = false;
-                break;
-            default:
-                LOG_ERROR(dsc_logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
-                break; 
-        }
 }

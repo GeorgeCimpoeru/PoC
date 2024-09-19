@@ -3,7 +3,7 @@
 #include "../../../mcu/include/MCUModule.h"
 
 /* Set the default security access to false. */
-bool SecurityAccess::mcu_state = true;
+bool SecurityAccess::mcu_state = false;
 
 /* Adjust the default nr of attempts as needed here. */
 uint8_t SecurityAccess::nr_of_attempts = MAX_NR_OF_ATTEMPTS;

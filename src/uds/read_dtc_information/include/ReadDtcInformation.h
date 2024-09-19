@@ -54,13 +54,6 @@ class ReadDTC
          */
         void read_dtc(int id, std::vector<uint8_t> data);
 
-        /**
-         * @brief Stop the processing timer for the module with an id equal to the receiver id
-         * 
-         * @param receiver_id 
-         */
-        void stopTimingFlag(uint8_t receiver_id );
-
     private:
         /**
          * @brief method for 0x01 sub-function. Count the DTC. Send a frame

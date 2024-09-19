@@ -26,7 +26,7 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
     {
         LOG_ERROR(logger.GET_LOGGER(), "Incorrect message length or invalid format");
         this->generate->negativeResponse(new_id, 0x14, 0x13);
-        stopTimingFlag(lowerbits);
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x14);
         return;
     }
 
@@ -35,7 +35,7 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
     {
         LOG_ERROR(logger.GET_LOGGER(), "RequestOutOfRange NRC:Specified Group of DTC parameter is not supported");
         this->generate->negativeResponse(new_id, 0x14, 0x31);
-        stopTimingFlag(lowerbits);
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x14);
     }
 
     std::ofstream temp;
@@ -51,7 +51,7 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
         this->generate->clearDiagnosticInformation(new_id,{}, true);
         LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x14);
 
-        stopTimingFlag(lowerbits);
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x14);
         return;
     }
 
@@ -68,7 +68,7 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
     {
         LOG_ERROR(logger.GET_LOGGER(), "conditionsNotCorrect NRC: Error trying to open the DTC file");
         this->generate->negativeResponse(new_id, 0x14, 0x22);
-        stopTimingFlag(lowerbits);
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x14);
         return;
     }
     std::string line;
@@ -89,7 +89,7 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
     LOG_INFO(logger.GET_LOGGER(), "DTCs cleared succesffuly");
     this->generate->clearDiagnosticInformation(new_id,{}, true);
 
-    stopTimingFlag(lowerbits);
+    AccessTimingParameter::stopTimingFlag(lowerbits, 0x14);
 }
 
 uint32_t ClearDtc::extractGroup(std::string dtc)
@@ -115,29 +115,4 @@ bool ClearDtc::verifyGroupDtc(uint32_t group_of_dtc)
         }
     }
     return false;
-}
-
-void ClearDtc::stopTimingFlag(uint8_t receiver_id)
-{
-        switch(receiver_id)
-        {
-            case 0x10:
-                MCU::mcu->stop_flags[0x14] = false;
-                break;
-            case 0x11:
-                battery->stop_flags[0x14] = false;
-                break;
-            case 0x12:
-                engine->stop_flags[0x14] = false;
-                break;
-            case 0x13:
-                doors->stop_flags[0x14] = false;
-                break;
-            case 0x14:
-                hvac->_ecu->stop_flags[0x14] = false;
-                break;
-            default:
-                LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
-                break; 
-        }
 }

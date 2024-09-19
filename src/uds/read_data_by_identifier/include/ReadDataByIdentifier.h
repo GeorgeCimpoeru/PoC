@@ -45,13 +45,6 @@ class ReadDataByIdentifier
     * @param use_send_frame true if you want to send a response frame, false if you need only the return
     */
     std::vector<uint8_t> readDataByIdentifier(canid_t can_id, const std::vector<uint8_t>& request, bool use_send_frame);
-
-    /**
-     * @brief Stop the processing timer for the module with an id equal to the receiver id
-     * 
-     * @param receiver_id 
-     */
-    void stopTimingFlag(uint8_t receiver_id );
     
     private:
     GenerateFrames generate_frames;

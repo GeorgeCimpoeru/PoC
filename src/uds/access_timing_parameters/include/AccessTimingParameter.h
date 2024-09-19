@@ -102,7 +102,7 @@ public:
      * 
      * @param receiver_id 
      */
-    void stopTimingFlag(uint8_t receiver_id );
+    static void stopTimingFlag(uint8_t receiver_id, uint8_t sid);
     
     /* The default maximum time for the default session in milliseconds */
     static const uint16_t DEFAULT_P2_MAX_TIME;

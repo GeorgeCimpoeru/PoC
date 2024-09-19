@@ -63,13 +63,6 @@ public:
      * @param frame_data Data of the frame.
      */
     void WriteDataByIdentifierService(canid_t frame_id, std::vector<uint8_t> frame_data);
-
-    /**
-     * @brief Stop the processing timer for the module with an id equal to the receiver id
-     * 
-     * @param receiver_id 
-     */
-    void stopTimingFlag(uint8_t receiver_id );
 };
 
 #endif

@@ -36,7 +36,7 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
         {
             /* Send the negative response frame */ 
             nrc.sendNRC(can_id, RDBI_SERVICE_ID, NegativeResponse::IMLOIF);
-            stopTimingFlag(lowerbits);
+            AccessTimingParameter::stopTimingFlag(lowerbits, 0x22);
         }
 
         /* Return early as the request is invalid */
@@ -65,7 +65,7 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
         {
             nrc.sendNRC(can_id, RDBI_SERVICE_ID, NegativeResponse::SAD);
         }
-        battery->stop_flags[0x22] = false;
+        battery->_ecu->stop_flags[0x22] = false;
         return response;
     }
     if (lowerbits == 0x12 && !ReceiveFrames::getEngineState())
@@ -78,7 +78,7 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
         {
             nrc.sendNRC(can_id, RDBI_SERVICE_ID, NegativeResponse::SAD);
         }
-        engine->stop_flags[0x22] = false;
+        engine->_ecu->stop_flags[0x22] = false;
         return response;
     }
     if (lowerbits == 0x13 && !ReceiveFrames::getDoorsState())
@@ -91,7 +91,7 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
         {
             nrc.sendNRC(can_id, RDBI_SERVICE_ID, NegativeResponse::SAD);
         }
-        doors->stop_flags[0x22] = false;
+        doors->_ecu->stop_flags[0x22] = false;
         return response;
     }
     if (lowerbits == 0x14 && !ReceiveFrames::getHvacState())
@@ -140,7 +140,7 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
         if (use_send_frame)
         {
             nrc.sendNRC(can_id, RDBI_SERVICE_ID, NegativeResponse::ROOR);
-            stopTimingFlag(lowerbits);
+            AccessTimingParameter::stopTimingFlag(lowerbits, 0x22);
         }
         return response;
     }
@@ -159,7 +159,7 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
         if (use_send_frame)
         {
             nrc.sendNRC(can_id, RDBI_SERVICE_ID, NegativeResponse::ROOR);
-            stopTimingFlag(lowerbits);
+            AccessTimingParameter::stopTimingFlag(lowerbits, 0x22);
         }
         return response;
     }
@@ -174,7 +174,7 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
         LOG_ERROR(rdbi_logger.GET_LOGGER(), "Error response empty");
         if (use_send_frame) {
             nrc.sendNRC(can_id, RDBI_SERVICE_ID, NegativeResponse::ROOR);
-            stopTimingFlag(lowerbits);
+            AccessTimingParameter::stopTimingFlag(lowerbits, 0x22);
         }
         return response;
     }
@@ -197,40 +197,15 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
             /* Send response frame */
             generate_frames.readDataByIdentifierLongResponse(can_id, data_identifier, response, true);
             LOG_INFO(rdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x22);
-            stopTimingFlag(lowerbits);
+            AccessTimingParameter::stopTimingFlag(lowerbits, 0x22);
         } 
         else
         {
             /* Send response frame */
             generate_frames.readDataByIdentifier(can_id, data_identifier, response);
             LOG_INFO(rdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x22);
-            stopTimingFlag(lowerbits);
+            AccessTimingParameter::stopTimingFlag(lowerbits, 0x22);
         }
     }
     return response;
-}
-
-void ReadDataByIdentifier::stopTimingFlag(uint8_t receiver_id)
-{
-        switch(receiver_id)
-        {
-            case 0x10:
-                MCU::mcu->stop_flags[0x22] = false;
-                break;
-            case 0x11:
-                battery->stop_flags[0x22] = false;
-                break;
-            case 0x12:
-                engine->stop_flags[0x22] = false;
-                break;
-            case 0x13:
-                doors->stop_flags[0x22] = false;
-                break;
-            case 0x14:
-                hvac->_ecu->stop_flags[0x22] = false;
-                break;
-            default:
-                LOG_ERROR(rdbi_logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
-                break; 
-        }
 }

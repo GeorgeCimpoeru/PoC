@@ -18,31 +18,6 @@ std::chrono::steady_clock::time_point TesterPresent::getEndTimeProgrammingSessio
 {
     return end_time;
 }
-void TesterPresent::stopAccessTimingFlags(uint32_t can_id)
-{
-    uint8_t receiver_id = can_id & 0xFF;;
-    switch(receiver_id)
-    {
-        case 0x10:
-            MCU::mcu->stop_flags[0x3E] = false;
-            break;
-        case 0x11:
-            battery->stop_flags[0x3E] = false;
-            break;
-        case 0x12:
-            engine->stop_flags[0x3E] = false;
-            break;
-        case 0x13:
-            doors->stop_flags[0x3E] = false;
-            break;
-        case 0x14:
-            hvac->_ecu->stop_flags[0x3E] = false;
-            break;
-        default:
-            LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
-            break; 
-    }
-}
 
 void TesterPresent::setEndTimeProgrammingSession()
 {
@@ -62,7 +37,7 @@ void TesterPresent::handleTesterPresent(uint32_t can_id, std::vector<uint8_t> re
         (request.size() != static_cast<size_t>(request[0] + 1)))
     {
         nrc.sendNRC(can_id_response,TESTER_PRESENT_SID,NegativeResponse::IMLOIF);
-        stopAccessTimingFlags(can_id);
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x3E);
         return;
     }
     uint8_t sf = request[2];
@@ -70,12 +45,12 @@ void TesterPresent::handleTesterPresent(uint32_t can_id, std::vector<uint8_t> re
     if (sf != 0x00)
     {
         nrc.sendNRC(can_id_response,TESTER_PRESENT_SID,NegativeResponse::SFNS);
-        stopAccessTimingFlags(can_id);
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x3E);
         return;
     }
     /* Send positive response from tester present */
     generate_frames.testerPresent(can_id_response, true);
-    stopAccessTimingFlags(can_id);
+    AccessTimingParameter::stopTimingFlag(lowerbits, 0x3E);
     if(DiagnosticSessionControl::getCurrentSessionToString() == "DEFAULT_SESSION")
     {
         /* Change default session to programming session */

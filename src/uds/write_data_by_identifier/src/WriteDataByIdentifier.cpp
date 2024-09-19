@@ -33,7 +33,7 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
     {
         nrc.sendNRC(id, WDBI_SID, NegativeResponse::IMLOIF);
         uint8_t receiver_id = frame_id & 0xFF;
-        stopTimingFlag(receiver_id);
+        AccessTimingParameter::stopTimingFlag(receiver_id, 0x2E);
     }
     else if (receiver_id == 0x10 && !SecurityAccess::getMcuState(wdbi_logger))
     {
@@ -43,17 +43,17 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
     else if (receiver_id == 0x11 && !ReceiveFrames::getBatteryState())
     {
         nrc.sendNRC(id, WDBI_SID, NegativeResponse::SAD);
-        battery->stop_flags[0x2E] = false;
+        battery->_ecu->stop_flags[0x2E] = false;
     }
     else if (receiver_id == 0x12 && !ReceiveFrames::getEngineState())
     {
         nrc.sendNRC(id, WDBI_SID, NegativeResponse::SAD);
-        engine->stop_flags[0x2E] = false;
+        engine->_ecu->stop_flags[0x2E] = false;
     }
     else if (receiver_id == 0x13 && !ReceiveFrames::getDoorsState())
     {
         nrc.sendNRC(id, WDBI_SID, NegativeResponse::SAD);
-        doors->stop_flags[0x2E] = false;
+        doors->_ecu->stop_flags[0x2E] = false;
     }
     else if (receiver_id == 0x14 && !ReceiveFrames::getHvacState())
     {
@@ -83,7 +83,7 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
                 {
                     LOG_ERROR(wdbi_logger.GET_LOGGER(), "Request Out Of Range: Identifier not found in memory");
                     nrc.sendNRC(id,WDBI_SID,NegativeResponse::ROOR);
-                    battery->stop_flags[0x2E] = false;
+                    battery->_ecu->stop_flags[0x2E] = false;
                     return;
                 }
                 break;
@@ -92,7 +92,7 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
                 {
                     LOG_ERROR(wdbi_logger.GET_LOGGER(), "Request Out Of Range: Identifier not found in memory");
                     nrc.sendNRC(id,WDBI_SID,NegativeResponse::ROOR);
-                    engine->stop_flags[0x2E] = false;
+                    engine->_ecu->stop_flags[0x2E] = false;
                     return;
                 }
                 break;
@@ -101,7 +101,7 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
                 {
                     LOG_ERROR(wdbi_logger.GET_LOGGER(), "Request Out Of Range: Identifier not found in memory");
                     nrc.sendNRC(id,WDBI_SID,NegativeResponse::ROOR);
-                    doors->stop_flags[0x2E] = false;
+                    doors->_ecu->stop_flags[0x2E] = false;
                     return;
                 }
                 break;
@@ -148,7 +148,7 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         {
             LOG_ERROR(wdbi_logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
             nrc.sendNRC(id, WDBI_SID, NegativeResponse::ROOR);
-            stopTimingFlag(receiver_id);
+            AccessTimingParameter::stopTimingFlag(receiver_id, 0x2E);
             return;
         }
 
@@ -168,38 +168,13 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         {
             LOG_ERROR(wdbi_logger.GET_LOGGER(), "Error processing file: {}", e.what());
             nrc.sendNRC(id, WDBI_SID, NegativeResponse::ROOR);
-            stopTimingFlag(receiver_id);
+            AccessTimingParameter::stopTimingFlag(receiver_id, 0x2E);
             return;
         }
 
         /* Send response frame */
         generate_frames.writeDataByIdentifier(id, did, {});
         LOG_INFO(wdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x2E);
-        stopTimingFlag(receiver_id);
+        AccessTimingParameter::stopTimingFlag(receiver_id, 0x2E);
     }
 };
-
-void WriteDataByIdentifier::stopTimingFlag(uint8_t receiver_id)
-{
-    switch(receiver_id)
-    {
-        case 0x10:
-            MCU::mcu->stop_flags[0x2E] = false;
-            break;
-        case 0x11:
-            battery->stop_flags[0x2E] = false;
-            break;
-        case 0x12:
-            engine->stop_flags[0x2E] = false;
-            break;
-        case 0x13:
-            doors->stop_flags[0x2E] = false;
-            break;
-        case 0x14:
-            hvac->_ecu->stop_flags[0x2E] = false;
-            break;
-        default:
-            LOG_ERROR(wdbi_logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
-            break; 
-    }
-}

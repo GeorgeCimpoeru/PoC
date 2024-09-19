@@ -55,7 +55,8 @@ UTILS_OBJS = $(OBJ_DIR)/MemoryManager.o \
              $(OBJ_DIR)/NegativeResponse.o \
 			 $(OBJ_DIR)/ReceiveFrames.o \
 			 $(OBJ_DIR)/HandleFrames.o \
-			 $(OBJ_DIR)/ECU.o
+			 $(OBJ_DIR)/ECU.o \
+			 $(OBJ_DIR)/FileManager.o
 
 # UDS object files
 UDS_OBJS = $(OBJ_DIR)/DiagnosticSessionControl.o \
@@ -189,6 +190,9 @@ $(OBJ_DIR)/NegativeResponse.o: $(UTILS_DIR)/NegativeResponse.cpp
 
 $(OBJ_DIR)/ReadMemoryByAddress.o: $(UDS_DIR)/read_memory_by_address/src/ReadMemoryByAddress.cpp
 	$(CXX) $(CFLAGS) -c $(UDS_DIR)/read_memory_by_address/src/ReadMemoryByAddress.cpp -o $(OBJ_DIR)/ReadMemoryByAddress.o
+
+$(OBJ_DIR)/FileManager.o: $(UTILS_DIR)/FileManager.cpp
+	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/FileManager.cpp -o $(OBJ_DIR)/FileManager.o
 
 .PHONY: clean
 clean:

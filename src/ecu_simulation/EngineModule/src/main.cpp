@@ -7,9 +7,9 @@ int main() {
     #else
     engineModuleLogger = new Logger("engineModuleLogger", "logs/engineModuleLogger.log");
     #endif /* UNIT_TESTING_MODE */
-    engine = new EngineModule(0x00,0x12);
+    engine = new EngineModule();
     std::thread receiveFrThread([]()
-                               { engine->receiveFrames(); });
+                               { engine->_ecu->startFrames(); });
     sleep(200);
     receiveFrThread.join();
     return 0;

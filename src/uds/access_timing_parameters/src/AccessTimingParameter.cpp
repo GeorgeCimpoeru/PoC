@@ -51,7 +51,7 @@ void AccessTimingParameter::handleRequest(canid_t frame_id, uint8_t sub_function
                 LOG_ERROR(atp_logger.GET_LOGGER(), "Incorrect Message Length Or Invalid Format");
                 NegativeResponse negative_response(socket, atp_logger);
                 negative_response.sendNRC(frame_id, 0x83, 0x13);
-                stopTimingFlag(receiver_id);
+                stopTimingFlag(receiver_id, 0x83);
             }
             break;
         default:
@@ -59,7 +59,7 @@ void AccessTimingParameter::handleRequest(canid_t frame_id, uint8_t sub_function
             LOG_ERROR(atp_logger.GET_LOGGER(), "Unsupported sub-function");
             NegativeResponse negative_response(socket, atp_logger);
             negative_response.sendNRC(frame_id, 0x83, 0x12);
-            stopTimingFlag(receiver_id);
+            stopTimingFlag(receiver_id, 0x83);
             break;
     }
 }
@@ -97,7 +97,7 @@ void AccessTimingParameter::readExtendedTimingParameters(canid_t frame_id)
     LOG_INFO(atp_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x83);
     response_frame.accessTimingParameters(id, 0x01, response, true);
         
-    stopTimingFlag(receiver_id);
+    stopTimingFlag(receiver_id, 0x83);
 }
 
 void AccessTimingParameter::setTimingParametersToDefault(canid_t frame_id)
@@ -121,7 +121,7 @@ void AccessTimingParameter::setTimingParametersToDefault(canid_t frame_id)
     LOG_INFO(atp_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x83);
     response_frame.accessTimingParameters(id, 0x02, {}, true);
     
-    stopTimingFlag(receiver_id);
+    stopTimingFlag(receiver_id, 0x83);
 }
 
 void AccessTimingParameter::readCurrentlyActiveTimingParameters(canid_t frame_id)
@@ -157,7 +157,7 @@ void AccessTimingParameter::readCurrentlyActiveTimingParameters(canid_t frame_id
     LOG_INFO(atp_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x83);
     response_frame.accessTimingParameters(id, 0x03, response, true);
 
-    stopTimingFlag(receiver_id);
+    stopTimingFlag(receiver_id, 0x83);
 }
 
 void AccessTimingParameter::setTimingParameters(canid_t frame_id, std::vector<uint8_t> frame_data)
@@ -191,30 +191,29 @@ void AccessTimingParameter::setTimingParameters(canid_t frame_id, std::vector<ui
     LOG_INFO(atp_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x83);
     response_frame.accessTimingParameters(id, 0x04, response, true);
 
-    stopTimingFlag(receiver_id);
+    stopTimingFlag(receiver_id, 0x83);
 }
 
-void AccessTimingParameter::stopTimingFlag(uint8_t receiver_id)
+void AccessTimingParameter::stopTimingFlag(uint8_t receiver_id, uint8_t sid)
 {
         switch(receiver_id)
         {
             case 0x10:
-                MCU::mcu->stop_flags[0x83] = false;
+                MCU::mcu->stop_flags[sid] = false;
                 break;
             case 0x11:
-                battery->stop_flags[0x83] = false;
+                battery->_ecu->stop_flags[sid] = false;
                 break;
             case 0x12:
-                engine->stop_flags[0x83] = false;
+                engine->_ecu->stop_flags[sid] = false;
                 break;
             case 0x13:
-                doors->stop_flags[0x83] = false;
+                doors->_ecu->stop_flags[sid] = false;
                 break;
             case 0x14:
-                hvac->_ecu->stop_flags[0x83] = false;
+                hvac->_ecu->stop_flags[sid] = false;
                 break;
             default:
-                LOG_ERROR(atp_logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
                 break; 
         }
 }

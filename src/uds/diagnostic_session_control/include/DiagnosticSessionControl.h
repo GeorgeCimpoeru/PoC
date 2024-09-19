@@ -83,13 +83,6 @@ public:
      * @return std::string + The current session
      */
     static std::string getCurrentSessionToString();
-
-    /**
-     * @brief Stop the processing timer for the module with an id equal to the receiver id
-     * 
-     * @param receiver_id 
-     */
-    void stopTimingFlag(uint8_t receiver_id );
    
     static DiagnosticSession current_session;
 
