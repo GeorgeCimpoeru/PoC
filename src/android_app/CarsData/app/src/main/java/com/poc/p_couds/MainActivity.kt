@@ -1,5 +1,6 @@
 package com.poc.p_couds
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -27,6 +28,11 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+        // Just to test OTA activity **
+            val intent = Intent(this, OTA::class.java);
+            startActivity(intent);
+        // ****
     }
 }
 

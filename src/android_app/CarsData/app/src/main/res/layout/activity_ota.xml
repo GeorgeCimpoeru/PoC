@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".OTA">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorPrimary"
+            android:minHeight="?attr/actionBarSize"
+            android:theme="?attr/actionBarTheme"
+            app:navigationIcon="@drawable/baseline_arrow_back_24"
+            app:title="OTA"
+            android:backgroundTint="#4CAF50"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <EditText
+                    android:layout_marginStart="30dp"
+                    android:layout_width="180dp"
+                    android:layout_height="match_parent"
+                    android:hint="Search version"/>
+                <ImageButton
+                    android:layout_width="70dp"
+                    android:layout_height="60dp"
+                    android:background="#00FFFFFF"
+                    android:contentDescription="button to serch"
+                    android:src="@drawable/baseline_search_24"
+                    />
+
+            </LinearLayout>
+        </androidx.appcompat.widget.Toolbar>
+
+        <ScrollView
+            android:id="@+id/scroll_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <!-- Content inside ScrollView -->
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="20dp"
+                    android:orientation="horizontal">
+
+                    <Switch
+                        android:id="@+id/switch2"
+                        android:layout_width="180dp"
+                        android:layout_height="48dp"
+                        android:text="Upgrade/Downgrade"
+                        tools:ignore="UseSwitchCompatOrMaterialXml" />
+                    <Spinner
+                        android:id="@+id/spinner_versions"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="20dp"/>
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/ids"
+                    android:layout_width="150dp"
+                    android:layout_height="50dp"
+                    android:text="Start download"
+                    android:backgroundTint="#4CAF50"
+                    android:layout_marginStart="180dp"
+                    android:layout_marginVertical="10dp"/>
+
+                <LinearLayout
+                    android:id="@+id/id_p"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="#E1FBF4EA"
+                    android:orientation="vertical"
+                    android:padding="15dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="5dp">
+                        <ImageButton
+                            android:id="@+id/ids2"
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:contentDescription="Continue download"
+                            android:src="@drawable/baseline_play_arrow_24"/>
+                        <ImageButton
+                            android:id="@+id/ids3"
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:contentDescription="Pause download"
+                            android:src="@drawable/baseline_pause_24"/>
+                        <ImageButton
+                            android:id="@+id/ids4"
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:contentDescription="Stop download"
+                            android:src="@drawable/baseline_stop_24"/>
+                        <TextView
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:text="45%"
+                            android:textStyle="bold"
+                            android:layout_marginLeft="150dp"
+                            android:layout_gravity="bottom"
+
+                            />
+                    </LinearLayout>
+
+                    <ProgressBar
+                        android:id="@+id/progressBar2"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:progress="45"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+
+                <TableLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TableRow
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+                    <TableRow
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+                    <TableRow
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+                    <TableRow
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+                </TableLayout>
+
+            </LinearLayout>
+        </ScrollView>
+
+    </LinearLayout>
+
+
+
+<!--    <com.google.android.material.bottomnavigation.BottomNavigationView-->
+<!--        android:id="@+id/bottom_navigation_view"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="70dp"-->
+<!--        android:background="?attr/colorSurface"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--       >-->
+
+<!--        <LinearLayout-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:paddingTop="5dp"-->
+<!--            android:orientation="horizontal">-->
+
+<!--            &lt;!&ndash; Bottom Navigation Items &ndash;&gt;-->
+<!--            <Button-->
+<!--                android:id="@+id/button1"-->
+<!--                android:layout_width="70dp"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:drawableTop="@drawable/baseline_battery_4_bar_24"-->
+<!--                android:textColor="@color/black"-->
+<!--                android:padding="0dp"-->
+<!--                android:textSize="11sp"-->
+<!--                android:background="#00000000"-->
+<!--                android:text="Battery"/>-->
+<!--            <Button-->
+<!--                android:id="@+id/button2"-->
+<!--                android:layout_width="70dp"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:drawableTop="@drawable/baseline_directions_car_24"-->
+<!--                android:textColor="@color/black"-->
+<!--                android:padding="0dp"-->
+<!--                android:textSize="11sp"-->
+<!--                android:background="#00000000"-->
+<!--                android:text="MCU"/>-->
+<!--            <Button-->
+<!--                android:id="@+id/button3"-->
+<!--                android:layout_width="70dp"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:drawableTop="@drawable/baseline_agriculture_24"-->
+<!--                android:textColor="@color/black"-->
+<!--                android:padding="0dp"-->
+<!--                android:textSize="11sp"-->
+<!--                android:background="#00000000"-->
+<!--                android:text="Engine"/>-->
+<!--            <Button-->
+<!--                android:id="@+id/button4"-->
+<!--                android:layout_width="70dp"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:drawableTop="@drawable/baseline_sensor_door_24"-->
+<!--                android:textColor="@color/black"-->
+<!--                android:padding="0dp"-->
+<!--                android:textSize="11sp"-->
+<!--                android:background="#00000000"-->
+<!--                android:text="Door"/>-->
+<!--            <Button-->
+<!--                android:id="@+id/button5"-->
+<!--                android:layout_width="70dp"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:drawableTop="@drawable/baseline_battery_4_bar_24"-->
+<!--                android:textColor="@color/black"-->
+<!--                android:padding="0dp"-->
+<!--                android:textSize="11sp"-->
+<!--                android:background="#00000000"-->
+<!--                android:text="HVAC"/>-->
+<!--            <Button-->
+<!--                android:id="@+id/button6"-->
+<!--                android:layout_width="60dp"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:drawableTop="@drawable/baseline_battery_4_bar_24"-->
+<!--                android:textColor="@color/black"-->
+<!--                android:padding="0dp"-->
+<!--                android:textSize="11sp"-->
+<!--                android:background="#00000000"-->
+<!--                android:text="Send request"/>-->
+
+<!--        </LinearLayout>-->
+<!--    </com.google.android.material.bottomnavigation.BottomNavigationView>-->
+
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigationView"
+        android:layout_width="match_parent"
+        android:layout_height="75dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:menu="@menu/bottom_nav_menu"/>
+</androidx.constraintlayout.widget.ConstraintLayout>
