@@ -3,46 +3,6 @@
 #include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
-/* Helper function to read data from a file */
-std::vector<uint8_t> readDataFromFile(const std::string& file_name, uint16_t data_identifier)
-{
-    std::ifstream infile(file_name);
-    std::vector<uint8_t> response;
-
-    if (!infile.is_open())
-    {
-        throw std::runtime_error("Failed to open file: " + file_name);
-    }
-
-    std::string line;
-    while (std::getline(infile, line))
-    {
-        std::istringstream iss(line);
-        uint16_t identifier;
-        uint16_t value;
-        std::vector<uint8_t> data;
-
-        // Read the identifier from the line
-        if (iss >> std::hex >> identifier)
-        {
-            // Read the remaining data values
-            while (iss >> std::hex >> value)
-            {
-                data.push_back(value);
-            }
-            // Check if the identifier matches the requested one
-            if (identifier == data_identifier)
-            {
-                response = data;
-                break;
-            }
-        }
-    }
-
-    infile.close();
-    return response;
-}
-
 ReadDataByIdentifier::ReadDataByIdentifier(int socket, Logger& rdbi_logger) 
             : generate_frames(socket, rdbi_logger), rdbi_logger(rdbi_logger)
 {
@@ -151,7 +111,8 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
 
     try
     {
-        response = readDataFromFile(file_name, data_identifier);
+        auto data_map = FileManager::readMapFromFile(file_name);
+        response = data_map[data_identifier];
     } catch (const std::exception& e)
     {
         LOG_ERROR(rdbi_logger.GET_LOGGER(), "Error reading from file: {}", e.what());
