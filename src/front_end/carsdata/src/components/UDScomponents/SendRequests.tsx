@@ -782,8 +782,17 @@ const SendRequests = () => {
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoDoors} disabled={disableInfoDoorsBtns}>Read Info Doors</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoDoors} disabled={disableInfoDoorsBtns}>Write Doors Info</button>
                 </div>
+
                 <h1 className="text-2xl mt-2">Response</h1>
-                <textarea id="response-output" className="m-2 h-36 textarea textarea-bordered" placeholder="" value={JSON.stringify(data23, null, 0)}></textarea>
+                {data23 && (
+                    <ul className="m-2 p-2 list-disc">
+                        {Object.entries(data23).map(([key, value]) => (
+                            <li key={key}>
+                                <strong>{key}:</strong> {JSON.stringify(value)}
+                            </li>
+                        ))}
+                    </ul>
+                )}
 
                 <div className="m-2 border-2 border-black overflow-x-auto max-h-52">
                     <h1 className="text-2xl mt-2">Logs:</h1>
