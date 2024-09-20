@@ -252,8 +252,7 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
             /* ReadDtcInformation(); */
             /* This service can be called in any session */
             LOG_INFO(_logger.GET_LOGGER(), "ReadDtcInformation called.");
-            /* verify_frame() */
-            ReadDTC readDtc(_logger, "../uds/read_dtc_information/dtcs.txt", can_socket);
+            ReadDTC readDtc(_logger, "dtcs.txt", can_socket);
             readDtc.read_dtc(frame_id, frame_data);
             break;
         }
@@ -261,7 +260,6 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
         {
             /* RoutineControl(sid, frame_data[2], frame_data[3] << 8) | frame_data[4]); */
             /* This service can be called in any session. */
-            LOG_INFO(_logger.GET_LOGGER(), "RoutineControl called.");
             RoutineControl routine_control(can_socket, _logger);
             routine_control.routineControl(frame_id, frame_data);
             break;

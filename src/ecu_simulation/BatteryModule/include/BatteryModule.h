@@ -30,28 +30,21 @@
 #include "../../../utils/include/ReceiveFrames.h"
 #include "../../../utils/include/GenerateFrames.h"
 #include "BatteryModuleLogger.h"
+#include "../../../utils/include/ECU.h"
 
 class BatteryModule
 {
 private:
-    int moduleId;
-    int battery_socket = -1;
+    const uint8_t BATTERY_ID = 0x11;
 
     float energy;
     float voltage;
     float percentage;
     std::string state;
 
-    CreateInterface* canInterface;
-    ReceiveFrames* frameReceiver;
-
 public:
-    /* Static dictionary to store SID and processing time */
-    static std::map<uint8_t, double> timing_parameters;
-    /* Store active timers for SIDs */
-    static std::map<uint8_t, std::future<void>> active_timers;
-    /* Stop flags for each SID. */
-    static std::map<uint8_t, std::atomic<bool>> stop_flags;
+    /* ECU object used for sockets, frame handling and ecu specific parameters (timing, flags etc)*/
+    ECU *_ecu;
     /* Variable to store ecu data */
     static std::unordered_map<uint16_t, std::vector<uint8_t>> default_DID_battery;
     /**
@@ -59,21 +52,9 @@ public:
      */
     BatteryModule();
     /**
-     * @brief Parameterized constructor for Battery Module object with custom interface name, custom moduleId.
-     * 
-     * @param _interfaceNumber Interface number used to create vcan interface.
-     * @param _moduleId Custom module identifier.
-     */
-    BatteryModule(int _interfaceNumber, int _moduleId);
-    /**
      * @brief Destructor Battery Module object.
      */
     virtual ~BatteryModule();
-
-    /**
-     * @brief Function to notify MCU if the module is Up & Running.
-     */
-    void sendNotificationToMCU();
 
     /**
      * @brief Helper function to execute shell commands and fetch output
@@ -101,16 +82,6 @@ public:
      * @brief Function to fetch data from system about battery.
      */
     void fetchBatteryData();
-
-    /**
-     * @brief Function that starts the frame receiver.
-     */
-    void receiveFrames();
-
-    /**
-     * @brief Function that stops the frame receiver.
-     */
-    void stopFrames();
 
     /* Member Accessors */
     /**
@@ -147,13 +118,6 @@ public:
      * @return Returns the sid of the socket. 
      */
     int getBatterySocket() const;
-
-    /**
-     * @brief Recreates and bind the Battery Socket on a given interface.
-     * 
-     * @param interface_number The interface on which the socket will be created.
-     */
-    void setBatterySocket(uint8_t interface_number);
 
     /**
      * @brief Write the default_did or the date before reset in battery_data.txt

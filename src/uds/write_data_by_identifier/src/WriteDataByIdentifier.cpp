@@ -3,6 +3,8 @@
 #include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
 #include "../../../ecu_simulation/DoorsModule/include/DoorsModule.h"
 #include "../../../ecu_simulation/HVACModule/include/HVACModule.h"
+#include "../../../ecu_simulation/DoorsModule/include/DoorsModule.h"
+#include "../../../ecu_simulation/HVACModule/include/HVACModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
 WriteDataByIdentifier::WriteDataByIdentifier(Logger& wdbi_logger, int socket)
@@ -31,16 +33,7 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
     {
         nrc.sendNRC(id, WDBI_SID, NegativeResponse::IMLOIF);
         uint8_t receiver_id = frame_id & 0xFF;
-        if (receiver_id == 0x10)
-        {
-            MCU::mcu->stop_flags[0x2E] = false;
-        } else if (receiver_id == 0x11)
-        {
-            battery->stop_flags[0x2E] = false;
-        } else if (receiver_id == 0x12)
-        {
-            engine->stop_flags[0x2E] = false;
-        }
+        AccessTimingParameter::stopTimingFlag(receiver_id, 0x2E);
     }
     else if (receiver_id == 0x10 && !SecurityAccess::getMcuState(wdbi_logger))
     {
@@ -50,11 +43,22 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
     else if (receiver_id == 0x11 && !ReceiveFrames::getBatteryState())
     {
         nrc.sendNRC(id, WDBI_SID, NegativeResponse::SAD);
-        battery->stop_flags[0x2E] = false;
+        battery->_ecu->stop_flags[0x2E] = false;
     }
-    else if (receiver_id == 0x12)
+    else if (receiver_id == 0x12 && !ReceiveFrames::getEngineState())
     {
-            engine->stop_flags[0x2E] = false;
+        nrc.sendNRC(id, WDBI_SID, NegativeResponse::SAD);
+        engine->_ecu->stop_flags[0x2E] = false;
+    }
+    else if (receiver_id == 0x13 && !ReceiveFrames::getDoorsState())
+    {
+        nrc.sendNRC(id, WDBI_SID, NegativeResponse::SAD);
+        doors->_ecu->stop_flags[0x2E] = false;
+    }
+    else if (receiver_id == 0x14 && !ReceiveFrames::getHvacState())
+    {
+        nrc.sendNRC(id, WDBI_SID, NegativeResponse::SAD);
+        hvac->_ecu->stop_flags[0x2E] = false;
     }
     else
     {
@@ -63,87 +67,56 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
 
         /* Extract Data Identifier (DID) */
         DID did = (frame_data[2] << 8) | frame_data[3];
-        
-        // Uncomment after release
-        // switch (receiver_id)
-        // {
-        // case 0x10:
-        //     if((std::find(MCU::mcu->VALID_DID_MCU.begin(), MCU::mcu->VALID_DID_MCU.end(), did)) != MCU::mcu->VALID_DID_MCU.end())
-        //     {
-        //         LOG_ERROR(wdbi_logger.GET_LOGGER(), "Request Out Of Range: Identifier not found in memory");
-        //         nrc.sendNRC(id,WDBI_SID,NegativeResponse::ROOR);
-        //         MCU::mcu->stop_flags[0x2E] = false;
-        //         return;
-        //     }
-        //     break;
-        // case 0x11:
-        //     if(battery->default_DID_battery.find(did) != battery->default_DID_battery.end())
-        //     {
-        //         LOG_ERROR(wdbi_logger.GET_LOGGER(), "Request Out Of Range: Identifier not found in memory");
-        //         nrc.sendNRC(id,WDBI_SID,NegativeResponse::ROOR);
-        //         battery->stop_flags[0x2E] = false;
-        //         return;
-        //     }
-        //     break;
-        // case 0x12:
-        //     if(engine->default_DID_engine.find(did) != engine->default_DID_engine.end())
-        //     {
-        //         LOG_ERROR(wdbi_logger.GET_LOGGER(), "Request Out Of Range: Identifier not found in memory");
-        //         nrc.sendNRC(id,WDBI_SID,NegativeResponse::ROOR);
-        //         engine->stop_flags[0x2E] = false;
-        //         return;
-        //     }
-        //     break;
-        // case 0x13:
-        //     if(doors->default_DID_doors.find(did) != doors->default_DID_doors.end())
-        //     {
-        //         LOG_ERROR(wdbi_logger.GET_LOGGER(), "Request Out Of Range: Identifier not found in memory");
-        //         nrc.sendNRC(id,WDBI_SID,NegativeResponse::ROOR);
-        //         doors->stop_flags[0x2E] = false;
-        //         return;
-        //     }
-        //     break;
-        // case 0x14:
-        //     if(hvac->default_DID_hvac.find(did) != hvac->default_DID_hvac.end())
-        //     {
-        //         LOG_ERROR(wdbi_logger.GET_LOGGER(), "Request Out Of Range: Identifier not found in memory");
-        //         nrc.sendNRC(id,WDBI_SID,NegativeResponse::ROOR);
-        //         // Uncomment when its added the flags in HVACModule
-        //         // hvac->stop_flags[0x2E] = false;
-        //         return;
-        //     }
-        //     break;
-        // default:
-        //     LOG_ERROR(wdbi_logger.GET_LOGGER(), "Invalid module.");
-        //     break;
-        // }
-
-
-        /* List of valid DIDs */
-        std::unordered_set<uint16_t> valid_dids = {
-            0xF190, 0xF17F, 0xF18C, 0xF1A0, 0xF187, 0xF1A2, 0xF1A1, 0xF1A4, 
-            0xF1A5, 0xF1A8, 0xF1A9, 0xF1AA, 0xF1AB, 0xF1AC, 0xF1AD, 0x0100, 
-            0x010C, 0x0110, 0x0114, 0x011C, 0x0120, 0x0124, 0x012C, 0x0130, 
-            0x0134, 0x0140, 0x01A0, 0x01B0, 0x01C0, 0x00D0, 0x01D0, 0x02D0,
-            0x03D0, 0x04D0, 0x05D0, 0x06D0, 0x01E0, 0x01F0
-        };
-
-        if (valid_dids.find(did) == valid_dids.end())
+        switch (receiver_id)
         {
-            LOG_ERROR(wdbi_logger.GET_LOGGER(), "Request Out Of Range: Identifier not found in memory");
-            nrc.sendNRC(id,WDBI_SID,NegativeResponse::ROOR);
-            uint8_t receiver_id = frame_id & 0xFF;
-            if (receiver_id == 0x10)
-            {
-                MCU::mcu->stop_flags[0x2E] = false;
-            } else if (receiver_id == 0x11)
-            {
-                battery->stop_flags[0x2E] = false;
-            } else if (receiver_id == 0x12)
-            {
-                engine->stop_flags[0x2E] = false;
-            }
-            return;
+            case 0x10:
+                if((std::find(MCU::mcu->VALID_DID_MCU.begin(), MCU::mcu->VALID_DID_MCU.end(), did)) == MCU::mcu->VALID_DID_MCU.end())
+                {
+                    LOG_ERROR(wdbi_logger.GET_LOGGER(), "Request Out Of Range: Identifier not found in memory");
+                    nrc.sendNRC(id,WDBI_SID,NegativeResponse::ROOR);
+                    MCU::mcu->stop_flags[0x2E] = false;
+                    return;
+                }
+                break;
+            case 0x11:
+                if(battery->default_DID_battery.find(did) == battery->default_DID_battery.end())
+                {
+                    LOG_ERROR(wdbi_logger.GET_LOGGER(), "Request Out Of Range: Identifier not found in memory");
+                    nrc.sendNRC(id,WDBI_SID,NegativeResponse::ROOR);
+                    battery->_ecu->stop_flags[0x2E] = false;
+                    return;
+                }
+                break;
+            case 0x12:
+                if(engine->default_DID_engine.find(did) == engine->default_DID_engine.end())
+                {
+                    LOG_ERROR(wdbi_logger.GET_LOGGER(), "Request Out Of Range: Identifier not found in memory");
+                    nrc.sendNRC(id,WDBI_SID,NegativeResponse::ROOR);
+                    engine->_ecu->stop_flags[0x2E] = false;
+                    return;
+                }
+                break;
+            case 0x13:
+                if(doors->default_DID_doors.find(did) == doors->default_DID_doors.end())
+                {
+                    LOG_ERROR(wdbi_logger.GET_LOGGER(), "Request Out Of Range: Identifier not found in memory");
+                    nrc.sendNRC(id,WDBI_SID,NegativeResponse::ROOR);
+                    doors->_ecu->stop_flags[0x2E] = false;
+                    return;
+                }
+                break;
+            case 0x14:
+                if(hvac->default_DID_hvac.find(did) == hvac->default_DID_hvac.end())
+                {
+                    LOG_ERROR(wdbi_logger.GET_LOGGER(), "Request Out Of Range: Identifier not found in memory");
+                    nrc.sendNRC(id,WDBI_SID,NegativeResponse::ROOR);
+                    hvac->_ecu->stop_flags[0x2E] = false;
+                    return;
+                }
+                break;
+            default:
+                LOG_ERROR(wdbi_logger.GET_LOGGER(), "Invalid module.");
+                break;
         }
 
         /* Extract Data Parameter */
@@ -154,27 +127,28 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         if (receiver_id == 0x10)
         {
             file_name = "mcu_data.txt";
-        } else if (receiver_id == 0x11)
+        }
+        else if (receiver_id == 0x11)
         {
             file_name = "battery_data.txt";
-        } else if (receiver_id == 0x12)
+        }
+        else if (receiver_id == 0x12)
         {
             file_name = "engine_data.txt";
         }
+        else if (receiver_id == 0x13)
+        {
+            file_name = "doors_data.txt";
+        }
+        else if (receiver_id == 0x14)
+        {
+            file_name = "hvac_data.txt";
+        }
         else
         {
-            if (receiver_id == 0x10)
-            {
-                MCU::mcu->stop_flags[0x2E] = false;
-            } else if (receiver_id == 0x11)
-            {
-                battery->stop_flags[0x2E] = false;
-            } else if (receiver_id == 0x12)
-            {
-                engine->stop_flags[0x2E] = false;
-            }
             LOG_ERROR(wdbi_logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
             nrc.sendNRC(id, WDBI_SID, NegativeResponse::ROOR);
+            AccessTimingParameter::stopTimingFlag(receiver_id, 0x2E);
             return;
         }
 
@@ -189,36 +163,18 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
             /* Save the updated data back to the file */
             FileManager::writeMapToFile(file_name, data_map);
 
-            LOG_INFO(wdbi_logger.GET_LOGGER(), "Data written to DID 0x{:x} in {}.", did, (receiver_id == 0x10 ? "MCUModule" : "BatteryModule"));
+            LOG_INFO(wdbi_logger.GET_LOGGER(), "Data written to DID 0x{:x} in the module with id {}.", did, receiver_id);
         } catch (const std::exception& e) 
         {
-            if (receiver_id == 0x10)
-            {
-                MCU::mcu->stop_flags[0x2E] = false;
-            } else if (receiver_id == 0x11)
-            {
-                battery->stop_flags[0x2E] = false;
-            } else if (receiver_id == 0x12)
-            {
-                engine->stop_flags[0x2E] = false;
-            }
             LOG_ERROR(wdbi_logger.GET_LOGGER(), "Error processing file: {}", e.what());
             nrc.sendNRC(id, WDBI_SID, NegativeResponse::ROOR);
+            AccessTimingParameter::stopTimingFlag(receiver_id, 0x2E);
             return;
         }
 
         /* Send response frame */
         generate_frames.writeDataByIdentifier(id, did, {});
         LOG_INFO(wdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x2E);
-        if (receiver_id == 0x10)
-        {
-            MCU::mcu->stop_flags[0x2e] = false;
-        } else if (receiver_id == 0x11)
-        {
-            battery->stop_flags[0x2e] = false;
-        } else if (receiver_id == 0x12)
-        {
-            engine->stop_flags[0x2E] = false;
-        }
+        AccessTimingParameter::stopTimingFlag(receiver_id, 0x2E);
     }
 };

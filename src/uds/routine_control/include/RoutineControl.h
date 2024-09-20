@@ -77,6 +77,7 @@ class RoutineControl
     bool verifySoftware();
     
     std::string selectEcuPath(canid_t can_id);
+
     private:
     GenerateFrames generate_frames;
     int socket = -1;

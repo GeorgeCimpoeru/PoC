@@ -1,6 +1,8 @@
 #include "../include/DiagnosticSessionControl.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
+#include "../../../ecu_simulation/DoorsModule/include/DoorsModule.h"
+#include "../../../ecu_simulation/HVACModule/include/HVACModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
 // Initialize current_session
@@ -44,13 +46,7 @@ void DiagnosticSessionControl::sessionControl(canid_t frame_id, uint8_t sub_func
         NegativeResponse negative_response(socket, dsc_logger);
         negative_response.sendNRC(frame_id, 0x10, 0x12);
         uint8_t receiver_id = frame_id & 0xFF;
-        if (receiver_id == 0x10)
-        {
-            MCU::mcu->stop_flags[0x10] = false;
-        } else if (receiver_id == 0x11)
-        {
-            battery->stop_flags[0x10] = false;
-        }
+        AccessTimingParameter::stopTimingFlag(receiver_id, 0x10);
         break;
     }
 }
@@ -77,29 +73,10 @@ void DiagnosticSessionControl::switchToDefaultSession(canid_t frame_id)
     int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
     uint8_t receiver_id = frame_id & 0xFF;
 
-    switch(receiver_id)
-    {
-        case 0x10:
-            /* Send response frame */
-            response_frame.sessionControl(id, 0x01, true);
-            LOG_INFO(dsc_logger.GET_LOGGER(), "Sent positive response");
-            MCU::mcu->stop_flags[0x10] = false;
-            break;
-        case 0x11:
-            /* Send response frame */
-            response_frame.sessionControl(id, 0x01, true);
-            LOG_INFO(dsc_logger.GET_LOGGER(), "Sent positive response");
-            battery->stop_flags[0x10] = false;
-            break;
-        case 0x12:
-            /* Send response frame */
-            response_frame.sessionControl(id, 0x01, true);
-            LOG_INFO(dsc_logger.GET_LOGGER(), "Sent positive response");
-            engine->stop_flags[0x10] = false;
-            break;
-        default:
-            LOG_ERROR(dsc_logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
-    } 
+    response_frame.sessionControl(id, 0x01, true);
+    LOG_INFO(dsc_logger.GET_LOGGER(), "Sent positive response");
+     
+    AccessTimingParameter::stopTimingFlag(receiver_id, 0x10);
 }
 
 /* Method to switch current session to Programming Session */
@@ -119,29 +96,10 @@ void DiagnosticSessionControl::switchToProgrammingSession(canid_t frame_id)
     int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
     uint8_t receiver_id = frame_id & 0xFF;
 
-    switch(receiver_id)
-    {
-        case 0x10:
-            /* Send response frame */
-            response_frame.sessionControl(id, 0x02, true);
-            LOG_INFO(dsc_logger.GET_LOGGER(), "Sent positive response");
-            MCU::mcu->stop_flags[0x10] = false;
-            break;
-        case 0x11:
-            /* Send response frame */
-            response_frame.sessionControl(id, 0x02, true);
-            LOG_INFO(dsc_logger.GET_LOGGER(), "Sent positive response");
-            battery->stop_flags[0x10] = false;
-            break;
-        case 0x12:
-            /* Send response frame */
-            response_frame.sessionControl(id, 0x02, true);
-            LOG_INFO(dsc_logger.GET_LOGGER(), "Sent positive response");
-            engine->stop_flags[0x10] = false;
-            break;
-        default:
-            LOG_ERROR(dsc_logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
-    } 
+    response_frame.sessionControl(id, 0x02, true);
+    LOG_INFO(dsc_logger.GET_LOGGER(), "Sent positive response");
+    
+    AccessTimingParameter::stopTimingFlag(receiver_id, 0x10);
 }
 
 /* Method to get the current session of module */
