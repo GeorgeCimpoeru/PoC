@@ -79,27 +79,54 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
             return;
         }
         else
+
+        /* Set the chunk size to 1MB (0x100000) chunks */
+        const size_t chunk_size = 0x100000;
+        size_t total_size = data.size();
+        size_t bytes_sent = 0;
+        /* Transfer data in 1MB chunks */
+        while (bytes_sent < total_size)
         {
-            /* clear vector after writing to adress */
+            /* Compute the current chunk size */
+            size_t current_chunk_size = std::min(chunk_size, total_size - bytes_sent);
+
+            /* Extract the current chunk from the binary data */
+            std::vector<uint8_t> current_chunk(data.begin() + bytes_sent, data.begin() + bytes_sent + current_chunk_size);
+
+            /* Prepare the response for the current chunk */
             response.clear();
-            /* prepare positive response */
             response.push_back(0x02); /* PCI */
             response.push_back(0x76); /* Service ID */
             response.push_back(block_sequence_counter); /* block_sequence_counter */
-            /* Send the postive response frame */ 
+
+            /* Write the read chunk data to the partition created, at a specifig address */
+            bool write_success = memory_manager->writeToAddress(current_chunk);
+            if(write_success == false)
+            {
+                nrc.sendNRC(can_id, TD_SID, NegativeResponse::TDS);
+                return;
+            }       
+            
+            /* Send the frame containing this chunk */ 
             generate_frames.sendFrame(can_id, response);
             MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_COMPLETE});
             /* send request for TransferExit */
             /* generate_frames.requestTransferExit(); */
+          
+            /* Increment the block sequence blocker */
+            block_sequence_counter = (block_sequence_counter + 1) & 0xFF;
 
-            /* Increment expected_block_sequence_number only if it matches the current block_sequence_counter */
-            expected_block_sequence_number++;
+            /* Increment the number of bytes sent */
+            bytes_sent += current_chunk_size;
+        }
+
+        /* After all bytes are sent, update the block sequence number and reset if necessary */    
+        expected_block_sequence_number = block_sequence_counter;
             
             /* reset it to 0x01 after it reaches 0xFF and resets to 0*/
             if (expected_block_sequence_number == 0x00)
             {
                 expected_block_sequence_number = 0x01;
             }
-        }
     }
 }
