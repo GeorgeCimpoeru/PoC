@@ -73,3 +73,50 @@ class ReadAccessTiming(Action):
         except Exception as e:
             logger.error(f"Error accessing timing parameters: {e}")
             return {"status": "error", "message": str(e)}
+
+
+class WriteAccessTiming(Action):
+    def _write_timing_info(self, id, timing_values):
+        """
+        Writes timing parameters to the ECU.
+
+        Args:
+        - id: The identifier of the target ECU or device.
+        - timing_values: A dictionary containing the timing values to be written.
+
+        Returns:
+        - A dictionary with the status and message.
+        """
+        try:
+            id_mcu = self.id_ecu[MCU]
+            id = (self.id_ecu[ECU_BATTERY] << 16) + (self.my_id << 8) + id_mcu
+
+            log_info_message(logger, "Changing session to programming")
+            self.generate.session_control(id, 0x02)
+            self._passive_response(SESSION_CONTROL, "Error changing session control")
+
+            p2_max = timing_values.get("p2_max", 0)
+            p2_star_max = timing_values.get("p2_star_max", 0)
+
+            self.generate.write_timming_parameters(id, 0x04, p2_max, p2_star_max)
+            frame_response = self._passive_response(ACCESS_TIMING_PARAMETERS, "Error writing timing parameters")
+
+            if frame_response.data[1] == 0xC3:
+                log_info_message(logger, "Timing parameters written successfully")
+
+                return {
+                    "status": "success",
+                    "message": "Timing parameters written successfully",
+                    "written_values": {
+                        "New P2 Max Time": p2_max,
+                        "New P2 Star Max": p2_star_max
+                    }
+                }
+            else:
+                return {
+                    "status": "error",
+                    "message": "Unexpected response while writing timing parameters"
+                }
+        except Exception as e:
+            logger.error(f"Error writing timing parameters: {e}")
+            return {"status": "error", "message": str(e)}

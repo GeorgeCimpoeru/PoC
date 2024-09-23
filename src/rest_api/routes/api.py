@@ -15,7 +15,7 @@ from actions.secure_auth import Auth  # noqa: E402
 from actions.dtc_info import DiagnosticTroubleCode  # noqa: E402
 from actions.diag_session import SessionManager  # noqa: E402
 from actions.tester_present import Tester  # noqa: E402
-from actions.access_timing_action import ReadAccessTiming  # noqa: E402
+from actions.access_timing_action import *  # noqa: E402
 from actions.ecu_reset import Reset  # noqa: E402
 
 api_bp = Blueprint('api', __name__)
@@ -194,3 +194,24 @@ def reset_module():
     reseter = Reset(API_ID, [0x10, 0x11, 0x12])
     response = reseter.reset_ecu(wh_id, type_reset)
     return jsonify(response)
+
+
+@api_bp.route('/write_timing', methods=['POST'])
+def write_timing():
+    data = request.get_json()
+
+    if not data or 'p2_max' not in data or 'p2_star_max' not in data:
+        return jsonify({"status": "error", "message": "Missing required parameters"}), 400
+
+    p2_max = data.get('p2_max')
+    p2_star_max = data.get('p2_star_max')
+
+    timing_values = {
+        "p2_max": p2_max,
+        "p2_star_max": p2_star_max
+    }
+
+    writer = WriteAccessTiming(API_ID, [0x10, 0x11, 0x12])
+    result = writer._write_timing_info(id, timing_values)
+
+    return jsonify(result)
