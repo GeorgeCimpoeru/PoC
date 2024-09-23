@@ -43,7 +43,7 @@ class RoutineControl
     * @param request Data from a can frame that contains PCI, SID and routineIdentifier.
     * @param routine_identifier Routine identifier.
     */
-    void routineControlResponse(canid_t can_id, const std::vector<uint8_t>& request, const uint16_t& routine_identifier);
+    void routineControlResponse(canid_t can_id, uint8_t sub_function, const uint16_t& routine_identifier, std::vector<uint8_t>& routine_result);
     
     /**
     * @brief Method to return a path string based on the receiver id.
@@ -58,7 +58,7 @@ class RoutineControl
      * @return true 
      * @return false 
      */
-    bool initialiseOta();
+    bool initialiseOta(uint8_t target_ecu, const std::vector<uint8_t>& request, std::vector<uint8_t>& routine_result);
 
     /**
      * @brief 
