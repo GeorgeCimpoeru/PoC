@@ -19,8 +19,12 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     NegativeResponse nrc(socket, rc_logger);
     uint8_t lowerbits = can_id & 0xFF;
     uint8_t upperbits = can_id >> 8 & 0xFF;
+    uint8_t sub_function = request[2];
+    std::vector<uint8_t> routine_result = {0x00, 0x00, 0x00};
     /* reverse ids */
     can_id = lowerbits << 8 | upperbits;
+    OtaUpdateStatesEnum ota_state = static_cast<OtaUpdateStatesEnum>(MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0]);
+
     if (request.size() < 6)
     {
         /* Incorrect message length or invalid format - prepare a negative response */
@@ -28,7 +32,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
         AccessTimingParameter::stopTimingFlag(lowerbits, 0x31);
         return;
     }
-    else if (request[2] < 0x01 || request [2] > 0x03)
+    else if (sub_function < 0x01 || sub_function > 0x03)
     {
         /* Sub Function not supported - prepare a negative response */
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SFNS);
@@ -96,7 +100,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 /* Erase memory or specific data */
                 /* call eraseMemory routine */
                 LOG_INFO(rc_logger.GET_LOGGER(), "eraseMemory routine called.");
-                routineControlResponse(can_id, request, routine_identifier);
+                routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
                 break;
             case 0x0201:
                 /* Install updates */
@@ -104,7 +108,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 LOG_INFO(rc_logger.GET_LOGGER(), "installUpdates routine called.");
                 MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE});
                 system(command.c_str());
-                routineControlResponse(can_id, request, routine_identifier);
+                routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
                 break;
             case 0x0301:
                 /* call writeToFile routine*/
@@ -113,18 +117,27 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 memory_manager = MemoryManager::getInstance(rc_logger); 
                 adress_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), binary_data.size(), rc_logger);
                 MemoryManager::writeToFile(adress_data, selectEcuPath(can_id), rc_logger);
-                routineControlResponse(can_id, request, routine_identifier);
+                routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
                 break;
             case 0x0401:
                 /* Initialise OTA Update */
+                
+                if(ota_state != IDLE && ota_state != ERROR)
+                {
+                    LOG_INFO(rc_logger.GET_LOGGER(), "OTA update can be initialised only from an IDLE or ERROR state, current state is {}", ota_state);
+                    nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::CNC);
+                    return;
+                }
+
                 LOG_INFO(rc_logger.GET_LOGGER(), "Initialise OTA update routine called.");
-                if(initialiseOta() == true)
+                if(initialiseOta(lowerbits, request, routine_result) == false)
+                {
+                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ERROR});
+                    nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::IMLOIF);
+                }
                 {
                     MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {INIT});
-                }
-                else
-                {
-                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {IDLE});
+                    routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
                 }
                 break;
             case 0x0501:
@@ -159,11 +172,11 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     }
 }
 
-void RoutineControl::routineControlResponse(canid_t can_id, const std::vector<uint8_t>& request, const uint16_t& routine_identifier)
+void RoutineControl::routineControlResponse(canid_t can_id, const uint8_t sub_function, const uint16_t& routine_identifier, std::vector<uint8_t>& routine_result)
 {
     uint8_t receiver_id = can_id >> 8 & 0xFF;
 
-    generate_frames.routineControl(can_id, request[2], routine_identifier, true);
+    generate_frames.routineControl(can_id, sub_function, routine_identifier, routine_result, true);
     LOG_INFO(rc_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame for routine: {:2x}", 0x31, routine_identifier);
                 
     AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
@@ -198,8 +211,41 @@ std::string RoutineControl::selectEcuPath(canid_t can_id)
     return "no path found";
 }
 
-bool RoutineControl::initialiseOta()
+bool RoutineControl::initialiseOta(uint8_t target_ecu, const std::vector<uint8_t>& request, std::vector<uint8_t>& routine_result)
 {
+    /* More checks here */
+
+    namespace py = pybind11;
+    py::scoped_interpreter guard{}; // start the interpreter and keep it alive
+
+    /* PROJECT_PATH defined in makefile to be the root folder path (POC)*/
+    std::string project_path = PROJECT_PATH;
+    std::string path_to_drive_api = project_path + "/src/ota/google_drive_api";
+
+    auto sys = py::module::import("sys");
+    sys.attr("path").attr("append")(path_to_drive_api);
+
+    /* Get the created Python module */
+    py::module python_module = py::module::import("GoogleDriveApi");
+    /* From the module, get the needed functionality (gDrive object) */
+    py::object gGdrive_object = python_module.attr("gDrive");
+
+    uint8_t sw_version = request[5];
+    /* Call the searchVersion method from GoogleDriveApi.py that returns the size of the version, or 0 if not found*/
+    size_t version_size = (gGdrive_object.attr("searchVersion")(target_ecu, sw_version)).cast<size_t>();
+
+    if(version_size == 0)
+    {
+        /* NRC*/
+        return false;
+    }
+    else
+    {
+        /* Send response */
+        routine_result[0] = (version_size >> 16 & 0xFF);
+        routine_result[1] = (version_size >> 8 & 0xFF);
+        routine_result[2] = (version_size & 0xFF);
+    }
     return true;
 }
 

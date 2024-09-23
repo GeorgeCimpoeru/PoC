@@ -150,8 +150,6 @@ def uploadRelease(directory_path: str):
     for file in os.listdir(directory_path):
 
         if "MCU" in file:
-            print(os.path.join(
-                directory_path, file))
             gDrive.uploadFile(file, os.path.join(
                 directory_path, file), mcu_size_uncompressed, DRIVE_MCU_SW_VERSIONS_FILE)
         elif "BATTERY" in file:

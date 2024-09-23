@@ -24,6 +24,15 @@ RequestDownloadService::~RequestDownloadService()
  */
 void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint8_t> stored_data)
 {
+    NegativeResponse nrc(socket, RDSlogger);
+    auto ota_status = MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0];
+    if(ota_status != INIT)
+    {
+        LOG_WARN(RDSlogger.GET_LOGGER(), "Service 0x34 RequestDownload can be used only from an INIT state, current OTA state is {}", ota_status);
+        nrc.sendNRC(id, RDS_SID, NegativeResponse::CNC);
+        return;
+    }
+
     LOG_INFO(RDSlogger.GET_LOGGER(), "Service 0x34 RequestDownload");
 
     /* Extract and switch sender and receiver */
@@ -34,7 +43,6 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     uint8_t target_id = (id >> 16) & 0xFF;
     /* Reverse IDs, target id will be in same position but receiver will be switched with sender */
     id = (target_id << 16) | (receiver_id << 8) | sender_id;
-    NegativeResponse nrc(socket, RDSlogger);
     if (stored_data.size() < 7)
     {
         /* Incorrect message length or invalid format - prepare a negative response */
