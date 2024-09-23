@@ -85,7 +85,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
             
             /* Set the total size of the binary data */
             total_size = data.size();
-            std::cout << "totalllllllllllll" << total_size << "\n";
+
             /* Initialize the bytes sent for the first transfer */
             bytes_sent = 0;
             /* Set the flag as false after the first transfer */
@@ -99,7 +99,6 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
             size_t remaining_bytes = total_size - bytes_sent;
             /* Compute the current chunk size */
             size_t current_chunk_size = std::min(chunk_size, remaining_bytes);
-            std::cout << "remaining bytes are " << remaining_bytes << " currentchunk size " << current_chunk_size << " chunk siez " << chunk_size << "\n"; 
             /* Extract the current chunk from the binary data */
             std::vector<uint8_t> chunk_data(data.begin() + bytes_sent, data.begin() + bytes_sent + current_chunk_size);                
 
@@ -117,7 +116,6 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
             {
                 /* Update bytes sent */
                 bytes_sent += current_chunk_size;
-                std::cout << "bytes sent    " << bytes_sent << "\n";
 
                 /* clear vector after writing to adress */
                 response.clear();
