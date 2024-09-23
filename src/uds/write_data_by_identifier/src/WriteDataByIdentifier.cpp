@@ -163,6 +163,19 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
             /* Save the updated data back to the file */
             FileManager::writeMapToFile(file_name, data_map);
 
+            /* Check the new value */
+            switch (receiver_id)
+            {
+            case 0x11:
+                battery->checkDTC();
+                break;
+            case 0x12:
+                engine->checkDTC();
+                break;
+            
+            default:
+                break;
+            }
             LOG_INFO(wdbi_logger.GET_LOGGER(), "Data written to DID 0x{:x} in the module with id {}.", did, receiver_id);
         } catch (const std::exception& e) 
         {

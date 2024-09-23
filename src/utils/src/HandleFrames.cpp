@@ -243,7 +243,7 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
             /* ClearDiagnosticInformation(); */
             /* This service can be called in any session */
             LOG_INFO(_logger.GET_LOGGER(), "ClearDiagnosticInformation called.");
-            ClearDtc clear_dtc("../uds/read_dtc_information/dtcs.txt", _logger, can_socket);
+            ClearDtc clear_dtc("dtcs.txt", _logger, can_socket);
             clear_dtc.clearDtc(frame_id, frame_data);
             break;  
         }

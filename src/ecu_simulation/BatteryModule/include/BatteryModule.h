@@ -124,6 +124,12 @@ public:
      * 
      */
     void writeDataToFile();
+
+    /**
+     * @brief Check if the battery components exceed the normal values
+     * 
+     */
+    void checkDTC();
 };
 extern BatteryModule* battery;
 

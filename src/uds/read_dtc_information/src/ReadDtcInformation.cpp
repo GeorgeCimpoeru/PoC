@@ -81,7 +81,7 @@ void ReadDTC::number_of_dtc(int id, int dtc_status_mask)
     LOG_INFO(logger.GET_LOGGER(), "Reading DTCs...");
     while (std::getline (MyReadFile, line))
     {
-        int status = to_int(line[9]) * 0x10 + to_int(line[10]);
+        int status = to_int(line[6]) * 0x10 + to_int(line[7]);
         status_availability_mask |= status;
         /* Filter by status mask */
         if ((status & dtc_status_mask) || dtc_status_mask == 0)
@@ -130,7 +130,7 @@ void ReadDTC::report_dtcs(int id, int dtc_status_mask)
     LOG_INFO(logger.GET_LOGGER(), "Reading DTCs...");
     while (std::getline (MyReadFile, line))
     {
-        int status = to_int(line[9]) * 0x10 + to_int(line[10]);
+        int status = to_int(line[6]) * 0x10 + to_int(line[7]);
         status_availability_mask |= status;
         /* Filter by status mask */
         if ((status & dtc_status_mask) || dtc_status_mask == 0)
@@ -202,7 +202,6 @@ int ReadDTC::dtc_to_hex(std::string dtc)
     };
     int hex = (first_byte[dtc[0]]<<6) | (to_int(dtc [1])<<4) | to_int(dtc[2]);
     hex = hex * 0x100 + to_int(dtc[3]) * 0x10 + to_int(dtc[4]);
-    hex = hex * 0x100 + to_int(dtc[6]) * 0x10 + to_int(dtc[7]);
     return hex;
 }
 
