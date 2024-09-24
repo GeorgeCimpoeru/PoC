@@ -34,6 +34,11 @@
 #include "../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
 #include "../../utils/include/MemoryManager.h"
 #include <pybind11/embed.h>
+
+/* ECU permitted transfer data requests */
+#define MAX_TRANSFER_DATA_REQUESTS 5
+#define MAXIMUM_ALLOWED_DOWNLOAD_SIZE  50000000
+
 class RequestDownloadService
 {
 public:

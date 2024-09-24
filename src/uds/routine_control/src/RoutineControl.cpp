@@ -20,7 +20,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     uint8_t lowerbits = can_id & 0xFF;
     uint8_t upperbits = can_id >> 8 & 0xFF;
     uint8_t sub_function = request[2];
-    std::vector<uint8_t> routine_result = {0x00, 0x00, 0x00};
+    std::vector<uint8_t> routine_result = {0x00};
     /* reverse ids */
     can_id = lowerbits << 8 | upperbits;
     OtaUpdateStatesEnum ota_state = static_cast<OtaUpdateStatesEnum>(MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0]);
@@ -124,7 +124,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 
                 if(ota_state != IDLE && ota_state != ERROR)
                 {
-                    LOG_INFO(rc_logger.GET_LOGGER(), "OTA update can be initialised only from an IDLE or ERROR state, current state is {}", ota_state);
+                    LOG_INFO(rc_logger.GET_LOGGER(), "OTA update can be initialised only from an IDLE or ERROR state, current state is {:x}", ota_state);
                     nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::CNC);
                     return;
                 }
@@ -221,19 +221,27 @@ bool RoutineControl::initialiseOta(uint8_t target_ecu, const std::vector<uint8_t
     /* PROJECT_PATH defined in makefile to be the root folder path (POC)*/
     std::string project_path = PROJECT_PATH;
     std::string path_to_drive_api = project_path + "/src/ota/google_drive_api";
-
-    auto sys = py::module::import("sys");
-    sys.attr("path").attr("append")(path_to_drive_api);
-
-    /* Get the created Python module */
-    py::module python_module = py::module::import("GoogleDriveApi");
-    /* From the module, get the needed functionality (gDrive object) */
-    py::object gGdrive_object = python_module.attr("gDrive");
-
     uint8_t sw_version = request[5];
-    /* Call the searchVersion method from GoogleDriveApi.py that returns the size of the version, or 0 if not found*/
-    size_t version_size = (gGdrive_object.attr("searchVersion")(target_ecu, sw_version)).cast<size_t>();
+    size_t version_size = 0;
+    try
+    {
+        auto sys = py::module::import("sys");
+        sys.attr("path").attr("append")(path_to_drive_api);
 
+        /* Get the created Python module */
+        py::module python_module = py::module::import("GoogleDriveApi");
+        /* From the module, get the needed functionality (gDrive object) */
+        py::object gGdrive_object = python_module.attr("gDrive");
+
+        /* Call the searchVersion method from GoogleDriveApi.py that returns the size of the version, or 0 if not found*/
+        version_size = (gGdrive_object.attr("searchVersion")(target_ecu, sw_version)).cast<size_t>();
+    }
+    catch(const py::error_already_set& e)
+    {
+        LOG_ERROR(rc_logger.GET_LOGGER(), "Python error: {}", e.what());
+        MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ERROR});
+        return false;
+    }
     if(version_size == 0)
     {
         /* NRC*/
@@ -242,11 +250,10 @@ bool RoutineControl::initialiseOta(uint8_t target_ecu, const std::vector<uint8_t
     else
     {
         /* Send response */
-        routine_result[0] = (version_size >> 16 & 0xFF);
-        routine_result[1] = (version_size >> 8 & 0xFF);
-        routine_result[2] = (version_size & 0xFF);
+        routine_result[0] = version_size & 0xFF;
     }
     return true;
+    
 }
 
 bool RoutineControl::activateSoftware()
