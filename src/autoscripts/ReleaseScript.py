@@ -137,7 +137,7 @@ def create_exec(version: str, sw_to_build: str, extra_args: str):
     return directory_path
 
 def createArchive(executable_path, archive_name):
-    size_uncompressed = os.path.getsize(executable_path)
+    size_uncompressed = int((os.path.getsize(executable_path) / 1000000)) + 1
     shutil.make_archive(archive_name, 'zip', root_dir=os.path.dirname(
                 executable_path), base_dir=os.path.basename(executable_path))
     return size_uncompressed

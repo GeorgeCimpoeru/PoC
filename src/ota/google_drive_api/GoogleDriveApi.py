@@ -37,8 +37,6 @@ ecu_map = {
     0x11: "battery"
 }
 
-file_to_download = None
-
 class GDriveAPI:
     # credentials needed for authorization. Created from the google cloud key.json file
     __creds = None
@@ -94,14 +92,12 @@ class GDriveAPI:
     def downloadFile(self, ecu_id, sw_version_byte, path_to_download=DRIVE_DOWNLOAD_PATH):
         try:
             # pylint: disable=maybe-no-member
-            sw_version = self.__convertByteToSwVersion(sw_version_byte)
             
-            if file_to_download == None:
-                print(
-                    f"{RED}No file found with type:{ecu_map[ecu_id]} and version {sw_version}{RESET}")
-                return
+            file_to_download = self.searchVersion(ecu_id, sw_version_byte, True)
+            if file_to_download == 0:
+                return 0
             
-            print(f"{GREEN}Version found, downloading..{RESET}")
+            print(f"{GREEN}Downloading..{RESET}")
             request = self.__drive_service.files().get_media(
                 fileId=file_to_download['id'])
             downloaded_file = io.BytesIO()
@@ -112,23 +108,21 @@ class GDriveAPI:
                 status, done = downloader.next_chunk()
                 print(f"{GREEN}Download {int(status.progress() * 100)}%.{RESET}")
 
-            file_to_download = None
-
         except HttpError as error:
             print(f"{RED}An error occurred: {error}{RESET}")
-            return
+            return 0
 
         downloaded_file.seek(0)
         with open(f"{path_to_download}/{file_to_download['name']}", 'wb') as f:
             f.write(downloaded_file.read())
             print(f"{GREEN}File downloaded and saved to {path_to_download}{RESET}")
+        file_to_download = None
 
-    def searchVersion(self, ecu_id, sw_version_byte):
+    def searchVersion(self, ecu_id, sw_version_byte, return_file=False):
         self.getDriveData()
         sw_version = self.__convertByteToSwVersion(hex(sw_version_byte))
         print(f"{GREEN}Searching for version {RESET}" +
               ecu_map[ecu_id] + ' ' + sw_version)
-        global file_to_download
         file_to_download = [
             data for data in self.__drive_data_array if data['type'] == ecu_map[ecu_id] and data['sw_version'] == str(sw_version)]
         
@@ -138,6 +132,9 @@ class GDriveAPI:
                     f"{RED}No file found with type:{ecu_map[ecu_id]} and version {sw_version}{RESET}")
             return 0
         print(f"{GREEN}Version found{RESET}")
+        if return_file == True:
+            return file_to_download
+        
         return int(file_to_download['size_uncompressed'])
     # PRIVATE METHODS
     def __convertByteToSwVersion(self, software_version_byte):
