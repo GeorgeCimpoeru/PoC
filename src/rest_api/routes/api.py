@@ -58,7 +58,7 @@ def read_info_eng():
 
 @api_bp.route('/read_info_doors', methods=['GET'])
 def read_info_doors():
-    reader = ReadInfo(API_ID, [0x10, 0x11, 0x12])
+    reader = ReadInfo(API_ID, [0x10, 0x11, 0x12, 0x13])
     response = reader.read_from_doors()
     return jsonify(response)
 

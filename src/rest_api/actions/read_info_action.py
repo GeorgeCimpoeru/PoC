@@ -2,12 +2,6 @@ import datetime
 from actions.base_actions import *
 from configs.data_identifiers import *
 
-MCU = 0
-ECU_BATTERY = 1
-ECU_ENGINE = 2
-ECU_DOORS = 3
-
-
 class ToJSON:
     """Open-Close principle. Base class for different JSON formats."""
     def _to_json(self, data):
@@ -70,16 +64,16 @@ class ReadInfo(Action):
     - id_ecu: Identifier for the specific ECU being updated.
     - g: Instance of GenerateFrame for generating CAN bus frames.
     """
-    def _auth_mcu(self):
+    def _auth_mcu(self, ecu_type):
 
-        id_mcu = self.id_ecu[MCU]
+        id_mcu = self.id_ecu[ecu_type]
         id = self.my_id * 0x100 + id_mcu
 
         try:
             log_info_message(logger, "Changing session to programming")
             self.generate.session_control(id, 0x02)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
-            id = (self.id_ecu[ECU_BATTERY] << 16) + (self.my_id << 8) + self.id_ecu[MCU]
+            id = (self.id_ecu[ecu_type] << 16) + (self.my_id << 8) + self.id_ecu[MCU]
             self._authentication(id)
 
         except CustomError as e:
@@ -105,6 +99,34 @@ class ReadInfo(Action):
 
         # Return the corresponding state or "Unknown state" if not found
         return state_mapping.get(state_of_charge, "Unknown state")
+    
+    def _interpret_status(self, status, context):
+        """Interprets various status values based on a predefined mapping."""
+        door_mapping = {
+        "00": "Closed",  
+        "01": "Open"
+        }
+        
+        lock_mapping = {
+            "00": "Locked",    
+            "01": "Unlocked"
+        }
+        
+        ajar_mapping = {
+            "00": "No warning", 
+            "01": "Warning"
+        }
+            
+        
+        if context == "door":
+            return door_mapping.get(status, "Unknown status")
+        elif context == "lock":
+            return lock_mapping.get(status, "Unknown status")
+        elif context == "ajar":
+            return ajar_mapping.get(status, "Unknown status")
+        else:
+            return "Invalid context"
+
 
     def read_from_battery(self, item=None):
         """
@@ -116,23 +138,16 @@ class ReadInfo(Action):
         Returns:
         - JSON response.
         """
-        auth_result = self._auth_mcu()
-        if isinstance(auth_result, str):
-            return auth_result
+        # auth_result = self._auth_mcu(ECU_BATTERY)
+        # if isinstance(auth_result, str):
+        #     return auth_result
 
         try:
             log_info_message(logger, "Reading data from battery")
-            id = self.my_id * 0x100 + self.id_ecu[MCU]
+            id = self.my_id * 0x100 + self.id_ecu[ECU_BATTERY]
 
             identifiers = data_identifiers["Battery_Identifiers"]
             results = {}
-
-            def hex_to_dec(value):
-                """Helper function to convert hex to decimal if not 'No data'."""
-                try:
-                    return int(value, 16)
-                except (ValueError, TypeError):
-                    return value
 
             if item:
                 if item in identifiers:
@@ -153,19 +168,18 @@ class ReadInfo(Action):
                         result_value = self._get_battery_state_of_charge(result_value)
 
                     results[key] = result_value if result_value else "No data"
-
-            # Convert hex results to decimal
+        
             response_json = {
-                "battery_level": hex_to_dec(results.get("battery_level", "No data")),
-                "voltage": hex_to_dec(results.get("voltage", "No data")),
-                "percentage": hex_to_dec(results.get("percentage", "No data")),
-                "battery_state_of_charge": results.get("state_of_charge", "No data"),
-                "life_cycle": hex_to_dec(results.get("life_cycle", "No data")),
-                "fully_charged": hex_to_dec(results.get("fully_charged", "No data")),
-                "serial_number": hex_to_dec(results.get("serial_number", "No data")),
-                "range_battery": hex_to_dec(results.get("range", "No data")),
-                "charging_time": hex_to_dec(results.get("charging_time", "No data")),
-                "device_consumption": hex_to_dec(results.get("device_consumption", "No data")),
+                "battery_level": self.hex_to_dec(results.get("battery_level")),
+                "voltage": self.hex_to_dec(results.get("voltage")),
+                "percentage": self.hex_to_dec(results.get("percentage")),
+                "battery_state_of_charge": results.get("state_of_charge"),
+                # "life_cycle": self.hex_to_dec(results.get("life_cycle", "No data")),
+                # "fully_charged": self.hex_to_dec(results.get("fully_charged", "No data")),
+                # "serial_number": self.hex_to_dec(results.get("serial_number", "No data")),
+                # "range_battery": self.hex_to_dec(results.get("range", "No data")),
+                # "charging_time": self.hex_to_dec(results.get("charging_time", "No data")),
+                # "device_consumption": self.hex_to_dec(results.get("device_consumption", "No data")),
                 "time_stamp": datetime.datetime.now().isoformat()
             }
 
@@ -177,70 +191,123 @@ class ReadInfo(Action):
             self.bus.shutdown()
             return e.message
 
-    def read_from_engine(self):
-
+    def read_from_doors(self, item=None):
         """
-        Method to read information from the engine module.
+        Method to read information from the door module.
+
+        Args:
+        - item: Optional identifier for a specific door status to read.
 
         Returns:
-        - data response.
+        - JSON response.
         """
-        self._auth_mcu()
-        id_engine = self.id_ecu[MCU]
-        id = self.my_id * 0x100 + id_engine
-
         try:
-            id_battery = self.id_ecu[ECU_ENGINE]
-            id = self.my_id * 0x100 + id_battery
+            # auth_result = self._auth_mcu(ECU_DOORS)
+            # if isinstance(auth_result, str):
+            #     return auth_result
 
-            log_info_message(logger, "Reading data from engine")
-            power_output = self._read_by_identifier(id, IDENTIFIER_ENGINE_POWER_OUTPUT)
-            weight = self._read_by_identifier(id, IDENTIFIER_ENGINE_WEIGHT)
-            fuel_consumption = self._read_by_identifier(id, IDENTIFIER_ENGINE_FUEL_CONSUMPTION)
-            torque = self._read_by_identifier(id, IDENTIFIER_ENGINE_TORQUE)
-            fuel_used = self._read_by_identifier(id, IDENTIFIER_ENGINE_FUEL_USED)
-            state_of_running = self._read_by_identifier(id, IDENTIFIER_ENGINE_STATE_OF_RUNNING)
-            current_speed = self._read_by_identifier(id, IDENTIFIER_ENGINE_CURRENT_SPEED)
-            engine_state = self._read_by_identifier(id, IDENTIFIER_ENGINE_STATE)
-            serial_number = self._read_by_identifier(id, IDENTIFIER_ENGINE_SERIAL_NUMBER)
+            log_info_message(logger, "Reading data from doors")
+            id = self.my_id * 0x100 + self.id_ecu[ECU_DOORS]
 
-            data = [power_output, weight, fuel_consumption, torque, fuel_used, state_of_running, current_speed, engine_state, serial_number]
-            module = EngineToJSON()
-            response = module._to_json(data)
+            identifiers = data_identifiers["Doors_Identifiers"]
+            results = {}
+
+            if item:
+                if item in identifiers:
+                    identifier = identifiers[item]
+                    result_value = self._read_by_identifier(id, int(identifier, 16))
+
+                    results[item] = self._interpret_status(result_value) if result_value else "No data"
+
+                else:
+                    return {"error": f"Invalid parameter '{item}'. Use /get_identifiers to see valid parameters."}
+            else:
+                for key, identifier in identifiers.items():
+                    result_value = self._read_by_identifier(id, int(identifier, 16))
+
+                    if key in ["door", "passenger", "driver"]:
+                        context = "door"
+                    elif key == "passenger_lock":
+                        context = "lock"
+                    elif key == "ajar":
+                        context = "ajar"
+                    else:
+                        context = "unknown"
+
+
+                    results[key] = self._interpret_status(result_value, context) if result_value else "No data"
+
+
+            response_json = {
+                "door": self.hex_to_dec(results.get("door", "No data")),
+                "passenger": self.hex_to_dec(results.get("passenger", "No data")),
+                "passenger_lock": self.hex_to_dec (results.get("passenger_lock", "No data")),
+                "driver": self.hex_to_dec (results.get("driver", "No data")),
+                "ajar": self.hex_to_dec (results.get("ajar", "No data")),
+                "time_stamp": datetime.datetime.now().isoformat()
+            }
 
             self.bus.shutdown()
-
-            log_info_message(logger, "Sending JSON")
-            return response
+            log_info_message(logger, "Sending JSON response")
+            return response_json
 
         except CustomError as e:
             self.bus.shutdown()
             return e.message
+        
 
-    def read_from_doors(self):
-        id_door = self.id_ecu[1]
-        id = self.my_id * 0x100 + id_door
+    def read_from_engine(self, item=None):
+        """
+        Method to read information from the engine module.
+
+        Args:
+        - item: Optional identifier for a specific data item to read.
+
+        Returns:
+        - JSON response with engine data.
+        """
+        # auth_result = self._auth_mcu(ECU_ENGINE)
+        # if isinstance(auth_result, str):
+        #     return auth_result
 
         try:
-            self._authentication(id)
+            log_info_message(logger, "Reading data from engine")
+            id = self.my_id * 0x100 + self.id_ecu[ECU_ENGINE]
 
-            log_info_message(logger, "Reading data from doors")
+            identifiers = data_identifiers["Engine_Identifiers"]
+            results = {}
 
-            door = self._read_by_identifier(id, IDENTIFIER_DOOR)
-            serial_number = self._read_by_identifier(id, IDENTIFIER_DOOR_SERIALNUMBER)
-            cigarette_lighter_voltage = self._read_by_identifier(id, IDENTIFIER_LIGHTER_VOLTAGE)
-            light_state = self._read_by_identifier(id, IDENTIFIER_LIGHT_STATE)
-            belt = self._read_by_identifier(id, IDENTIFIER_BELT_STATE)
-            windows_closed = self._read_by_identifier(id, IDENTIFIER_WINDOWS_CLOSED)
-            data = [door, serial_number, cigarette_lighter_voltage, light_state, belt, windows_closed]
+            if item:
+                if item in identifiers:
+                    identifier = identifiers[item]
+                    result_value = self._read_by_identifier(id, int(identifier, 16))
 
-            module = DoorsToJSON()
-            response = module._to_json(data)
-            # Shutdown the CAN bus interface
+                    results[item] = result_value if result_value else "No data"
+                else:
+                    return {"error": f"Invalid parameter '{item}'. Use /get_identifiers to see valid parameters."}
+            else:
+                for key, identifier in identifiers.items():
+                    result_value = self._read_by_identifier(id, int(identifier, 16))
+                    results[key] = result_value if result_value else "No data"
+
+            response_json = {
+                # "engine_rpm": self.hex_to_dec(results.get("engine_rpm", "No data")),
+                "coolant_temperature": self.hex_to_dec(results.get("coolant_temperature", "No data")),
+                "throttle_position": self.hex_to_dec(results.get("throttle_position", "No data")),
+                "vehicle_speed": self.hex_to_dec(results.get("vehicle_speed", "No data")),
+                "engine_load": self.hex_to_dec(results.get("engine_load", "No data")),
+                "fuel_level": self.hex_to_dec(results.get("fuel_level", "No data")),
+                "oil_temperature": self.hex_to_dec(results.get("oil_temperature", "No data")),
+                "fuel_pressure": self.hex_to_dec(results.get("fuel_pressure", "No data")),
+                "intake_air_temperature": self.hex_to_dec(results.get("intake_air_temperature", "No data")),
+                "time_stamp": datetime.datetime.now().isoformat()
+            }   
+
+
             self.bus.shutdown()
+            log_info_message(logger, "Sending JSON response")
+            return response_json
 
-            log_info_message(logger, "Sending JSON")
-            return response
         except CustomError as e:
             self.bus.shutdown()
             return e.message
