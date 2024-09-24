@@ -8,7 +8,9 @@ std::unordered_map<uint16_t, std::vector<uint8_t>> BatteryModule::default_DID_ba
         {0x01A0, {0}},  /* Energy Level */
         {0x01B0, {0}},  /* Voltage */
         {0x01C0, {0}},  /* Percentage */
-        {0x01D0, {0}}   /* State of Charge */
+        {0x01D0, {0}},   /* State of Charge */
+        {0x01E0, {0}},   /* Temperature (C) */
+        {0x01F0, {0}}   /* Life cycle */
 };
 
 /** Constructor - initializes the BatteryModule with default values,
@@ -21,6 +23,7 @@ BatteryModule::BatteryModule() : energy(0.0),
     /* ECU object responsible for common functionalities for all ECUs (sockets, frames, parameters) */
     _ecu = new ECU(BATTERY_ID, *batteryModuleLogger);
     writeDataToFile();
+    checkDTC();
     LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Battery object created successfully");
 }
 
@@ -107,6 +110,26 @@ void BatteryModule::parseBatteryInfo(const std::string &data, float &energy, flo
                 state_value = 0x06;
             }
             updated_values[0x01D0] = std::to_string(state_value);
+        }
+    }
+
+    /* Random values for the 0x01E0 and 0x01F0 dids*/
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dist(0, 100);
+
+    for (auto& [did, data] : default_DID_battery)
+    {
+        if(did == 0x01E0 || did == 0x01F0)
+        {
+            std::stringstream data_ss;
+            for (auto& byte : data)
+            {
+                byte = dist(gen);  
+                /* Generate a random value between 0 and 255 */
+                data_ss << std::hex << std::setw(2) << std::setfill('0') << std::uppercase << static_cast<int>(byte) << " ";
+            }
+            updated_values[did] = data_ss.str();
         }
     }
 
@@ -250,4 +273,37 @@ void BatteryModule::writeDataToFile()
         outfile.close();
         fetchBatteryData();
     }
+}
+
+void BatteryModule::checkDTC()
+{
+    /* Check if dtcs.txt exists */
+    std::string dtc_file_path = "dtcs.txt";
+    std::ifstream infile(dtc_file_path);
+
+    if (!infile.is_open())
+    {
+        std::ofstream outfile(dtc_file_path);
+        if (outfile.is_open())
+        {
+            LOG_INFO(batteryModuleLogger->GET_LOGGER(), "dtcs.txt file created successfully.");
+            outfile.close();
+        }
+        else
+        {
+            LOG_ERROR(batteryModuleLogger->GET_LOGGER(), "Failed to create dtcs.txt file.");
+            return;
+        }
+    }
+    else
+    {
+        infile.close();
+    }
+    /* Read the map with DIDs from the file */
+    std::unordered_map<uint16_t, std::vector<uint8_t>> current_DID_value = FileManager::readMapFromFile("battery_data.txt");
+
+    /* Voltage DTC */
+    FileManager::writeDTC(current_DID_value, dtc_file_path, 0x01B0, 12, 12, "P01B0 24");
+    /* Temperature DTC */
+    FileManager::writeDTC(current_DID_value, dtc_file_path, 0x01E0, 0, 80, "P01E0 24");
 }

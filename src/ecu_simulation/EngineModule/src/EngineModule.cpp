@@ -31,6 +31,7 @@ EngineModule::EngineModule()
     /* ECU object responsible for common functionalities for all ECUs (sockets, frames, parameters) */
     _ecu = new ECU(ENGINE_ID, *engineModuleLogger);
     writeDataToFile();
+    checkDTC();
     LOG_INFO(engineModuleLogger->GET_LOGGER(), "Engine object created successfully");
 }
 
@@ -154,3 +155,41 @@ void EngineModule::writeDataToFile()
         fetchEngineData();
     }
 }
+
+void EngineModule::checkDTC()
+{      
+    /* Check if dtcs.txt exists */
+    std::string dtc_file_path = "dtcs.txt";
+    std::ifstream infile(dtc_file_path);
+
+    if (!infile.is_open())
+    {
+        std::ofstream outfile(dtc_file_path);
+        if (outfile.is_open())
+        {
+            LOG_INFO(engineModuleLogger->GET_LOGGER(), "dtcs.txt file created successfully.");
+            outfile.close();
+        }
+        else
+        {
+            LOG_ERROR(engineModuleLogger->GET_LOGGER(), "Failed to create dtcs.txt file.");
+            return;
+        }
+    }
+    else
+    {
+        infile.close();
+    }
+    /* Read the map with DIDs from the file */
+    std::unordered_map<uint16_t, std::vector<uint8_t>> current_DID_value = FileManager::readMapFromFile("engine_data.txt");
+
+    /* Fuel Pressure DTC*/
+    FileManager::writeDTC(current_DID_value, dtc_file_path, 0x012C, 30, 50, "P0190 24");
+    /* Oil Temperature DTC */
+    FileManager::writeDTC(current_DID_value, dtc_file_path, 0x0124, 230, 260, "P0196 24");
+    /* Engine Load DTC*/
+    FileManager::writeDTC(current_DID_value, dtc_file_path, 0x011C, 0, 85, "P0069 24");
+    /* Engine Coolant Temperature DTC */
+    FileManager::writeDTC(current_DID_value, dtc_file_path, 0x010C, 195, 220, "P0115 24");
+}
+
