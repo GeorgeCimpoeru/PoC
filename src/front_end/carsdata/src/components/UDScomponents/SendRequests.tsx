@@ -570,7 +570,7 @@ const SendRequests = () => {
             console.log("Response data:", data);
     
             if (data.status === "success") {
-                setData23(data)
+                setData23(data) 
                 console.log(data)
                 
                 const writtenValues = data.written_values;
@@ -593,8 +593,6 @@ const SendRequests = () => {
         removeLoadingCicle();
     };
     
-    
-
     const getIdentifiers = async () => {
         console.log("Reading all data identifiers...");
         displayLoadingCircle();
