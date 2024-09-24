@@ -547,6 +547,52 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
+    const writeTiming = async () => {
+
+        const timingData = {
+            p2_max: parseInt(prompt("Enter p2_max value:") || "0", 10),
+            p2_star_max: parseInt(prompt("Enter p2_star_max value:") || "0", 10)
+        };
+    
+        console.log("Writing timing data...", timingData);
+        displayLoadingCircle();
+    
+        try {
+            const response = await fetch(`http://127.0.0.1:5000/api/write_timing`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(timingData),
+            });
+    
+            const data = await response.json();
+            console.log("Response data:", data);
+    
+            if (data.status === "success") {
+                setData23(data) 
+                console.log(data)
+                
+                const writtenValues = data.written_values;
+                const message = `Timing parameters written successfully.\n` +
+                                `New P2 Max Time: ${writtenValues["New P2 Max Time"]}\n` +
+                                `New P2 Star Max: ${writtenValues["New P2 Star Max"]}`;
+                
+                displayMessagePopup(message);
+            } else {
+                displayMessagePopup(`Error: ${data.message}`);
+            }
+    
+            fetchLogs();
+    
+        } catch (error) {
+            console.error("Error:", error);
+            displayMessagePopup("Failed to write timing values");
+        }
+    
+        removeLoadingCicle();
+    };
+    
     const getIdentifiers = async () => {
         console.log("Reading all data identifiers...");
         displayLoadingCircle();
@@ -731,6 +777,7 @@ const SendRequests = () => {
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={authenticate} disabled={disableFrameAndDtcBtns}>Authenticate</button>
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getIdentifiers} disabled={disableFrameAndDtcBtns}>Read identifiers</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => requestIds(false)} disabled={disableRequestIdsBtn}>Request IDs</button>
+                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeTiming}>Write Timing</button>
                 </div>
                 <div className="w-full h-px mt-2 bg-gray-300"></div>
                 <div className="mt-2">
