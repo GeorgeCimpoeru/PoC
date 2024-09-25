@@ -61,7 +61,7 @@ def read_info_eng():
 def read_info_doors():
     reader = ReadInfo(API_ID, [0x10, 0x11, 0x12, 0x13])
     item = request.args.get('item', default=None, type=str)
-    response = reader.read_from_hvac(item)
+    response = reader.read_from_doors(item)
     return jsonify(response)
 
 
