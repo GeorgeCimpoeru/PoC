@@ -56,7 +56,7 @@ class WriteInfo(Action):
         try:
             id_battery = self.id_ecu[ECU_BATTERY]
             id = self.my_id * 0x100 + id_battery
-            log_info_message(logger, f"Writing data to ECU ID: {id_battery}")
+            log_info_message(logger, f"Writing data to ECU ID: {hex(id_battery)}")
 
             key_to_identifier_map = {
                 "battery_level": IDENTIFIER_BATTERY_ENERGY_LEVEL,
@@ -71,9 +71,21 @@ class WriteInfo(Action):
                 else:
                     print(f"ERROR: Unknown key '{key}'")
                     continue
+
+                try:
+                    value = int(value)
+                    if not (0 <= value <= 255):
+                        log_error_message(logger, f"Value '{value}' for key '{key}' is out of byte range (0-255).")
+                        continue
+                except ValueError:
+                    log_error_message(logger, f"Invalid value type for key '{key}': {value}")
+                    continue
+
                 data_parameter = [value]
                 if len(data_parameter) <= 4:
                     self.generate.write_data_by_identifier(id, identifier, data_parameter)
+                    self._passive_response(WRITE_BY_IDENTIFIER, f"Error writing {identifier}")
+
                 else:
                     self.generate.write_data_by_identifier_long(id, identifier, data_parameter)
 
@@ -81,9 +93,17 @@ class WriteInfo(Action):
             response_json = self._to_json("success", 0)
             return response_json
 
-        except CustomError as e:
+        except CustomError:
             self.bus.shutdown()
-            return e.message
+            nrc_msg = self.last_msg.data[3] if self.last_msg and len(self.last_msg.data) > 3 else 0x00
+            sid_msg = self.last_msg.data[2] if self.last_msg and len(self.last_msg.data) > 2 else 0x00
+            negative_response = self.handle_negative_response(nrc_msg, sid_msg)
+            self.bus.shutdown()
+            return {
+                "status": "error",
+                "message": "Error during Read by ID",
+                "negative_response": negative_response
+            }
 
     def write_to_doors(self, item=None):
         """
@@ -101,7 +121,7 @@ class WriteInfo(Action):
         self._passive_response(SESSION_CONTROL, "Error changing session control")
 
         auth_result = self._auth_mcu()
-        if isinstance(auth_result, str):  # If authentication fails and returns a message
+        if isinstance(auth_result, str):
             return auth_result
 
         try:
@@ -109,7 +129,6 @@ class WriteInfo(Action):
             id = self.my_id * 0x100 + id_doors
             log_info_message(logger, f"Writing data to ECU ID: {id_doors}")
 
-            # Data preparation
             all_identifiers = {
                 IDENTIFIER_DOOR, int(self.data.get('door')),
                 IDENTIFIER_DOOR_SERIALNUMBER, int(self.data.get('serial_number')),
@@ -119,7 +138,6 @@ class WriteInfo(Action):
                 IDENTIFIER_WINDOWS_CLOSED, int(self.data.get('windows_closed'))
             }
 
-            # Determine which data to write
             data_to_write = [(item, all_identifiers.get(item))] if item else [(id_, value) for id_, value in all_identifiers.items() if value is not None]
 
             for identifier, value in data_to_write:
@@ -137,6 +155,14 @@ class WriteInfo(Action):
             response_json = self._to_json("success", 0)
             return response_json
 
-        except CustomError as e:
+        except CustomError:
             self.bus.shutdown()
-            return e.message
+            nrc_msg = self.last_msg.data[3] if self.last_msg and len(self.last_msg.data) > 3 else 0x00
+            sid_msg = self.last_msg.data[2] if self.last_msg and len(self.last_msg.data) > 2 else 0x00
+            negative_response = self.handle_negative_response(nrc_msg, sid_msg)
+            self.bus.shutdown()
+            return {
+                "status": "error",
+                "message": "Error during Read by ID",
+                "negative_response": negative_response
+            }

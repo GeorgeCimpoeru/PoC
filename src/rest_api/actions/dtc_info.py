@@ -18,6 +18,15 @@ class DiagnosticTroubleCode(Action):
             log_info_message(logger, "Requesting read DTC information")
             self.generate.request_read_dtc_information(id, sub_funct=0x01, dtc_status_mask=0xFF)
             frame_response = self._passive_response(READ_DTC, "Error requesting session control")
+
+            if frame_response.data[1] == 0x7F:
+                negative_response = self.handle_negative_response(frame_response.data[3], frame_response.data[2])
+                json_response = {
+                    "status": "error",
+                    "message": "Negative response received while Requesting read DTC information",
+                    "negative_response": negative_response
+                }
+
             data = [hex(byte) for byte in frame_response.data]
             log_info_message(logger, f"Frame response: {data}")
             json_response = self.construct_json_response(data, id)
@@ -40,30 +49,25 @@ class DiagnosticTroubleCode(Action):
         id = self.my_id * 0x100 + id_mcu
 
         try:
-            log_info_message(logger, "Changing session to programming")
-            self.generate.session_control(id, 0x02)
-            self._passive_response(SESSION_CONTROL, "Error changing session control")
-
-            id = (self.id_ecu[ECU_BATTERY] << 16) + (self.my_id << 8) + self.id_ecu[MCU]
-
-            # if len(data) != 5:
-            #     print("Incorrect message length or invalid format")
-            #     # Construct a negative response here, similar to C++ logic
-            #     self.send_frame(id, [3, 0x54, 0x13])
-            #     return
-
-            # # Extract group_of_dtc from data bytes 2, 3, 4
-            # group_of_dtc = (data[2] << 16) + (data[3] << 8) + data[4]
-
-            # if group_of_dtc not in [0xAAA, 0x010AAA, 0x020AAA, 0x030AAA, 0xFFFFFF]:
-            #     print("RequestOutOfRange: Specified Group of DTC parameter is not supported")
-            #     # Construct a negative response
-            #     self.send_frame(id, [3, 0x54, 0x31])
-            #     return
-
             log_info_message(logger, "Clearing all DTCs information with positive response")
             self.generate.clear_diagnostic_information(id, 0xFFFFFF, False)
-            self._passive_response(CLEAR_DTC, "Error requesting session control")
+            frame_response = self._passive_response(CLEAR_DTC, "Error clearing DTCs")
+
+            if frame_response.data[1] == 0x54:
+                return {
+                    "status": "succes",
+                    "message": "Clearing all DTCs information with positive response succeded"
+                }
+
+            if frame_response.data[1] == 0x7F:
+                nrc_msg = frame_response.data[3]
+                sid_msg = frame_response.data[2]
+                negative_response = self.handle_negative_response(nrc_msg, sid_msg)
+                return {
+                    "status": "error",
+                    "message": "Negative response received while Requesting read DTC information",
+                    "negative_response": negative_response
+                }
 
         except CustomError as e:
             self.bus.shutdown()
@@ -83,7 +87,6 @@ class DiagnosticTroubleCode(Action):
         dtc_count_low = int(data[6], 16)  # Low byte of DTC count
         dtc_count = (dtc_count_high << 8) | dtc_count_low  # Combine high and low bytes to get the full DTC count
 
-        # Construct JSON response with detailed descriptions
         json_response = {
             "CAN_Interface": "vcan1",
             "CAN_ID": hex(can_id),

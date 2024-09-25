@@ -199,27 +199,52 @@ function get_tester_pres() {
 function get_data_ids() {
     performApiRequest('/api/get_identifiers', 'GET');
 }
+
 function readTimingInfo() {
-    const input = prompt('Enter sub-function code:');
+    // Show descriptions for valid options
+    const descriptions = `
+    Please enter a sub-function code:
+    1 - Read P2_MAX_TIME_DEFAULT and P2_STAR_MAX_TIME_DEFAULT
+    3 - Read p2_max_time and p2_star_max_time
+    `;
+
+    const input = prompt(descriptions);
     if (input === null) {
         alert('Operation cancelled.');
         return;
-    };
+    }
 
-    const sub_funct = parseInt(input, 10);
+    const sub_funct = parseInt(input, 10); // Convert input to an integer
+
+    // Check if sub_funct is either 1 or 3
     if (sub_funct !== 1 && sub_funct !== 3) {
         alert('Invalid input. Please enter 1 or 3.');
         return;
-    };
+    }
 
+    // Call the API with the correct sub_function value
     performApiRequest('/api/read_access_timing', 'POST', { sub_funct: sub_funct });
 }
 
 
 function resetECU() {
+    const type_reset = prompt('Enter type of reset (soft or hard):') || null;
+    const ecu_id = prompt('Enter ECU ID (10 or 11):') || null;
+
+    if (!['soft', 'hard'].includes(type_reset)) {
+        alert('Invalid reset type. Please enter "soft" or "hard".');
+        return;
+    }
+
+    if (!['10', '11'].includes(ecu_id)) {
+        alert('Invalid ECU ID. Please enter "10" or "11".');
+        return;
+    }
+
     const data = {
-        type: prompt('Enter type of reset(soft or hard):') || null,
-        ecu_id: prompt('Enter ECU ID(from 10 to 12):') || null,
+        type_reset: type_reset,
+        ecu_id: ecu_id,
     };
+
     performApiRequest('/api/reset_ecu', 'POST', data);
 }

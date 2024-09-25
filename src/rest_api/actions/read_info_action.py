@@ -88,11 +88,9 @@ class ReadInfo(Action):
 
     @staticmethod
     def _get_battery_state_of_charge(state_of_charge):
-        # Remove the '0x' prefix if present
         if state_of_charge.startswith("0x"):
             state_of_charge = state_of_charge[2:]
 
-        # Dictionary mapping hex string values to battery states
         state_mapping = {
             "00": "Unknown state",
             "01": "Charging",
@@ -103,7 +101,6 @@ class ReadInfo(Action):
             "06": "Pending discharge"
         }
 
-        # Return the corresponding state or "Unknown state" if not found
         return state_mapping.get(state_of_charge, "Unknown state")
 
     def read_from_battery(self, item=None):
@@ -138,6 +135,7 @@ class ReadInfo(Action):
                 if item in identifiers:
                     identifier = identifiers[item]
                     result_value = self._read_by_identifier(id, int(identifier, 16))
+                    self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
 
                     if item == "state_of_charge" and result_value:
                         result_value = self._get_battery_state_of_charge(result_value)
@@ -154,7 +152,6 @@ class ReadInfo(Action):
 
                     results[key] = result_value if result_value else "No data"
 
-            # Convert hex results to decimal
             response_json = {
                 "battery_level": hex_to_dec(results.get("battery_level", "No data")),
                 "voltage": hex_to_dec(results.get("voltage", "No data")),
@@ -173,9 +170,17 @@ class ReadInfo(Action):
             log_info_message(logger, "Sending JSON response")
             return response_json
 
-        except CustomError as e:
+        except CustomError:
             self.bus.shutdown()
-            return e.message
+            nrc_msg = self.last_msg.data[3] if self.last_msg and len(self.last_msg.data) > 3 else 0x00
+            sid_msg = self.last_msg.data[2] if self.last_msg and len(self.last_msg.data) > 2 else 0x00
+            negative_response = self.handle_negative_response(nrc_msg, sid_msg)
+            self.bus.shutdown()
+            return {
+                "status": "error",
+                "message": "Error during Read by ID",
+                "negative_response": negative_response
+            }
 
     def read_from_engine(self):
 
@@ -213,9 +218,17 @@ class ReadInfo(Action):
             log_info_message(logger, "Sending JSON")
             return response
 
-        except CustomError as e:
+        except CustomError:
             self.bus.shutdown()
-            return e.message
+            nrc_msg = self.last_msg.data[3] if self.last_msg and len(self.last_msg.data) > 3 else 0x00
+            sid_msg = self.last_msg.data[2] if self.last_msg and len(self.last_msg.data) > 2 else 0x00
+            negative_response = self.handle_negative_response(nrc_msg, sid_msg)
+            self.bus.shutdown()
+            return {
+                "status": "error",
+                "message": "Error during Read by ID",
+                "negative_response": negative_response
+            }
 
     def read_from_doors(self):
         id_door = self.id_ecu[1]
@@ -236,11 +249,18 @@ class ReadInfo(Action):
 
             module = DoorsToJSON()
             response = module._to_json(data)
-            # Shutdown the CAN bus interface
             self.bus.shutdown()
 
             log_info_message(logger, "Sending JSON")
             return response
-        except CustomError as e:
+        except CustomError:
             self.bus.shutdown()
-            return e.message
+            nrc_msg = self.last_msg.data[3] if self.last_msg and len(self.last_msg.data) > 3 else 0x00
+            sid_msg = self.last_msg.data[2] if self.last_msg and len(self.last_msg.data) > 2 else 0x00
+            negative_response = self.handle_negative_response(nrc_msg, sid_msg)
+            self.bus.shutdown()
+            return {
+                "status": "error",
+                "message": "Error during Read by ID",
+                "negative_response": negative_response
+            }

@@ -79,6 +79,7 @@ class Action:
         self.my_id = my_id
         self.id_ecu = id_ecu
         self.generate = GF(self.bus)
+        self.last_msg = None
 
     def __collect_response(self, sid: int):
         """
@@ -92,13 +93,14 @@ class Action:
         """
         flag = False
         msg_ext = None
-        msg = self.bus.recv(99)
+        msg = self.bus.recv(35)
+        self.last_msg = msg
         while msg is not None:
-            # Check if the message is a "response pending"
+
             if msg.data[1] == 0x7F and msg.data[3] == 0x78:
-                # If response pending, continue to wait for the actual response
                 log_info_message(logger, f"Response pending for SID {msg.data[2]:02X}. Waiting for the actual response...")
                 msg = self.bus.recv(Config.BUS_RECEIVE_TIMEOUT)
+                self.last_msg = msg
                 continue
             # First Frame
             if msg.data[0] == 0x10:
@@ -111,6 +113,7 @@ class Action:
             else:
                 break
             msg = self.bus.recv(Config.BUS_RECEIVE_TIMEOUT)
+            self.last_msg = msg
         if flag:
             msg = msg_ext
         if msg is not None and self.__verify_frame(msg, sid):
@@ -131,9 +134,6 @@ class Action:
             return False
 
         if msg.data[0] != 0x10:
-            if msg.data[1] == 0x67 and msg.data[2] == 0x00:
-                log_info_message(logger, "Authentication successful")
-                return True
             if msg.data[1] != sid + 0x40:
                 return False
         else:
@@ -248,7 +248,16 @@ class Action:
         frame_response = self._passive_response(AUTHENTICATION_SEND,
                                                 "Error requesting seed")
 
-        # Check if the initial response is successful
+        if frame_response.data[1] == 0x7F:
+            nrc_msg = frame_response.data[3]
+            sid_msg = frame_response.data[2]
+            negative_response = self.handle_negative_response(nrc_msg, sid_msg)
+            return {
+                "status": "error",
+                "message": "Negative response received while requesting seed",
+                "negative_response": negative_response
+            }
+
         if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x01 and frame_response.data[3] == 0x00:
             log_info_message(logger, "Authentication successful")
             return {
@@ -270,7 +279,16 @@ class Action:
             frame_response = self._passive_response(AUTHENTICATION_SEND,
                                                     "Error sending key")
 
-            # Check if the key authentication response is successful
+            if frame_response.data[1] == 0x7F:
+                nrc_msg = frame_response.data[3]
+                sid_msg = frame_response.data[2]
+                negative_response = self.handle_negative_response(nrc_msg, sid_msg)
+                return {
+                    "status": "error",
+                    "message": "Negative response received while sending key",
+                    "negative_response": negative_response
+                }
+
             if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x02:
                 log_info_message(logger, "Authentication successful")
                 return {
@@ -282,38 +300,24 @@ class Action:
                     "message": "Authentication failed",
                 }
 
-    def handle_negative_response(self):
+    def handle_negative_response(self, nrc_msg, sid_msg):
         """
         Handles the negative response scenarios for various services.
         """
-        msg = self.bus.recv(5)
-        nrc = msg.data[3]
-        service_id = msg.data[2]
+        nrc = nrc_msg
+        service_id = sid_msg
 
         service_error_mapping = {
-            # Write Data by Identifier (0x2E)
-            0x2E: {0x13, 0x31, 0x33},
-
-            # Security Access (0x27)
-            0x27: {0x12, 0x24, 0x35, 0x36},
-
-            # Diagnostic Session Control Service (0x10)
-            0x10: {0x12},
-
-            # Access Timing Parameter Service (0x83)
-            0x83: {0x12, 0x13, 0x78},
-
-            # Clear Diagnostic Information (0x14)
-            0x14: {0x13, 0x31},
-
-            # Read DTC Information (0x19)
-            0x19: {0x12, 0x13},
-
-            # Routine Control (0x31)
-            0x31: {0x12, 0x31},
-
-            # Tester Present (0x3E)
-            0x3E: {0x12, 0x13}
+            0x2E: "Write Data by Identifier",
+            0x27: "Security Access",
+            0x10: "Diagnostic Session Control",
+            0x11: "Ecu Reset",
+            0x83: "Access Timing Parameter",
+            0x14: "Clear Diagnostic Information",
+            0x19: "Read DTC Information",
+            0x22: "Read by ID",
+            0x31: "Routine Control",
+            0x3E: "Tester Present"
         }
 
         # General negative response codes
@@ -341,16 +345,15 @@ class Action:
             0x7F: "Function Not Supported In Active Session"
         }
 
-        if service_id in service_error_mapping and nrc in service_error_mapping[service_id]:
-            error_message = negative_responses.get(nrc, "Unknown error")
-        else:
-            error_message = "Unknown service or error"
+        error_message = negative_responses.get(nrc, "Unknown error")
+        service_description = service_error_mapping.get(service_id, "Unknown service")
 
-        logger.error(f"Negative response received: NRC={hex(nrc)}, Error={error_message} (Code: {hex(nrc)})")
+        logger.error(f"Negative response received: Service={service_description}, NRC={hex(nrc)}, Error={error_message}")
 
         response = {
             "service_id": hex(service_id),
             "nrc": hex(nrc),
+            "service_description": service_description,
             "error_message": error_message
         }
 

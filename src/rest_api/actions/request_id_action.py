@@ -24,10 +24,7 @@ class RequestIdAction(Action):
             self._send_request_frame()
             response_data = self._read_response_frames()
             response_json = IDsToJson()._to_json(response_data)
-
-            self._close_db_handler()
             self.bus.shutdown()
-
             return response_json
 
         except CustomError as e:
@@ -48,6 +45,16 @@ class RequestIdAction(Action):
                 if len(data) < 3:
                     return {"status": "Invalid response length"}
 
+                if data[1] == 0x7F:
+                    nrc_msg = data[3]
+                    sid_msg = data[2]
+                    negative_response = self.handle_negative_response(nrc_msg, sid_msg)
+                    return {
+                        "status": "error",
+                        "message": f"Negative response received while resetting device {id}",
+                        "negative_response": negative_response
+                    }
+
                 if data[1] == 0xD9:
                     # Positive response
                     mcu_id = int(f"{data[2]:02X}", 16)
@@ -57,15 +64,5 @@ class RequestIdAction(Action):
                         "mcu_id": f"{mcu_id:02X}",
                         "ecu_ids": [f"{ecu_id:02X}" for ecu_id in ecu_ids]
                     }
-                else:
-                    # Negative response or unexpected data
-                    data_dict = {
-                        "status": "Failure",
-                        "reason": f"Unexpected response code: {data[1]:02X}"
-                    }
-
-                log_info_message(logger, f"Data Dict: {data_dict}")
-
                 return data_dict
-
         return {"status": "No response received within timeout"}
