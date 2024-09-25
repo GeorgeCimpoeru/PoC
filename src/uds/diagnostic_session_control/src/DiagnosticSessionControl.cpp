@@ -36,10 +36,12 @@ void DiagnosticSessionControl::sessionControl(canid_t frame_id, uint8_t sub_func
     switch (sub_function)
     {
     case SUB_FUNCTION_DEFAULT_SESSION:
-        switchToDefaultSession(frame_id);
+        switchSession(frame_id, DEFAULT_SESSION);
         break;
     case SUB_FUNCTION_PROGRAMMING_SESSION:
-        switchToProgrammingSession(frame_id);
+        switchSession(frame_id, PROGRAMMING_SESSION);
+    case SUB_FUNCTION_FOTA_SESSION:
+        switchSession(frame_id, FOTA_SESSION);
         break;
     default:
         LOG_ERROR(dsc_logger.GET_LOGGER(), "Unsupported sub-function");
@@ -102,6 +104,26 @@ void DiagnosticSessionControl::switchToProgrammingSession(canid_t frame_id)
     AccessTimingParameter::stopTimingFlag(receiver_id, 0x10);
 }
 
+void DiagnosticSessionControl::switchSession(canid_t frame_id, DiagnosticSession session)
+{
+    LOG_INFO(dsc_logger.GET_LOGGER(), "Session before change: {}", getCurrentSessionToString());
+    /* Switch to requested Session */
+    current_session = session;
+
+    LOG_INFO(dsc_logger.GET_LOGGER(), "Current session: {}", getCurrentSessionToString());
+
+    /* Create instance of Generate Frames to send response frame */
+    GenerateFrames response_frame(socket, dsc_logger);
+
+    /* Form the new id */
+    int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+    uint8_t receiver_id = frame_id & 0xFF;
+
+    response_frame.sessionControl(id, static_cast<uint8_t>(session), true);
+    LOG_INFO(dsc_logger.GET_LOGGER(), "Sent positive response");
+    
+    AccessTimingParameter::stopTimingFlag(receiver_id, 0x10);
+}
 /* Method to get the current session of module */
 DiagnosticSession DiagnosticSessionControl::getCurrentSession()
 {
@@ -117,6 +139,8 @@ std::string DiagnosticSessionControl::getCurrentSessionToString()
         return "DEFAULT_SESSION";
     case PROGRAMMING_SESSION:
         return "PROGRAMMING_SESSION";
+    case FOTA_SESSION:
+        return "FOTA_SESSION";
     default:
         return "UNKNOWN_SESSION";
     }
