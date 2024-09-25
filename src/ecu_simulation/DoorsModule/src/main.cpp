@@ -6,12 +6,10 @@ int main() {
     #else
     doorsModuleLogger = new Logger("doorsModuleLogger", "logs/doorsModuleLogger.log");
     #endif /* UNIT_TESTING_MODE */
-    doors = new DoorsModule(0x00,0x13);
-    doors->fetchDoorsData();
+    doors = new DoorsModule();
     std::thread receiveFrThread([]()
-                               { doors->receiveFrames(); });
+                               { doors->_ecu->startFrames(); });
     sleep(200);
-    doors->stopFrames();
     receiveFrThread.join();
     return 0;
 }

@@ -14,7 +14,6 @@
 #include "../../utils/include/MemoryManager.h"
 #include "../../../utils/include/NegativeResponse.h"
 #include "../../request_transfer_exit/include/RequestTransferExit.h"
-
 class TransferData 
 {
     public:

@@ -3,9 +3,6 @@
 Logger* engineModuleLogger = nullptr;
 EngineModule* engine = nullptr;
 
-std::map<uint8_t, double> EngineModule::timing_parameters;
-std::map<uint8_t, std::future<void>> EngineModule::active_timers;
-std::map<uint8_t, std::atomic<bool>> EngineModule::stop_flags;
 std::unordered_map<uint16_t, std::vector<uint8_t>> EngineModule::default_DID_engine = {
         /* Engine RPM */
         {0x0100, {0}},
@@ -29,57 +26,19 @@ std::unordered_map<uint16_t, std::vector<uint8_t>> EngineModule::default_DID_eng
 
 /** Constructor - initializes the EngineModule with default values,
  * sets up the CAN interface, and prepares the frame receiver. */
-EngineModule::EngineModule() : moduleId(0x12),
-                                 canInterface(CreateInterface::getInstance(0x00, *engineModuleLogger)),
-                                 frameReceiver(nullptr)
+EngineModule::EngineModule()
 {
+    /* ECU object responsible for common functionalities for all ECUs (sockets, frames, parameters) */
+    _ecu = new ECU(ENGINE_ID, *engineModuleLogger);
     writeDataToFile();
-    engine_socket = canInterface->createSocket(0x00);
-    /* Initialize the Frame Receiver */
-    frameReceiver = new ReceiveFrames(engine_socket, moduleId, *engineModuleLogger);
-
-    LOG_INFO(engineModuleLogger->GET_LOGGER(), "Engine object created successfully, ID : 0x{:X}", this->moduleId);
-
-    /* Send Up-Notification to MCU */
-    sendNotificationToMCU();
-}
-
-/* Parameterized Constructor - initializes the EngineModule with provided interface number and module ID */
-EngineModule::EngineModule(int _interfaceNumber, int _moduleId) : moduleId(_moduleId),
-                                                                    canInterface(CreateInterface::getInstance(_interfaceNumber, *engineModuleLogger)),
-                                                                    frameReceiver(nullptr)
-{
-    writeDataToFile();
-    engine_socket = canInterface->createSocket(0x00);
-    /* Initialize the Frame Receiver */
-    frameReceiver = new ReceiveFrames(engine_socket, moduleId, *engineModuleLogger);
-
-    LOG_INFO(engineModuleLogger->GET_LOGGER(), "Engine object created successfully using Parameterized Constructor, ID : 0x{:X}", this->moduleId);
-
-    /* Send Up-Notification to MCU */ 
-    sendNotificationToMCU();
+    checkDTC();
+    LOG_INFO(engineModuleLogger->GET_LOGGER(), "Engine object created successfully");
 }
 
 /* Destructor */
 EngineModule::~EngineModule()
 {
-    delete frameReceiver;
     LOG_INFO(engineModuleLogger->GET_LOGGER(), "Engine object out of scope");
-}
-
-/* Function to notify MCU if the module is Up & Running */
-void EngineModule::sendNotificationToMCU()
-{
-    /* Create an instance of GenerateFrames with the CAN socket */
-    GenerateFrames notifyFrame = GenerateFrames(engine_socket, *engineModuleLogger);
-
-    /* Create a vector of uint8_t (bytes) containing the data to be sent */
-    std::vector<uint8_t> data = {0x01, 0xD9};
-
-    /* Send the CAN frame with ID 0x22110 and the data vector */
-    notifyFrame.sendFrame(0x1210, data);
-
-    LOG_INFO(engineModuleLogger->GET_LOGGER(), "Engine module sent UP notification to MCU");
 }
 
 void EngineModule::fetchEngineData()
@@ -98,7 +57,8 @@ void EngineModule::fetchEngineData()
         std::stringstream data_ss;
         for (auto& byte : data)
         {
-            byte = dist(gen);  // Generate a random value between 0 and 255
+            byte = dist(gen);  
+            /* Generate a random value between 0 and 255 */
             data_ss << std::hex << std::setw(2) << std::setfill('0') << std::uppercase << static_cast<int>(byte) << " ";
         }
         updated_values[did] = data_ss.str();
@@ -144,36 +104,9 @@ void EngineModule::fetchEngineData()
     LOG_INFO(engineModuleLogger->GET_LOGGER(), "Engine data file updated with random values.");
 }
 
-/* Function to receive CAN frames */
-void EngineModule::receiveFrames()
-{
-    LOG_INFO(engineModuleLogger->GET_LOGGER(), "Engine module starts the frame receiver");
-
-    /* Create a HandleFrames object to process received frames */
-    HandleFrames handleFrames(engine_socket, *engineModuleLogger);
-
-    /* Receive a CAN frame using the frame receiver and process it with handleFrames */
-    frameReceiver->receive(handleFrames);
-
-    /* Sleep for 100 milliseconds before receiving the next frame to prevent busy-waiting */
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-}
-
-/* Functon to Stop receiving frames */
-void EngineModule::stopFrames()
-{
-    frameReceiver->stop();
-    LOG_INFO(engineModuleLogger->GET_LOGGER(), "Engine module stopped the frame receiver");
-}
-
 int EngineModule::getEngineSocket() const
 {
-    return engine_socket;
-}
-
-void EngineModule::setEngineSocket(uint8_t interface_number)
-{
-    this->engine_socket = this->canInterface->createSocket(interface_number);
+    return _ecu->_ecu_socket;
 }
 
 void EngineModule::writeDataToFile()
@@ -205,6 +138,7 @@ void EngineModule::writeDataToFile()
 
         /* Delete the old file after reading its contents */
         std::remove(old_file_path.c_str());
+        outfile.close();
     }
     else
     {
@@ -217,6 +151,45 @@ void EngineModule::writeDataToFile()
             }
             outfile << "\n";
         }
+        outfile.close();
+        fetchEngineData();
     }
-    outfile.close();
 }
+
+void EngineModule::checkDTC()
+{      
+    /* Check if dtcs.txt exists */
+    std::string dtc_file_path = "dtcs.txt";
+    std::ifstream infile(dtc_file_path);
+
+    if (!infile.is_open())
+    {
+        std::ofstream outfile(dtc_file_path);
+        if (outfile.is_open())
+        {
+            LOG_INFO(engineModuleLogger->GET_LOGGER(), "dtcs.txt file created successfully.");
+            outfile.close();
+        }
+        else
+        {
+            LOG_ERROR(engineModuleLogger->GET_LOGGER(), "Failed to create dtcs.txt file.");
+            return;
+        }
+    }
+    else
+    {
+        infile.close();
+    }
+    /* Read the map with DIDs from the file */
+    std::unordered_map<uint16_t, std::vector<uint8_t>> current_DID_value = FileManager::readMapFromFile("engine_data.txt");
+
+    /* Fuel Pressure DTC*/
+    FileManager::writeDTC(current_DID_value, dtc_file_path, 0x012C, 30, 50, "P0190 24");
+    /* Oil Temperature DTC */
+    FileManager::writeDTC(current_DID_value, dtc_file_path, 0x0124, 230, 260, "P0196 24");
+    /* Engine Load DTC*/
+    FileManager::writeDTC(current_DID_value, dtc_file_path, 0x011C, 0, 85, "P0069 24");
+    /* Engine Coolant Temperature DTC */
+    FileManager::writeDTC(current_DID_value, dtc_file_path, 0x010C, 195, 220, "P0115 24");
+}
+

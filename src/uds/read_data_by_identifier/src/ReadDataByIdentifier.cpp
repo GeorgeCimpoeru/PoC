@@ -1,47 +1,9 @@
 #include "../include/ReadDataByIdentifier.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
+#include "../../../ecu_simulation/DoorsModule/include/DoorsModule.h"
+#include "../../../ecu_simulation/HVACModule/include/HVACModule.h"
 #include "../../../mcu/include/MCUModule.h"
-
-/* Helper function to read data from a file */
-std::vector<uint8_t> readDataFromFile(const std::string& file_name, uint16_t data_identifier)
-{
-    std::ifstream infile(file_name);
-    std::vector<uint8_t> response;
-
-    if (!infile.is_open())
-    {
-        throw std::runtime_error("Failed to open file: " + file_name);
-    }
-
-    std::string line;
-    while (std::getline(infile, line))
-    {
-        std::istringstream iss(line);
-        uint16_t identifier;
-        uint16_t value;
-        std::vector<uint8_t> data;
-
-        // Read the identifier from the line
-        if (iss >> std::hex >> identifier)
-        {
-            // Read the remaining data values
-            while (iss >> std::hex >> value)
-            {
-                data.push_back(value);
-            }
-            // Check if the identifier matches the requested one
-            if (identifier == data_identifier)
-            {
-                response = data;
-                break;
-            }
-        }
-    }
-
-    infile.close();
-    return response;
-}
 
 ReadDataByIdentifier::ReadDataByIdentifier(int socket, Logger& rdbi_logger) 
             : generate_frames(socket, rdbi_logger), rdbi_logger(rdbi_logger)
@@ -74,16 +36,7 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
         {
             /* Send the negative response frame */ 
             nrc.sendNRC(can_id, RDBI_SERVICE_ID, NegativeResponse::IMLOIF);
-            if (lowerbits == 0x10)
-            {
-                MCU::mcu->stop_flags[0x22] = false;
-            } else if (lowerbits == 0x11)
-            {
-                battery->stop_flags[0x22] = false;
-            } else if (lowerbits == 0x12)
-            {
-                engine->stop_flags[0x22] = false;
-            }
+            AccessTimingParameter::stopTimingFlag(lowerbits, 0x22);
         }
 
         /* Return early as the request is invalid */
@@ -112,7 +65,46 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
         {
             nrc.sendNRC(can_id, RDBI_SERVICE_ID, NegativeResponse::SAD);
         }
-        battery->stop_flags[0x22] = false;
+        battery->_ecu->stop_flags[0x22] = false;
+        return response;
+    }
+    if (lowerbits == 0x12 && !ReceiveFrames::getEngineState())
+    {
+        response.push_back(0x03); /* PCI */
+        response.push_back(0x7F); /* Negative response */
+        response.push_back(RDBI_SERVICE_ID); /* Service ID */
+        response.push_back(NegativeResponse::SAD); /* Security Access Denied */
+        if (use_send_frame)
+        {
+            nrc.sendNRC(can_id, RDBI_SERVICE_ID, NegativeResponse::SAD);
+        }
+        engine->_ecu->stop_flags[0x22] = false;
+        return response;
+    }
+    if (lowerbits == 0x13 && !ReceiveFrames::getDoorsState())
+    {
+        response.push_back(0x03); /* PCI */
+        response.push_back(0x7F); /* Negative response */
+        response.push_back(RDBI_SERVICE_ID); /* Service ID */
+        response.push_back(NegativeResponse::SAD); /* Security Access Denied */
+        if (use_send_frame)
+        {
+            nrc.sendNRC(can_id, RDBI_SERVICE_ID, NegativeResponse::SAD);
+        }
+        doors->_ecu->stop_flags[0x22] = false;
+        return response;
+    }
+    if (lowerbits == 0x14 && !ReceiveFrames::getHvacState())
+    {
+        response.push_back(0x03); /* PCI */
+        response.push_back(0x7F); /* Negative response */
+        response.push_back(RDBI_SERVICE_ID); /* Service ID */
+        response.push_back(NegativeResponse::SAD); /* Security Access Denied */
+        if (use_send_frame)
+        {
+            nrc.sendNRC(can_id, RDBI_SERVICE_ID, NegativeResponse::SAD);
+        }
+        hvac->_ecu->stop_flags[0x22] = false;
         return response;
     }
 
@@ -126,7 +118,20 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
     } else if (lowerbits == 0x11)
     {
         file_name = "battery_data.txt";
-    } else
+    }
+    else if (lowerbits == 0x12)
+    {
+        file_name = "engine_data.txt";
+    }
+    else if (lowerbits == 0x13)
+    {
+        file_name = "doors_data.txt";
+    }
+    else if (lowerbits == 0x14)
+    {
+        file_name = "hvac_data.txt";
+    }
+    else
     {
         response.push_back(0x03); /* PCI */
         response.push_back(0x7F); /* Negative response */
@@ -135,23 +140,15 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
         if (use_send_frame)
         {
             nrc.sendNRC(can_id, RDBI_SERVICE_ID, NegativeResponse::ROOR);
-            if (lowerbits == 0x10)
-            {
-                MCU::mcu->stop_flags[0x22] = false;
-            } else if (lowerbits == 0x11)
-            {
-                battery->stop_flags[0x22] = false;
-            } else if (lowerbits == 0x12)
-            {
-                engine->stop_flags[0x22] = false;
-            }
+            AccessTimingParameter::stopTimingFlag(lowerbits, 0x22);
         }
         return response;
     }
 
     try
     {
-        response = readDataFromFile(file_name, data_identifier);
+        auto data_map = FileManager::readMapFromFile(file_name);
+        response = data_map[data_identifier];
     } catch (const std::exception& e)
     {
         LOG_ERROR(rdbi_logger.GET_LOGGER(), "Error reading from file: {}", e.what());
@@ -162,16 +159,7 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
         if (use_send_frame)
         {
             nrc.sendNRC(can_id, RDBI_SERVICE_ID, NegativeResponse::ROOR);
-            if (lowerbits == 0x10)
-            {
-                MCU::mcu->stop_flags[0x22] = false;
-            } else if (lowerbits == 0x11)
-            {
-                battery->stop_flags[0x22] = false;
-            } else if (lowerbits == 0x12)
-            {
-                engine->stop_flags[0x22] = false;
-            }
+            AccessTimingParameter::stopTimingFlag(lowerbits, 0x22);
         }
         return response;
     }
@@ -186,16 +174,7 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
         LOG_ERROR(rdbi_logger.GET_LOGGER(), "Error response empty");
         if (use_send_frame) {
             nrc.sendNRC(can_id, RDBI_SERVICE_ID, NegativeResponse::ROOR);
-            if (lowerbits == 0x10)
-            {
-                MCU::mcu->stop_flags[0x22] = false;
-            } else if (lowerbits == 0x11)
-            {
-                battery->stop_flags[0x22] = false;
-            } else if (lowerbits == 0x12)
-            {
-                engine->stop_flags[0x22] = false;
-            }
+            AccessTimingParameter::stopTimingFlag(lowerbits, 0x22);
         }
         return response;
     }
@@ -218,32 +197,14 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
             /* Send response frame */
             generate_frames.readDataByIdentifierLongResponse(can_id, data_identifier, response, true);
             LOG_INFO(rdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x22);
-            if (lowerbits == 0x10)
-            {
-                MCU::mcu->stop_flags[0x22] = false;
-            } else if (lowerbits == 0x11)
-            {
-                battery->stop_flags[0x22] = false;
-            } else if (lowerbits == 0x12)
-            {
-                engine->stop_flags[0x22] = false;
-            }
+            AccessTimingParameter::stopTimingFlag(lowerbits, 0x22);
         } 
         else
         {
             /* Send response frame */
             generate_frames.readDataByIdentifier(can_id, data_identifier, response);
             LOG_INFO(rdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x22);
-            if (lowerbits == 0x10)
-            {
-                MCU::mcu->stop_flags[0x22] = false;
-            } else if (lowerbits == 0x11)
-            {
-                battery->stop_flags[0x22] = false;
-            } else if (lowerbits == 0x12)
-            {
-                engine->stop_flags[0x22] = false;
-            }
+            AccessTimingParameter::stopTimingFlag(lowerbits, 0x22);
         }
     }
     return response;

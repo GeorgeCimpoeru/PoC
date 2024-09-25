@@ -170,6 +170,17 @@ class GenerateFrame:
         data = [2, 0x83, sub_function] if response is False else [2, 0xC3, sub_function]
         self.send_frame(id, data)
 
+    def write_timming_parameters(self, id, sub_function, new_p2_max_time, new_p2_star_max_time, response=False):
+        new_p2_max_time_bytes = [(new_p2_max_time >> 8) & 0xFF, new_p2_max_time & 0xFF]
+        new_p2_star_max_time_bytes = [(new_p2_star_max_time >> 8) & 0xFF, new_p2_star_max_time & 0xFF]
+
+        if not response:
+            data = [6, 0x83, sub_function] + new_p2_max_time_bytes + new_p2_star_max_time_bytes
+        else:
+            data = [6, 0xC3, sub_function] + new_p2_max_time_bytes + new_p2_star_max_time_bytes
+
+        self.send_frame(id, data)
+
     def request_download(self, id, data_format_identifier, memory_address, memory_size, version):
         # Define the data format identifier mapping
         DATA_FORMAT_IDENTIFIER_MAP = {

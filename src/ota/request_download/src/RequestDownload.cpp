@@ -26,7 +26,6 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
 {
     LOG_INFO(RDSlogger.GET_LOGGER(), "Service 0x34 RequestDownload");
 
-
     /* Extract and switch sender and receiver */
     uint8_t receiver_id = id  & 0xFF;
     uint8_t sender_id = (id >> 8) & 0xFF;
@@ -79,18 +78,22 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
         return;
     }
 
+    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT});
+
     /* Validate memory address and size */
     if (!isValidMemoryRange(memory_address, memory_size))
     {
         LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Invalid memory range");
         /* Request out of range */
         nrc.sendNRC(id, RDS_SID, NegativeResponse::ROOR);
+        MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
         return;
     }
     /* Check if software is at the latest version */ 
     else if (!isLatestSoftwareVersion())
     {
         LOG_INFO(RDSlogger.GET_LOGGER(), "Software is not at the latest version");
+        MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
         return;
     }
     else
@@ -145,6 +148,7 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
             else
             {
                 LOG_ERROR(RDSlogger.GET_LOGGER(), "No valid zip file file found in PROJECT_PATH.");
+                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
                 return;
             }
 
@@ -154,6 +158,7 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
                 LOG_INFO(RDSlogger.GET_LOGGER(), "Files extracted successfully");
             } else {
                 LOG_ERROR(RDSlogger.GET_LOGGER(), "Failed to extract files from ZIP archive.");
+                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
             }
         }
         /* Check for encryption */
@@ -333,6 +338,7 @@ void RequestDownloadService::requestDownloadResponse(canid_t id, int memory_addr
         LOG_INFO(RDSlogger.GET_LOGGER(), "max number block {}", static_cast<int>(max_number_block));
         /* Call response method from generate_frames */
         generate_frames.requestDownloadResponse(id, max_number_block);
+        MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_COMPLETED});
         return;
     }
 }
@@ -456,7 +462,6 @@ void RequestDownloadService::downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_
     /* PROJECT_PATH defined in makefile to be the root folder path (POC)*/
     std::string project_path = PROJECT_PATH;
     std::string path_to_drive_api = project_path + "/src/ota/google_drive_api";
-
 
     auto sys = py::module::import("sys");
     sys.attr("path").attr("append")(path_to_drive_api);

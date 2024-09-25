@@ -4,76 +4,33 @@
 Logger* batteryModuleLogger = nullptr;
 BatteryModule* battery = nullptr;
 
-std::map<uint8_t, double> BatteryModule::timing_parameters;
-std::map<uint8_t, std::future<void>> BatteryModule::active_timers;
-std::map<uint8_t, std::atomic<bool>> BatteryModule::stop_flags;
 std::unordered_map<uint16_t, std::vector<uint8_t>> BatteryModule::default_DID_battery = {
         {0x01A0, {0}},  /* Energy Level */
         {0x01B0, {0}},  /* Voltage */
         {0x01C0, {0}},  /* Percentage */
-        {0x01D0, {0}}   /* State of Charge */
+        {0x01D0, {0}},   /* State of Charge */
+        {0x01E0, {0}},   /* Temperature (C) */
+        {0x01F0, {0}}   /* Life cycle */
 };
 
 /** Constructor - initializes the BatteryModule with default values,
  * sets up the CAN interface, and prepares the frame receiver. */
-BatteryModule::BatteryModule() : moduleId(0x11),
-                                 energy(0.0),
+BatteryModule::BatteryModule() : energy(0.0),
                                  voltage(0.0),
-                                 percentage(0.0),
-                                 canInterface(CreateInterface::getInstance(0x00, *batteryModuleLogger)),
-                                 frameReceiver(nullptr)
+                                 percentage(0.0)
 {
+
+    /* ECU object responsible for common functionalities for all ECUs (sockets, frames, parameters) */
+    _ecu = new ECU(BATTERY_ID, *batteryModuleLogger);
     writeDataToFile();
-
-    battery_socket = canInterface->createSocket(0x00);
-    /* Initialize the Frame Receiver */
-    frameReceiver = new ReceiveFrames(battery_socket, moduleId, *batteryModuleLogger);
-
-    LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Battery object created successfully, ID : 0x{:X}", this->moduleId);
-
-    /* Send Up-Notification to MCU */
-    sendNotificationToMCU();
-}
-
-/* Parameterized Constructor - initializes the BatteryModule with provided interface number and module ID */
-BatteryModule::BatteryModule(int _interfaceNumber, int _moduleId) : moduleId(_moduleId),
-                                                                    energy(0.0),
-                                                                    voltage(0.0),
-                                                                    percentage(0.0),
-                                                                    canInterface(CreateInterface::getInstance(_interfaceNumber, *batteryModuleLogger)),
-                                                                    frameReceiver(nullptr)
-{
-    writeDataToFile();
-    battery_socket = canInterface->createSocket(0x00);
-    /* Initialize the Frame Receiver */
-    frameReceiver = new ReceiveFrames(battery_socket, moduleId, *batteryModuleLogger);
-
-    LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Battery object created successfully using Parameterized Constructor, ID : 0x{:X}", this->moduleId);
-
-    /* Send Up-Notification to MCU */ 
-    sendNotificationToMCU();
+    checkDTC();
+    LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Battery object created successfully");
 }
 
 /* Destructor */
 BatteryModule::~BatteryModule()
 {
-    delete frameReceiver;
     LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Battery object out of scope");
-}
-
-/* Function to notify MCU if the module is Up & Running */
-void BatteryModule::sendNotificationToMCU()
-{
-    /* Create an instance of GenerateFrames with the CAN socket */
-    GenerateFrames notifyFrame = GenerateFrames(battery_socket, *batteryModuleLogger);
-
-    /* Create a vector of uint8_t (bytes) containing the data to be sent */
-    std::vector<uint8_t> data = {0x01, 0xD9};
-
-    /* Send the CAN frame with ID 0x22110 and the data vector */
-    notifyFrame.sendFrame(0x1110, data);
-
-    LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Battery module sent UP notification to MCU");
 }
 
 /* Helper function to execute shell commands and fetch output */
@@ -156,6 +113,26 @@ void BatteryModule::parseBatteryInfo(const std::string &data, float &energy, flo
         }
     }
 
+    /* Random values for the 0x01E0 and 0x01F0 dids*/
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dist(0, 100);
+
+    for (auto& [did, data] : default_DID_battery)
+    {
+        if(did == 0x01E0 || did == 0x01F0)
+        {
+            std::stringstream data_ss;
+            for (auto& byte : data)
+            {
+                byte = dist(gen);  
+                /* Generate a random value between 0 and 255 */
+                data_ss << std::hex << std::setw(2) << std::setfill('0') << std::uppercase << static_cast<int>(byte) << " ";
+            }
+            updated_values[did] = data_ss.str();
+        }
+    }
+
     /* Path to battery data file */
     std::string file_path = "battery_data.txt";
 
@@ -222,28 +199,6 @@ void BatteryModule::fetchBatteryData()
     }
 }
 
-/* Function to receive CAN frames */
-void BatteryModule::receiveFrames()
-{
-    LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Battery module starts the frame receiver");
-
-    /* Create a HandleFrames object to process received frames */
-    HandleFrames handleFrames(this->battery_socket, *batteryModuleLogger);
-
-    /* Receive a CAN frame using the frame receiver and process it with handleFrames */
-    frameReceiver->receive(handleFrames);
-
-    /* Sleep for 100 milliseconds before receiving the next frame to prevent busy-waiting */
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-}
-
-/* Functon to Stop receiving frames */
-void BatteryModule::stopFrames()
-{
-    frameReceiver->stop();
-    LOG_INFO(batteryModuleLogger->GET_LOGGER(), "Battery module stopped the frame receiver");
-}
-
 /* Getter function for current */
 float BatteryModule::getEnergy() const
 {
@@ -269,13 +224,9 @@ std::string BatteryModule::getLinuxBatteryState()
 
 int BatteryModule::getBatterySocket() const
 {
-    return battery_socket;
+    return _ecu->_ecu_socket;
 }
 
-void BatteryModule::setBatterySocket(uint8_t interface_number)
-{
-    this->battery_socket = this->canInterface->createSocket(interface_number);
-}
 
 void BatteryModule::writeDataToFile()
 {
@@ -322,4 +273,37 @@ void BatteryModule::writeDataToFile()
         outfile.close();
         fetchBatteryData();
     }
+}
+
+void BatteryModule::checkDTC()
+{
+    /* Check if dtcs.txt exists */
+    std::string dtc_file_path = "dtcs.txt";
+    std::ifstream infile(dtc_file_path);
+
+    if (!infile.is_open())
+    {
+        std::ofstream outfile(dtc_file_path);
+        if (outfile.is_open())
+        {
+            LOG_INFO(batteryModuleLogger->GET_LOGGER(), "dtcs.txt file created successfully.");
+            outfile.close();
+        }
+        else
+        {
+            LOG_ERROR(batteryModuleLogger->GET_LOGGER(), "Failed to create dtcs.txt file.");
+            return;
+        }
+    }
+    else
+    {
+        infile.close();
+    }
+    /* Read the map with DIDs from the file */
+    std::unordered_map<uint16_t, std::vector<uint8_t>> current_DID_value = FileManager::readMapFromFile("battery_data.txt");
+
+    /* Voltage DTC */
+    FileManager::writeDTC(current_DID_value, dtc_file_path, 0x01B0, 12, 12, "P01B0 24");
+    /* Temperature DTC */
+    FileManager::writeDTC(current_DID_value, dtc_file_path, 0x01E0, 0, 80, "P01E0 24");
 }

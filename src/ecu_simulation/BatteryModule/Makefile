@@ -24,6 +24,8 @@ UTILS_TEST = ../../utils/test
 UDS_DIR = ../../uds
 MCU_DIR = ../../mcu/src
 ENGINE_DIR = ../EngineModule/src
+DOORS_DIR = ../DoorsModule/src
+HVAC_DIR = ../HVACModule/src
 OTA_DIR = ../../ota
 OBJ_DIR = obj
 
@@ -39,6 +41,12 @@ MCU_OBJS = $(OBJ_DIR)/MCUModule.o \
 
 # Engine object files
 ENGINE_OBJS = $(OBJ_DIR)/EngineModule.o \
+
+# Doors object files
+DOORS_OBJS = $(OBJ_DIR)/DoorsModule.o \
+
+# HVAC object files
+HVAC_OBJS = $(OBJ_DIR)/HVACModule.o \
 		   
 # Utils object files
 UTILS_OBJS = $(OBJ_DIR)/MemoryManager.o \
@@ -47,7 +55,9 @@ UTILS_OBJS = $(OBJ_DIR)/MemoryManager.o \
              $(OBJ_DIR)/CreateInterface.o \
              $(OBJ_DIR)/NegativeResponse.o \
 			 $(OBJ_DIR)/ReceiveFrames.o \
-			 $(OBJ_DIR)/HandleFrames.o
+			 $(OBJ_DIR)/HandleFrames.o \
+			 $(OBJ_DIR)/FileManager.o \
+			 $(OBJ_DIR)/ECU.o
 
 # UDS object files
 UDS_OBJS = $(OBJ_DIR)/DiagnosticSessionControl.o \
@@ -71,6 +81,8 @@ OTA_OBJS = $(OBJ_DIR)/RequestUpdateStatus.o \
 OBJS = $(MCU_OBJS) \
        $(BATTERY_OBJS) \
 	   $(ENGINE_OBJS) \
+	   $(DOORS_OBJS) \
+	   $(HVAC_OBJS) \
        $(UTILS_OBJS) \
        $(UDS_OBJS) \
        $(OTA_OBJS)
@@ -100,6 +112,15 @@ $(OBJ_DIR)/BatteryModule.o: $(SRC_DIR)/BatteryModule.cpp
 	
 $(OBJ_DIR)/EngineModule.o: $(ENGINE_DIR)/EngineModule.cpp
 	$(CXX) $(CFLAGS) -c $(ENGINE_DIR)/EngineModule.cpp -o $(OBJ_DIR)/EngineModule.o
+
+$(OBJ_DIR)/DoorsModule.o: $(DOORS_DIR)/DoorsModule.cpp
+	$(CXX) $(CFLAGS) -c $(DOORS_DIR)/DoorsModule.cpp -o $(OBJ_DIR)/DoorsModule.o
+
+$(OBJ_DIR)/HVACModule.o: $(HVAC_DIR)/HVACModule.cpp
+	$(CXX) $(CFLAGS) -c $(HVAC_DIR)/HVACModule.cpp -o $(OBJ_DIR)/HVACModule.o
+
+$(OBJ_DIR)/ECU.o: $(UTILS_DIR)/ECU.cpp
+	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/ECU.cpp -o $(OBJ_DIR)/ECU.o
 
 $(OBJ_DIR)/GenerateFrames.o: $(UTILS_DIR)/GenerateFrames.cpp
 	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/GenerateFrames.cpp -o $(OBJ_DIR)/GenerateFrames.o
@@ -152,6 +173,9 @@ $(OBJ_DIR)/RequestDownload.o: $(OTA_DIR)/request_download/src/RequestDownload.cp
 $(OBJ_DIR)/MemoryManager.o: $(UTILS_DIR)/MemoryManager.cpp
 	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/MemoryManager.cpp -o $(OBJ_DIR)/MemoryManager.o
 
+$(OBJ_DIR)/FileManager.o: $(UTILS_DIR)/FileManager.cpp
+	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/FileManager.cpp -o $(OBJ_DIR)/FileManager.o
+	
 $(OBJ_DIR)/TransferData.o: $(OTA_DIR)/transfer_data/src/TransferData.cpp
 	$(CXX) $(CFLAGS) -c $(OTA_DIR)/transfer_data/src/TransferData.cpp -o $(OBJ_DIR)/TransferData.o
 

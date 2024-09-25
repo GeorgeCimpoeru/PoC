@@ -11,8 +11,6 @@
 #include "../../utils/include/CreateInterface.h"
 #include "ReceiveFrames.h"
 #include "../include/MCULogger.h"
-#include "../../uds/write_data_by_identifier/include/WriteDataByIdentifier.h"
-#include "../../uds/tester_present/include/TesterPresent.h"
 #include "../../uds/tester_present/include/TesterPresent.h"
 
 #include <thread>
@@ -107,6 +105,22 @@ namespace MCU
          * 
          */
         void writeDataToFile();
+
+        /**
+         * @brief Set the Did Value object
+         * 
+         * @param did 
+         * @param value 
+         */
+        void setDidValue(const uint16_t did, const std::vector<uint8_t>& value);
+
+        /**
+         * @brief Get the Did Value object
+         * 
+         * @param did 
+         * @return std::vector<uint8_t> 
+         */
+        std::vector<uint8_t> getDidValue(const uint16_t did) const;
 
     private:
         bool is_running;

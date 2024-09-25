@@ -30,23 +30,16 @@
 #include "../../../utils/include/ReceiveFrames.h"
 #include "../../../utils/include/GenerateFrames.h"
 #include "DoorsModuleLogger.h"
+#include "../../../utils/include/ECU.h"
 
 class DoorsModule
 {
 private:
-    int moduleId;    
-    int doors_socket = -1;
-
-    CreateInterface* canInterface;
-    ReceiveFrames* frameReceiver;
+    const int DOORS_ID = 0x13;    
 
 public:
-    /* Static dictionary to store SID and processing time */
-    static std::map<uint8_t, double> timing_parameters;
-    /* Store active timers for SIDs */
-    static std::map<uint8_t, std::future<void>> active_timers;
-    /* Stop flags for each SID. */
-    static std::map<uint8_t, std::atomic<bool>> stop_flags;
+    /* ECU object used for sockets, frame handling and ecu specific parameters (timing, flags etc)*/
+    ECU *_ecu;
     /* Variable to store ecu data: 0:closed; 1:open; 0:unlocked; 1:locked; 0:no warning; 1: warning */
     static std::unordered_map<uint16_t, std::vector<uint8_t>> default_DID_doors;
     /**
@@ -54,21 +47,9 @@ public:
      */
     DoorsModule();
     /**
-     * @brief Parameterized constructor for Doors Module object with custom interface name, custom moduleId.
-     * 
-     * @param _interfaceNumber Interface number used to create vcan interface.
-     * @param _moduleId Custom module identifier.
-     */
-    DoorsModule(int _interfaceNumber, int _moduleId);
-    /**
      * @brief Destructor Doors Module object.
      */
     virtual ~DoorsModule();
-
-    /**
-     * @brief Function to notify MCU if the module is Up & Running.
-     */
-    void sendNotificationToMCU();
        
     /**
      * @brief Function to fetch data from system about doors.
@@ -76,28 +57,11 @@ public:
     void fetchDoorsData();
 
     /**
-     * @brief Function that starts the frame receiver.
-     */
-    void receiveFrames();
-
-    /**
-     * @brief Function that stops the frame receiver.
-     */
-    void stopFrames();
-
-    /**
      * @brief Get the door Socket.
      * 
      * @return Returns the sid of the socket. 
      */
     int getDoorsSocket() const;
-
-    /**
-     * @brief Recreates and bind the door Socket on a given interface.
-     * 
-     * @param interface_number The interface on which the socket will be created.
-     */
-    void setDoorsSocket(uint8_t interface_number);
 
     /**
      * @brief Write the default_did or the date before reset in doors_data.txt
