@@ -36,61 +36,58 @@ void ClearDtc::clearDtc(int id, std::vector<uint8_t> data)
         LOG_ERROR(logger.GET_LOGGER(), "RequestOutOfRange NRC:Specified Group of DTC parameter is not supported");
         this->generate->negativeResponse(new_id, 0x14, 0x31);
         AccessTimingParameter::stopTimingFlag(lowerbits, 0x14);
-    }
-
-    std::ofstream temp;
-    temp.open("temp_dtc.txt");
-    /* Clean all DTCs */
-    if (group_of_dtc == 0xFFFFFF)
-    {
-        temp.close();
-        const char * p = path_to_dtc.c_str();
-        remove(p);
-        rename("temp_dtc.txt", p);
-
-        this->generate->clearDiagnosticInformation(new_id,{}, true);
-        LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x14);
-
-        AccessTimingParameter::stopTimingFlag(lowerbits, 0x14);
         return;
     }
 
-    std::ifstream file_dtc;
-    try
-    {
-        file_dtc.open(this->path_to_dtc);
-        if (!file_dtc.is_open())
-        {
-            throw std::runtime_error("Unable to open file");
-        }
-    }
-    catch(const std::exception& e)
+    /* Read existing DTCs from the file */
+    std::ifstream input_file(this->path_to_dtc);
+    if (!input_file.is_open())
     {
         LOG_ERROR(logger.GET_LOGGER(), "conditionsNotCorrect NRC: Error trying to open the DTC file");
         this->generate->negativeResponse(new_id, 0x14, 0x22);
         AccessTimingParameter::stopTimingFlag(lowerbits, 0x14);
         return;
     }
+
     std::string line;
-    while (std::getline(file_dtc,line))
+    std::vector<std::string> remaining_dtcs;
+
+    while (std::getline(input_file, line))
     {
-        if ( extractGroup(line) != group_of_dtc)
+        /* If the DTC does not belong to the group that needs to be cleared, keep it */
+        if (extractGroup(line) != group_of_dtc)
         {
-            temp << line << std::endl;
+            remaining_dtcs.push_back(line);
         }
     }
-    temp.close();
-    file_dtc.close();
 
-    const char * p = path_to_dtc.c_str();
-    remove(p);
-    rename("temp_dtc.txt", p);
+    input_file.close();
 
-    LOG_INFO(logger.GET_LOGGER(), "DTCs cleared succesffuly");
-    this->generate->clearDiagnosticInformation(new_id,{}, true);
+    std::ofstream file_dtc;
+    if (group_of_dtc != 0xFFFFFF)
+    {
+        file_dtc.open(this->path_to_dtc, std::ios::out | std::ios::trunc);
 
+        /* Now overwrite the file with only the remaining DTCs */
+        for (const auto& dtc : remaining_dtcs)
+        {
+            file_dtc << dtc << std::endl;
+        }
+
+        file_dtc.close();
+    }
+    else
+    {
+        /* Open the file for writing, clearing its contents */
+        file_dtc.open(this->path_to_dtc, std::ios::out | std::ios::trunc);  
+        file_dtc.close();
+    }
+
+    LOG_INFO(logger.GET_LOGGER(), "DTCs cleared successfully");
+    this->generate->clearDiagnosticInformation(new_id, {}, true);
     AccessTimingParameter::stopTimingFlag(lowerbits, 0x14);
 }
+
 
 uint32_t ClearDtc::extractGroup(std::string dtc)
 {
@@ -106,12 +103,13 @@ uint32_t ClearDtc::extractGroup(std::string dtc)
 
 bool ClearDtc::verifyGroupDtc(uint32_t group_of_dtc)
 {
-    std::vector<uint32_t> group_of_dtcs = {0xAAA, 0x010AAA, 0x020AAA,0x030AAA, 0xFFFFFF};
+    std::vector<uint32_t> group_of_dtcs = {0x000AAA, 0x010AAA, 0x020AAA,0x030AAA, 0xFFFFFF};
     for ( auto dtc : group_of_dtcs)
     {
         if (group_of_dtc == dtc)
         {
             return true;
+            LOG_INFO(logger.GET_LOGGER(), "Grupul e valid");
         }
     }
     return false;

@@ -190,6 +190,6 @@ void EngineModule::checkDTC()
     /* Engine Load DTC*/
     FileManager::writeDTC(current_DID_value, dtc_file_path, 0x011C, 0, 85, "P0069 24");
     /* Engine Coolant Temperature DTC */
-    FileManager::writeDTC(current_DID_value, dtc_file_path, 0x010C, 195, 220, "P0115 24");
+    FileManager::writeDTC(current_DID_value, dtc_file_path, 0x010C, 90, 105, "P0115 24");
 }
 

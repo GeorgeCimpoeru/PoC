@@ -399,6 +399,10 @@ void GenerateFrames::readDtcInformationResponse02Long(int id, uint8_t status_ava
     for (std::pair<int, int> dtc_and_status : dtc_and_status_list)
     {
         uint8_t length_dtc_and_status = (countDigits(dtc_and_status.first) +1) / 2;
+        if(length_dtc_and_status > 2)
+        {
+            length_dtc_and_status = 2;
+        }
         insertBytes(data,dtc_and_status.first,length_dtc_and_status);
         data.push_back(dtc_and_status.second);
         pci_l += length_dtc_and_status + 1;
