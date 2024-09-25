@@ -30,11 +30,9 @@ class ReadInfo(Action):
 
     @staticmethod
     def _get_battery_state_of_charge(state_of_charge):
-        # Remove the '0x' prefix if present
         if state_of_charge.startswith("0x"):
             state_of_charge = state_of_charge[2:]
 
-        # Dictionary mapping hex string values to battery states
         state_mapping = {
             "00": "Unknown state",
             "01": "Charging",
@@ -45,7 +43,6 @@ class ReadInfo(Action):
             "06": "Pending discharge"
         }
 
-        # Return the corresponding state or "Unknown state" if not found
         return state_mapping.get(state_of_charge, "Unknown state")
 
     def _interpret_status(self, status, context):
@@ -108,6 +105,7 @@ class ReadInfo(Action):
                 if item in identifiers:
                     identifier = identifiers[item]
                     result_value = self._read_by_identifier(id, int(identifier, 16))
+                    self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
 
                     if item == "state_of_charge" and result_value:
                         result_value = self._get_battery_state_of_charge(result_value)
@@ -142,9 +140,17 @@ class ReadInfo(Action):
             log_info_message(logger, "Sending JSON response")
             return response_json
 
-        except CustomError as e:
+        except CustomError:
             self.bus.shutdown()
-            return e.message
+            nrc_msg = self.last_msg.data[3] if self.last_msg and len(self.last_msg.data) > 3 else 0x00
+            sid_msg = self.last_msg.data[2] if self.last_msg and len(self.last_msg.data) > 2 else 0x00
+            negative_response = self.handle_negative_response(nrc_msg, sid_msg)
+            self.bus.shutdown()
+            return {
+                "status": "error",
+                "message": "Error during Read by ID",
+                "negative_response": negative_response
+            }
 
     def read_from_doors(self, item=None):
         """
@@ -167,6 +173,7 @@ class ReadInfo(Action):
                 if item in identifiers:
                     identifier = identifiers[item]
                     result_value = self._read_by_identifier(id, int(identifier, 16))
+                    self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
 
                     results[item] = self._interpret_status(result_value) if result_value else "No data"
 
@@ -199,9 +206,17 @@ class ReadInfo(Action):
             log_info_message(logger, "Sending JSON response")
             return response_json
 
-        except CustomError as e:
+        except CustomError:
             self.bus.shutdown()
-            return e.message
+            nrc_msg = self.last_msg.data[3] if self.last_msg and len(self.last_msg.data) > 3 else 0x00
+            sid_msg = self.last_msg.data[2] if self.last_msg and len(self.last_msg.data) > 2 else 0x00
+            negative_response = self.handle_negative_response(nrc_msg, sid_msg)
+            self.bus.shutdown()
+            return {
+                "status": "error",
+                "message": "Error during Read by ID",
+                "negative_response": negative_response
+            }
 
     def read_from_engine(self, item=None):
         """
@@ -225,6 +240,8 @@ class ReadInfo(Action):
                 if item in identifiers:
                     identifier = identifiers[item]
                     result_value = self._read_by_identifier(id, int(identifier, 16))
+                    self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
+
 
                     # Store the result, interpret it if needed
                     interpreted_value = self.hex_to_dec(result_value) if result_value else "No data"
@@ -256,9 +273,17 @@ class ReadInfo(Action):
                 log_info_message(logger, "Sending JSON response")
                 return response_json
 
-        except CustomError as e:
+        except CustomError:
             self.bus.shutdown()
-            return {"error": str(e)}
+            nrc_msg = self.last_msg.data[3] if self.last_msg and len(self.last_msg.data) > 3 else 0x00
+            sid_msg = self.last_msg.data[2] if self.last_msg and len(self.last_msg.data) > 2 else 0x00
+            negative_response = self.handle_negative_response(nrc_msg, sid_msg)
+            self.bus.shutdown()
+            return {
+                "status": "error",
+                "message": "Error during Read by ID",
+                "negative_response": negative_response
+            }
 
     def read_from_hvac(self, item=None):
         """
@@ -282,6 +307,8 @@ class ReadInfo(Action):
                 if item in identifiers:
                     identifier = identifiers[item]
                     result_value = self._read_by_identifier(id, int(identifier, 16))
+                    self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
+
 
                     # Interpret the result for hvac_modes separately
                     if item == "hvac_modes":
@@ -316,6 +343,14 @@ class ReadInfo(Action):
                 log_info_message(logger, "Sending JSON response")
                 return response_json
 
-        except CustomError as e:
+        except CustomError:
             self.bus.shutdown()
-            return {"error": str(e)}
+            nrc_msg = self.last_msg.data[3] if self.last_msg and len(self.last_msg.data) > 3 else 0x00
+            sid_msg = self.last_msg.data[2] if self.last_msg and len(self.last_msg.data) > 2 else 0x00
+            negative_response = self.handle_negative_response(nrc_msg, sid_msg)
+            self.bus.shutdown()
+            return {
+                "status": "error",
+                "message": "Error during Read by ID",
+                "negative_response": negative_response
+            }
