@@ -66,13 +66,13 @@ IDENTIFIER_OIL_TEMPERATURE = 0x0124
 IDENTIFIER_FUEL_PRESSURE = 0x012C
 IDENTIFIER_ENGINE_AIR_INTAKE = 0x0130
 
-#HVAC
-IDENTIFIER_MASS_AIR_FLOW = 0x0134  
+# HVAC
+IDENTIFIER_MASS_AIR_FLOW = 0x0134
 IDENTIFIER_AMBIENT_AIR_TEMPERATURE = 0x0140
-IDENTIFIER_CABIN_TEMPERATURE = 0x04A0  
+IDENTIFIER_CABIN_TEMPERATURE = 0x04A0
 IDENTIFIER_CABIN_TEMPERATURE_DRIVER_SET = 0x04B0
-IDENTIFIER_FAN_SPEED = 0x04C0 
-IDENTIFIER_HVAC_MODES = 0x04D0 
+IDENTIFIER_FAN_SPEED = 0x04C0
+IDENTIFIER_HVAC_MODES = 0x04D0
 
 
 data_identifiers = {
@@ -125,9 +125,9 @@ data_identifiers = {
         "Doors_Identifiers": {
             "door": hex(IDENTIFIER_DOOR_STATUS),
             "passenger": hex(IDENTIFIER_PASSENGER_DOOR_STATUS),
-            "passenger_lock": hex (IDENTIFIER_PASSENGER_DOOR_LOCKED_STATUS),
-            "driver": hex (IDENTIFIER_DRIVER_DOOR_STATUS),
-            "ajar": hex (IDENTIFIER_AJAR_STATUS)
+            "passenger_lock": hex(IDENTIFIER_PASSENGER_DOOR_LOCKED_STATUS),
+            "driver": hex(IDENTIFIER_DRIVER_DOOR_STATUS),
+            "ajar": hex(IDENTIFIER_AJAR_STATUS)
             # "door": hex(IDENTIFIER_DOOR),
             # "door_serial_number": hex(IDENTIFIER_DOOR_SERIALNUMBER),
             # "lighter_voltage": hex(IDENTIFIER_LIGHTER_VOLTAGE),
@@ -136,11 +136,11 @@ data_identifiers = {
             # "windows_closed": hex(IDENTIFIER_WINDOWS_CLOSED)
         },
         "HVAC_Identifiers": {
-        "mass_air_flow": hex(IDENTIFIER_MASS_AIR_FLOW_MAF_SENSOR), 
-        "ambient_air_temperature": hex(IDENTIFIER_AMBIENT_AIR_TEMPERATURE),  
-        "cabin_temperature": hex(IDENTIFIER_CABIN_TEMPERATURE),  
-        "cabin_temperature_driver_set": hex(IDENTIFIER_CABIN_TEMPERATURE_DRIVER_SET),  
-        "fan_speed": hex(IDENTIFIER_FAN_SPEED),  
-        "hvac_modes": hex(IDENTIFIER_HVAC_MODES),  
-    }
+            "mass_air_flow": hex(IDENTIFIER_MASS_AIR_FLOW_MAF_SENSOR),
+            "ambient_air_temperature": hex(IDENTIFIER_AMBIENT_AIR_TEMPERATURE),
+            "cabin_temperature": hex(IDENTIFIER_CABIN_TEMPERATURE),
+            "cabin_temperature_driver_set": hex(IDENTIFIER_CABIN_TEMPERATURE_DRIVER_SET),
+            "fan_speed": hex(IDENTIFIER_FAN_SPEED),
+            "hvac_modes": hex(IDENTIFIER_HVAC_MODES),
+        }
     }

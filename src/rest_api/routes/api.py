@@ -44,28 +44,32 @@ def update_to_version():
 @api_bp.route('/read_info_battery', methods=['GET'])
 def read_info_bat():
     reader = ReadInfo(0xFA, [0x10, 0x11, 0x12])
-    identifier = request.args.get('identifier', default=None, type=str)
-    response = reader.read_from_battery(identifier)
+    item = request.args.get('item', default=None, type=str)
+    response = reader.read_from_battery(item)
     return jsonify(response)
 
 
 @api_bp.route('/read_info_engine', methods=['GET'])
 def read_info_eng():
     reader = ReadInfo(API_ID, [0x10, 0x11, 0x12])
-    response = reader.read_from_engine()
+    item = request.args.get('item', default=None, type=str)
+    response = reader.read_from_engine(item)
     return jsonify(response)
 
 
 @api_bp.route('/read_info_doors', methods=['GET'])
 def read_info_doors():
     reader = ReadInfo(API_ID, [0x10, 0x11, 0x12, 0x13])
-    response = reader.read_from_doors()
+    item = request.args.get('item', default=None, type=str)
+    response = reader.read_from_hvac(item)
     return jsonify(response)
+
 
 @api_bp.route('/read_info_hvac', methods=['GET'])
 def read_info_hvac():
     reader = ReadInfo(API_ID, [0x10, 0x11, 0x12, 0x13, 0x14])
-    response = reader.read_from_hvac()
+    item = request.args.get('item', default=None, type=str)
+    response = reader.read_from_hvac(item)
     return jsonify(response)
 
 
@@ -80,7 +84,6 @@ def send_frame():
 @api_bp.route('/write_info_doors', methods=['POST'])
 def write_info_doors():
     data = request.get_json()
-
     writer = WriteInfo(API_ID, [0x10, 0x11, 0x12], data)
     response = writer.write_to_doors()
     return jsonify(response)

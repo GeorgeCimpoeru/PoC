@@ -110,28 +110,27 @@ class WriteInfo(Action):
             log_info_message(logger, f"Writing data to ECU ID: {id_doors}")
 
             # Data preparation
-            # all_identifiers = {
-            #     IDENTIFIER_DOOR, int(self.data.get('door')),
-            #     IDENTIFIER_DOOR_SERIALNUMBER, int(self.data.get('serial_number')),
-            #     IDENTIFIER_LIGHTER_VOLTAGE, int(self.data.get('lighter_voltage')),
-            #     IDENTIFIER_LIGHT_STATE, int(self.data.get('light_state')),
-            #     IDENTIFIER_BELT_STATE, int(self.data.get('belt')),
-            #     IDENTIFIER_WINDOWS_CLOSED, int(self.data.get('windows_closed'))
-            # }
+            all_identifiers = {
+                IDENTIFIER_DOOR_STATUS, int(self.data.get('door')),
+                IDENTIFIER_PASSENGER_DOOR_STATUS, int(self.data.get('passenger')),
+                IDENTIFIER_PASSENGER_DOOR_LOCKED_STATUS, int(self.data.get('passenger_lock')),
+                IDENTIFIER_DRIVER_DOOR_STATUS, int(self.data.get('driver')),
+                IDENTIFIER_AJAR_STATUS, int(self.data.get('ajar')),
+            }
 
             # Determine which data to write
-            # data_to_write = [(item, all_identifiers.get(item))] if item else [(id_, value) for id_, value in all_identifiers.items() if value is not None]
+            data_to_write = [(item, all_identifiers.get(item))] if item else [(id_, value) for id_, value in all_identifiers.items() if value is not None]
 
-            # for identifier, value in data_to_write:
-            #     if value is not None:
-            #         value_list = self._number_to_byte_list(value)
-            #         log_info_message(logger, f"Write by identifier {identifier}")
+            for identifier, value in data_to_write:
+                if value is not None:
+                    value_list = self._number_to_byte_list(value)
+                    log_info_message(logger, f"Write by identifier {identifier}")
 
-            #         if isinstance(value_list, list) and len(value_list) > 4:
-            #             self.generate.write_data_by_identifier_long(id, identifier, value_list)
-            #         else:
-            #             self.generate.write_data_by_identifier(id, identifier, value_list)
-            #             self._passive_response(WRITE_BY_IDENTIFIER, f"Error writing {identifier}")
+                    if isinstance(value_list, list) and len(value_list) > 4:
+                        self.generate.write_data_by_identifier_long(id, identifier, value_list)
+                    else:
+                        self.generate.write_data_by_identifier(id, identifier, value_list)
+                        self._passive_response(WRITE_BY_IDENTIFIER, f"Error writing {identifier}")
 
             log_info_message(logger, f"Data written successfully to ECU ID: {id_doors}")
             response_json = self._to_json("success", 0)
