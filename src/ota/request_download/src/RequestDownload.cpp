@@ -198,13 +198,8 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
 int RequestDownloadService::calculate_max_number_block(int memory_size)
 {
     /* max_number_block = maximum number of bytes for 1 transfer data */
-    int max_number_block = memory_size / MAX_TRANSFER_DATA_REQUESTS;
-    std::vector<uint8_t> max_number_block_bytes;
-    while(max_number_block)
-    {
-        
-    }
-    LOG_INFO(RDSlogger.GET_LOGGER(), "max_number_block:{}", max_number_block);
+    int max_number_block = (memory_size / MAX_TRANSFER_DATA_REQUESTS) + (memory_size % MAX_TRANSFER_DATA_REQUESTS != 0);
+    
     return max_number_block;
 }
 
@@ -347,7 +342,6 @@ void RequestDownloadService::requestDownloadResponse(canid_t id, int memory_addr
     {
         MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, RDSlogger);
         managerInstance->getAddress();
-        LOG_INFO(RDSlogger.GET_LOGGER(), "max number block {}", static_cast<int>(max_number_block));
         /* Call response method from generate_frames */
         generate_frames.requestDownloadResponse(id, max_number_block);
         MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_COMPLETED});
