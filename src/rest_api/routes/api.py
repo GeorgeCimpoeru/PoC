@@ -62,6 +62,12 @@ def read_info_doors():
     response = reader.read_from_doors()
     return jsonify(response)
 
+@api_bp.route('/read_info_hvac', methods=['GET'])
+def read_info_hvac():
+    reader = ReadInfo(API_ID, [0x10, 0x11, 0x12, 0x13, 0x14])
+    response = reader.read_from_hvac()
+    return jsonify(response)
+
 
 @api_bp.route('/send_frame', methods=['POST'])
 def send_frame():

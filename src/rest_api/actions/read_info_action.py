@@ -311,3 +311,52 @@ class ReadInfo(Action):
         except CustomError as e:
             self.bus.shutdown()
             return e.message
+        
+    def read_from_hvac(self, item=None):
+        """
+        Method to read information from the HVAC module.
+
+        Args:
+        - item: Optional identifier for a specific data item to read.
+
+        Returns:
+        - JSON response with HVAC data.
+        """
+        try:
+            log_info_message(logger, "Reading data from HVAC")
+            id = self.my_id * 0x100 + self.id_ecu[ECU_HVAC]  
+
+            identifiers = data_identifiers["HVAC_Identifiers"]  
+            results = {}
+
+            if item:
+                if item in identifiers:
+                    identifier = identifiers[item]
+                    result_value = self._read_by_identifier(id, int(identifier, 16))
+
+                    results[item] = result_value if result_value else "No data"
+                else:
+                    return {"error": f"Invalid parameter '{item}'. Use /get_identifiers to see valid parameters."}
+            else:
+                for key, identifier in identifiers.items():
+                    result_value = self._read_by_identifier(id, int(identifier, 16))
+                    results[key] = result_value if result_value else "No data"
+
+            response_json = {
+                "mass_air_flow": self.hex_to_dec(results.get("mass_air_flow", "No data")),
+                "ambient_air_temperature": self.hex_to_dec(results.get("ambient_air_temperature", "No data")),
+                "cabin_temperature": self.hex_to_dec(results.get("cabin_temperature", "No data")),
+                "cabin_temperature_driver_set": self.hex_to_dec(results.get("cabin_temperature_driver_set", "No data")),
+                "fan_speed": self.hex_to_dec(results.get("fan_speed", "No data")),
+                "hvac_modes": self.hex_to_dec(results.get("hvac_modes", "No data")),
+                "time_stamp": datetime.datetime.now().isoformat()
+            }
+
+            self.bus.shutdown()
+            log_info_message(logger, "Sending JSON response")
+            return response_json
+
+        except CustomError as e:
+            self.bus.shutdown()
+            return {"error": str(e)}
+
