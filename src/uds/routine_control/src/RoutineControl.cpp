@@ -61,36 +61,6 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     }
     else
     {   
-        std::string command;
-        std::string path_to_main;
-        std::cout << "status is: " << std::string(PROJECT_PATH) << std::endl;
-        if (access((std::string(PROJECT_PATH) + "/main_mcu_new").c_str(), F_OK) == 0 && lowerbits == 0x10) {
-            path_to_main = std::string(PROJECT_PATH) + "/main_mcu_new";
-            command = "./../../config/installUpdates.sh";
-        }
-        else if (access((std::string(PROJECT_PATH) + "/main_battery_new").c_str(), F_OK) == 0 && lowerbits == 0x11) {
-            path_to_main = std::string(PROJECT_PATH) + "/main_battery_new";
-            command = "./../../../config/installUpdates.sh";
-            MemoryManager* managerInstance = MemoryManager::getInstance(0x0801, DEV_LOOP, rc_logger);
-            managerInstance->getAddress();
-        }
-        else if (access((std::string(PROJECT_PATH) + "/main_doors_new").c_str(), F_OK) == 0 && lowerbits == 0x12) {
-            path_to_main = std::string(PROJECT_PATH) + "/main_doors_new";
-            command = "./../../../config/installUpdates.sh";
-        }
-        else if (access((std::string(PROJECT_PATH) + "/main_engine_new").c_str(), F_OK) == 0 && lowerbits == 0x13) {
-            path_to_main = std::string(PROJECT_PATH) + "/main_engine_new";
-            command = "./../../../config/installUpdates.sh";
-        }
-        else if (access((std::string(PROJECT_PATH) + "/main_hvac_new").c_str(), F_OK) == 0 && lowerbits == 0x14) {
-            path_to_main = std::string(PROJECT_PATH) + "/main_hvac_new";
-            command = "./../../../config/installUpdates.sh";
-        }
-        else
-        {
-            LOG_ERROR(rc_logger.GET_LOGGER(), "No valid main_xxx_new file found in PROJECT_PATH.");
-            return;
-        }
         std::vector<uint8_t> binary_data;
         std::vector<uint8_t> adress_data;
         MemoryManager* memory_manager;
@@ -107,21 +77,26 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 /* call installUpdates routine*/
                 LOG_INFO(rc_logger.GET_LOGGER(), "installUpdates routine called.");
                 MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE});
-                system(command.c_str());
+                system("./../../config/installUpdates.sh");
                 routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
                 break;
             case 0x0301:
                 /* call writeToFile routine*/
                 LOG_INFO(rc_logger.GET_LOGGER(), "writeToFile routine called.");
-                binary_data = MemoryManager::readBinary(path_to_main, rc_logger);
+                binary_data = MemoryManager::readBinary(selectEcuPath(can_id, true), rc_logger);
                 memory_manager = MemoryManager::getInstance(rc_logger); 
                 adress_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), binary_data.size(), rc_logger);
-                MemoryManager::writeToFile(adress_data, selectEcuPath(can_id), rc_logger);
+                MemoryManager::writeToFile(adress_data, selectEcuPath(can_id, false), rc_logger);
                 routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
                 break;
             case 0x0401:
                 /* Initialise OTA Update */
-                
+                if(DiagnosticSessionControl::getCurrentSessionToString() != "FOTA_SESSION")
+                {
+                    LOG_WARN(rc_logger.GET_LOGGER(), "OTA update can be initialised only in FOTA session");
+                    nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
+                    return;
+                }
                 if(ota_state != IDLE && ota_state != ERROR)
                 {
                     LOG_INFO(rc_logger.GET_LOGGER(), "OTA update can be initialised only from an IDLE or ERROR state, current state is {:x}", ota_state);
@@ -182,33 +157,40 @@ void RoutineControl::routineControlResponse(canid_t can_id, const uint8_t sub_fu
     AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
 }
 
-std::string RoutineControl::selectEcuPath(canid_t can_id)
+std::string RoutineControl::selectEcuPath(canid_t can_id, bool is_base_path)
 {
     uint8_t receiver_id = can_id >> 8 & 0xFF;
-
+    std::string ecu_path = "";
         switch(receiver_id)
         {
             case 0x10:
-                return std::string(PROJECT_PATH) + "/src/mcu/main_mcu_new";
+                ecu_path = std::string(PROJECT_PATH) + ((is_base_path == true) ? "/main_mcu_new" : "/src/mcu/main_mcu_new");
             break;
             case 0x11:
-                return std::string(PROJECT_PATH) + "/src/ecu_simulation/BatteryModule/main_battery_new";
+                ecu_path = std::string(PROJECT_PATH) + ((is_base_path == true) ? "/main_battery_new" : "/src/ecu_simulation/BatteryModule/main_battery_new");
             break;
             case 0x12:
-                return std::string(PROJECT_PATH) + "/src/ecu_simulation/DoorsModule/main_doors_new";
+                ecu_path = std::string(PROJECT_PATH) + ((is_base_path == true) ? "/main_doors_new" : "/src/ecu_simulation/DoorsModule/main_doors_new");
             break;
             case 0x13:
-                return std::string(PROJECT_PATH) + "/src/ecu_simulation/EngineModule/main_engine_new";
+                ecu_path = std::string(PROJECT_PATH) + ((is_base_path == true) ? "/main_engine_new" : "/src/ecu_simulation/EngineModule/main_engine_new");
             break;
             case 0x14:
-                return std::string(PROJECT_PATH) + "/src/ecu_simulation/HvacModule/main_hvac_new";
+                ecu_path = std::string(PROJECT_PATH) + ((is_base_path == true) ? "/main_hvac_new" : "/src/ecu_simulation/HvacModule/main_hvac_new");
             break;
             default:
-                LOG_ERROR(rc_logger.GET_LOGGER(), "No valid path.");
-                return "no valid path";
+                LOG_ERROR(rc_logger.GET_LOGGER(), "No valid path for main_xxx_new.");
             break;
         }
-    return "no path found";
+    if(is_base_path == true)
+    {
+        if(access(ecu_path.c_str(), F_OK) != 0)
+        {
+            LOG_ERROR(rc_logger.GET_LOGGER(), "No valid main_xxx_new file found in PROJECT_PATH.");
+            return "";
+        }
+    }
+    return ecu_path;
 }
 
 bool RoutineControl::initialiseOta(uint8_t target_ecu, const std::vector<uint8_t>& request, std::vector<uint8_t>& routine_result)
@@ -222,7 +204,7 @@ bool RoutineControl::initialiseOta(uint8_t target_ecu, const std::vector<uint8_t
     std::string project_path = PROJECT_PATH;
     std::string path_to_drive_api = project_path + "/src/ota/google_drive_api";
     uint8_t sw_version = request[5];
-    size_t version_size = 0;
+    uint8_t version_size = 0;
     try
     {
         auto sys = py::module::import("sys");
@@ -234,7 +216,7 @@ bool RoutineControl::initialiseOta(uint8_t target_ecu, const std::vector<uint8_t
         py::object gGdrive_object = python_module.attr("gDrive");
 
         /* Call the searchVersion method from GoogleDriveApi.py that returns the size of the version, or 0 if not found*/
-        version_size = (gGdrive_object.attr("searchVersion")(target_ecu, sw_version)).cast<size_t>();
+        version_size = (gGdrive_object.attr("downloadFile")(target_ecu, sw_version)).cast<uint8_t>();
     }
     catch(const py::error_already_set& e)
     {
@@ -250,7 +232,7 @@ bool RoutineControl::initialiseOta(uint8_t target_ecu, const std::vector<uint8_t
     else
     {
         /* Send response */
-        routine_result[0] = version_size & 0xFF;
+        routine_result[0] = version_size;
     }
     return true;
     

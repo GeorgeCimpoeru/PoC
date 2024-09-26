@@ -17,6 +17,14 @@
 #include "../../../utils/include/NegativeResponse.h"
 #include "../../authentication/include/SecurityAccess.h"
 
+#define ERASE_MEMORY_RC_ID (0x0101)
+#define INSTALL_UPDATES_RC_ID (0x0201)
+#define WRITE_TO_FILE_RC_ID (0x0301)
+#define INIT_OTA_RC_ID (0x0401)
+#define VERIFY_SW_RC_ID (0x0501)
+#define ROLLBACK_SW_RC_ID (0x0601)
+#define ACTIVATE_SW_RC_ID (0x0701)
+
 class RoutineControl
 {
     public:
@@ -46,13 +54,6 @@ class RoutineControl
     void routineControlResponse(canid_t can_id, uint8_t sub_function, const uint16_t& routine_identifier, std::vector<uint8_t>& routine_result);
     
     /**
-    * @brief Method to return a path string based on the receiver id.
-    * 
-    * @param can_id The frame id.
-    * @return Returns a path string
-    */
-
-    /**
      * @brief 
      * 
      * @return true 
@@ -76,7 +77,7 @@ class RoutineControl
      */
     bool verifySoftware();
     
-    std::string selectEcuPath(canid_t can_id);
+    std::string selectEcuPath(canid_t can_id, bool is_base_path);
 
     private:
     GenerateFrames generate_frames;
