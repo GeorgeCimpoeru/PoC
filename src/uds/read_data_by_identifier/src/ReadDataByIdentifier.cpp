@@ -52,10 +52,12 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
         {
             nrc.sendNRC(can_id, RDBI_SERVICE_ID, NegativeResponse::SAD);
         }
-        MCU::mcu->stop_flags[0x22] = false;
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x22);
         return response;
     }
-    if (lowerbits == 0x11 && !ReceiveFrames::getBatteryState())
+    if ((lowerbits == 0x11 || lowerbits == 0x12 ||
+         lowerbits == 0x13 || lowerbits == 0x14) &&
+         !ReceiveFrames::getEcuState())
     {
         response.push_back(0x03); /* PCI */
         response.push_back(0x7F); /* Negative response */
@@ -65,46 +67,7 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
         {
             nrc.sendNRC(can_id, RDBI_SERVICE_ID, NegativeResponse::SAD);
         }
-        battery->_ecu->stop_flags[0x22] = false;
-        return response;
-    }
-    if (lowerbits == 0x12 && !ReceiveFrames::getEngineState())
-    {
-        response.push_back(0x03); /* PCI */
-        response.push_back(0x7F); /* Negative response */
-        response.push_back(RDBI_SERVICE_ID); /* Service ID */
-        response.push_back(NegativeResponse::SAD); /* Security Access Denied */
-        if (use_send_frame)
-        {
-            nrc.sendNRC(can_id, RDBI_SERVICE_ID, NegativeResponse::SAD);
-        }
-        engine->_ecu->stop_flags[0x22] = false;
-        return response;
-    }
-    if (lowerbits == 0x13 && !ReceiveFrames::getDoorsState())
-    {
-        response.push_back(0x03); /* PCI */
-        response.push_back(0x7F); /* Negative response */
-        response.push_back(RDBI_SERVICE_ID); /* Service ID */
-        response.push_back(NegativeResponse::SAD); /* Security Access Denied */
-        if (use_send_frame)
-        {
-            nrc.sendNRC(can_id, RDBI_SERVICE_ID, NegativeResponse::SAD);
-        }
-        doors->_ecu->stop_flags[0x22] = false;
-        return response;
-    }
-    if (lowerbits == 0x14 && !ReceiveFrames::getHvacState())
-    {
-        response.push_back(0x03); /* PCI */
-        response.push_back(0x7F); /* Negative response */
-        response.push_back(RDBI_SERVICE_ID); /* Service ID */
-        response.push_back(NegativeResponse::SAD); /* Security Access Denied */
-        if (use_send_frame)
-        {
-            nrc.sendNRC(can_id, RDBI_SERVICE_ID, NegativeResponse::SAD);
-        }
-        hvac->_ecu->stop_flags[0x22] = false;
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x22);
         return response;
     }
 
