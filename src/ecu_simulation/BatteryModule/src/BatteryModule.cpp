@@ -303,7 +303,7 @@ void BatteryModule::checkDTC()
     std::unordered_map<uint16_t, std::vector<uint8_t>> current_DID_value = FileManager::readMapFromFile("battery_data.txt");
 
     /* Voltage DTC */
-    FileManager::writeDTC(current_DID_value, dtc_file_path, 0x01B0, 12, 12, "P01B0 24");
+    FileManager::writeDTC(current_DID_value, dtc_file_path, 0x01B0, 12, 13, "P01B0 24");
     /* Temperature DTC */
-    FileManager::writeDTC(current_DID_value, dtc_file_path, 0x01E0, 0, 80, "P01E0 24");
+    FileManager::writeDTC(current_DID_value, dtc_file_path, 0x01E0, 21, 27, "P01E0 24");
 }
