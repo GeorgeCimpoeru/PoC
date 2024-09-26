@@ -36,35 +36,15 @@ void EcuReset::ecuResetRequest(const std::vector<uint8_t>& request)
     if (lowerbits == 0x10 && !SecurityAccess::getMcuState(ECUResetLog))
     {
         nrc.sendNRC(new_id, 0x11, NegativeResponse::SAD);
-        MCU::mcu->stop_flags[0x11] = false;
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x11);
         return;
     }
-    else
-    if (lowerbits == 0x11 && !ReceiveFrames::getBatteryState())
+    else if ((lowerbits == 0x11 || lowerbits == 0x12 ||
+              lowerbits == 0x13 || lowerbits == 0x14) &&
+              !ReceiveFrames::getEcuState())
     {
         nrc.sendNRC(new_id, 0x11, NegativeResponse::SAD);
-        battery->_ecu->stop_flags[0x11] = false;
-        return;
-    }
-    else
-    if (lowerbits == 0x12 && !ReceiveFrames::getEngineState())
-    {
-        nrc.sendNRC(new_id, 0x11, NegativeResponse::SAD);
-        engine->_ecu->stop_flags[0x11] = false;
-        return;
-    }
-    else
-    if (lowerbits == 0x13 && !ReceiveFrames::getDoorsState())
-    {
-        nrc.sendNRC(new_id, 0x11, NegativeResponse::SAD);
-        doors->_ecu->stop_flags[0x11] = false;
-        return;
-    }
-    else
-    if (lowerbits == 0x14 && !ReceiveFrames::getHvacState())
-    {
-        nrc.sendNRC(new_id, 0x11, NegativeResponse::SAD);
-        hvac->_ecu->stop_flags[0x11] = false;
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x11);
         return;
     }
     /* Hard Reset case */

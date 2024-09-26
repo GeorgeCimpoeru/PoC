@@ -141,7 +141,7 @@ void GenerateFrames::securityAccessRequestSeed(int id, const std::vector<uint8_t
 {
     if (seed.size() == 0)
     {
-        std::vector<uint8_t> data = {0x03, 0x27, 0x1};
+        std::vector<uint8_t> data = {0x02, 0x27, 0x1};
         this->sendFrame(id, data);
         return;
     }

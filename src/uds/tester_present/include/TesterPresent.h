@@ -70,8 +70,10 @@ public:
      * This function sets the end time of the programming session by adding
      * a predefined amount of time to the current system
      * time. It is used to restart the duration of the session.
+     * @param isProgramming tells if we are in programming session or not to 
+     * change the endTimer correctly.
     */
-    static void setEndTimeProgrammingSession();
+    static void setEndTimeProgrammingSession(bool isProgramming = false);
 };
 
 #endif
