@@ -115,27 +115,26 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     uint8_t encryption_type = data_format_identifier & 0x0F;
     LOG_INFO(RDSlogger.GET_LOGGER(), "Encryption Type: 0x{0:x}", static_cast<int>(encryption_type));
 
-    if(ota_initialised)
+    /* Check if software is at the latest version */ 
+    if (ota_initialised && !isLatestSoftwareVersion())
     {
-        /* Check if software is at the latest version */ 
-        if (!isLatestSoftwareVersion())
+        LOG_INFO(RDSlogger.GET_LOGGER(), "Software is not at the latest version");
+        MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
+        return;
+    }
+    /* Check for compression */ 
+    if (compression_type == 0x0) 
+    {
+        LOG_INFO(RDSlogger.GET_LOGGER(), "No compression method used");
+    } 
+    else 
+    {
+        if(ota_initialised)
         {
-            LOG_INFO(RDSlogger.GET_LOGGER(), "Software is not at the latest version");
-            MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
-            return;
-        }
-        /* Calculate the position for software version*/ 
-        size_t position_software_version = 4 + length_memory_address + length_memory_size;
-        uint8_t software_version = stored_data[position_software_version];
-        /* 0x12 => 0001 0010* => v2.2, offset 1 */
-        downloadSoftwareVersion(target_id, software_version);
-        /* Check for compression */ 
-        if (compression_type == 0x0) 
-        {
-            LOG_INFO(RDSlogger.GET_LOGGER(), "No compression method used");
-        } 
-        else 
-        {
+            /* Calculate the position for software version*/ 
+            size_t position_software_version = 4 + length_memory_address + length_memory_size;
+            uint8_t software_version = stored_data[position_software_version];
+            /* 0x12 => 0001 0010* => v2.2, offset 1 */
             /* 2 digits + '.' + 2 digits + null terminator */
             char buffer[5];
             /* Map 0-15 to 1-16 */
@@ -178,6 +177,10 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
                 MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
             }
         }
+        else
+        {
+            /* Handle compression for normal request download */
+        }
     }
     /* Check for encryption */
     if (encryption_type == 0x0)
@@ -186,6 +189,14 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     }
     else
     {
+        if(ota_initialised)
+        {
+            /* Handle encryption for OTA request download */
+        }
+        else
+        {
+            /* Handle encrypthion for normal request download */
+        }
         /* check if encryption is needed */
     }
 

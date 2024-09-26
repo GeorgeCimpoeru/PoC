@@ -554,8 +554,8 @@ void GenerateFrames::requestDownloadResponse(int id, int max_number_block)
             first_byte_found = true;
         }
     }
-    uint8_t length_max_number_block = max_number_block_bytes.size() * 0x10;
-    std::vector<uint8_t> data = {(uint8_t)(length_max_number_block + 2), 0x74, length_max_number_block};
+    uint8_t length_max_number_block = max_number_block_bytes.size();
+    std::vector<uint8_t> data = {(uint8_t)(length_max_number_block + 2), 0x74, static_cast<uint8_t>(length_max_number_block * 0x10)};
     data.insert(data.end(), max_number_block_bytes.begin(), max_number_block_bytes.end());
     LOG_INFO(logger.GET_LOGGER(), "max number block length 0x{:x}", length_max_number_block);
     LOG_INFO(logger.GET_LOGGER(), "max number block 0x{:x}", max_number_block);

@@ -107,7 +107,7 @@ class GDriveAPI:
             while not done:
                 status, done = downloader.next_chunk()
                 print(f"{GREEN}Download {int(status.progress() * 100)}%.{RESET}")
-
+        
         except HttpError as error:
             print(f"{RED}An error occurred: {error}{RESET}")
             return 0
@@ -116,13 +116,13 @@ class GDriveAPI:
         with open(f"{path_to_download}/{file_to_download['name']}", 'wb') as f:
             f.write(downloaded_file.read())
             print(f"{GREEN}File downloaded and saved to {path_to_download}{RESET}")
-        file_to_download = None
 
+        return int(file_to_download['size_uncompressed'])
     def searchVersion(self, ecu_id, sw_version_byte, return_file=False):
-        self.getDriveData()
         sw_version = self.__convertByteToSwVersion(hex(sw_version_byte))
         print(f"{GREEN}Searching for version {RESET}" +
               ecu_map[ecu_id] + ' ' + sw_version)
+        self.getDriveData()
         file_to_download = [
             data for data in self.__drive_data_array if data['type'] == ecu_map[ecu_id] and data['sw_version'] == str(sw_version)]
         
