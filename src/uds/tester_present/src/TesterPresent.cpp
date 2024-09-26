@@ -21,7 +21,7 @@ std::chrono::steady_clock::time_point TesterPresent::getEndTimeProgrammingSessio
 
 void TesterPresent::setEndTimeProgrammingSession(bool isProgramming)
 {
-    if (!isProgramming)
+    if (isProgramming)
     {
         end_time = std::chrono::steady_clock::now() + std::chrono::seconds(S3_TIMER);
         return;

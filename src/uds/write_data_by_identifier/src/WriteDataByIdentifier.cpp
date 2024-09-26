@@ -38,27 +38,14 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
     else if (receiver_id == 0x10 && !SecurityAccess::getMcuState(wdbi_logger))
     {
         nrc.sendNRC(id, WDBI_SID, NegativeResponse::SAD);
-        MCU::mcu->stop_flags[0x2E] = false;
+        AccessTimingParameter::stopTimingFlag(receiver_id, 0x2E);
     }
-    else if (receiver_id == 0x11 && !ReceiveFrames::getBatteryState())
+    else if ((receiver_id == 0x11 || receiver_id == 0x12 ||
+              receiver_id == 0x13 || receiver_id == 0x14) &&
+              !ReceiveFrames::getEcuState())
     {
         nrc.sendNRC(id, WDBI_SID, NegativeResponse::SAD);
-        battery->_ecu->stop_flags[0x2E] = false;
-    }
-    else if (receiver_id == 0x12 && !ReceiveFrames::getEngineState())
-    {
-        nrc.sendNRC(id, WDBI_SID, NegativeResponse::SAD);
-        engine->_ecu->stop_flags[0x2E] = false;
-    }
-    else if (receiver_id == 0x13 && !ReceiveFrames::getDoorsState())
-    {
-        nrc.sendNRC(id, WDBI_SID, NegativeResponse::SAD);
-        doors->_ecu->stop_flags[0x2E] = false;
-    }
-    else if (receiver_id == 0x14 && !ReceiveFrames::getHvacState())
-    {
-        nrc.sendNRC(id, WDBI_SID, NegativeResponse::SAD);
-        hvac->_ecu->stop_flags[0x2E] = false;
+        AccessTimingParameter::stopTimingFlag(receiver_id, 0x2E);
     }
     else
     {

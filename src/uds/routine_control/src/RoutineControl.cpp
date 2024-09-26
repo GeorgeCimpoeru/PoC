@@ -38,27 +38,14 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     else if (lowerbits == 0x10 && !SecurityAccess::getMcuState(rc_logger))
     {
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
-        MCU::mcu->stop_flags[0x31] = false;
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x31);
     }
-    else if (lowerbits == 0x11 && !ReceiveFrames::getBatteryState())
+    else if ((lowerbits == 0x11 || lowerbits == 0x12 ||
+              lowerbits == 0x13 || lowerbits == 0x14) &&
+              !ReceiveFrames::getEcuState())
     {
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
-        battery->_ecu->stop_flags[0x31] = false;
-    }
-    else if (lowerbits == 0x12 && !ReceiveFrames::getEngineState())
-    {
-        nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
-        engine->_ecu->stop_flags[0x31] = false;
-    }
-    else if (lowerbits == 0x13 && !ReceiveFrames::getDoorsState())
-    {
-        nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
-        doors->_ecu->stop_flags[0x31] = false;
-    }
-    else if (lowerbits == 0x14 && !ReceiveFrames::getHvacState())
-    {
-        nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
-        hvac->_ecu->stop_flags[0x31] = false;
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x31);
     }
     /* when our identifiers will be defined, this range should be smaller */
     else if (routine_identifier < 0x0100 || routine_identifier > 0xEFFF)
