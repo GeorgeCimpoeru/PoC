@@ -111,12 +111,11 @@ class WriteInfo(Action):
 
             # Data preparation
             all_identifiers = {
-                IDENTIFIER_DOOR, int(self.data.get('door')),
-                IDENTIFIER_DOOR_SERIALNUMBER, int(self.data.get('serial_number')),
-                IDENTIFIER_LIGHTER_VOLTAGE, int(self.data.get('lighter_voltage')),
-                IDENTIFIER_LIGHT_STATE, int(self.data.get('light_state')),
-                IDENTIFIER_BELT_STATE, int(self.data.get('belt')),
-                IDENTIFIER_WINDOWS_CLOSED, int(self.data.get('windows_closed'))
+                IDENTIFIER_DOOR_STATUS, int(self.data.get('door')),
+                IDENTIFIER_PASSENGER_DOOR_STATUS, int(self.data.get('passenger')),
+                IDENTIFIER_PASSENGER_DOOR_LOCKED_STATUS, int(self.data.get('passenger_lock')),
+                IDENTIFIER_DRIVER_DOOR_STATUS, int(self.data.get('driver')),
+                IDENTIFIER_AJAR_STATUS, int(self.data.get('ajar')),
             }
 
             # Determine which data to write

@@ -252,3 +252,7 @@ function writeTimingInfo() {
 
     performApiRequest('/api/write_timing', 'POST', data);
 }
+
+function readInfoHvac() {
+    performApiRequest('/api/read_info_hvac', 'GET');
+}

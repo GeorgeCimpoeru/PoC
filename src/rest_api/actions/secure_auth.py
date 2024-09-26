@@ -1,11 +1,5 @@
 from actions.base_actions import *
 from configs.data_identifiers import *
-from actions.manual_send_frame import handle_negative_response
-
-MCU = 0
-ECU_BATTERY = 1
-ECU_ENGINE = 2
-ECU_DOORS = 3
 
 
 class Auth(Action):

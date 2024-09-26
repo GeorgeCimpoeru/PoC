@@ -210,9 +210,9 @@ class Action:
             return False
 
         if msg.data[0] != 0x10:
-            if msg.data[1] == 0x67 and msg.data[2] == 0x00:
-                log_info_message(logger, "Authentication successful")
-                return True
+            # if msg.data[1] == 0x67 and msg.data[2] == 0x00:
+            # log_info_message(logger, "Authentication successful")
+            # return True
             if msg.data[1] != sid + 0x40:
                 return False
         else:
@@ -413,3 +413,13 @@ class Action:
             byte_list.insert(0, number & 0xFF)
             number = number >> 8
         return byte_list
+
+    def hex_to_dec(self, value):
+        """Helper function to convert hex to decimal if not 'No data'."""
+        if value is None or value == "No data":
+            return "No data"
+
+        try:
+            return int(value, 16)
+        except (ValueError, TypeError):
+            return value
