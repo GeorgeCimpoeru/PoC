@@ -40,6 +40,7 @@ void DiagnosticSessionControl::sessionControl(canid_t frame_id, uint8_t sub_func
         break;
     case SUB_FUNCTION_PROGRAMMING_SESSION:
         switchSession(frame_id, PROGRAMMING_SESSION);
+        break;
     case SUB_FUNCTION_FOTA_SESSION:
         switchSession(frame_id, FOTA_SESSION);
         break;
