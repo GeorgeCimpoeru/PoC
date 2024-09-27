@@ -6,7 +6,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 
-import android.app.Fragment;
+import androidx.fragment.app.Fragment;
 
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -43,7 +43,7 @@ import java.util.Objects;
 public class Fragment_Update extends Fragment implements View.OnClickListener {
 
     EditText searchnTxt;
-    TextView progressTxt;
+    TextView progressTxt, ecuTxt, versionTxt;
     Button startDwBtn, MCUbtn;
     ImageButton searchBtn, continueBtn, pauseBtn, stopBtn;
     Switch upgradeSw;
@@ -61,6 +61,7 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
     private long timeRemaining;     // Track remaining time when paused
     private int totalTimeInMillis;  // Total time for the progress bar
     private boolean isPaused = false;
+    private boolean downloading = false;
 
     Dialog mDialog;
 
@@ -69,8 +70,28 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        initializeElements(view);
+        Bundle args = getArguments();
+        if (args != null){
+            String title = args.getString("FRAGMENT_TITLE","Error");
+            ecuTxt.setText(title);
+        }
+
+        List<Update> list = Arrays.asList(new Update[]{new Update("Software update 1", "Succeeded", "1 Sept 2024", 23),
+                new Update("Software update 2", "Faied", "1 Ian 20243", 12)});
+        updateTable(list);
+
+        getCurrentVersions();
+        getAvailableVersions();
+    }
+
+    private void initializeElements(View view)
+    {
         searchnTxt = view.findViewById(R.id.search_txt);
         progressTxt = view.findViewById(R.id.progess_txt);
+        ecuTxt = view.findViewById(R.id.ecu_txt);
+        versionTxt = view.findViewById(R.id.versio_txt);
 
         searchBtn = view.findViewById(R.id.search_btn);
         searchBtn.setOnClickListener(this);
@@ -104,13 +125,14 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
         mDialog = new Dialog(view.getContext());
 
         tableLayout = view.findViewById(R.id.table);
-
-        List<Update> list = Arrays.asList(new Update[]{new Update("Software update 1", "Succeeded", "1 Sept 2024", 23),
-                new Update("Software update 2", "Faied", "1 Ian 20243", 12)});
-        updateTable(list);
-
-        getVersions();
     }
+
+    private void getCurrentVersions()
+    {
+        versionTxt.setText("V"+currentVersion);
+    }
+
+
     private void updateTable(List<Update> listUpdates)
     {
         for(Update update: listUpdates)
@@ -184,31 +206,36 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
     public void onClick(View view) {
         if (view.getId() == R.id.start_download)
         {
-            // endpoint start download
-            totalTimeInMillis = calculateSecondsDw(3) * 1000; //for 30Mb
-            startProgressBar(totalTimeInMillis);
-            isPaused = false;
-
+            if (!downloading){
+                // endpoint start download
+                totalTimeInMillis = calculateSecondsDw(3) * 1000; //for 30Mb
+                startProgressBar(totalTimeInMillis);
+                isPaused = false;
+                downloading = true;
+            }
         } else if (view.getId() == R.id.continue_b) {
             //endpoint continue download
-            if(isPaused)
+            if(isPaused && downloading)
             {
                 startProgressBar((int)timeRemaining);
                 isPaused = false;
             }
         } else if (view.getId() == R.id.pause_b) {
             //endpoint pause download
-            if(!isPaused)
+            if(!isPaused && downloading)
             {
                 timer.cancel();
                 isPaused = true;
             }
         } else if (view.getId() == R.id.stop_b) {
-            //endpoint stop download
-            timer.cancel();
-            progressDw.setProgress(0);
-            progressTxt.setText("");
-            timeRemaining = totalTimeInMillis;
+            if(downloading){
+                //endpoint stop download
+                timer.cancel();
+                downloading = false;
+                progressDw.setProgress(0);
+                progressTxt.setText("");
+                timeRemaining = totalTimeInMillis;
+            }
 
         } else if (view.getId() == R.id.search_btn) {
             String version_txt = searchnTxt.getText().toString();
@@ -238,8 +265,10 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
 
             public void onFinish() {
                 progressTxt.setText(100+"%");
-
+                downloading = false;
                 progressDw.setProgress(100);  // Set to 100% when done
+                versionTxt.setText(spinnerVersions.getSelectedItem().toString());
+                currentVersion = spinnerVersions.getSelectedItem().toString();
             }
         }.start();
     }
@@ -317,9 +346,12 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
         }return list;
     }
 
-    private void getVersions()
+    private void getAvailableVersions()
     {
         //get la api
         versions = Arrays.asList(new String[]{"0.1.1","1.1", "1.2","1.5", "1.7","2.0","5.0"});
+        versionFilter.clear();
+        versionFilter.addAll(versions);
+        adapterVersion.notifyDataSetChanged();
     }
 }

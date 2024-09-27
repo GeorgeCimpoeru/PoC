@@ -9,10 +9,11 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import android.app.Fragment;
+import androidx.fragment.app.Fragment;
 import android.view.View;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationBarView;
 
 public class OTA extends AppCompatActivity {
 
@@ -29,11 +30,35 @@ public class OTA extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ota);
 
-//        bottomNavigationView
-//                = findViewById(R.id.bottomNavigationView);
-//        bottomNavigationView
-//                .setOnItemSelectedListener(this);
-//        bottomNavigationView.setSelectedItemId(R.id.mcu);
+        bottomNavigationView
+                = findViewById(R.id.bottomNavigationView);
+        bottomNavigationView
+                .setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
+                                               @Override
+                                               public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                                                   String title = "";
+
+                                                   if(item.getItemId() == R.id.mcu)
+                                                   {
+                                                       title = "MCU";
+                                                   } else if(item.getItemId() == R.id.battery)
+                                                   {
+                                                       title = "Battery";
+                                                   } else if(item.getItemId() == R.id.engine)
+                                                   {
+                                                       title = "Engine";
+                                                   }else if(item.getItemId() == R.id.door)
+                                                   {
+                                                       title = "Door";
+                                                   }else if(item.getItemId() == R.id.hvc)
+                                                   {
+                                                       title = "HVC";
+                                                   }
+                                                   openFragment(new Fragment_Update(),title);
+                                                   return true;
+                                               }
+                                           });
+                        bottomNavigationView.setSelectedItemId(R.id.mcu);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -43,17 +68,15 @@ public class OTA extends AppCompatActivity {
             public void onClick(View view) {
                 Fragment fr = new Fragment_Update();
 
-                FragmentTransaction ft = getFragmentManager().beginTransaction();
-                ft.replace(R.id.content_frame, fr);
-                ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-                ft.addToBackStack(null);
-                ft.commit();
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.content_frame,fr)
+                        .commit();
             }
         });
 
 
         Fragment fr = new Fragment_Update();
-        openFragment(fr);
+        openFragment(fr,"MCU");
 
         // Handle toolbar navigation click using OnBackPressedDispatcher
         toolbar.setNavigationOnClickListener(v -> {
@@ -67,24 +90,28 @@ public class OTA extends AppCompatActivity {
             }
         });
     }
-    private void openFragment(Fragment fr)
+    private void openFragment(Fragment fr, String title)
     {
-        FragmentTransaction ft = getFragmentManager().beginTransaction();
-        ft.replace(R.id.content_frame, fr);
-        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-        ft.addToBackStack(null);
-        ft.commit();
+        if (!title.equals(""))
+        {
+            Bundle bundle = new Bundle();
+            bundle.putString("FRAGMENT_TITLE", title);
+            fr.setArguments(bundle);
+        }
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.content_frame,fr)
+                .commit();
     }
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if(item.getItemId() == R.id.sendRe_btn)
         {
             Fragment fr = new Fragment_RequestSend();
-            openFragment(fr);
+            openFragment(fr,"");
         } else if(item.getItemId() == R.id.updates_btn)
         {
             Fragment fr = new Fragment_Update();
-            openFragment(fr);
+            openFragment(fr,"");
         }
         return super.onOptionsItemSelected(item);
     }
