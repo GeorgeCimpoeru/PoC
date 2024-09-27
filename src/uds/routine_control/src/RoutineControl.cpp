@@ -64,7 +64,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     {   
         std::vector<uint8_t> binary_data;
         std::vector<uint8_t> adress_data;
-        MemoryManager* memory_manager;
+        MemoryManager* memory_manager = MemoryManager::getInstance(0x0801, DEV_LOOP, rc_logger);
         switch(routine_identifier)
         {
             case 0x0101:
