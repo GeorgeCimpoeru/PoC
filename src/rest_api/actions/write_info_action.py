@@ -130,12 +130,11 @@ class WriteInfo(Action):
             log_info_message(logger, f"Writing data to ECU ID: {id_doors}")
 
             all_identifiers = {
-                IDENTIFIER_DOOR, int(self.data.get('door')),
-                IDENTIFIER_DOOR_SERIALNUMBER, int(self.data.get('serial_number')),
-                IDENTIFIER_LIGHTER_VOLTAGE, int(self.data.get('lighter_voltage')),
-                IDENTIFIER_LIGHT_STATE, int(self.data.get('light_state')),
-                IDENTIFIER_BELT_STATE, int(self.data.get('belt')),
-                IDENTIFIER_WINDOWS_CLOSED, int(self.data.get('windows_closed'))
+                IDENTIFIER_DOOR_STATUS, int(self.data.get('door')),
+                IDENTIFIER_PASSENGER_DOOR_STATUS, int(self.data.get('passenger')),
+                IDENTIFIER_PASSENGER_DOOR_LOCKED_STATUS, int(self.data.get('passenger_lock')),
+                IDENTIFIER_DRIVER_DOOR_STATUS, int(self.data.get('driver')),
+                IDENTIFIER_AJAR_STATUS, int(self.data.get('ajar')),
             }
 
             data_to_write = [(item, all_identifiers.get(item))] if item else [(id_, value) for id_, value in all_identifiers.items() if value is not None]

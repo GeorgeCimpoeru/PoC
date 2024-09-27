@@ -71,7 +71,9 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
         return;
     }
 
-    if (receiver_id == 0x11 && !ReceiveFrames::getBatteryState())
+    if ((receiver_id == 0x11 || receiver_id == 0x12 ||
+         receiver_id == 0x13 || receiver_id == 0x14) &&
+         !ReceiveFrames::getEcuState())
     {
         /* Authentication failed */
         nrc.sendNRC(id, RDS_SID, NegativeResponse::SAD);
