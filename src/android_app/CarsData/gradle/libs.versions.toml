@@ -23,6 +23,7 @@ playServicesMaps = "19.0.0"
 appcompat = "1.7.0"
 constraintlayout = "2.1.4"
 ui = "1.7.2"
+gridlayout = "1.0.0"
 
 [libraries]
 #noinspection SimilarGradleDependency
@@ -53,6 +54,7 @@ play-services-maps = { group = "com.google.android.gms", name = "play-services-m
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 ui = { module = "androidx.compose.ui:ui", version.ref = "ui" }
+androidx-gridlayout = { group = "androidx.gridlayout", name = "gridlayout", version.ref = "gridlayout" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

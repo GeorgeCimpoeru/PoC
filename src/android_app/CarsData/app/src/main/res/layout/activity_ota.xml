@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
@@ -7,353 +8,78 @@
     android:layout_height="match_parent"
     tools:context=".OTA">
 
-    <LinearLayout
+    <!-- AppBarLayout with Toolbar -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/ThemeOverlay.AppCompat.DayNight.ActionBar">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:minHeight="?attr/actionBarSize"
+            app:navigationIcon="@drawable/baseline_arrow_back_24"
+            app:menu="@menu/toolbar_menu"
+            android:backgroundTint="#4CAF50">
+
+<!--            <LinearLayout-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:orientation="horizontal"-->
+<!--                android:gravity="center_vertical|center_horizontal">-->
+
+<!--                &lt;!&ndash; Title TextView (Centered) &ndash;&gt;-->
+<!--                <TextView-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:text="OTA"-->
+<!--                    android:gravity="center"-->
+<!--                    android:textSize="20sp"-->
+<!--                    android:textColor="@android:color/white"-->
+<!--                    android:layout_gravity="center"/>-->
+
+<!--                &lt;!&ndash; Search EditText &ndash;&gt;-->
+<!--                <EditText-->
+<!--                    android:id="@+id/search_txt"-->
+<!--                    android:layout_width="180dp"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginStart="30dp"-->
+<!--                    android:hint="Search version"-->
+<!--                    android:layout_gravity="center"/>-->
+
+<!--                &lt;!&ndash; Search Button &ndash;&gt;-->
+<!--                <ImageButton-->
+<!--                    android:id="@+id/search_btn"-->
+<!--                    android:layout_width="70dp"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:background="#00FFFFFF"-->
+<!--                    android:contentDescription="button to search"-->
+<!--                    android:src="@drawable/baseline_search_24"-->
+<!--                    android:layout_gravity="center"/>-->
+
+<!--            </LinearLayout>-->
+
+        </androidx.appcompat.widget.Toolbar>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Main content area -->
+    <FrameLayout
+        android:id="@+id/content_frame"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
-                <androidx.appcompat.widget.Toolbar
-                    android:id="@+id/toolbar"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/colorPrimary"
-                    android:minHeight="?attr/actionBarSize"
-                    android:theme="?attr/actionBarTheme"
-                    app:navigationIcon="@drawable/baseline_arrow_back_24"
-                    app:title="OTA"
-                    android:backgroundTint="#4CAF50"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent">
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-                        <EditText
-                            android:id="@+id/search_txt"
-                            android:layout_marginStart="30dp"
-                            android:layout_width="180dp"
-                            android:layout_height="match_parent"
-                            android:hint="Search version"/>
-                        <ImageButton
-                            android:id="@+id/search_brn"
-                            android:layout_width="70dp"
-                            android:layout_height="60dp"
-                            android:background="#00FFFFFF"
-                            android:contentDescription="button to serch"
-                            android:src="@drawable/baseline_search_24"
-                            />
+        android:layout_marginBottom="75dp"
+        android:layout_marginTop="?attr/actionBarSize"
+    />
 
-                    </LinearLayout>
-                </androidx.appcompat.widget.Toolbar>
+    <!-- BottomNavigationView properly constrained to bottom -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigationView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        app:menu="@menu/bottom_nav_menu"
+        app:layout_anchorGravity="bottom"/>
 
-        <ScrollView
-            android:id="@+id/scroll_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp">
-
-                <!-- Content inside ScrollView -->
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="20dp"
-                    android:orientation="horizontal">
-
-                    <Switch
-                        android:id="@+id/update_downgrade"
-                        android:layout_width="180dp"
-                        android:layout_height="48dp"
-                        android:text="Downgrade/Upgrade"
-                        tools:ignore="UseSwitchCompatOrMaterialXml" />
-                    <Spinner
-                        android:id="@+id/spinner_versions"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_marginStart="20dp"/>
-                </LinearLayout>
-
-                <Button
-                    android:id="@+id/start_download"
-                    android:layout_width="150dp"
-                    android:layout_height="60dp"
-                    android:text="Start download"
-                    android:backgroundTint="#4CAF50"
-                    android:layout_marginStart="180dp"
-                    android:layout_marginBottom="10dp"/>
-
-                <LinearLayout
-                    android:id="@+id/id_progress"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="#E1FBF4EA"
-                    android:orientation="vertical"
-                    android:padding="15dp">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:padding="5dp">
-
-                        <ImageButton
-                            android:id="@+id/continue_b"
-                            android:layout_width="0dp"
-                            android:layout_height="50dp"
-                            android:layout_weight="1"
-                            android:contentDescription="Continue download"
-                            android:src="@drawable/baseline_play_arrow_24"/>
-
-                        <ImageButton
-                            android:id="@+id/pause_b"
-                            android:layout_width="0dp"
-                            android:layout_height="50dp"
-                            android:layout_weight="1"
-                            android:contentDescription="Pause download"
-                            android:src="@drawable/baseline_pause_24"/>
-
-                        <ImageButton
-                            android:id="@+id/stop_b"
-                            android:layout_width="0dp"
-                            android:layout_height="50dp"
-                            android:layout_weight="1"
-                            android:contentDescription="Stop download"
-                            android:src="@drawable/baseline_stop_24"/>
-
-                        <TextView
-                            android:id="@+id/progess_txt"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="0%"
-                            android:textStyle="bold"
-                            android:gravity="center_vertical"
-                            android:layout_marginLeft="100dp"
-                            android:layout_weight="0"
-                            android:layout_gravity="center_vertical"
-                            />
-                    </LinearLayout>
-
-                    <ProgressBar
-                        android:id="@+id/progressBar2"
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"/>
-                </LinearLayout>
-
-                <TableLayout
-                    android:layout_marginTop="30dp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="20dp"
-                        android:text="History" />
-
-
-                    <TableRow android:background="#51B435" android:padding="10dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Artifact" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Status" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Start time" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Size" />
-                    </TableRow>
-                    <TableRow android:background="#F0F7F7" android:padding="5dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Software update 1" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:textColor="#F44336"
-                            android:text="Failed" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="1 Sept 2024" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="1Mb" />
-
-                    </TableRow>
-                    <TableRow android:background="#F0F7F7" android:padding="5dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Software update 2" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:textColor="#4CAF50"
-                            android:text="Succeded" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="18 jul 2024" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="203kb" />
-
-                    </TableRow>
-                </TableLayout>
-            </LinearLayout>
-        </ScrollView>
-
-
-    </LinearLayout>
-
-
-
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:id="@+id/bottom_navigation_view"
-            android:layout_width="match_parent"
-            android:layout_height="70dp"
-            android:background="#F6F4EE"
-            app:layout_constraintBottom_toBottomOf="parent"
-           >
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:paddingTop="5dp"
-                android:orientation="horizontal">
-
-                <!-- Bottom Navigation Items -->
-                <Button
-                    android:id="@+id/button1"
-                    android:layout_width="68dp"
-                    android:layout_height="match_parent"
-                    android:drawableTop="@drawable/baseline_battery_4_bar_24"
-                    android:textColor="@color/black"
-                    android:padding="0dp"
-                    android:textSize="11sp"
-                    android:background="#00000000"
-                    android:text="Battery"/>
-                <Button
-                    android:id="@+id/button2"
-                    android:layout_width="68dp"
-                    android:layout_height="match_parent"
-                    android:drawableTop="@drawable/baseline_directions_car_24"
-                    android:textColor="@color/black"
-                    android:padding="0dp"
-                    android:textSize="11sp"
-                    android:background="#00000000"
-                    android:text="MCU"/>
-                <Button
-                    android:id="@+id/button3"
-                    android:layout_width="68dp"
-                    android:layout_height="match_parent"
-                    android:drawableTop="@drawable/baseline_agriculture_24"
-                    android:textColor="@color/black"
-                    android:padding="0dp"
-                    android:textSize="11sp"
-                    android:background="#00000000"
-                    android:text="Engine"/>
-                <Button
-                    android:id="@+id/button4"
-                    android:layout_width="68dp"
-                    android:layout_height="match_parent"
-                    android:drawableTop="@drawable/baseline_sensor_door_24"
-                    android:textColor="@color/black"
-                    android:padding="0dp"
-                    android:textSize="11sp"
-                    android:background="#00000000"
-                    android:text="Door"/>
-                <Button
-                    android:id="@+id/button5"
-                    android:layout_width="68dp"
-                    android:layout_height="match_parent"
-                    android:drawableTop="@drawable/baseline_battery_4_bar_24"
-                    android:textColor="@color/black"
-                    android:padding="0dp"
-                    android:textSize="11sp"
-                    android:background="#00000000"
-                    android:text="HVAC"/>
-                <Button
-                    android:id="@+id/button6"
-                    android:layout_width="68dp"
-                    android:layout_height="match_parent"
-                    android:drawableTop="@drawable/baseline_battery_4_bar_24"
-                    android:textColor="@color/black"
-                    android:padding="0dp"
-                    android:textSize="11sp"
-                    android:background="#00000000"
-                    android:text="Send request"/>
-
-            </LinearLayout>
-        </com.google.android.material.bottomnavigation.BottomNavigationView>
-
-
-<!--        <com.google.android.material.bottomnavigation.BottomNavigationView-->
-<!--            android:id="@+id/bottomNavigationView"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="75dp"-->
-<!--            app:layout_constraintBottom_toBottomOf="parent"-->
-<!--            app:layout_constraintEnd_toEndOf="parent"-->
-<!--            app:layout_constraintStart_toStartOf="parent"-->
-<!--            app:menu="@menu/bottom_nav_menu" />-->
-
-
-<!--        <androidx.coordinatorlayout.widget.CoordinatorLayout-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="match_parent">-->
-<!--            <com.google.android.material.bottomappbar.BottomAppBar-->
-<!--                android:id="@+id/bottomAppBar"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:layout_gravity="bottom"-->
-<!--                android:backgroundTint="@color/white"-->
-<!--                app:contentInsetEnd="0dp"-->
-<!--                app:contentInsetStart="0dp"-->
-<!--                app:fabCradleMargin="10dp"-->
-<!--                app:fabCradleRoundedCornerRadius="20dp"-->
-<!--                app:fabAlignmentMode="center">-->
-
-<!--                <com.google.android.material.bottomnavigation.BottomNavigationView-->
-<!--                    android:id="@+id/bottomNavigation"-->
-<!--                    android:layout_width="match_parent"-->
-<!--                    android:layout_height="match_parent"-->
-<!--                    app:backgroundTint="@android:color/transparent"-->
-<!--                    app:elevation="0dp"-->
-<!--                    app:labelVisibilityMode="labeled"-->
-<!--                    app:menu="@menu/bottom_nav_menu"/>-->
-
-<!--            </com.google.android.material.bottomappbar.BottomAppBar>-->
-
-<!--        </androidx.coordinatorlayout.widget.CoordinatorLayout>-->
-
-
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
