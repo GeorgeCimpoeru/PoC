@@ -19,6 +19,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     NegativeResponse nrc(socket, rc_logger);
     uint8_t lowerbits = can_id & 0xFF;
     uint8_t upperbits = can_id >> 8 & 0xFF;
+    uint8_t target_id = can_id >> 16 & 0xFF; 
     uint8_t sub_function = request[2];
     std::vector<uint8_t> routine_result = {0x00};
     /* reverse ids */
@@ -77,6 +78,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 /* call installUpdates routine*/
                 LOG_INFO(rc_logger.GET_LOGGER(), "installUpdates routine called.");
                 MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE});
+                /* Checks for the system exit value to update the status in COMPLETED or FAILED */
                 system("./../../config/installUpdates.sh");
                 routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
                 break;
@@ -105,7 +107,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 }
 
                 LOG_INFO(rc_logger.GET_LOGGER(), "Initialise OTA update routine called.");
-                if(initialiseOta(lowerbits, request, routine_result) == false)
+                if(initialiseOta(target_id, request, routine_result) == false)
                 {
                     MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ERROR});
                     nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::IMLOIF);

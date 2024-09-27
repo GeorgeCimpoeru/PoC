@@ -191,7 +191,8 @@ namespace MCU
     std::vector<uint8_t> MCUModule::getDidValue(const uint16_t did) const
     {
         /* Should also contain validation */
-        auto data_map = FileManager::readMapFromFile("mcu_data.txt");
+        std::string file_path = std::string(PROJECT_PATH) + "/src/mcu/mcu_data.txt";
+        auto data_map = FileManager::readMapFromFile(file_path);
         return data_map.at(did);
     }
 }
