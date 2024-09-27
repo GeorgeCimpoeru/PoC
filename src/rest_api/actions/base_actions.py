@@ -226,7 +226,7 @@ class Action:
 
         return True
 
-    def __algorithm(self, seed: list):
+    def _algorithm(self, seed: list):
         """
         Method to generate a key based on the seed.
         """

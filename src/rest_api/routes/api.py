@@ -17,6 +17,7 @@ from actions.diag_session import SessionManager  # noqa: E402
 from actions.tester_present import Tester  # noqa: E402
 from actions.access_timing_action import *  # noqa: E402
 from actions.ecu_reset import Reset  # noqa: E402
+from actions.security_decorator import * # noqa: E402
 
 api_bp = Blueprint('api', __name__)
 
@@ -42,6 +43,7 @@ def update_to_version():
 
 
 @api_bp.route('/read_info_battery', methods=['GET'])
+@requires_auth
 def read_info_bat():
     reader = ReadInfo(0xFA, [0x10, 0x11, 0x12])
     item = request.args.get('item', default=None, type=str)
@@ -50,6 +52,7 @@ def read_info_bat():
 
 
 @api_bp.route('/read_info_engine', methods=['GET'])
+@requires_auth
 def read_info_eng():
     reader = ReadInfo(API_ID, [0x10, 0x11, 0x12])
     item = request.args.get('item', default=None, type=str)
@@ -58,6 +61,7 @@ def read_info_eng():
 
 
 @api_bp.route('/read_info_doors', methods=['GET'])
+
 def read_info_doors():
     reader = ReadInfo(API_ID, [0x10, 0x11, 0x12, 0x13])
     item = request.args.get('item', default=None, type=str)
@@ -66,6 +70,7 @@ def read_info_doors():
 
 
 @api_bp.route('/read_info_hvac', methods=['GET'])
+
 def read_info_hvac():
     reader = ReadInfo(API_ID, [0x10, 0x11, 0x12, 0x13, 0x14])
     item = request.args.get('item', default=None, type=str)
