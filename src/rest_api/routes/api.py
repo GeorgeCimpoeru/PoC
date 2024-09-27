@@ -17,7 +17,7 @@ from actions.diag_session import SessionManager  # noqa: E402
 from actions.tester_present import Tester  # noqa: E402
 from actions.access_timing_action import *  # noqa: E402
 from actions.ecu_reset import Reset  # noqa: E402
-from actions.security_decorator import * # noqa: E402
+from actions.security_decorator import *  # noqa: E402
 
 api_bp = Blueprint('api', __name__)
 
@@ -61,7 +61,7 @@ def read_info_eng():
 
 
 @api_bp.route('/read_info_doors', methods=['GET'])
-
+@requires_auth
 def read_info_doors():
     reader = ReadInfo(API_ID, [0x10, 0x11, 0x12, 0x13])
     item = request.args.get('item', default=None, type=str)
@@ -70,7 +70,7 @@ def read_info_doors():
 
 
 @api_bp.route('/read_info_hvac', methods=['GET'])
-
+@requires_auth
 def read_info_hvac():
     reader = ReadInfo(API_ID, [0x10, 0x11, 0x12, 0x13, 0x14])
     item = request.args.get('item', default=None, type=str)
