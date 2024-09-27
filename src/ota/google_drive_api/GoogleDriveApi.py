@@ -34,7 +34,10 @@ FILE_MIMETYPE_QUERY = "mimeType = 'application/vnd.google-apps.file'"
 
 ecu_map = {
     0x10: "mcu",
-    0x11: "battery"
+    0x11: "battery",
+    0x12: "engine",
+    0x13: "doors",
+    0x14: "hvac"
 }
 
 class GDriveAPI:
@@ -157,8 +160,14 @@ class GDriveAPI:
         if '.' in file["name"]:
             if 'MCU' in file["name"]:
                 type = "mcu"
-            if 'BATTERY' in file["name"]:
+            elif 'BATTERY' in file["name"]:
                 type = "battery"
+            elif 'ENGINE' in file["name"]:
+                type = "engine"
+            elif 'DOORS' in file["name"]:
+                type = "doors"
+            elif 'HVAC' in file["name"]:
+                type = "hvac"
         return type
 
     def __getSoftwareVersion(self, file_name):
@@ -182,7 +191,7 @@ class GDriveAPI:
         if json_file['type'] == "folder":
             json_file['children'].extend(self.getDriveData(file)
                                          for file in folder_data['files'])
-
+        
         return json_file
 
 
