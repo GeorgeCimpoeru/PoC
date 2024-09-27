@@ -102,9 +102,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
 
                     /* Send the postive response frame */
                     generate_frames.sendFrame(can_id, response);
-
-                    /* Increment block sequence counter, wrapping to 0x01 after 0xFF */
-                    block_sequence_counter = (block_sequence_counter + 1) & 0xFF;
+                    
                     /* Increment expected_block_sequence_number only if it matches the current block_sequence_counter */
                     expected_block_sequence_number++;
                 }
@@ -200,9 +198,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
 
                     /* Send the postive response frame */
                     generate_frames.sendFrame(can_id, response);
-
-                    /* Increment block sequence counter, wrapping to 0x01 after 0xFF */
-                    block_sequence_counter = (block_sequence_counter + 1) & 0xFF;
+                    
                     /* Increment expected_block_sequence_number only if it matches the current block_sequence_counter */
                     expected_block_sequence_number++;
                 }
