@@ -241,12 +241,8 @@ class ReadInfo(Action):
                     identifier = identifiers[item]
                     result_value = self._read_by_identifier(id, int(identifier, 16))
                     self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
-
-
-                    # Store the result, interpret it if needed
                     interpreted_value = self.hex_to_dec(result_value) if result_value else "No data"
 
-                    # Build response with only the requested item
                     response_json = {
                         item: interpreted_value,
                         "time_stamp": datetime.datetime.now().isoformat()
@@ -258,12 +254,10 @@ class ReadInfo(Action):
                 else:
                     return {"error": f"Invalid parameter '{item}'. Use /get_identifiers to see valid parameters."}
             else:
-                # If no item is specified, read all items
                 for key, identifier in identifiers.items():
                     result_value = self._read_by_identifier(id, int(identifier, 16))
                     results[key] = self.hex_to_dec(result_value) if result_value else "No data"
 
-                # Build response with all items
                 response_json = {
                     **results,
                     "time_stamp": datetime.datetime.now().isoformat()
@@ -301,7 +295,6 @@ class ReadInfo(Action):
 
             identifiers = data_identifiers["HVAC_Identifiers"]
             results = {}
-
             if item:
                 # Handle reading a specific item
                 if item in identifiers:
@@ -309,8 +302,6 @@ class ReadInfo(Action):
                     result_value = self._read_by_identifier(id, int(identifier, 16))
                     self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
 
-
-                    # Interpret the result for hvac_modes separately
                     if item == "hvac_modes":
                         interpreted_value = self._interpret_hvac_modes(self.hex_to_dec(result_value)) if result_value else "No data"
                     else:
