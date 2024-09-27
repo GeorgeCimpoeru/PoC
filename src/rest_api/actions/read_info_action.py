@@ -302,8 +302,6 @@ class ReadInfo(Action):
                     result_value = self._read_by_identifier(id, int(identifier, 16))
                     self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
 
-
-                    # Interpret the result for hvac_modes separately
                     if item == "hvac_modes":
                         interpreted_value = self._interpret_hvac_modes(self.hex_to_dec(result_value)) if result_value else "No data"
                     else:
