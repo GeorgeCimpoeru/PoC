@@ -267,7 +267,7 @@ class Action:
         else:
             # Extract seed and compute key
             seed = self._data_from_frame(frame_response)
-            key = self.__algorithm(seed)
+            key = self._algorithm(seed)
             log_info_message(logger, f"Key: {key}")
 
             # Send the key for authentication
