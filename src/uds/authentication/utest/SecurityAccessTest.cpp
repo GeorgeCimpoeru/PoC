@@ -121,6 +121,7 @@ struct SecurityTest : testing::Test
     {
         delete r;
         delete c1;
+        delete logger;
     }
 };
 
