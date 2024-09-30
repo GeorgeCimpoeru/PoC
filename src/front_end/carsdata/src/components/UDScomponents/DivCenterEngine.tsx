@@ -16,43 +16,31 @@ interface engineData {
     weight: any,
 }
 
-interface engineData {
-    current_speed: any,
-    engine_state: any,
-    fuel_consumption: any,
-    fuel_used: any,
-    power_output: any,
-    serial_number: any,
-    state_of_running: any,
-    torque: any,
-    weight: any,
-}
-
 const DivCenterEngine = (props: any) => {
-    const [data, setData] = useState<engineData | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    // const [data, setData] = useState<engineData | null>(null);
+    // const [loading, setLoading] = useState(true);
+    // const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const getDataFromApi = async () => {
-            await fetch('http://127.0.0.1:5000/api/read_info_engine')  // Replace with your actual API URL
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    setData(data);
-                    setLoading(false);
-                })
-                .catch(error => {
-                    setError(error);
-                    setLoading(false);
-                });
-        };
-        getDataFromApi();
-    }, []);
+    // useEffect(() => {
+    //     const getDataFromApi = async () => {
+    //         await fetch(`http://127.0.0.1:5000/api/read_info_engine`)  // Replace with your actual API URL
+    //             .then(response => {
+    //                 if (!response.ok) {
+    //                     throw new Error('Network response was not ok');
+    //                 }
+    //                 return response.json();
+    //             })
+    //             .then(data => {
+    //                 setData(data);
+    //                 setLoading(false);
+    //             })
+    //             .catch(error => {
+    //                 setError(error);
+    //                 setLoading(false);
+    //             });
+    //     };
+    //     getDataFromApi();
+    // }, []);
 
     return (
         <div className="w-[65%] flex h-screen bg-indigo-950 math-paper">
