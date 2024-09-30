@@ -42,6 +42,7 @@ class ClearDtc
          * @param data Data from the frame.
          */
         void clearDtc(int id, std::vector<uint8_t> data);
+
     private:
         /**
          * @brief Method for extract groupDTC base on the DTC

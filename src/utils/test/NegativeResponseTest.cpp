@@ -116,6 +116,7 @@ struct NegativeResponseTest : testing::Test
     {
         delete r;
         delete c1;
+        delete logger;
     }
 };
 
@@ -138,10 +139,27 @@ TEST_F(NegativeResponseTest, InvalidNRC)
     EXPECT_TRUE(containsLine(output_nrc, searchLine));
 }
 
+TEST_F(NegativeResponseTest, AccessTimingNRC)
+{
+    struct can_frame result_frame = createFrame({0x03, 0x7F, 0x27, 0x78});
+    r->sendNRC(0xFA10, 0x27, 0x78);
+    c1->capture();
+    testFrames(result_frame, *c1);
+}
+
 int main(int argc, char* argv[])
 {
     socket_ = createSocket();
     socket2_ = createSocket();
     testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    int result = RUN_ALL_TESTS();
+    if (socket_ > 0)
+    {
+        close(socket_);
+    }
+    if (socket2_ > 0)
+    {
+        close(socket2_);
+    }
+    return result;
 }

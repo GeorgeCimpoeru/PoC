@@ -14,7 +14,6 @@
 #include "../../utils/include/MemoryManager.h"
 #include "../../../utils/include/NegativeResponse.h"
 #include "../../request_transfer_exit/include/RequestTransferExit.h"
-
 class TransferData 
 {
     public:
@@ -38,6 +37,10 @@ class TransferData
     GenerateFrames generate_frames;
     int socket = -1;
     static uint8_t expected_block_sequence_number;
+    bool is_first_transfer;
+    size_t total_size;
+    size_t bytes_sent;
+
 
 };
 

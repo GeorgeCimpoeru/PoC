@@ -4,6 +4,7 @@ Logger *hvacModuleLogger = nullptr;
 HVACModule *hvac = nullptr;
 std::unordered_map<uint16_t, std::vector<uint8_t>> HVACModule::default_DID_hvac =
     {
+        {MASS_AIR_FLOW_SENSOR, {DEFAULT_DID_VALUE}}, /* Mass air flow sensor */
         {AMBIENT_TEMPERATURE_DID, {DEFAULT_DID_VALUE}}, /* Ambient temperature */
         {CABIN_TEMPERATURE_DID, {DEFAULT_DID_VALUE}}, /* Cabin temperature */
         {HVAC_SET_TEMPERATURE_DID, {DEFAULT_DID_VALUE}}, /* HVAC set temperature */
@@ -26,7 +27,53 @@ void HVACModule::initHVAC()
 void HVACModule::fetchHvacData()
 {
     generateData();
-    writeDataToFile();
+
+    /* Path to engine data file */
+    std::string file_path = "hvac_data.txt";
+
+    /* Read the current file contents into memory */
+    std::ifstream infile(file_path);
+    std::stringstream buffer;
+    buffer << infile.rdbuf();
+    infile.close();
+
+    std::string file_contents = buffer.str();
+    std::istringstream file_stream(file_contents);
+    std::string updated_file_contents;
+    std::string file_line;
+
+    /* Update the relevant DID values in the file contents */
+    while (std::getline(file_stream, file_line))
+    {
+        bool updated = false;
+        for (const auto& pair : default_DID_hvac)
+        {
+            std::stringstream did_ss;
+            did_ss << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << pair.first;
+            if (to_lowercase(file_line).find(to_lowercase(did_ss.str())) != std::string::npos)
+                {
+                    /* Convert the vector<uint8_t> to a string */
+                    std::stringstream value_ss;
+                    for (const auto& byte : pair.second)
+                    {
+                        value_ss << std::hex << std::setw(2) << std::setfill('0') << std::uppercase << static_cast<int>(byte);
+                    }
+
+                    updated_file_contents += did_ss.str() + " " + value_ss.str() + "\n";
+                    updated = true;
+                    break;
+                }
+        }
+        if (!updated)
+        {
+            updated_file_contents += file_line + "\n";
+        }
+    }
+
+    /* Write the updated contents back to the file */
+    std::ofstream outfile(file_path);
+    outfile << updated_file_contents;
+    outfile.close();
 
     LOG_INFO(_logger.GET_LOGGER(), "HVAC data file updated with random values.");
 }
@@ -46,6 +93,8 @@ void HVACModule::generateData()
     default_DID_hvac[FAN_SPEED_DID].front() = static_cast<uint8_t>((std::rand() % HVAC_FAN_SPEED_MOD) + HVAC_MIN_FAN_SPEED);
     /* Each bit represents a mode, no specific logic */
     default_DID_hvac[HVAC_MODES_DID].front() = static_cast<uint8_t>(std::rand() % HVAC_MODES_MOD);
+    /* Mass Air Flow Sensor: Max Value is 255 (example value in grams/second) */
+    default_DID_hvac[MASS_AIR_FLOW_SENSOR].front() = static_cast<uint8_t>(std::rand() % 256);
 }
 
 void HVACModule::writeDataToFile()
@@ -57,7 +106,7 @@ void HVACModule::writeDataToFile()
         throw std::runtime_error("Failed to open file: hvac_data.txt");
     }
 
-        /* Check if old_engine_data.txt exists */
+    /* Check if old_hvac_data.txt exists */
     std::string old_file_path = "old_hvac_data.txt";
     std::ifstream infile(old_file_path);
 
@@ -77,6 +126,7 @@ void HVACModule::writeDataToFile()
 
         /* Delete the old file after reading its contents */
         std::remove(old_file_path.c_str());
+        hvac_data_file.close();
     }
     else
     {
@@ -89,8 +139,9 @@ void HVACModule::writeDataToFile()
             }
             hvac_data_file << "\n";
         }
+        hvac_data_file.close();
+        fetchHvacData();
     }
-    hvac_data_file.close();
 }
 
 void HVACModule::printHvacInfo()
@@ -135,4 +186,10 @@ int HVACModule::getSocket()
 HVACModule::~HVACModule()
 {
     delete _ecu;
+}
+
+std::string HVACModule::to_lowercase(const std::string& str) {
+    std::string lower_str = str;
+    std::transform(lower_str.begin(), lower_str.end(), lower_str.begin(), [](unsigned char c){ return std::tolower(c); });
+    return lower_str;
 }

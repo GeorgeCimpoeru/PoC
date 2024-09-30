@@ -25,6 +25,7 @@
 #include <vector>
 #include <thread>
 #include <random>
+#include <string>
 #include <ctime>
 #include "../../../utils/include/ECU.h"
 #include "HVACModuleLogger.h"
@@ -90,6 +91,12 @@ public:
      * @return int 
      */
     int getSocket();
+
+    /**
+     * @brief Convert all the letters to lowercase
+     * 
+     */
+    std::string to_lowercase(const std::string& str);
 };
 
 extern HVACModule *hvac;

@@ -24,6 +24,7 @@ UDS_DIR = ../../uds
 MCU_DIR = ../../mcu/src
 BATTERY_DIR = ../BatteryModule/src
 ENGINE_DIR = ../EngineModule/src
+DOORS_DIR = ../DoorsModule/src
 OTA_DIR = ../../ota
 OBJ_DIR = obj
 
@@ -43,6 +44,9 @@ MCU_OBJS = $(OBJ_DIR)/MCUModule.o \
 # Engine object files
 ENGINE_OBJS = $(OBJ_DIR)/EngineModule.o \
 
+# Doors object files
+DOORS_OBJS = $(OBJ_DIR)/DoorsModule.o \
+
 # Utils object files
 UTILS_OBJS = $(OBJ_DIR)/MemoryManager.o \
              $(OBJ_DIR)/Logger.o \
@@ -51,7 +55,8 @@ UTILS_OBJS = $(OBJ_DIR)/MemoryManager.o \
              $(OBJ_DIR)/NegativeResponse.o \
 			 $(OBJ_DIR)/ReceiveFrames.o \
 			 $(OBJ_DIR)/HandleFrames.o \
-			 $(OBJ_DIR)/ECU.o
+			 $(OBJ_DIR)/ECU.o \
+			 $(OBJ_DIR)/FileManager.o
 
 # UDS object files
 UDS_OBJS = $(OBJ_DIR)/DiagnosticSessionControl.o \
@@ -76,6 +81,7 @@ OBJS = $(MCU_OBJS) \
        $(BATTERY_OBJS) \
 	   $(HVAC_OBJS) \
 	   $(ENGINE_OBJS) \
+	   $(DOORS_OBJS) \
        $(UTILS_OBJS) \
        $(UDS_OBJS) \
        $(OTA_OBJS)
@@ -109,6 +115,9 @@ $(OBJ_DIR)/HVACModule.o: $(SRC_DIR)/HVACModule.cpp
 
 $(OBJ_DIR)/EngineModule.o: $(ENGINE_DIR)/EngineModule.cpp
 	$(CXX) $(CFLAGS) -c $(ENGINE_DIR)/EngineModule.cpp -o $(OBJ_DIR)/EngineModule.o
+
+$(OBJ_DIR)/DoorsModule.o: $(DOORS_DIR)/DoorsModule.cpp
+	$(CXX) $(CFLAGS) -c $(DOORS_DIR)/DoorsModule.cpp -o $(OBJ_DIR)/DoorsModule.o
 
 $(OBJ_DIR)/GenerateFrames.o: $(UTILS_DIR)/GenerateFrames.cpp
 	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/GenerateFrames.cpp -o $(OBJ_DIR)/GenerateFrames.o
@@ -181,6 +190,9 @@ $(OBJ_DIR)/NegativeResponse.o: $(UTILS_DIR)/NegativeResponse.cpp
 
 $(OBJ_DIR)/ReadMemoryByAddress.o: $(UDS_DIR)/read_memory_by_address/src/ReadMemoryByAddress.cpp
 	$(CXX) $(CFLAGS) -c $(UDS_DIR)/read_memory_by_address/src/ReadMemoryByAddress.cpp -o $(OBJ_DIR)/ReadMemoryByAddress.o
+
+$(OBJ_DIR)/FileManager.o: $(UTILS_DIR)/FileManager.cpp
+	$(CXX) $(CFLAGS) -c $(UTILS_DIR)/FileManager.cpp -o $(OBJ_DIR)/FileManager.o
 
 .PHONY: clean
 clean:
