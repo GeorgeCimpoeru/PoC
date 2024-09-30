@@ -19,7 +19,7 @@
 #include <fstream>
 #include <iomanip>
 #include <string>
-
+#include "Logger.h"
 class FileManager
 {
 public:
@@ -56,6 +56,7 @@ public:
 
     static void writeDTC(std::unordered_map<uint16_t, std::vector<uint8_t>>& did_values, const std::string& filePath, const uint16_t& did, int min_value, int max_value, const std::string& DTCToWrite);
 
+    static bool getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t param, Logger& rc_logger, uint8_t version);
 };
 
 #endif

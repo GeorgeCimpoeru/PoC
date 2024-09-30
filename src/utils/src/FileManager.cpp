@@ -118,3 +118,79 @@ void FileManager::writeDTC(std::unordered_map<uint16_t, std::vector<uint8_t>>& d
     }
 }
 
+bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t param, Logger& rc_logger, uint8_t version = 0x00)
+{
+    if(param > 2)
+    {
+        /* Only 0, 1 and 2 valid values */
+        return 0;
+    }
+    switch(ecu_id)
+    {
+        case 0x10:
+        {
+            if(param == 0)
+            {
+                ecu_path = std::string(PROJECT_PATH) + "/MCU_SW_VERSION_" + std::to_string(version) + ".zip";
+            }
+            else
+            {
+                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_mcu_new" : "/src/mcu/main_mcu_new");
+            }
+            break;
+        }
+        case 0x11:
+        {
+            if(param == 0)
+            {
+                ecu_path = std::string(PROJECT_PATH) + "/ECU_BATTERY_SW_VERSION_" + std::to_string(version) + ".zip";
+            }
+            else
+            {
+                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_battery_new" : "/src/ecu_simulation/BatteryModule/main_battery_new");
+            }        
+            break;
+        }
+        case 0x12:
+        {
+            if(param == 0)
+            {
+                ecu_path = std::string(PROJECT_PATH) + "/ECU_ENGINE_SW_VERSION_" + std::to_string(version) + ".zip";
+            }
+            else
+            {
+                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_engine_new" : "/src/ecu_simulation/EngineModule/main_engine_new");
+            }        
+            break;
+        }
+        case 0x13:
+        {
+            if(param == 0)
+            {
+                ecu_path = std::string(PROJECT_PATH) + "/ECU_DOORS_SW_VERSION_" + std::to_string(version) + ".zip";
+            }
+            else
+            {
+                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_doors_new" : "/src/ecu_simulation/DoorsModule/main_doors_new");
+            }        
+            break;
+        }
+        case 0x14:
+        {
+            if(param == 0)
+            {
+                ecu_path = std::string(PROJECT_PATH) + "/ECU_HVAC_SW_VERSION_" + std::to_string(version) + ".zip";
+            }
+            else
+            {
+                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_hvac_new" : "/src/ecu_simulation/HVACModule/main_hvac_new");
+            }        
+            break;
+        }
+        default:
+            LOG_ERROR(rc_logger.GET_LOGGER(), "No valid path for main_xxx_new.");
+            return 0;
+        break;
+    }
+    return 1;
+}

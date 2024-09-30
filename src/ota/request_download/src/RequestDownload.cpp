@@ -152,11 +152,11 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
             else if (access((std::string(PROJECT_PATH) + "/ECU_BATTERY_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x11) {
                 zipFilePath = std::string(PROJECT_PATH) + "/ECU_BATTERY_SW_VERSION_" + buffer + ".zip";
             }
-            else if (access((std::string(PROJECT_PATH) + "/ECU_DOORS_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x12) {
-                zipFilePath = std::string(PROJECT_PATH) + "/ECU_DOORS_SW_VERSION_" + buffer + ".zip";
-            }
-            else if (access((std::string(PROJECT_PATH) + "/ECU_ENGINE_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x13) {
+            else if (access((std::string(PROJECT_PATH) + "/ECU_ENGINE_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x12) {
                 zipFilePath = std::string(PROJECT_PATH) + "/ECU_ENGINE_SW_VERSION_" + buffer + ".zip";
+            }
+            else if (access((std::string(PROJECT_PATH) + "/ECU_DOORS_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x13) {
+                zipFilePath = std::string(PROJECT_PATH) + "/ECU_DOORS_SW_VERSION_" + buffer + ".zip";
             }
             else if (access((std::string(PROJECT_PATH) + "/ECU_HVAC_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x14) {
                 zipFilePath = std::string(PROJECT_PATH) + "/ECU_HVAC_SW_VERSION_" + buffer + ".zip";

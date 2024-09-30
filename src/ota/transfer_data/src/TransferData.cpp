@@ -25,7 +25,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
     MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING});
     NegativeResponse nrc(socket, transfer_data_logger);
     /* Define chunk_size as 1MB chunk */
-    size_t chunk_size = 0x100000;
+    size_t chunk_size = 0x500000;
     uint8_t block_sequence_counter = transfer_request[2];
     std::vector<uint8_t> response;
     /* Extract and switch sender and receiver */
@@ -136,11 +136,11 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
                 else if (access((std::string(PROJECT_PATH) + "/main_battery_new").c_str(), F_OK) == 0 && target_id == 0x11) {
                     path_to_main = std::string(PROJECT_PATH) + "/main_battery_new";
                 }
-                else if (access((std::string(PROJECT_PATH) + "/main_doors_new").c_str(), F_OK) == 0 && target_id == 0x12) {
-                    path_to_main = std::string(PROJECT_PATH) + "/main_doors_new";
-                }
-                else if (access((std::string(PROJECT_PATH) + "/main_engine_new").c_str(), F_OK) == 0 && target_id == 0x13) {
+                else if (access((std::string(PROJECT_PATH) + "/main_engine_new").c_str(), F_OK) == 0 && target_id == 0x12) {
                     path_to_main = std::string(PROJECT_PATH) + "/main_engine_new";
+                }
+                else if (access((std::string(PROJECT_PATH) + "/main_doors_new").c_str(), F_OK) == 0 && target_id == 0x13) {
+                    path_to_main = std::string(PROJECT_PATH) + "/main_doors_new";
                 }
                 else if (access((std::string(PROJECT_PATH) + "/main_hvac_new").c_str(), F_OK) == 0 && target_id == 0x14) {
                     path_to_main = std::string(PROJECT_PATH) + "/main_hvac_new";

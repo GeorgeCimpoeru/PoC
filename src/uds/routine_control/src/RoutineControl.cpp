@@ -68,42 +68,15 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
         switch(routine_identifier)
         {
             case 0x0101:
+            {
                 /* Erase memory or specific data */
                 /* call eraseMemory routine */
                 LOG_INFO(rc_logger.GET_LOGGER(), "eraseMemory routine called.");
                 routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
                 break;
+            }
             case 0x0201:
             {
-                /* Install updates */
-                /* call installUpdates routine*/
-                LOG_INFO(rc_logger.GET_LOGGER(), "installUpdates routine called.");
-                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE});
-                /* Checks for the system exit value to update the status in COMPLETED or FAILED */
-                std::string cmd = std::string(PROJECT_PATH) + "/config/installUpdates.sh";
-                int install_update_status = system(cmd.c_str());
-                std::cout<<install_update_status<<std::endl;
-                if(install_update_status < 0)
-                {
-
-                }
-                else
-                {
-
-                }
-                routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
-                break;
-            }
-            case 0x0301:
-                /* call writeToFile routine*/
-                LOG_INFO(rc_logger.GET_LOGGER(), "writeToFile routine called.");
-                binary_data = MemoryManager::readBinary(selectEcuPath(can_id, true), rc_logger);
-                memory_manager = MemoryManager::getInstance(rc_logger); 
-                adress_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), binary_data.size(), rc_logger);
-                MemoryManager::writeToFile(adress_data, selectEcuPath(can_id, false), rc_logger);
-                routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
-                break;
-            case 0x0401:
                 /* Initialise OTA Update */
                 if(DiagnosticSessionControl::getCurrentSessionToString() != "FOTA_SESSION")
                 {
@@ -130,21 +103,38 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                     routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
                 }
                 break;
-            case 0x0501:
+            }
+            case 0x0301:
+            {
+                /* call writeToFile routine*/
+                LOG_INFO(rc_logger.GET_LOGGER(), "writeToFile routine called.");
+                binary_data = MemoryManager::readBinary(selectEcuPath(can_id, true), rc_logger);
+                memory_manager = MemoryManager::getInstance(rc_logger); 
+                adress_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), binary_data.size(), rc_logger);
+                MemoryManager::writeToFile(adress_data, selectEcuPath(can_id, false), rc_logger);
+                routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
+                break;
+            }
+            case 0x0401:
+            {
                 LOG_INFO(rc_logger.GET_LOGGER(), "Verify installation routine called.");
-                if(verifySoftware() == true)
+                if(verifySoftware() == false)
                 {
-                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {VERIFY_COMPLETE});
+                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {VERIFY_FAILED});
+                    nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::IMLOIF);
                 }
                 else
                 {
-                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {VERIFY_FAILED});
+                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {VERIFY_COMPLETE});
                 }
                 break;
-            case 0x0601:
+            }
+            case 0x0501:
+            {
                 LOG_INFO(rc_logger.GET_LOGGER(), "Rollback routine called.");
                 break;
-            case 0x0701:
+            }
+            case 0x0601:
             {
                 LOG_INFO(rc_logger.GET_LOGGER(), "Activate software routine called.");
                 if(activateSoftware() == false)
@@ -188,10 +178,10 @@ std::string RoutineControl::selectEcuPath(canid_t can_id, bool is_base_path)
                 ecu_path = std::string(PROJECT_PATH) + ((is_base_path == true) ? "/main_battery_new" : "/src/ecu_simulation/BatteryModule/main_battery_new");
             break;
             case 0x12:
-                ecu_path = std::string(PROJECT_PATH) + ((is_base_path == true) ? "/main_doors_new" : "/src/ecu_simulation/DoorsModule/main_doors_new");
+                ecu_path = std::string(PROJECT_PATH) + ((is_base_path == true) ? "/main_engine_new" : "/src/ecu_simulation/EngineModule/main_engine_new");
             break;
             case 0x13:
-                ecu_path = std::string(PROJECT_PATH) + ((is_base_path == true) ? "/main_engine_new" : "/src/ecu_simulation/EngineModule/main_engine_new");
+                ecu_path = std::string(PROJECT_PATH) + ((is_base_path == true) ? "/main_doors_new" : "/src/ecu_simulation/DoorsModule/main_doors_new");
             break;
             case 0x14:
                 ecu_path = std::string(PROJECT_PATH) + ((is_base_path == true) ? "/main_hvac_new" : "/src/ecu_simulation/HvacModule/main_hvac_new");
