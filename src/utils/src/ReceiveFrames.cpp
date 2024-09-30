@@ -1,10 +1,9 @@
 #include "../include/ReceiveFrames.h"
 #include "../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../ecu_simulation/EngineModule/include/EngineModule.h"
-bool ReceiveFrames::battery_state = false;
-bool ReceiveFrames::engine_state = false;
-bool ReceiveFrames::doors_state = false;
-bool ReceiveFrames::hvac_state = false;
+#include "../../ecu_simulation/DoorsModule/include/DoorsModule.h"
+#include "../../ecu_simulation/HVACModule/include/HVACModule.h"
+bool ReceiveFrames::ecu_state = false;
 ReceiveFrames::ReceiveFrames(int socket, int current_module_id, Logger& receive_logger) : socket(socket),
                                                                                             current_module_id(current_module_id),
                                                                                             running(true), 
@@ -37,24 +36,9 @@ ReceiveFrames::~ReceiveFrames()
     stop();
 }
 
-bool ReceiveFrames::getBatteryState()
+bool ReceiveFrames::getEcuState()
 {
-    return battery_state;
-}
-
-bool ReceiveFrames::getEngineState()
-{
-    return engine_state;
-}
-
-bool ReceiveFrames::getDoorsState()
-{
-    return doors_state;
-}
-
-bool ReceiveFrames::getHvacState()
-{
-    return hvac_state;
+    return ecu_state;
 }
 
 void ReceiveFrames::receive(HandleFrames &handle_frame) 
@@ -176,46 +160,14 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
         if (frame.data[0] == 0x01 && frame.data[1] == 0xCE)
         {
             LOG_INFO(receive_logger.GET_LOGGER(), "Notification from the MCU that the server is unlocked.");
-            switch(frame_dest_id)
-            {
-                case 0x11:
-                    battery_state = true;
-                    break;
-                case 0x12:
-                    engine_state = true;
-                    break;
-                case 0x13:
-                    doors_state = true;
-                    break;
-                case 0x14:
-                    hvac_state = true;
-                    break;
-                default:
-                    break;
-            }
+            ecu_state = true;
             goto label1;
         }
         /* Notify from MCU to tell ECU's that MCU state is locked */
         else if (frame.data[0] == 0x01 && frame.data[1] == 0xCF)
         {
             LOG_INFO(receive_logger.GET_LOGGER(), "Notification from the MCU that the server is locked.");
-            switch(frame_dest_id)
-            {
-                case 0x11:
-                    battery_state = false;
-                    break;
-                case 0x12:
-                    engine_state = false;
-                    break;
-                case 0x13:
-                    doors_state = false;
-                    break;
-                case 0x14:
-                    hvac_state = false;
-                    break;
-                default:
-                    break;
-            }
+            ecu_state = false;
             goto label1;
         }
 
@@ -257,13 +209,13 @@ void ReceiveFrames::startTimer(uint8_t frame_dest_id, uint8_t sid) {
     switch(frame_dest_id)
     {
     case 0x11:
-        battery->timing_parameters[sid] = start_time.time_since_epoch().count();
+        battery->_ecu->timing_parameters[sid] = start_time.time_since_epoch().count();
 
         // Initialize stop flag for this SID
-        battery->stop_flags[sid] = true;
+        battery->_ecu->stop_flags[sid] = true;
 
-        battery->active_timers[sid] = std::async(std::launch::async, [sid, this, start_time, timer_value, frame_dest_id]() {
-            while (battery->stop_flags[sid]) {
+        battery->_ecu->active_timers[sid] = std::async(std::launch::async, [sid, this, start_time, timer_value, frame_dest_id]() {
+            while (battery->_ecu->stop_flags[sid]) {
                 auto now = std::chrono::steady_clock::now();
                 std::chrono::duration<double> elapsed = now - start_time;
                 if (elapsed.count() > timer_value / 20.0) {
@@ -274,13 +226,13 @@ void ReceiveFrames::startTimer(uint8_t frame_dest_id, uint8_t sid) {
         });
         break;
     case 0x12:
-        engine->timing_parameters[sid] = start_time.time_since_epoch().count();
+        engine->_ecu->timing_parameters[sid] = start_time.time_since_epoch().count();
 
         // Initialize stop flag for this SID
-        engine->stop_flags[sid] = true;
+        engine->_ecu->stop_flags[sid] = true;
 
-        engine->active_timers[sid] = std::async(std::launch::async, [sid, this, start_time, timer_value, frame_dest_id]() {
-            while (engine->stop_flags[sid]) {
+        engine->_ecu->active_timers[sid] = std::async(std::launch::async, [sid, this, start_time, timer_value, frame_dest_id]() {
+            while (engine->_ecu->stop_flags[sid]) {
                 auto now = std::chrono::steady_clock::now();
                 std::chrono::duration<double> elapsed = now - start_time;
                 if (elapsed.count() > timer_value / 20.0) {
@@ -291,10 +243,41 @@ void ReceiveFrames::startTimer(uint8_t frame_dest_id, uint8_t sid) {
         });
         break;
     case 0x13:
+        doors->_ecu->timing_parameters[sid] = start_time.time_since_epoch().count();
+
+        // Initialize stop flag for this SID
+        doors->_ecu->stop_flags[sid] = true;
+
+        doors->_ecu->active_timers[sid] = std::async(std::launch::async, [sid, this, start_time, timer_value, frame_dest_id]() {
+            while (doors->_ecu->stop_flags[sid]) {
+                auto now = std::chrono::steady_clock::now();
+                std::chrono::duration<double> elapsed = now - start_time;
+                if (elapsed.count() > timer_value / 20.0) {
+                    stopTimer(frame_dest_id, sid);
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
+        });
         break;
     case 0x14:
+        hvac->_ecu->timing_parameters[sid] = start_time.time_since_epoch().count();
+
+        // Initialize stop flag for this SID
+        hvac->_ecu->stop_flags[sid] = true;
+
+        hvac->_ecu->active_timers[sid] = std::async(std::launch::async, [sid, this, start_time, timer_value, frame_dest_id]() {
+            while (hvac->_ecu->stop_flags[sid]) {
+                auto now = std::chrono::steady_clock::now();
+                std::chrono::duration<double> elapsed = now - start_time;
+                if (elapsed.count() > timer_value / 20.0) {
+                    stopTimer(frame_dest_id, sid);
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
+        });
         break;
     default:
+        LOG_INFO(receive_logger.GET_LOGGER(), "starTimer function called with an ecu id unknown {:x}.", frame_dest_id);
         break;
     }
 }
@@ -311,55 +294,103 @@ void ReceiveFrames::stopTimer(uint8_t frame_dest_id, uint8_t sid) {
     case 0x11:
         start_time = std::chrono::steady_clock::time_point(
             std::chrono::duration_cast<std::chrono::steady_clock::duration>(
-                std::chrono::nanoseconds((long long)battery->timing_parameters[sid])
+                std::chrono::nanoseconds((long long)battery->_ecu->timing_parameters[sid])
             )
         );
         processing_time = end_time - start_time;
 
-        battery->timing_parameters[sid] = processing_time.count();
+        battery->_ecu->timing_parameters[sid] = processing_time.count();
 
-        if (battery->active_timers.find(sid) != battery->active_timers.end()) {
+        if (battery->_ecu->active_timers.find(sid) != battery->_ecu->active_timers.end()) {
             /* Set stop flag to false for this SID */
-            if (battery->stop_flags[sid]) {
+            if (battery->_ecu->stop_flags[sid]) {
                 int id = ((sid & 0xFF) << 8) | ((sid >> 8) & 0xFF);
                 LOG_INFO(receive_logger.GET_LOGGER(), 
                          "Service with SID {:x} sent the response pending frame.", sid);
                 
                 NegativeResponse negative_response(socket, receive_logger);
                 negative_response.sendNRC(id, sid, 0x78);
-                battery->stop_flags[sid] = false;
+                battery->_ecu->stop_flags[sid] = false;
             }
-            battery->stop_flags.erase(sid);
-            battery->active_timers[sid].wait();
+            battery->_ecu->stop_flags.erase(sid);
+            battery->_ecu->active_timers[sid].wait();
         }
         break;
     case 0x12:
         start_time = std::chrono::steady_clock::time_point(
             std::chrono::duration_cast<std::chrono::steady_clock::duration>(
-                std::chrono::nanoseconds((long long)engine->timing_parameters[sid])
+                std::chrono::nanoseconds((long long)engine->_ecu->timing_parameters[sid])
             )
         );
         processing_time = end_time - start_time;
 
-        engine->timing_parameters[sid] = processing_time.count();
+        engine->_ecu->timing_parameters[sid] = processing_time.count();
 
-        if (engine->active_timers.find(sid) != engine->active_timers.end()) {
+        if (engine->_ecu->active_timers.find(sid) != engine->_ecu->active_timers.end()) {
             /* Set stop flag to false for this SID */
-            if (engine->stop_flags[sid]) {
+            if (engine->_ecu->stop_flags[sid]) {
                 int id = ((sid & 0xFF) << 8) | ((sid >> 8) & 0xFF);
                 LOG_INFO(receive_logger.GET_LOGGER(), 
                          "Service with SID {:x} sent the response pending frame.", sid);
                 
                 NegativeResponse negative_response(socket, receive_logger);
                 negative_response.sendNRC(id, sid, 0x78);
-                engine->stop_flags[sid] = false;
+                engine->_ecu->stop_flags[sid] = false;
             }
-            engine->stop_flags.erase(sid);
-            engine->active_timers[sid].wait();
+            engine->_ecu->stop_flags.erase(sid);
+            engine->_ecu->active_timers[sid].wait();
         }
         break;
     case 0x13:
+        start_time = std::chrono::steady_clock::time_point(
+            std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+                std::chrono::nanoseconds((long long)doors->_ecu->timing_parameters[sid])
+            )
+        );
+        processing_time = end_time - start_time;
+
+        doors->_ecu->timing_parameters[sid] = processing_time.count();
+
+        if (doors->_ecu->active_timers.find(sid) != doors->_ecu->active_timers.end()) {
+            /* Set stop flag to false for this SID */
+            if (doors->_ecu->stop_flags[sid]) {
+                int id = ((sid & 0xFF) << 8) | ((sid >> 8) & 0xFF);
+                LOG_INFO(receive_logger.GET_LOGGER(), 
+                         "Service with SID {:x} sent the response pending frame.", sid);
+                
+                NegativeResponse negative_response(socket, receive_logger);
+                negative_response.sendNRC(id, sid, 0x78);
+                doors->_ecu->stop_flags[sid] = false;
+            }
+            doors->_ecu->stop_flags.erase(sid);
+            doors->_ecu->active_timers[sid].wait();
+        }
+        break;
     case 0x14:
+        start_time = std::chrono::steady_clock::time_point(
+            std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+                std::chrono::nanoseconds((long long)hvac->_ecu->timing_parameters[sid])
+            )
+        );
+        processing_time = end_time - start_time;
+
+        hvac->_ecu->timing_parameters[sid] = processing_time.count();
+
+        if (hvac->_ecu->active_timers.find(sid) != hvac->_ecu->active_timers.end()) {
+            /* Set stop flag to false for this SID */
+            if (hvac->_ecu->stop_flags[sid]) {
+                int id = ((sid & 0xFF) << 8) | ((sid >> 8) & 0xFF);
+                LOG_INFO(receive_logger.GET_LOGGER(), 
+                         "Service with SID {:x} sent the response pending frame.", sid);
+                
+                NegativeResponse negative_response(socket, receive_logger);
+                negative_response.sendNRC(id, sid, 0x78);
+                hvac->_ecu->stop_flags[sid] = false;
+            }
+            hvac->_ecu->stop_flags.erase(sid);
+            hvac->_ecu->active_timers[sid].wait();
+        }
+        break;
     default:
         LOG_INFO(receive_logger.GET_LOGGER(), "stopTimer function called with an ecu id unknown {:x}.", frame_dest_id);
         break;

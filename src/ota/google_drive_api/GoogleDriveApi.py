@@ -162,7 +162,7 @@ class GDriveAPI:
             json_file['size'] = file.get('size', 'N/A')
         self.__drive_data_array.append(json_file)
         if json_file['type'] == "folder":
-            json_file['children'].extend(self.__getDriveData(file)
+            json_file['children'].extend(self.getDriveData(file)
                                          for file in folder_data['files'])
 
         return json_file

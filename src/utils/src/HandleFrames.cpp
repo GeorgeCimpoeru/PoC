@@ -130,7 +130,7 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
     {
         mcuDiagnosticSessionControl.sessionControl(can_socket, 0x01);
         LOG_INFO(_logger.GET_LOGGER(), "Session changed to DEFAULT_SESSION by TesterPresent");
-        TesterPresent::setEndTimeProgrammingSession();
+        TesterPresent::setEndTimeProgrammingSession(false);
     }
     switch (sid) {
         case 0x10:
@@ -139,6 +139,10 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
             /* This service can be called in any session */
             LOG_INFO(_logger.GET_LOGGER(), "DiagnosticSessionControl called.");
             mcuDiagnosticSessionControl.sessionControl(frame_id, frame_data[2]);
+            if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
+            {
+                TesterPresent::setEndTimeProgrammingSession(true);
+            }
             break;
         }
         case 0x11:
@@ -243,7 +247,7 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
             /* ClearDiagnosticInformation(); */
             /* This service can be called in any session */
             LOG_INFO(_logger.GET_LOGGER(), "ClearDiagnosticInformation called.");
-            ClearDtc clear_dtc("../uds/read_dtc_information/dtcs.txt", _logger, can_socket);
+            ClearDtc clear_dtc("dtcs.txt", _logger, can_socket);
             clear_dtc.clearDtc(frame_id, frame_data);
             break;  
         }
@@ -252,8 +256,7 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
             /* ReadDtcInformation(); */
             /* This service can be called in any session */
             LOG_INFO(_logger.GET_LOGGER(), "ReadDtcInformation called.");
-            /* verify_frame() */
-            ReadDTC readDtc(_logger, "../uds/read_dtc_information/dtcs.txt", can_socket);
+            ReadDTC readDtc(_logger, "dtcs.txt", can_socket);
             readDtc.read_dtc(frame_id, frame_data);
             break;
         }
@@ -261,7 +264,6 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
         {
             /* RoutineControl(sid, frame_data[2], frame_data[3] << 8) | frame_data[4]); */
             /* This service can be called in any session. */
-            LOG_INFO(_logger.GET_LOGGER(), "RoutineControl called.");
             RoutineControl routine_control(can_socket, _logger);
             routine_control.routineControl(frame_id, frame_data);
             break;

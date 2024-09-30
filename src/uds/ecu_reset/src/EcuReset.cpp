@@ -2,6 +2,8 @@
 #include "../../../mcu/include/MCUModule.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 #include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
+#include "../../../ecu_simulation/DoorsModule/include/DoorsModule.h"
+#include "../../../ecu_simulation/HVACModule/include/HVACModule.h"
 
 EcuReset::EcuReset(uint32_t can_id, uint8_t sub_function, int socket, Logger &logger)
     : can_id(can_id), sub_function(sub_function), socket(socket), ECUResetLog(logger)
@@ -18,52 +20,31 @@ void EcuReset::ecuResetRequest(const std::vector<uint8_t>& request)
     uint32_t new_id = ((can_id & 0xFF) << 8) | ((can_id >> 8) & 0xFF);
 
     NegativeResponse nrc(socket, ECUResetLog);
-        // if ((request.size() < 3) ||
-        //     (request[2] == 0x02 && request[0] == 2)
-        //     || (request.size() != static_cast<size_t>(request[0] + 1)))
     if (request.size() < 3 || (request.size() != static_cast<size_t>(request[0] + 1)))
     {
         nrc.sendNRC(new_id,0x11,NegativeResponse::IMLOIF);
-        if (lowerbits == 0x10)
-        {
-            MCU::mcu->stop_flags[0x11] = false;
-        }
-        else if (lowerbits == 0x11)
-        {
-            battery->stop_flags[0x11] = false;
-        }
-        else if (lowerbits == 0x12)
-        {
-            engine->stop_flags[0x11] = false;
-        }
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x11);
         return;
     }
 
     if (sub_function != 0x01 && sub_function != 0x02)
     {
         nrc.sendNRC(new_id,0x11,NegativeResponse::SFNS);
-        if (lowerbits == 0x10)
-        {
-            MCU::mcu->stop_flags[0x11] = false;
-        } else if (lowerbits == 0x11)
-        {
-            battery->stop_flags[0x11] = false;
-        } else if (lowerbits == 0x12)
-        {
-            engine->stop_flags[0x11] = false;
-        }
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x11);
         return;
     }
     if (lowerbits == 0x10 && !SecurityAccess::getMcuState(ECUResetLog))
     {
         nrc.sendNRC(new_id, 0x11, NegativeResponse::SAD);
-        MCU::mcu->stop_flags[0x11] = false;
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x11);
         return;
     }
-    if (lowerbits == 0x11 && !ReceiveFrames::getBatteryState())
+    else if ((lowerbits == 0x11 || lowerbits == 0x12 ||
+              lowerbits == 0x13 || lowerbits == 0x14) &&
+              !ReceiveFrames::getEcuState())
     {
         nrc.sendNRC(new_id, 0x11, NegativeResponse::SAD);
-        battery->stop_flags[0x11] = false;
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x11);
         return;
     }
     /* Hard Reset case */
@@ -251,27 +232,8 @@ void EcuReset::ecuResetResponse()
     
     uint32_t new_id = ((can_id & 0xFF) << 8) | ((can_id >> 8) & 0xFF);
 
-    switch(lowerbits)
-    {
-        case 0x10:
-            /* Send response frame */
-            generate_frames.ecuReset(new_id, sub_function, socket, true);
-            LOG_INFO(ECUResetLog.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x11);
-            MCU::mcu->stop_flags[0x11] = false;
-            break;
-        case 0x11:
-            /* Send response frame */
-            generate_frames.ecuReset(new_id, sub_function, socket, true);
-            LOG_INFO(ECUResetLog.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x11);
-            battery->stop_flags[0x11] = false;
-            break;
-        case 0x12:
-            /* Send response frame */
-            generate_frames.ecuReset(new_id, sub_function, socket, true);
-            LOG_INFO(ECUResetLog.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x11);
-            engine->stop_flags[0x11] = false;
-            break;
-        default:
-            LOG_ERROR(ECUResetLog.GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);
-    }
+    generate_frames.ecuReset(new_id, sub_function, socket, true);
+    LOG_INFO(ECUResetLog.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x11);
+    
+    AccessTimingParameter::stopTimingFlag(lowerbits, 0x11);
 }
