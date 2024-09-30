@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/mcu"
+        android:title="MCU"
+        android:icon="@drawable/baseline_directions_car_24" />
+    <item
+        android:id="@+id/battery"
+        android:title="Battery"
+        android:icon="@drawable/baseline_battery_4_bar_24"/>
+    <item
+        android:id="@+id/engine"
+        android:title="Engine"
+        android:icon="@drawable/baseline_agriculture_24"/>
+    <item
+        android:id="@+id/door"
+        android:title="Door"
+        android:icon="@drawable/baseline_sensor_door_24"/>
+    <item
+        android:id="@+id/hvc"
+        android:title="HVC"
+        android:icon="@drawable/baseline_battery_4_bar_24"/>
+<!--    <item-->
+<!--        android:id="@+id/request"-->
+<!--        android:title="Request"-->
+<!--        android:icon="@drawable/baseline_battery_4_bar_24"/>-->
+
+</menu>
