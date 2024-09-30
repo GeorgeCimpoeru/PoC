@@ -121,13 +121,14 @@ struct SecurityTest : testing::Test
     {
         delete r;
         delete c1;
+        delete logger;
     }
 };
 
 /* MCU is locked by default */
 TEST_F(SecurityTest, DefaultMCUStateTest)
 {
-    EXPECT_FALSE(SecurityAccess::getMcuState());
+    EXPECT_FALSE(SecurityAccess::getMcuState(*logger));
 }
 
 TEST_F(SecurityTest, IncorrectMesssageLength)
@@ -152,7 +153,7 @@ TEST_F(SecurityTest, SubFunctionNotSupported)
     testFrames(result_frame, *c1);
 }
 
-/*Send Key Request without RequestSeed*/
+/* Send Key Request without RequestSeed */
 TEST_F(SecurityTest, SendKeyBeforeRequestSeed)
 {
     struct can_frame result_frame = createFrame({0x03, 0x7F, 
@@ -250,6 +251,9 @@ TEST_F(SecurityTest, SendCorrectKey)
     data_frame.insert(data_frame.end(), seed.begin(), seed.end());
     r->securityAccess(0xFA10, data_frame);
     c1->capture();
+    /* Security should be unlocked now */
+    EXPECT_TRUE(SecurityAccess::getMcuState(*logger));
+
     testFrames(result_frame, *c1);
 }
 
@@ -276,10 +280,26 @@ TEST_F(SecurityTest, SendKeyAfterUnlock)
     EXPECT_TRUE(containsLine(output_security, searchLine));
 }
 
+TEST_F(SecurityTest, SecurityAccessExpires)
+{
+    sleep(3);
+    /* Security expires */
+    EXPECT_FALSE(SecurityAccess::getMcuState(*logger));
+}
+
 int main(int argc, char* argv[])
 {
     socket_ = createSocket();
     socket2_ = createSocket();
     testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    int result = RUN_ALL_TESTS();
+    if (socket_ > 0)
+    {
+        close(socket_);
+    }
+    if (socket2_ > 0)
+    {
+        close(socket2_);
+    }
+    return result;
 }

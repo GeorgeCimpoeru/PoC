@@ -35,7 +35,11 @@ class SecurityAccess
     /* Adjust timer until security access will expire here. 
      * Now it's set to 180 seconds.
     */
+    #ifndef UNIT_TESTING_MODE
     static constexpr uint8_t SECURITY_TIMEOUT_IN_SECONDS =  0xB4;
+    #else
+    static constexpr uint8_t SECURITY_TIMEOUT_IN_SECONDS =  0x03;
+    #endif /* UNIT_TESTING_MODE */
 
     private:
         GenerateFrames* generate_frames;
