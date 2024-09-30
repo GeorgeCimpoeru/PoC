@@ -1,7 +1,6 @@
-package com.poc.p_couds;
+package com.poc.p_couds.fragments;
 
 import android.app.Dialog;
-import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -10,7 +9,7 @@ import androidx.fragment.app.Fragment;
 
 import android.os.CountDownTimer;
 import android.os.Handler;
-import android.view.Gravity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,7 +18,6 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.Switch;
@@ -30,10 +28,23 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
+import com.poc.p_couds.APIClient;
+import com.poc.p_couds.APIInterface;
+import com.poc.p_couds.R;
+import com.poc.p_couds.models.Update;
+import com.poc.p_couds.pojo.ECU;
+import com.poc.p_couds.pojo.UpdateV;
+import com.poc.p_couds.pojo.UpdateVResponse;
+
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -62,7 +73,9 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
     private int totalTimeInMillis;  // Total time for the progress bar
     private boolean isPaused = false;
     private boolean downloading = false;
-
+    APIInterface apiInterface;
+    private String TAG = "PoC";
+    String idEcu;
     Dialog mDialog;
 
     String currentVersion = "1.5";
@@ -70,12 +83,14 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
+        
         initializeElements(view);
         Bundle args = getArguments();
         if (args != null){
             String title = args.getString("FRAGMENT_TITLE","Error");
             ecuTxt.setText(title);
+            idEcu = args.getString("id","Error");
+            Toast.makeText(this.getContext(), "ID: "+idEcu, Toast.LENGTH_SHORT).show();
         }
 
         List<Update> list = Arrays.asList(new Update[]{new Update("Software update 1", "Succeeded", "1 Sept 2024", 23),
@@ -84,6 +99,7 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
 
         getCurrentVersions();
         getAvailableVersions();
+        
     }
 
     private void initializeElements(View view)
@@ -212,6 +228,7 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
                 startProgressBar(totalTimeInMillis);
                 isPaused = false;
                 downloading = true;
+                updateVersion();
             }
         } else if (view.getId() == R.id.continue_b) {
             //endpoint continue download
@@ -353,5 +370,33 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
         versionFilter.clear();
         versionFilter.addAll(versions);
         adapterVersion.notifyDataSetChanged();
+    }
+
+    public void updateVersion()
+    {
+        String version = spinnerVersions.getSelectedItem().toString();
+        UpdateV updateV = new UpdateV(version, "zip",idEcu);
+        apiInterface = APIClient.getClient().create(APIInterface.class);
+        Call<UpdateVResponse> call = apiInterface.updateVersion(updateV);
+        call.enqueue(new Callback<UpdateVResponse>() {
+            @Override
+            public void onResponse(Call<UpdateVResponse> call, Response<UpdateVResponse> response) {
+                UpdateVResponse updateVResponse = response.body();
+                if (updateVResponse.errors.equals("No errors."))
+                {
+                    Log.i(TAG, "Download completed");
+                    Toast.makeText(Fragment_Update.this.getContext(), "Download completed", Toast.LENGTH_SHORT).show();
+                } else {
+                    Log.e(TAG, updateVResponse.errors);
+                    Toast.makeText(Fragment_Update.this.getContext(), updateVResponse.errors, Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<UpdateVResponse> call, Throwable t) {
+                call.cancel();
+            }
+        });
+
     }
 }

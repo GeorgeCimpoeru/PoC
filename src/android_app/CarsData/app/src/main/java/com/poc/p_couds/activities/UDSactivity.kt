@@ -1,4 +1,4 @@
-package com.poc.p_couds
+package com.poc.p_couds.activities
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.rememberNavController
+import com.poc.p_couds.R
 import com.poc.p_couds.ui.theme.CarsDataTheme
 
 class UDSactivity : ComponentActivity() {

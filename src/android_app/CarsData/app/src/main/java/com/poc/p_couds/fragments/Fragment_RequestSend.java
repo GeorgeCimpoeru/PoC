@@ -1,4 +1,4 @@
-package com.poc.p_couds;
+package com.poc.p_couds.fragments;
 
 import android.os.Bundle;
 
@@ -7,6 +7,8 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.poc.p_couds.R;
 
 /**
  * A simple {@link Fragment} subclass.

@@ -1,4 +1,4 @@
-package com.poc.p_couds
+package com.poc.p_couds.fragments
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -47,6 +47,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.poc.p_couds.R
 import com.poc.p_couds.ui.theme.CarsDataTheme
 
 

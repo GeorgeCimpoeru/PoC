@@ -1,8 +1,8 @@
-package com.poc.p_couds
+package com.poc.p_couds.activities
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
@@ -26,7 +26,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.poc.p_couds.ui.theme.CarsDataTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
@@ -36,21 +35,26 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentContainerView
 import androidx.fragment.app.commit
+import com.poc.p_couds.R
+import com.poc.p_couds.fragments.HomeFragment
+import com.poc.p_couds.fragments.LogInFragment
+import com.poc.p_couds.fragments.SignUpFragment
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent {
-            CarsDataTheme {
-                MainScreen()
-            }
-        }
+        intent = Intent(this, OTA::class.java)
+        startActivity(intent)
+//        setContent {
+//            CarsDataTheme {
+//                MainScreen()
+//            }
+//        }
     }
 
     @Composable
