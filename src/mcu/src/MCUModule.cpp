@@ -38,7 +38,9 @@ namespace MCU
         /* System ECU Data Set Identification Number */
         0xF1AC,
         /* System ECU Flash Software Version Number */
-        0xF1AD
+        0xF1AD,
+        /* OTA Update Status */
+        0x01E0
     };
     /* Constructor */
     MCUModule::MCUModule(uint8_t interfaces_number) : 
@@ -176,7 +178,8 @@ namespace MCU
 
     void MCUModule::setDidValue(const uint16_t did, const std::vector<uint8_t>& value)
     {
-        auto data_map = FileManager::readMapFromFile("mcu_data.txt");
+        std::string file_path = std::string(PROJECT_PATH) + "/src/mcu/mcu_data.txt";
+        auto data_map = FileManager::readMapFromFile(file_path);
         auto did_it = data_map.find(did);
 
         if(did_it == default_DID_MCU.end())
