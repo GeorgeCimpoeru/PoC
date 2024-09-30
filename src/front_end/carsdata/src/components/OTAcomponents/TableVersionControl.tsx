@@ -13,7 +13,6 @@ const TableVersionControl = (props: any) => {
         if (popupElement || popupStyleElement || overlayElement) {
             return;
         }
-    
         overlayElement = document.createElement('div');
         overlayElement.style.position = 'fixed';
         overlayElement.style.top = '0';
@@ -24,9 +23,9 @@ const TableVersionControl = (props: any) => {
         overlayElement.style.zIndex = '999';
         overlayElement.style.pointerEvents = 'all';
         overlayElement.style.cursor = 'not-allowed';
-    
+
         document.body.appendChild(overlayElement);
-    
+
         popupElement = document.createElement('div');
         popupElement.style.position = 'fixed';
         popupElement.style.top = '50%';
@@ -37,7 +36,7 @@ const TableVersionControl = (props: any) => {
         popupElement.style.borderRadius = '10px';
         popupElement.style.zIndex = '1000';
         popupElement.style.textAlign = 'center';
-    
+      
         const loadingCircle = document.createElement('div');
         loadingCircle.style.width = '40px';
         loadingCircle.style.height = '40px';
@@ -45,11 +44,11 @@ const TableVersionControl = (props: any) => {
         loadingCircle.style.borderTop = '5px solid transparent';
         loadingCircle.style.borderRadius = '50%';
         loadingCircle.style.animation = 'spin 1s linear infinite';
-    
+
         popupElement.appendChild(loadingCircle);
-    
+
         document.body.appendChild(popupElement);
-    
+
         popupStyleElement = document.createElement('style');
         popupStyleElement.type = 'text/css';
         popupStyleElement.innerText = `
@@ -86,7 +85,6 @@ const TableVersionControl = (props: any) => {
             document.body.removeChild(popupElement);
             document.head.removeChild(popupStyleElement);
             document.body.removeChild(overlayElement);
-    
             popupElement = null;
             popupStyleElement = null;
             overlayElement = null;
@@ -105,9 +103,15 @@ const TableVersionControl = (props: any) => {
                 .then(data => {
                     console.log(data);
                     const versionsArray: string[] = [];
-                    let aux = 5;
-                    if (props.device !== "MCU") {
-                        aux = 4;
+                    let aux = 8; // MCU
+                    if (props.device === "Battery") {
+                        aux = 7;
+                    } else if (props.device === "Engine") {
+                        aux = 2;
+                    } else if (props.device === "Doors") {
+                        aux = 1;
+                    } else if (props.device === "HVAC") {
+                        aux = 0;
                     }
                     for (let i = 0; i < data.children[aux].children.length; ++i) {
                         versionsArray.push(data.children[aux].children[i].sw_version);

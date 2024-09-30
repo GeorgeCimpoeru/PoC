@@ -200,36 +200,6 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
-
-    const testerPresent = async () => {
-        const displayPopup = () => {
-            const popup = document.createElement('div');
-            popup.innerText = "Tester present is still active";
-            popup.style.position = 'fixed';
-            popup.style.top = '50%';
-            popup.style.left = '50%';
-            popup.style.transform = 'translate(-50%, -50%)';
-            popup.style.padding = '20px';
-            popup.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-            popup.style.color = 'white';
-            popup.style.borderRadius = '10px';
-            popup.style.zIndex = '1000';
-            popup.style.textAlign = 'center';
-
-            document.body.appendChild(popup);
-
-            setTimeout(() => {
-                document.body.removeChild(popup);
-            }, 4000);
-        };
-
-        displayPopup();
-        // setInterval(() => {
-        //     displayPopup();
-        // }, 10000);
-    };
-
-
     const requestIds = async (initialRequest: boolean) => {
         displayLoadingCircle();
         console.log("Requesting ids...");
@@ -577,6 +547,52 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
+    const writeTiming = async () => {
+
+        const timingData = {
+            p2_max: parseInt(prompt("Enter p2_max value:") || "0", 10),
+            p2_star_max: parseInt(prompt("Enter p2_star_max value:") || "0", 10)
+        };
+    
+        console.log("Writing timing data...", timingData);
+        displayLoadingCircle();
+    
+        try {
+            const response = await fetch(`http://127.0.0.1:5000/api/write_timing`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(timingData),
+            });
+    
+            const data = await response.json();
+            console.log("Response data:", data);
+    
+            if (data.status === "success") {
+                setData23(data) 
+                console.log(data)
+                
+                const writtenValues = data.written_values;
+                const message = `Timing parameters written successfully.\n` +
+                                `New P2 Max Time: ${writtenValues["New P2 Max Time"]}\n` +
+                                `New P2 Star Max: ${writtenValues["New P2 Star Max"]}`;
+                
+                displayMessagePopup(message);
+            } else {
+                displayMessagePopup(`Error: ${data.message}`);
+            }
+    
+            fetchLogs();
+    
+        } catch (error) {
+            console.error("Error:", error);
+            displayMessagePopup("Failed to write timing values");
+        }
+    
+        removeLoadingCicle();
+    };
+    
     const getIdentifiers = async () => {
         console.log("Reading all data identifiers...");
         displayLoadingCircle();
@@ -761,6 +777,7 @@ const SendRequests = () => {
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={authenticate} disabled={disableFrameAndDtcBtns}>Authenticate</button>
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getIdentifiers} disabled={disableFrameAndDtcBtns}>Read identifiers</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => requestIds(false)} disabled={disableRequestIdsBtn}>Request IDs</button>
+                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeTiming}>Write Timing</button>
                 </div>
                 <div className="w-full h-px mt-2 bg-gray-300"></div>
                 <div className="mt-2">
@@ -812,8 +829,17 @@ const SendRequests = () => {
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoDoors} disabled={disableInfoDoorsBtns}>Read Info Doors</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoDoors} disabled={disableInfoDoorsBtns}>Write Doors Info</button>
                 </div>
+
                 <h1 className="text-2xl mt-2">Response</h1>
-                <textarea id="response-output" className="m-2 h-36 textarea textarea-bordered" placeholder="" value={JSON.stringify(data23, null, 0)}></textarea>
+                {data23 && (
+                    <ul className="m-2 p-2 list-disc">
+                        {Object.entries(data23).map(([key, value]) => (
+                            <li key={key}>
+                                <strong>{key}:</strong> {JSON.stringify(value)}
+                            </li>
+                        ))}
+                    </ul>
+                )}
 
                 <div className="m-2 border-2 border-black overflow-x-auto max-h-52">
                     <h1 className="text-2xl mt-2">Logs:</h1>
