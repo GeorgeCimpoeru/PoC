@@ -12,22 +12,6 @@ class ReadInfo(Action):
     - id_ecu: Identifier for the specific ECU being updated.
     - g: Instance of GenerateFrame for generating CAN bus frames.
     """
-    def _auth_mcu(self, ecu_type):
-
-        id_mcu = self.id_ecu[ecu_type]
-        id = self.my_id * 0x100 + id_mcu
-
-        try:
-            log_info_message(logger, "Changing session to programming")
-            self.generate.session_control(id, 0x02)
-            self._passive_response(SESSION_CONTROL, "Error changing session control")
-            id = (self.id_ecu[ecu_type] << 16) + (self.my_id << 8) + self.id_ecu[MCU]
-            self._authentication(id)
-
-        except CustomError as e:
-            self.bus.shutdown()
-            return e.message
-
     @staticmethod
     def _get_battery_state_of_charge(state_of_charge):
         if state_of_charge.startswith("0x"):
