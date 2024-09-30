@@ -1,4 +1,4 @@
-from actions.base_actions import *  # Assuming this imports necessary actions
+from actions.base_actions import *
 import time
 
 MCU = 0
@@ -160,7 +160,7 @@ class Updates(Action):
         """
         self.generate.request_download(self.id,
                                        data_format_identifier=type,  # No compression/encryption
-                                       memory_address=0x8001,  # Memory address starting from 2049
+                                       memory_address=0x0801,  # Memory address starting from 2049
                                        memory_size=0x01,  # Memory size
                                        version=version)  # Version 2
         self._passive_response(REQUEST_DOWNLOAD, "Error requesting download")

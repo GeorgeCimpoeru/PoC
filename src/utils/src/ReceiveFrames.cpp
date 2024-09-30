@@ -3,10 +3,7 @@
 #include "../../ecu_simulation/EngineModule/include/EngineModule.h"
 #include "../../ecu_simulation/DoorsModule/include/DoorsModule.h"
 #include "../../ecu_simulation/HVACModule/include/HVACModule.h"
-bool ReceiveFrames::battery_state = false;
-bool ReceiveFrames::engine_state = false;
-bool ReceiveFrames::doors_state = false;
-bool ReceiveFrames::hvac_state = false;
+bool ReceiveFrames::ecu_state = false;
 ReceiveFrames::ReceiveFrames(int socket, int current_module_id, Logger& receive_logger) : socket(socket),
                                                                                             current_module_id(current_module_id),
                                                                                             running(true), 
@@ -39,24 +36,9 @@ ReceiveFrames::~ReceiveFrames()
     stop();
 }
 
-bool ReceiveFrames::getBatteryState()
+bool ReceiveFrames::getEcuState()
 {
-    return battery_state;
-}
-
-bool ReceiveFrames::getEngineState()
-{
-    return engine_state;
-}
-
-bool ReceiveFrames::getDoorsState()
-{
-    return doors_state;
-}
-
-bool ReceiveFrames::getHvacState()
-{
-    return hvac_state;
+    return ecu_state;
 }
 
 void ReceiveFrames::receive(HandleFrames &handle_frame) 
@@ -178,46 +160,14 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
         if (frame.data[0] == 0x01 && frame.data[1] == 0xCE)
         {
             LOG_INFO(receive_logger.GET_LOGGER(), "Notification from the MCU that the server is unlocked.");
-            switch(frame_dest_id)
-            {
-                case 0x11:
-                    battery_state = true;
-                    break;
-                case 0x12:
-                    engine_state = true;
-                    break;
-                case 0x13:
-                    doors_state = true;
-                    break;
-                case 0x14:
-                    hvac_state = true;
-                    break;
-                default:
-                    break;
-            }
+            ecu_state = true;
             goto label1;
         }
         /* Notify from MCU to tell ECU's that MCU state is locked */
         else if (frame.data[0] == 0x01 && frame.data[1] == 0xCF)
         {
             LOG_INFO(receive_logger.GET_LOGGER(), "Notification from the MCU that the server is locked.");
-            switch(frame_dest_id)
-            {
-                case 0x11:
-                    battery_state = false;
-                    break;
-                case 0x12:
-                    engine_state = false;
-                    break;
-                case 0x13:
-                    doors_state = false;
-                    break;
-                case 0x14:
-                    hvac_state = false;
-                    break;
-                default:
-                    break;
-            }
+            ecu_state = false;
             goto label1;
         }
 

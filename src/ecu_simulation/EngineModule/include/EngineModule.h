@@ -53,6 +53,12 @@ public:
      * 
      */
     void writeDataToFile();
+
+    /**
+     * @brief Check if the engine components exceed the normal values
+     * 
+     */
+    void checkDTC();
 };
 extern EngineModule* engine;
 

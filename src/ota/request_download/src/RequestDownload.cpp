@@ -45,7 +45,9 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
         return;
     }
 
-    if (receiver_id == 0x11 && !ReceiveFrames::getBatteryState())
+    if ((receiver_id == 0x11 || receiver_id == 0x12 ||
+         receiver_id == 0x13 || receiver_id == 0x14) &&
+         !ReceiveFrames::getEcuState())
     {
         /* Authentication failed */
         nrc.sendNRC(id, RDS_SID, NegativeResponse::SAD);
@@ -89,8 +91,6 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     std::pair<int,int> address_and_size = extractSizeAndAddress(stored_data, length_memory_address, length_memory_size);
     int memory_address = address_and_size.first;
     int memory_size = address_and_size.second;
-
-    
 
     if(ota_initialised == 1)
     {   

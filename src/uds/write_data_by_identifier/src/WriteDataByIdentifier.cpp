@@ -38,27 +38,14 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
     else if (receiver_id == 0x10 && !SecurityAccess::getMcuState(wdbi_logger))
     {
         nrc.sendNRC(id, WDBI_SID, NegativeResponse::SAD);
-        MCU::mcu->stop_flags[0x2E] = false;
+        AccessTimingParameter::stopTimingFlag(receiver_id, 0x2E);
     }
-    else if (receiver_id == 0x11 && !ReceiveFrames::getBatteryState())
+    else if ((receiver_id == 0x11 || receiver_id == 0x12 ||
+              receiver_id == 0x13 || receiver_id == 0x14) &&
+              !ReceiveFrames::getEcuState())
     {
         nrc.sendNRC(id, WDBI_SID, NegativeResponse::SAD);
-        battery->_ecu->stop_flags[0x2E] = false;
-    }
-    else if (receiver_id == 0x12 && !ReceiveFrames::getEngineState())
-    {
-        nrc.sendNRC(id, WDBI_SID, NegativeResponse::SAD);
-        engine->_ecu->stop_flags[0x2E] = false;
-    }
-    else if (receiver_id == 0x13 && !ReceiveFrames::getDoorsState())
-    {
-        nrc.sendNRC(id, WDBI_SID, NegativeResponse::SAD);
-        doors->_ecu->stop_flags[0x2E] = false;
-    }
-    else if (receiver_id == 0x14 && !ReceiveFrames::getHvacState())
-    {
-        nrc.sendNRC(id, WDBI_SID, NegativeResponse::SAD);
-        hvac->_ecu->stop_flags[0x2E] = false;
+        AccessTimingParameter::stopTimingFlag(receiver_id, 0x2E);
     }
     else
     {
@@ -163,6 +150,19 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
             /* Save the updated data back to the file */
             FileManager::writeMapToFile(file_name, data_map);
 
+            /* Check the new value */
+            switch (receiver_id)
+            {
+            case 0x11:
+                battery->checkDTC();
+                break;
+            case 0x12:
+                engine->checkDTC();
+                break;
+            
+            default:
+                break;
+            }
             LOG_INFO(wdbi_logger.GET_LOGGER(), "Data written to DID 0x{:x} in the module with id {}.", did, receiver_id);
         } catch (const std::exception& e) 
         {

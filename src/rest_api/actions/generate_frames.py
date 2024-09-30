@@ -38,13 +38,10 @@ class GenerateFrame:
             return False
 
     def send_frame(self, id, data):
-        hex_data = [f"0x{byte:02X}" for byte in data]
-
         with can_lock:
             message = can.Message(arbitration_id=id, data=data, is_extended_id=True)
             try:
                 self.bus.send(message)
-                logger.info(f"Sent CAN message with ID: 0x{id:03X}, Data: {hex_data}")
             except can.CanError as e:
                 logger.error(f"Message not sent: {e}")
 
@@ -141,8 +138,9 @@ class GenerateFrame:
         self.send_frame(id, data)
 
     def clear_diagnostic_information(self, id, group_of_dtc=0xFFFFFF, response=False):
-        pci_l = len(group_of_dtc) + 1
-        data = [pci_l, 0x14] + group_of_dtc if response is False else [1, 0x54]
+        group_of_dtc_bytes = [(group_of_dtc >> 16) & 0xFF, (group_of_dtc >> 8) & 0xFF, group_of_dtc & 0xFF]
+        pci_l = len(group_of_dtc_bytes) + 1
+        data = [pci_l, 0x14] + group_of_dtc_bytes if not response else [1, 0x54]
         self.send_frame(id, data)
 
     def negative_response(self, id, sid, nrc):
@@ -170,6 +168,17 @@ class GenerateFrame:
 
     def access_timing_parameters(self, id, sub_function, response=False):
         data = [2, 0x83, sub_function] if response is False else [2, 0xC3, sub_function]
+        self.send_frame(id, data)
+
+    def write_timming_parameters(self, id, sub_function, new_p2_max_time, new_p2_star_max_time, response=False):
+        new_p2_max_time_bytes = [(new_p2_max_time >> 8) & 0xFF, new_p2_max_time & 0xFF]
+        new_p2_star_max_time_bytes = [(new_p2_star_max_time >> 8) & 0xFF, new_p2_star_max_time & 0xFF]
+
+        if not response:
+            data = [6, 0x83, sub_function] + new_p2_max_time_bytes + new_p2_star_max_time_bytes
+        else:
+            data = [6, 0xC3, sub_function] + new_p2_max_time_bytes + new_p2_star_max_time_bytes
+
         self.send_frame(id, data)
 
     def request_download(self, id, data_format_identifier, memory_address, memory_size, version):
@@ -202,9 +211,10 @@ class GenerateFrame:
         memory_size_bytes = memory_size.to_bytes((memory_size.bit_length() + 7) // 8, byteorder='big') if isinstance(memory_size, int) else memory_size
 
         # Calculate the Address and Length Format Identifier
-        address_length = len(memory_address_bytes)
-        size_length = len(memory_size_bytes)
-        address_and_length_format_identifier = (size_length << 4) | address_length
+        address_length = len(memory_address_bytes)  # noqa: F841
+        size_length = len(memory_size_bytes)  # noqa: F841
+        # address_and_length_format_identifier = (size_length << 4) | address_length
+        address_and_length_format_identifier = 0x21
 
         # Handle version
         if isinstance(version, str):
@@ -261,7 +271,7 @@ class GenerateFrame:
             if len(data_parameter) <= 4:
                 data = [len(data_parameter) + 3 , 0x2E, identifier // 0x100, identifier % 0x100] + data_parameter
             else:
-                print("ERROR: To many data parameters, consider using write_data_by_identifier_long!")
+                # "ERROR: To many data parameters, consider using write_data_by_identifier_long!"
                 return
         else:
             data = [3, 0x6E, identifier // 0x100, identifier % 0x100]

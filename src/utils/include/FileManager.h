@@ -18,6 +18,7 @@
 #include <unordered_map>
 #include <fstream>
 #include <iomanip>
+#include <string>
 
 class FileManager
 {
@@ -37,6 +38,24 @@ public:
      * @return std::unordered_map<uint16_t, std::vector<uint8_t>> 
      */
     static std::unordered_map<uint16_t, std::vector<uint8_t>> readMapFromFile(const std::string& file_name);
+
+    /**
+     * @brief Writes a string to a file on a new line.
+     * @param filePath The path of the file where the string will be written.
+     * @param strToWrite The string to be written to the file.
+     */
+    static void writeStringToFile(const std::string& filePath, const std::string& strToWrite);
+
+    /**
+     * @brief Checks if a string exists in the file.
+     * @param filePath The path of the file to be searched.
+     * @param searchString The string to search for in the file.
+     * @return true if the string is found on any line in the file, false otherwise.
+     */
+    static bool containsStringInFile(const std::string& filePath, const std::string& searchString);
+
+    static void writeDTC(std::unordered_map<uint16_t, std::vector<uint8_t>>& did_values, const std::string& filePath, const uint16_t& did, int min_value, int max_value, const std::string& DTCToWrite);
+
 };
 
 #endif

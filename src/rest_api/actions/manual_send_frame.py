@@ -52,9 +52,10 @@ def manual_send_frame(can_id, can_data):
             elif received_frame.data[1] == 0x7F:
                 nrc = received_frame.data[3]
                 service_id = received_frame.data[2]
-                error_text = handle_negative_response(nrc, service_id)
+                error_handler = Action(can_id, [0x10, 0x11, 0x12, 0x13])
+                error_text = error_handler.handle_negative_response(nrc, service_id)
 
-                received_data['error'] = error_text
+                # received_data['error'] = error_text
 
                 if nrc == 0x37:  # Specific handling for "RequiredTimeDelayNotExpired"
                     time_delay_ms = int.from_bytes(received_frame.data[4:8], byteorder='big')
@@ -82,68 +83,3 @@ def manual_send_frame(can_id, can_data):
     finally:
         log_info_message(logger, "Shutting down CAN bus connection")
         bus.shutdown()
-
-
-def handle_negative_response(nrc, service_id):
-    """
-    Handles the negative response scenarios for various services.
-    """
-    service_error_mapping = {
-        # Write Data by Identifier (0x2E)
-        0x2E: {0x13, 0x31, 0x33},
-
-        # Security Access (0x27)
-        0x27: {0x12, 0x24, 0x35, 0x36},
-
-        # Diagnostic Session Control Service (0x10)
-        0x10: {0x12},
-
-        # Access Timing Parameter Service (0x83)
-        0x83: {0x12, 0x13, 0x78},
-
-        # Clear Diagnostic Information (0x14)
-        0x14: {0x13, 0x31},
-
-        # Read DTC Information (0x19)
-        0x19: {0x12, 0x13},
-
-        # Routine Control (0x31)
-        0x31: {0x12, 0x31},
-
-        # Tester Present (0x3E)
-        0x3E: {0x12, 0x13}
-    }
-
-    # General negative response codes
-    negative_responses = {
-        0x12: "SubFunction Not Supported",
-        0x13: "Incorrect Message Length Or Invalid Format",
-        0x14: "Incorrect Message Length Or Invalid Format",
-        0x22: "Conditions Not Correct",
-        0x24: "Request Sequence Error",
-        0x25: "No Response From Subnet Component",
-        0x31: "Request Out Of Range",
-        0x33: "Security Access Denied",
-        0x34: "Authentication Required",
-        0x35: "Invalid Key",
-        0x36: "Exceeded Number Of Attempts",
-        0x37: "Required Time Delay Not Expired",
-        0x70: "Upload Download Not Accepted",
-        0x71: "Transfer Data Suspended",
-        0x72: "General Programming Failure",
-        0x73: "Wrong Block Sequence Counter",
-        0x92: "Voltage Too High",
-        0x93: "Voltage Too Low",
-        0x78: "Request Correctly Received-Response Pending",
-        0x7E: "SubFunction Not Supported In Active Session",
-        0x7F: "Function Not Supported In Active Session"
-    }
-
-    # Check if the NRC is within the allowed list for the service
-    if service_id in service_error_mapping and nrc in service_error_mapping[service_id]:
-        error_message = negative_responses.get(nrc, "Unknown error")
-    else:
-        error_message = "Unknown service or error"
-
-    log_error_message(logger, f"Negative response received: NRC={hex(nrc)}, Error={error_message} (Code: {hex(nrc)})")
-    return error_message

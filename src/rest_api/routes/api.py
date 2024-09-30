@@ -15,8 +15,9 @@ from actions.secure_auth import Auth  # noqa: E402
 from actions.dtc_info import DiagnosticTroubleCode  # noqa: E402
 from actions.diag_session import SessionManager  # noqa: E402
 from actions.tester_present import Tester  # noqa: E402
-from actions.access_timing_action import ReadAccessTiming  # noqa: E402
+from actions.access_timing_action import *  # noqa: E402
 from actions.ecu_reset import Reset  # noqa: E402
+from actions.security_decorator import *  # noqa: E402
 
 api_bp = Blueprint('api', __name__)
 
@@ -42,24 +43,38 @@ def update_to_version():
 
 
 @api_bp.route('/read_info_battery', methods=['GET'])
+@requires_auth
 def read_info_bat():
     reader = ReadInfo(0xFA, [0x10, 0x11, 0x12])
-    identifier = request.args.get('identifier', default=None, type=str)
-    response = reader.read_from_battery(identifier)
+    item = request.args.get('item', default=None, type=str)
+    response = reader.read_from_battery(item)
     return jsonify(response)
 
 
 @api_bp.route('/read_info_engine', methods=['GET'])
+@requires_auth
 def read_info_eng():
     reader = ReadInfo(API_ID, [0x10, 0x11, 0x12])
-    response = reader.read_from_engine()
+    item = request.args.get('item', default=None, type=str)
+    response = reader.read_from_engine(item)
     return jsonify(response)
 
 
 @api_bp.route('/read_info_doors', methods=['GET'])
+@requires_auth
 def read_info_doors():
-    reader = ReadInfo(API_ID, [0x10, 0x11, 0x12])
-    response = reader.read_from_doors()
+    reader = ReadInfo(API_ID, [0x10, 0x11, 0x12, 0x13])
+    item = request.args.get('item', default=None, type=str)
+    response = reader.read_from_doors(item)
+    return jsonify(response)
+
+
+@api_bp.route('/read_info_hvac', methods=['GET'])
+@requires_auth
+def read_info_hvac():
+    reader = ReadInfo(API_ID, [0x10, 0x11, 0x12, 0x13, 0x14])
+    item = request.args.get('item', default=None, type=str)
+    response = reader.read_from_hvac(item)
     return jsonify(response)
 
 
@@ -74,7 +89,6 @@ def send_frame():
 @api_bp.route('/write_info_doors', methods=['POST'])
 def write_info_doors():
     data = request.get_json()
-
     writer = WriteInfo(API_ID, [0x10, 0x11, 0x12], data)
     response = writer.write_to_doors()
     return jsonify(response)
@@ -194,3 +208,24 @@ def reset_module():
     reseter = Reset(API_ID, [0x10, 0x11, 0x12])
     response = reseter.reset_ecu(wh_id, type_reset)
     return jsonify(response)
+
+
+@api_bp.route('/write_timing', methods=['POST'])
+def write_timing():
+    data = request.get_json()
+
+    if not data or 'p2_max' not in data or 'p2_star_max' not in data:
+        return jsonify({"status": "error", "message": "Missing required parameters"}), 400
+
+    p2_max = data.get('p2_max')
+    p2_star_max = data.get('p2_star_max')
+
+    timing_values = {
+        "p2_max": p2_max,
+        "p2_star_max": p2_star_max
+    }
+
+    writer = WriteAccessTiming(API_ID, [0x10, 0x11, 0x12])
+    result = writer._write_timing_info(id, timing_values)
+
+    return jsonify(result)
