@@ -74,14 +74,26 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
                 break;
             case 0x0201:
+            {
                 /* Install updates */
                 /* call installUpdates routine*/
                 LOG_INFO(rc_logger.GET_LOGGER(), "installUpdates routine called.");
                 MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE});
                 /* Checks for the system exit value to update the status in COMPLETED or FAILED */
-                system("./../../config/installUpdates.sh");
+                std::string cmd = std::string(PROJECT_PATH) + "/config/installUpdates.sh";
+                int install_update_status = system(cmd.c_str());
+                std::cout<<install_update_status<<std::endl;
+                if(install_update_status < 0)
+                {
+
+                }
+                else
+                {
+
+                }
                 routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
                 break;
+            }
             case 0x0301:
                 /* call writeToFile routine*/
                 LOG_INFO(rc_logger.GET_LOGGER(), "writeToFile routine called.");
@@ -133,16 +145,19 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 LOG_INFO(rc_logger.GET_LOGGER(), "Rollback routine called.");
                 break;
             case 0x0701:
+            {
                 LOG_INFO(rc_logger.GET_LOGGER(), "Activate software routine called.");
-                if(activateSoftware() == true)
-                {
-                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_COMPLETE});
-                }
-                else
+                if(activateSoftware() == false)
                 {
                     MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_FAILED});
                 }
+                else
+                {
+                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_COMPLETE});
+                    routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
+                }
                 break;
+            }
             default:
                 LOG_INFO(rc_logger.GET_LOGGER(), "Unknown routine.");
                 break;
@@ -243,9 +258,41 @@ bool RoutineControl::initialiseOta(uint8_t target_ecu, const std::vector<uint8_t
 
 bool RoutineControl::activateSoftware()
 {
-    return true;
+    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE});
+    /* Checks for the system exit value to update the status in COMPLETED or FAILED */
+    pid_t pid;
+    std::string pname;
+    if(getCurrentProcessInfo(pid, pname) == 0)
+    {
+        return 0;
+    }
+    std::string cmd = std::string(PROJECT_PATH) + "/config/installUpdates.sh " + std::to_string(pid) + " " + pname;
+    std::cout<<cmd<<std::endl;
+    int install_update_status = system(cmd.c_str());
+    if(install_update_status != 0)
+    {
+        return 0;
+    }
+    
+    return 1;
 }
 bool RoutineControl::verifySoftware()
 {
     return true;
+}
+
+bool RoutineControl::getCurrentProcessInfo(pid_t& pid, std::string& pname) 
+{
+    pid = getpid(); // Get the current process ID
+    std::ifstream file("/proc/" + std::to_string(pid) + "/comm"); // Open the process file
+
+    if (file.is_open()) {
+        std::getline(file, pname);
+        file.close();
+    } else {
+        std::cerr << "Error: Unable to open /proc/" << pid << "/comm" << std::endl;
+        return 0;
+    }
+
+    return 1;
 }
