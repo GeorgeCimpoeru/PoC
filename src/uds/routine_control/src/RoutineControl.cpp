@@ -112,6 +112,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                     MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ERROR});
                     nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::IMLOIF);
                 }
+                else
                 {
                     MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {INIT});
                     routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
@@ -206,7 +207,7 @@ bool RoutineControl::initialiseOta(uint8_t target_ecu, const std::vector<uint8_t
     std::string project_path = PROJECT_PATH;
     std::string path_to_drive_api = project_path + "/src/ota/google_drive_api";
     uint8_t sw_version = request[5];
-    uint8_t version_size = 0;
+    short version_size = -1;
     try
     {
         auto sys = py::module::import("sys");
@@ -218,7 +219,7 @@ bool RoutineControl::initialiseOta(uint8_t target_ecu, const std::vector<uint8_t
         py::object gGdrive_object = python_module.attr("gDrive");
 
         /* Call the searchVersion method from GoogleDriveApi.py that returns the size of the version, or 0 if not found*/
-        version_size = (gGdrive_object.attr("downloadFile")(target_ecu, sw_version)).cast<uint8_t>();
+        version_size = (gGdrive_object.attr("downloadFile")(target_ecu, sw_version)).cast<short>();
     }
     catch(const py::error_already_set& e)
     {
@@ -226,7 +227,7 @@ bool RoutineControl::initialiseOta(uint8_t target_ecu, const std::vector<uint8_t
         MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ERROR});
         return false;
     }
-    if(version_size == 0)
+    if(version_size == -1)
     {
         /* NRC*/
         return false;

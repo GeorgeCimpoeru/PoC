@@ -97,8 +97,8 @@ class GDriveAPI:
             # pylint: disable=maybe-no-member
             
             file_to_download = self.searchVersion(ecu_id, sw_version_byte, True)
-            if file_to_download == 0:
-                return 0
+            if file_to_download == -1:
+                return -1
             
             print(f"{GREEN}Downloading..{RESET}")
             request = self.__drive_service.files().get_media(
@@ -113,7 +113,7 @@ class GDriveAPI:
         
         except HttpError as error:
             print(f"{RED}An error occurred: {error}{RESET}")
-            return 0
+            return -1
 
         downloaded_file.seek(0)
         with open(f"{path_to_download}/{file_to_download['name']}", 'wb') as f:
@@ -133,12 +133,10 @@ class GDriveAPI:
         if file_to_download is None:
             print(
                     f"{RED}No file found with type:{ecu_map[ecu_id]} and version {sw_version}{RESET}")
-            return 0
+            return -1
         print(f"{GREEN}Version found{RESET}")
-        if return_file == True:
-            return file_to_download
-        
-        return int(file_to_download['size_uncompressed'])
+        return file_to_download
+    
     # PRIVATE METHODS
     def __convertByteToSwVersion(self, software_version_byte):
         # Convert the hex string to an integer
