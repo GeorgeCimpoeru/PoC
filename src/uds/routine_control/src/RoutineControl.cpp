@@ -267,7 +267,6 @@ bool RoutineControl::activateSoftware()
         return 0;
     }
     std::string cmd = std::string(PROJECT_PATH) + "/config/installUpdates.sh " + std::to_string(pid) + " " + pname;
-    std::cout<<cmd<<std::endl;
     int install_update_status = system(cmd.c_str());
     if(install_update_status != 0)
     {
