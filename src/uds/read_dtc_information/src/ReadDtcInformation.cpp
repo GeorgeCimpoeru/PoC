@@ -1,5 +1,6 @@
 #include "../include/ReadDtcInformation.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
+#include "../../../ecu_simulation/EngineModule/include/EngineModule.h"
 #include "../../../mcu/include/MCUModule.h"
 
 
@@ -26,6 +27,16 @@ void ReadDTC::read_dtc(int id, std::vector<uint8_t> data)
     {
         LOG_ERROR(logger.GET_LOGGER(), "Incorrect message length or invalid format");
         this->generate->negativeResponse(new_id, 0x19, 0x13);
+        if (lowerbits == 0x10)
+        {
+            MCU::mcu->stop_flags[0x19] = false;
+        } else if (lowerbits == 0x11)
+        {
+            battery->stop_flags[0x19] = false;
+        } else if (lowerbits == 0x12)
+        {
+            engine->stop_flags[0x19] = false;
+        }
         return;
     }
     int sub_function = data[2];
@@ -44,6 +55,16 @@ void ReadDTC::read_dtc(int id, std::vector<uint8_t> data)
         default:
             this->generate->negativeResponse(new_id, 0x19, 0x12);
             LOG_ERROR(logger.GET_LOGGER(), "Sub-function not supported");
+            if (lowerbits == 0x10)
+            {
+                MCU::mcu->stop_flags[0x19] = false;
+            } else if (lowerbits == 0x11)
+            {
+                battery->stop_flags[0x19] = false;
+            } else if (lowerbits == 0x12)
+            {
+                engine->stop_flags[0x19] = false;
+            }
     }
 }
 
@@ -63,6 +84,17 @@ void ReadDTC::number_of_dtc(int id, int dtc_status_mask)
         LOG_ERROR(logger.GET_LOGGER(), "Unable to read DTCs");
         /* NRC Resource temporarily unavailable */
         this->generate->negativeResponse(id, 0x19, 0x94);
+        uint8_t lowerbits = id & 0xFF;
+        if (lowerbits == 0x10)
+        {
+            MCU::mcu->stop_flags[0x19] = false;
+        } else if (lowerbits == 0x11)
+        {
+            battery->stop_flags[0x19] = false;
+        } else if (lowerbits == 0x12)
+        {
+            engine->stop_flags[0x19] = false;
+        }
         return;
     }
 
@@ -85,8 +117,8 @@ void ReadDTC::number_of_dtc(int id, int dtc_status_mask)
     /* dtc format_idtf 0x01 -> ISO_14229-1_DTCFormat */
     int dtc_format_identifier = 0x01;
 
-    uint8_t lowerbits = id & 0xFF;
-    switch(lowerbits)
+    uint8_t receiver_id = id >> 8 & 0xFF;
+    switch(receiver_id)
     {
         case 0x10:
             /* Send response frame */
@@ -100,8 +132,14 @@ void ReadDTC::number_of_dtc(int id, int dtc_status_mask)
             LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x19);
             battery->stop_flags[0x19] = false;
             break;
+        case 0x12:
+            /* Send response frame */
+            this->generate->readDtcInformationResponse01(id,status_availability_mask,dtc_format_identifier,number_of_dtc);
+            LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x19);
+            engine->stop_flags[0x19] = false;
+            break;
         default:
-            LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);
+            LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
     }
 }
 
@@ -121,6 +159,17 @@ void ReadDTC::report_dtcs(int id, int dtc_status_mask)
         LOG_ERROR(logger.GET_LOGGER(), "Unable to read DTCs");
         /* NRC Resource temporarily unavailable */
         this->generate->negativeResponse(id, 0x19, 0x94);
+        uint8_t lowerbits = id & 0xFF;
+        if (lowerbits == 0x10)
+        {
+            MCU::mcu->stop_flags[0x19] = false;
+        } else if (lowerbits == 0x11)
+        {
+            battery->stop_flags[0x19] = false;
+        } else if (lowerbits == 0x12)
+        {
+            engine->stop_flags[0x19] = false;
+        } 
         return;
     }
     
@@ -144,41 +193,52 @@ void ReadDTC::report_dtcs(int id, int dtc_status_mask)
     /* Send a frame/frames with all dtcs founded */
     if (dtc_and_status_list.size() > 1)
     {   
-        uint8_t lowerbits = id & 0xFF;
+        uint8_t lowerbits = id >> 8 & 0xFF;
         switch(lowerbits)
         {
             case 0x10:
                 /* Send response frame */
                 this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,true);
+                this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,false);
                 LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the first response frame.", 0x19);
                 MCU::mcu->stop_flags[0x19] = false;
                 break;
             case 0x11:
                 /* Send response frame */
                 this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,true);
+                this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,false);
                 LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the first response frame.", 0x19);
                 battery->stop_flags[0x19] = false;
+                break;
+            case 0x12:
+                /* Send response frame */
+                this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,true);
+                LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the first response frame.", 0x19);
+                engine->stop_flags[0x19] = false;
                 break;
             default:
                 LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);
         }
-
+/** flow control frame not implemented yet -> uncomment this when ready
         if (receive_flow_control(id / 0x100))
         {
             uint8_t lowerbits = id & 0xFF;
             switch(lowerbits)
             {
                 case 0x10:
-                    /* Send response frame */
                     this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,false);
                     LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent a consecutive response frame.", 0x19);
                     MCU::mcu->stop_flags[0x19] = false;
                     break;
                 case 0x11:
-                    /* Send response frame */
                     this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,false);
                     LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent a consecutive response frame.", 0x19);
                     battery->stop_flags[0x19] = false;
+                    break;
+                case 0x12:
+                    this->generate->readDtcInformationResponse02Long(id,status_availability_mask,dtc_and_status_list,false);
+                    LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent a consecutive response frame.", 0x19);
+                    engine->stop_flags[0x19] = false;
                     break;
                 default:
                     LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);
@@ -188,11 +248,12 @@ void ReadDTC::report_dtcs(int id, int dtc_status_mask)
         else
         {
             LOG_ERROR(logger.GET_LOGGER(), "Timeout. FLow control frame not received!");
-        }
+        } 
+*/
     }
     else 
     {
-        uint8_t lowerbits = id & 0xFF;
+        uint8_t lowerbits = id >> 8 & 0xFF;
         switch(lowerbits)
         {
             case 0x10:
@@ -206,6 +267,12 @@ void ReadDTC::report_dtcs(int id, int dtc_status_mask)
                 this->generate->readDtcInformationResponse02(id,status_availability_mask,dtc_and_status_list);
                 LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the first response frame.", 0x19);
                 battery->stop_flags[0x19] = false;
+                break;
+            case 0x12:
+                /* Send response frame */
+                this->generate->readDtcInformationResponse02(id,status_availability_mask,dtc_and_status_list);
+                LOG_INFO(logger.GET_LOGGER(), "Service with SID {:x} successfully sent the first response frame.", 0x19);
+                engine->stop_flags[0x19] = false;
                 break;
             default:
                 LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", lowerbits);

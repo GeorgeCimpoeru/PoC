@@ -87,17 +87,19 @@ std::string MemoryManager::runCommand(char command[])
 
 bool MemoryManager::availableAddress(off_t address)
 {
-    char verify_address_command[] = "sudo fdisk -l /dev/loop25 | grep '^/dev/' | grep '*' | awk '{print $3,$4}'";
-
     if (address == -1)
     {
         LOG_ERROR(logger.GET_LOGGER(), "Error: the address was not initialized correctly.");
         return false;
     }
+
+    char verify_address_command[256];
+    sprintf(verify_address_command, "sudo fdisk -l %s | grep '^/dev/' | grep '*' | awk '{print $3,$4}'", DEV_LOOP);
+
     std::string result = runCommand(verify_address_command);
     if (result.length() < 3)
     {
-        LOG_WARN(logger.GET_LOGGER(), "No boot partition found");
+        /* LOG_WARN(logger.GET_LOGGER(), "No boot partition found"); */
         return true;
     }
     std::string::size_type pos = result.find(' ');
@@ -118,8 +120,8 @@ bool MemoryManager::availableAddress(off_t address)
 bool MemoryManager::availableMemory(off_t size_of_data)
 {
     constexpr size_t SECTOR_SIZE = 512;
-
-    char verify_memory_command[] = "sudo fdisk -l /dev/loop25 | grep '^/dev/' | grep -v '*' | awk '{print $3}'";
+    char verify_memory_command[256];
+    sprintf(verify_memory_command, "sudo fdisk -l %s | grep '^/dev/' | grep -v '*' | awk '{print $3}'", DEV_LOOP);
     std::string result = runCommand(verify_memory_command);
     if (result.length() < 3)
     {

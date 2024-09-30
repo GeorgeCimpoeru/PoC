@@ -41,16 +41,20 @@ public:
      * @brief Construct a new Diagnostic Session Control object
      * this will be used in MCU module.
      * 
+     * @param logger A logger instance used to record information and errors during the execution.
+     * @param socket The socket descriptor used for communication over the CAN bus.
      */
-    DiagnosticSessionControl(Logger* logger, int socket);
+    DiagnosticSessionControl(Logger& logger, int socket);
     /**
      * @brief Construct a new Diagnostic Session Control object
      * with a parameter given for 'module_id'. For example, battery
      * will currently use 0x11 as 'module_id'.
      * 
-     * @param module_id 
+     * @param module_id Custom module identifier.
+     * @param logger A logger instance used to record information and errors during the execution.
+     * @param socket The socket descriptor used for communication over the CAN bus.
      */
-    DiagnosticSessionControl(int module_id, Logger* logger, int socket);
+    DiagnosticSessionControl(int module_id, Logger& logger, int socket);
 
     /**
      * @brief Destroy the Diagnostic Session Control object
@@ -61,8 +65,8 @@ public:
     /**
      * @brief Method to control the switch between sessions
      * 
-     * @param id 
-     * @param sub_function 
+     * @param id An unique identifier for the CAN frame.
+     * @param sub_function A 1 byte value that specifies a particular diagnostic service.
      */
     void sessionControl(canid_t frame_id, uint8_t sub_function);
 
@@ -76,23 +80,29 @@ public:
     /**
      * @brief Get the Current Session of object, as a String
      * 
-     * @return std::string +
+     * @return std::string + The current session
      */
     static std::string getCurrentSessionToString();
-
-    /**
-     * @brief Method that call the negative response service
-     * 
-     * @param response_code 
-     */
-    void sendNegativeResponse(uint8_t response_code);
+   
+    static DiagnosticSession current_session;
 
 private:
     int module_id;
-    Logger* dsc_logger;
-    static DiagnosticSession current_session;
+    Logger& dsc_logger;
     int socket = -1;
+
+    /**
+     * @brief Method to switch the current session to Default session
+     * 
+     * @param frame_id The id of the received frame.
+     */
     void switchToDefaultSession(canid_t frame_id);
+
+    /**
+     * @brief Method to switch the current session to Programming session
+     * 
+     * @param frame_id The id of the received frame.
+     */
     void switchToProgrammingSession(canid_t frame_id);
 };
 

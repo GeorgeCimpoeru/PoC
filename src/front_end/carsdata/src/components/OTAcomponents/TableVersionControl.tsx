@@ -13,7 +13,6 @@ const TableVersionControl = (props: any) => {
         if (popupElement || popupStyleElement || overlayElement) {
             return;
         }
-
         overlayElement = document.createElement('div');
         overlayElement.style.position = 'fixed';
         overlayElement.style.top = '0';
@@ -37,7 +36,7 @@ const TableVersionControl = (props: any) => {
         popupElement.style.borderRadius = '10px';
         popupElement.style.zIndex = '1000';
         popupElement.style.textAlign = 'center';
-
+      
         const loadingCircle = document.createElement('div');
         loadingCircle.style.width = '40px';
         loadingCircle.style.height = '40px';
@@ -86,7 +85,6 @@ const TableVersionControl = (props: any) => {
             document.body.removeChild(popupElement);
             document.head.removeChild(popupStyleElement);
             document.body.removeChild(overlayElement);
-
             popupElement = null;
             popupStyleElement = null;
             overlayElement = null;
