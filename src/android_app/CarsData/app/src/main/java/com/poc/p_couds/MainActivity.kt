@@ -112,7 +112,6 @@ class MainActivity : AppCompatActivity() {
             navController = navController,
             startDestination = "home"
         ) {
-            Log.d("main", "am intrat")
             composable("home") { ShowFragmentHome() }
             composable("login") { ShowFragmentLogin() }
             composable("signup") { ShowFragmentSignup() }
@@ -127,7 +126,6 @@ class MainActivity : AppCompatActivity() {
         var isLoggedIn by remember {
             mutableStateOf(sharedPreferences.getBoolean("isLoggedIn", false))
         }
-        Log.d("sa vedem", "stare isLoggedIn: $isLoggedIn")
         val email = sharedPreferences.getString("loggedInUser", "")
 
         // Extract the first name
@@ -160,7 +158,6 @@ class MainActivity : AppCompatActivity() {
                     Text("Insight")}},
             backgroundColor = Color.LightGray,
             actions = {
-                Log.d("buton", "home")
                 TextButton(onClick = { navController.navigate("home") }) {
                     Icon(Icons.Filled.Home, contentDescription = "Home", tint = Color.White)
                     Spacer(modifier = Modifier.width(8.dp))
@@ -228,7 +225,6 @@ class MainActivity : AppCompatActivity() {
         Scaffold(
             topBar = {
                 TopAppBarWithMenu(navController)
-                Log.d("topbar", "sunt in navBar")
             },
             modifier = Modifier.systemBarsPadding()
         ){  paddingValues  ->
@@ -238,6 +234,7 @@ class MainActivity : AppCompatActivity() {
                 AppNavigator(navController)
             }
         }
+
     }
 }
 

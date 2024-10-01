@@ -67,8 +67,12 @@ class HomeFragment : Fragment() {
             setContent {
                 CarsDataTheme {
                           val isLoggedIn = sharedPreferences.getBoolean("isLoggedIn",false)
-                          HomeScreen(onVinSubmitted = {_ ->
-                              navigateToAccessibilityFragment(activity)
+                          HomeScreen(onVinSubmitted = { vinText ->
+                              val accessibilityFragment = AccessibilityFragment()
+                              val bundle = Bundle()
+                              bundle.putString("VIN", vinText)
+                              accessibilityFragment.arguments = bundle
+                              navigateToAccessibilityFragment(activity, accessibilityFragment)
                           }, isLoggedIn = isLoggedIn)
                 }
             }
@@ -102,12 +106,11 @@ class HomeFragment : Fragment() {
         )
     }
 
-    private fun navigateToAccessibilityFragment(activity: FragmentActivity?) {
-        val fragment = AccessibilityFragment()
+    private fun navigateToAccessibilityFragment(activity: FragmentActivity?, accessibilityFragment: AccessibilityFragment) {
 
         val fragmentManager = activity?.supportFragmentManager
         fragmentManager?.beginTransaction()
-            ?.replace(R.id.fragment_container_view, fragment)
+            ?.replace(R.id.fragment_container_view, accessibilityFragment)
             ?.addToBackStack(null)
             ?.commit()
     }
