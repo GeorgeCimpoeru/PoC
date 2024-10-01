@@ -110,26 +110,26 @@ void WriteDataByIdentifier::WriteDataByIdentifierService(canid_t frame_id, std::
         DataParameter data_parameter(frame_data.begin() + 4, frame_data.end());
         uint8_t receiver_id = frame_id & 0xFF;
 
-        std::string file_name;
+        std::string file_name = std::string(PROJECT_PATH);
         if (receiver_id == 0x10)
         {
-            file_name = "mcu_data.txt";
+            file_name += "/src/mcu/mcu_data.txt";
         }
         else if (receiver_id == 0x11)
         {
-            file_name = "battery_data.txt";
+            file_name += "/src/ecu_simulation/BatteryModule/battery_data.txt";
         }
         else if (receiver_id == 0x12)
         {
-            file_name = "engine_data.txt";
+            file_name += "/src/ecu_simulation/EngineModule/engine_data.txt";
         }
         else if (receiver_id == 0x13)
         {
-            file_name = "doors_data.txt";
+            file_name += "/src/ecu_simulation/DoorsModule/doors_data.txt";
         }
         else if (receiver_id == 0x14)
         {
-            file_name = "hvac_data.txt";
+            file_name += "/src/ecu_simulation/HVACModule/hvac_data.txt";
         }
         else
         {
