@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".Fragment_Update">
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="15dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CAN Interface Control"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:textSize="20sp"
+                android:layout_marginTop="30dp"
+                android:layout_marginBottom="30dp"/>
+
+            <GridLayout
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="2"
+                android:rowCount="1"
+                android:paddingHorizontal="15dp">
+                <Switch
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tester present"/>
+                <Switch
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Session"/>
+                <Switch
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Read current access timing"/>
+            </GridLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingHorizontal="15dp">
+                <Button
+                    android:id="@+id/docs"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Go to Docs"
+                    android:textAllCaps="false"
+                    android:backgroundTint="#03A9F4"
+                    android:layout_marginTop="10dp"/>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginLeft="10dp"
+                    >
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="ECU to reset:"
+                         />
+                    <Spinner
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="#03A9F4"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginLeft="10dp"
+                    >
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Type of reset"
+                        />
+                    <Spinner
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="#03A9F4"/>
+                </LinearLayout>
+            </LinearLayout>
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CAN ID:"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                android:layout_marginTop="30dp"/>
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="e.g, 0xFa, 0x1234"
+
+                />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CAN Data:"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                android:layout_marginTop="30dp"/>
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="e.g, 0x12, 0x34"
+                />
+            <Button
+                android:id="@+id/send_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Send frame"
+                android:textAllCaps="false"
+                android:backgroundTint="#4CAF50"
+                android:layout_marginTop="10dp"/>
+
+            <!-- Simulate Grid view-->
+
+            <LinearLayout
+                android:layout_marginTop="30dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#56000000"
+                    android:layout_marginHorizontal="15dp"/>
+                <GridLayout
+                    xmlns:android="http://schemas.android.com/apk/res/android"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:columnCount="2"
+                    android:rowCount="1"
+                    android:paddingHorizontal="15dp">
+                    <Button
+                        android:id="@+id/q1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Read DTC"
+                        android:textAllCaps="false"
+                        android:backgroundTint="#4CAF50"/>
+                    <Button
+                        android:id="@+id/q2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Check new soft version"
+                        android:textAllCaps="false"
+                        android:backgroundTint="#FFC107"/>
+                    <Button
+                        android:id="@+id/q3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Authentication"
+                        android:textAllCaps="false"
+                        android:backgroundTint="#FFC107"/>
+                    <Button
+                        android:id="@+id/q4"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Read idetifiers"
+                        android:textAllCaps="false"
+                        android:backgroundTint="#FFC107"/>
+                    <Button
+                        android:id="@+id/q5"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Request IDs"
+                        android:textAllCaps="false"
+                        android:backgroundTint="#03A9F4"/>
+                    <Button
+                        android:id="@+id/q6"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="WriteTiming"
+                        android:textAllCaps="false"
+                        android:backgroundTint="#03A9F4"/>
+
+
+                </GridLayout>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#56000000"
+                    android:layout_marginHorizontal="15dp"/>
+
+                <GridLayout
+                    xmlns:android="http://schemas.android.com/apk/res/android"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:columnCount="2"
+                    android:rowCount="1"
+                    android:paddingHorizontal="15dp">
+                    <!-- TODO - read battery, write battery buttons need spinners to select the param-->
+                    <Button
+                        android:id="@+id/q7"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Read battery param"
+                        android:textAllCaps="false"
+                        android:backgroundTint="#03A9F4"/>
+                    <Button
+                        android:id="@+id/q8"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Write battery param"
+                        android:textAllCaps="false"
+                        android:backgroundTint="#03A9F4"/>
+                    <Button
+                        android:id="@+id/q9"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Read Info Engine"
+                        android:textAllCaps="false"
+                        android:backgroundTint="#03A9F4"/>
+                    <Button
+                        android:id="@+id/q10"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Write Info Engine"
+                        android:textAllCaps="false"
+                        android:backgroundTint="#03A9F4"/>
+                    <Button
+                        android:id="@+id/q11"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Read Info Doors"
+                        android:textAllCaps="false"
+                        android:backgroundTint="#03A9F4"/>
+                    <Button
+                        android:id="@+id/q12"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Write Doors Info"
+                        android:textAllCaps="false"
+                        android:backgroundTint="#03A9F4"/>
+
+
+                </GridLayout>
+
+
+            </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginTop="20dp"
+                android:text="PoC, 2024©"/>
+        </LinearLayout>
+
+
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
