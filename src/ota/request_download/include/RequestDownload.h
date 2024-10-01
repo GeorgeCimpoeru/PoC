@@ -77,11 +77,13 @@ public:
      */
     void requestDownloadResponse(canid_t id, int memory_address, int max_number_block);
 
+    static size_t getMaxNumberBlock();
 private:
     int socket = -1;
     Logger& RDSlogger;
 
     GenerateFrames generate_frames;
+    static size_t max_number_block;
     /**
      * @brief Method for validation of the provided memory address and size, ensuring they are within acceptable bounds and logical ranges.
      *

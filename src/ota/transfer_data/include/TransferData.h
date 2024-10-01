@@ -40,7 +40,8 @@ class TransferData
     bool is_first_transfer;
     size_t total_size;
     size_t bytes_sent;
-
+    size_t chunk_size = 0;
+    uint8_t expected_transfer_data_requests = 0;
 
 };
 

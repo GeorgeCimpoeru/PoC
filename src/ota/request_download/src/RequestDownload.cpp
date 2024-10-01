@@ -2,6 +2,8 @@
 #include "../include/RequestDownload.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 
+size_t RequestDownloadService::max_number_block = 0;
+
 RequestDownloadService::RequestDownloadService(Logger& RDSlogger)
                         : RDSlogger(RDSlogger), generate_frames(socket, RDSlogger)
 {
@@ -199,8 +201,8 @@ int RequestDownloadService::calculate_max_number_block(int memory_size)
 {
     /* max_number_block = maximum number of bytes for 1 transfer data */
     int max_number_block = (memory_size / MAX_TRANSFER_DATA_REQUESTS) + (memory_size % MAX_TRANSFER_DATA_REQUESTS != 0);
-    
-    return max_number_block;
+    RequestDownloadService::max_number_block = static_cast<size_t>(max_number_block);
+    return max_number_block;    
 }
 
 void RequestDownloadService::requestDownloadAutomatic(canid_t id, int memory_address, int max_number_block)
@@ -545,4 +547,9 @@ bool RequestDownloadService::extractZipFile(uint8_t target_id, const std::string
 
     zip_close(archive);
     return true;
+}
+
+size_t RequestDownloadService::getMaxNumberBlock()
+{
+    return RequestDownloadService::max_number_block;
 }

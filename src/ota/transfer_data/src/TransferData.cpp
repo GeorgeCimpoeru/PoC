@@ -22,10 +22,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
     static size_t total_size = 0;
     /* Keep track of how many bytes have been tracked */
     static size_t bytes_sent = 0;
-    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING});
     NegativeResponse nrc(socket, transfer_data_logger);
-    /* Define chunk_size as 1MB chunk */
-    size_t chunk_size = 0x500000;
     uint8_t block_sequence_counter = transfer_request[2];
     std::vector<uint8_t> response;
     /* Extract and switch sender and receiver */
@@ -51,8 +48,16 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
         return;
     }
     else
-    {        
-        static bool is_first_transfer = true;
+    {   OtaUpdateStatesEnum ota_state = static_cast<OtaUpdateStatesEnum>(MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0]);
+        if(ota_state == WAIT_DOWNLOAD_COMPLETED)
+        {
+            is_first_transfer = true;
+            /* Get chunk_size from request download */
+            chunk_size = static_cast<size_t>(RequestDownloadService::getMaxNumberBlock());
+            /* set expected transfer data requests that is defined in request download */
+            expected_transfer_data_requests = MAX_TRANSFER_DATA_REQUESTS;
+            MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING});
+        }
 
         /* Handle the transfer of parameter record (data after PCI, SID and block sequence countre in the frame format of transfer data)*/
         if (transfer_request.size() > 3)
