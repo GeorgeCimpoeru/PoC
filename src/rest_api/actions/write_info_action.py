@@ -257,7 +257,7 @@ class WriteInfo(Action):
             log_info_message(logger, f"Data written successfully to ECU ID: {ECU_HVAC}")
             response_json = self._to_json("success", 0)
             return response_json
-        
+
         except CustomError:
             self.bus.shutdown()
             nrc_msg = self.last_msg.data[3] if self.last_msg and len(self.last_msg.data) > 3 else 0x00

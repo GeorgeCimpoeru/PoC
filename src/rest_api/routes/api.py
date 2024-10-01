@@ -103,6 +103,7 @@ def write_info_battery():
     response = writer.write_to_battery(data)
     return jsonify(response)
 
+
 @api_bp.route('/write_info_engine', methods=['POST'])
 @requires_auth
 def write_info_engine():
@@ -119,6 +120,7 @@ def write_info_hvac():
     writer = WriteInfo(API_ID, [0x10, 0x11, 0x12, 0x13, 0x14], data)
     response = writer.write_to_hvac(data)
     return jsonify(response)
+
 
 @api_bp.route('/logs')
 def get_logs():
