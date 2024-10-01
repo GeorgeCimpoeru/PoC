@@ -87,20 +87,38 @@ def send_frame():
 
 
 @api_bp.route('/write_info_doors', methods=['POST'])
+@requires_auth
 def write_info_doors():
     data = request.get_json()
-    writer = WriteInfo(API_ID, [0x10, 0x11, 0x12], data)
-    response = writer.write_to_doors()
+    writer = WriteInfo(API_ID, [0x10, 0x11, 0x12, 0x13, 0x14], data)
+    response = writer.write_to_doors(data)
     return jsonify(response)
 
 
 @api_bp.route('/write_info_battery', methods=['POST'])
+@requires_auth
 def write_info_battery():
     data = request.get_json()
     writer = WriteInfo(API_ID, [0x10, 0x11, 0x12], data)
     response = writer.write_to_battery(data)
     return jsonify(response)
 
+@api_bp.route('/write_info_engine', methods=['POST'])
+@requires_auth
+def write_info_engine():
+    data = request.get_json()
+    writer = WriteInfo(API_ID, [0x10, 0x11, 0x12, 0x13, 0x14], data)
+    response = writer.write_to_engine(data)
+    return jsonify(response)
+
+
+@api_bp.route('/write_info_hvac', methods=['POST'])
+@requires_auth
+def write_info_hvac():
+    data = request.get_json()
+    writer = WriteInfo(API_ID, [0x10, 0x11, 0x12, 0x13, 0x14], data)
+    response = writer.write_to_hvac(data)
+    return jsonify(response)
 
 @api_bp.route('/logs')
 def get_logs():
