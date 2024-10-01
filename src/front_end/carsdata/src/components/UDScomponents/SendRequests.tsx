@@ -296,7 +296,25 @@ const SendRequests = () => {
         }
     };
 
-    const readInfoEngine = async () => { }
+    const readInfoEngine = async () => { 
+        displayLoadingCircle();
+        console.log("Reading info engine..");
+        try {
+            await fetch(`http://127.0.0.1:5000/api/read_info_engine`, {
+                method: 'GET',
+            }).then(response => response.json())
+                .then(data => {
+                    setData23(data);
+                    console.log(data);
+                    fetchLogs();
+                });
+        } catch (error) {
+            console.log(error);
+            removeLoadingCicle();
+        }
+        removeLoadingCicle();
+    }
+
     const writeInfoEngine = async () => { }
 
     const readInfoDoors = async () => {
