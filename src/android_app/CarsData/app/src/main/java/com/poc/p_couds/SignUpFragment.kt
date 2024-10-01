@@ -52,22 +52,19 @@ class SignUpFragment : Fragment() {
         // Inflate the layout for this fragment
         return ComposeView(requireContext()).apply {
             setContent {
-                FragmentContent()
+                //FragmentContent()
+                CarsDataTheme {
+                SignUpScreen {email, password, cpassword ->
+                    println("Email: $email, Password: $password, Confirm password: $cpassword")
+                    //call login api in future implementation
+                    //for testing purposes
+                    performSignUp(email, password, cpassword)
+                }
+                }
             }
         }
     }
 
-    @Composable
-    fun FragmentContent() {
-        CarsDataTheme {
-            SignUpScreen {email, password, cpassword ->
-                println("Email: $email, Password: $password, Confirm password: $cpassword")
-                //call login api in future implementation
-                //for testing purposes
-                performSignUp(email, password, cpassword)
-            }
-        }
-    }
 
     // Function to simulate an API call
     internal fun performSignUp(email: String, password: String, cpassword: String) {
