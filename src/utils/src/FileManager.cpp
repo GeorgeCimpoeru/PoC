@@ -1,4 +1,5 @@
 #include "../include/FileManager.h"
+#include <unistd.h>
 
 void FileManager::writeMapToFile(const std::string& file_name, const std::unordered_map<uint16_t, std::vector<uint8_t>>& data_map)
 {
@@ -118,7 +119,7 @@ void FileManager::writeDTC(std::unordered_map<uint16_t, std::vector<uint8_t>>& d
     }
 }
 
-bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t param, Logger& rc_logger, uint8_t version = 0x00)
+bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t param, Logger& logger, const std::string& version)
 {
     if(param > 2)
     {
@@ -131,7 +132,7 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
         {
             if(param == 0)
             {
-                ecu_path = std::string(PROJECT_PATH) + "/MCU_SW_VERSION_" + std::to_string(version) + ".zip";
+                ecu_path = std::string(PROJECT_PATH) + "/MCU_SW_VERSION_" + version + ".zip";
             }
             else
             {
@@ -143,7 +144,7 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
         {
             if(param == 0)
             {
-                ecu_path = std::string(PROJECT_PATH) + "/ECU_BATTERY_SW_VERSION_" + std::to_string(version) + ".zip";
+                ecu_path = std::string(PROJECT_PATH) + "/ECU_BATTERY_SW_VERSION_" + version + ".zip";
             }
             else
             {
@@ -155,7 +156,7 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
         {
             if(param == 0)
             {
-                ecu_path = std::string(PROJECT_PATH) + "/ECU_ENGINE_SW_VERSION_" + std::to_string(version) + ".zip";
+                ecu_path = std::string(PROJECT_PATH) + "/ECU_ENGINE_SW_VERSION_" + version + ".zip";
             }
             else
             {
@@ -167,7 +168,7 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
         {
             if(param == 0)
             {
-                ecu_path = std::string(PROJECT_PATH) + "/ECU_DOORS_SW_VERSION_" + std::to_string(version) + ".zip";
+                ecu_path = std::string(PROJECT_PATH) + "/ECU_DOORS_SW_VERSION_" + version + ".zip";
             }
             else
             {
@@ -179,7 +180,7 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
         {
             if(param == 0)
             {
-                ecu_path = std::string(PROJECT_PATH) + "/ECU_HVAC_SW_VERSION_" + std::to_string(version) + ".zip";
+                ecu_path = std::string(PROJECT_PATH) + "/ECU_HVAC_SW_VERSION_" + version + ".zip";
             }
             else
             {
@@ -188,9 +189,13 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
             break;
         }
         default:
-            LOG_ERROR(rc_logger.GET_LOGGER(), "No valid path for main_xxx_new.");
+            LOG_ERROR(logger.GET_LOGGER(), "No valid path for main_xxx_new.");
             return 0;
         break;
+    }
+    if(param == 1 && access((ecu_path).c_str(), F_OK) == -1)
+    {
+        return 0;
     }
     return 1;
 }

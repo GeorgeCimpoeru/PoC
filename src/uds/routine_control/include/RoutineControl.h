@@ -77,7 +77,6 @@ class RoutineControl
      */
     bool verifySoftware();
     
-    std::string selectEcuPath(canid_t can_id, bool is_base_path);
     bool getCurrentProcessInfo(pid_t& pid, std::string& pname);
 
     private:

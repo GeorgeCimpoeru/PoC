@@ -108,10 +108,24 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
             {
                 /* call writeToFile routine*/
                 LOG_INFO(rc_logger.GET_LOGGER(), "writeToFile routine called.");
-                binary_data = MemoryManager::readBinary(selectEcuPath(can_id, true), rc_logger);
+                std::string ecu_path;
+                if(FileManager::getEcuPath(lowerbits, ecu_path, 1, rc_logger) == 0)
+                {
+                    LOG_INFO(rc_logger.GET_LOGGER(), "Invalid ecu path for reading binary:\n{}", ecu_path);
+                    nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
+                    return;
+                }
+                binary_data = MemoryManager::readBinary(ecu_path, rc_logger);
                 memory_manager = MemoryManager::getInstance(rc_logger); 
                 adress_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), binary_data.size(), rc_logger);
-                MemoryManager::writeToFile(adress_data, selectEcuPath(can_id, false), rc_logger);
+
+                if(FileManager::getEcuPath(lowerbits, ecu_path, 2, rc_logger) == 0)
+                {
+                    LOG_INFO(rc_logger.GET_LOGGER(), "Invalid ecu path for writting to file:\n{}", ecu_path);
+                    nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
+                    return;
+                }
+                MemoryManager::writeToFile(adress_data, ecu_path, rc_logger);
                 routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
                 break;
             }
@@ -163,42 +177,6 @@ void RoutineControl::routineControlResponse(canid_t can_id, const uint8_t sub_fu
     LOG_INFO(rc_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame for routine: {:2x}", 0x31, routine_identifier);
                 
     AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
-}
-
-std::string RoutineControl::selectEcuPath(canid_t can_id, bool is_base_path)
-{
-    uint8_t receiver_id = can_id >> 8 & 0xFF;
-    std::string ecu_path = "";
-        switch(receiver_id)
-        {
-            case 0x10:
-                ecu_path = std::string(PROJECT_PATH) + ((is_base_path == true) ? "/main_mcu_new" : "/src/mcu/main_mcu_new");
-            break;
-            case 0x11:
-                ecu_path = std::string(PROJECT_PATH) + ((is_base_path == true) ? "/main_battery_new" : "/src/ecu_simulation/BatteryModule/main_battery_new");
-            break;
-            case 0x12:
-                ecu_path = std::string(PROJECT_PATH) + ((is_base_path == true) ? "/main_engine_new" : "/src/ecu_simulation/EngineModule/main_engine_new");
-            break;
-            case 0x13:
-                ecu_path = std::string(PROJECT_PATH) + ((is_base_path == true) ? "/main_doors_new" : "/src/ecu_simulation/DoorsModule/main_doors_new");
-            break;
-            case 0x14:
-                ecu_path = std::string(PROJECT_PATH) + ((is_base_path == true) ? "/main_hvac_new" : "/src/ecu_simulation/HvacModule/main_hvac_new");
-            break;
-            default:
-                LOG_ERROR(rc_logger.GET_LOGGER(), "No valid path for main_xxx_new.");
-            break;
-        }
-    if(is_base_path == true)
-    {
-        if(access(ecu_path.c_str(), F_OK) != 0)
-        {
-            LOG_ERROR(rc_logger.GET_LOGGER(), "No valid main_xxx_new file found in PROJECT_PATH.");
-            return "";
-        }
-    }
-    return ecu_path;
 }
 
 bool RoutineControl::initialiseOta(uint8_t target_ecu, const std::vector<uint8_t>& request, std::vector<uint8_t>& routine_result)

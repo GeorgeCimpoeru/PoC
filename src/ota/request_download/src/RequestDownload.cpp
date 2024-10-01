@@ -146,35 +146,24 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
             std::sprintf(buffer, "%x.%x", highNibble, lowNibble);
             std::string zipFilePath;
 
-            if (access((std::string(PROJECT_PATH) + "/MCU_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x10) {
-                zipFilePath = std::string(PROJECT_PATH) + "/MCU_SW_VERSION_" + buffer + ".zip";
-            }
-            else if (access((std::string(PROJECT_PATH) + "/ECU_BATTERY_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x11) {
-                zipFilePath = std::string(PROJECT_PATH) + "/ECU_BATTERY_SW_VERSION_" + buffer + ".zip";
-            }
-            else if (access((std::string(PROJECT_PATH) + "/ECU_ENGINE_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x12) {
-                zipFilePath = std::string(PROJECT_PATH) + "/ECU_ENGINE_SW_VERSION_" + buffer + ".zip";
-            }
-            else if (access((std::string(PROJECT_PATH) + "/ECU_DOORS_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x13) {
-                zipFilePath = std::string(PROJECT_PATH) + "/ECU_DOORS_SW_VERSION_" + buffer + ".zip";
-            }
-            else if (access((std::string(PROJECT_PATH) + "/ECU_HVAC_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x14) {
-                zipFilePath = std::string(PROJECT_PATH) + "/ECU_HVAC_SW_VERSION_" + buffer + ".zip";
-            }
-            else
+            if(FileManager::getEcuPath(target_id, zipFilePath, 0, RDSlogger, std::string(buffer)) == 0)
             {
                 LOG_ERROR(RDSlogger.GET_LOGGER(), "No valid zip file file found in PROJECT_PATH.");
                 MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
+                nrc.sendNRC(id, RDS_SID, NegativeResponse::UDNA);
                 return;
-            }
+            }            
 
-            std::string outputDir = std::string(PROJECT_PATH);
-
-            if (extractZipFile(target_id, zipFilePath, outputDir)) {
+            if (extractZipFile(target_id, zipFilePath, std::string(PROJECT_PATH)))
+            {
                 LOG_INFO(RDSlogger.GET_LOGGER(), "Files extracted successfully");
-            } else {
+            } 
+            else
+            {
                 LOG_ERROR(RDSlogger.GET_LOGGER(), "Failed to extract files from ZIP archive.");
                 MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
+                nrc.sendNRC(id, RDS_SID, NegativeResponse::UDNA);
+                return;
             }
         }
         else

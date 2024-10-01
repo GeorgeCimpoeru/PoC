@@ -130,22 +130,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
             {
                 /* use memory manager class to transfer the data */
                 std::string path_to_main;
-                if (access((std::string(PROJECT_PATH) + "/main_mcu_new").c_str(), F_OK) == 0 && target_id == 0x10) {
-                    path_to_main = std::string(PROJECT_PATH) + "/main_mcu_new";
-                }
-                else if (access((std::string(PROJECT_PATH) + "/main_battery_new").c_str(), F_OK) == 0 && target_id == 0x11) {
-                    path_to_main = std::string(PROJECT_PATH) + "/main_battery_new";
-                }
-                else if (access((std::string(PROJECT_PATH) + "/main_engine_new").c_str(), F_OK) == 0 && target_id == 0x12) {
-                    path_to_main = std::string(PROJECT_PATH) + "/main_engine_new";
-                }
-                else if (access((std::string(PROJECT_PATH) + "/main_doors_new").c_str(), F_OK) == 0 && target_id == 0x13) {
-                    path_to_main = std::string(PROJECT_PATH) + "/main_doors_new";
-                }
-                else if (access((std::string(PROJECT_PATH) + "/main_hvac_new").c_str(), F_OK) == 0 && target_id == 0x14) {
-                    path_to_main = std::string(PROJECT_PATH) + "/main_hvac_new";
-                }
-                else
+                if(FileManager::getEcuPath(target_id, path_to_main, 1, transfer_data_logger) == 0)
                 {
                     nrc.sendNRC(can_id, TD_SID, NegativeResponse::TDS);
                     MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_FAILED});
