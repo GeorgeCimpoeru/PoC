@@ -78,9 +78,9 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
             case 0x0201:
             {
                 /* Initialise OTA Update */
-                if(DiagnosticSessionControl::getCurrentSessionToString() != "FOTA_SESSION")
+                if(DiagnosticSessionControl::getCurrentSessionToString() != "EXTENDED_DIAGNOSTIC_SESSION")
                 {
-                    LOG_WARN(rc_logger.GET_LOGGER(), "OTA update can be initialised only in FOTA session");
+                    LOG_WARN(rc_logger.GET_LOGGER(), "OTA update can be initialised only in EXTENDED_DIAGNOSTIC_SESSION");
                     nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
                     return;
                 }

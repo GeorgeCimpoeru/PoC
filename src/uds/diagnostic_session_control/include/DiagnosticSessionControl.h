@@ -26,13 +26,13 @@
 const uint8_t SID_DIAGNOSTIC_SESSION_CONTROL = 0x10;
 const uint8_t SUB_FUNCTION_DEFAULT_SESSION = 1;
 const uint8_t SUB_FUNCTION_PROGRAMMING_SESSION = 2;
-const uint8_t SUB_FUNCTION_FOTA_SESSION = 3;
+const uint8_t SUB_FUNCTION_EXTENDED_DIAGNOSTIC_SESSION = 3;
 
 enum DiagnosticSession
 {
     DEFAULT_SESSION = 0x01,
     PROGRAMMING_SESSION,
-    FOTA_SESSION
+    EXTENDED_DIAGNOSTIC_SESSION
     /* Other sessions can be defined here */
 };
 

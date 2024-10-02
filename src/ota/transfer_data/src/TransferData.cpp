@@ -48,7 +48,6 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
     {
         /* Wrong block sequence counter - prepare a negative response */
         nrc.sendNRC(can_id, TD_SID, NegativeResponse::WBSC);
-        MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_FAILED});
         return;
     }
     else

@@ -41,8 +41,8 @@ void DiagnosticSessionControl::sessionControl(canid_t frame_id, uint8_t sub_func
     case SUB_FUNCTION_PROGRAMMING_SESSION:
         switchSession(frame_id, PROGRAMMING_SESSION);
         break;
-    case SUB_FUNCTION_FOTA_SESSION:
-        switchSession(frame_id, FOTA_SESSION);
+    case SUB_FUNCTION_EXTENDED_DIAGNOSTIC_SESSION:
+        switchSession(frame_id, EXTENDED_DIAGNOSTIC_SESSION);
         break;
     default:
         LOG_ERROR(dsc_logger.GET_LOGGER(), "Unsupported sub-function");
@@ -140,8 +140,8 @@ std::string DiagnosticSessionControl::getCurrentSessionToString()
         return "DEFAULT_SESSION";
     case PROGRAMMING_SESSION:
         return "PROGRAMMING_SESSION";
-    case FOTA_SESSION:
-        return "FOTA_SESSION";
+    case EXTENDED_DIAGNOSTIC_SESSION:
+        return "EXTENDED_DIAGNOSTIC_SESSION";
     default:
         return "UNKNOWN_SESSION";
     }
