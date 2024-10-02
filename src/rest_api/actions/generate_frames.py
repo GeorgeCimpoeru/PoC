@@ -3,6 +3,7 @@ from utils.logger import SingletonLogger
 from config import Config
 import threading
 import subprocess
+from utils.can_bridge import CanBridge
 
 can_lock = threading.Lock()
 
@@ -15,11 +16,9 @@ logger_frame = logger_singleton.logger_frame
 class GenerateFrame:
     def __init__(self, bus=None):
         if bus is None:
-            if self.is_interface_up(Config.CAN_CHANNEL):
-                self.bus = can.interface.Bus(channel=Config.CAN_CHANNEL, bustype='socketcan')
-                logger.info(f"Connected to CAN interface {Config.CAN_CHANNEL}.")
-            else:
-                raise RuntimeError(f"CAN interface {Config.CAN_CHANNEL} is not up. Please bring it up before initializing.")
+            bridge = CanBridge()
+            bridge.run()
+            self.bus = bridge.get_bus()
         else:
             self.bus = bus
 
