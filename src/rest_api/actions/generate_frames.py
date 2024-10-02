@@ -18,9 +18,10 @@ class GenerateFrame:
             bridge = CanBridge()
             bridge.run()
             self.bus = bridge.get_bus()
-            self.send = bridge.send_frame()
+            self.send = bridge.send_frame
         else:
             self.bus = bus
+            self.send = bridge.send_frame
 
     @staticmethod
     def is_interface_up(interface: str) -> bool:
