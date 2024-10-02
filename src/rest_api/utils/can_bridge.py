@@ -3,9 +3,8 @@ import socket
 import struct
 import subprocess
 import threading
-# from config import Config
+from config import Config
 from utils.logger import SingletonLogger
-from ..config import Config
 
 can_lock = threading.Lock()
 
