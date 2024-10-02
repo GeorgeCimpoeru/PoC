@@ -5,6 +5,7 @@ from config import Config
 from actions.base_actions import *
 from utils.can_bridge import CanBridge
 
+
 def manual_send_frame(can_id, can_data):
     log_info_message(logger, "Starting manual_send_frame function")
     data = request.get_json()

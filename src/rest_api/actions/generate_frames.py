@@ -1,6 +1,5 @@
 import can
 from utils.logger import SingletonLogger
-from config import Config
 import threading
 import subprocess
 from utils.can_bridge import CanBridge
@@ -28,9 +27,7 @@ class GenerateFrame:
         Check if the given network interface is up.
         """
         try:
-            # Run the 'ip link show' command to check the status of the interface
             result = subprocess.run(['ip', 'link', 'show', interface], capture_output=True, text=True)
-            # Check if the result contains "state UP"
             return "state UP" in result.stdout
         except Exception as e:
             logger.info(f"Error checking interface status: {e}")

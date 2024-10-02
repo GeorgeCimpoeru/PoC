@@ -5,6 +5,7 @@ import subprocess
 import threading
 from config import Config
 
+
 class CanBridge:
     def __init__(self):
         """
