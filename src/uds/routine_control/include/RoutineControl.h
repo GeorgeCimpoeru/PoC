@@ -17,6 +17,14 @@
 #include "../../../utils/include/NegativeResponse.h"
 #include "../../authentication/include/SecurityAccess.h"
 
+#define ERASE_MEMORY_RC_ID (0x0101)
+#define INSTALL_UPDATES_RC_ID (0x0201)
+#define WRITE_TO_FILE_RC_ID (0x0301)
+#define INIT_OTA_RC_ID (0x0401)
+#define VERIFY_SW_RC_ID (0x0501)
+#define ROLLBACK_SW_RC_ID (0x0601)
+#define ACTIVATE_SW_RC_ID (0x0701)
+
 class RoutineControl
 {
     public:
@@ -43,22 +51,15 @@ class RoutineControl
     * @param request Data from a can frame that contains PCI, SID and routineIdentifier.
     * @param routine_identifier Routine identifier.
     */
-    void routineControlResponse(canid_t can_id, const std::vector<uint8_t>& request, const uint16_t& routine_identifier);
+    void routineControlResponse(canid_t can_id, uint8_t sub_function, const uint16_t& routine_identifier, std::vector<uint8_t>& routine_result);
     
-    /**
-    * @brief Method to return a path string based on the receiver id.
-    * 
-    * @param can_id The frame id.
-    * @return Returns a path string
-    */
-
     /**
      * @brief 
      * 
      * @return true 
      * @return false 
      */
-    bool initialiseOta();
+    bool initialiseOta(uint8_t target_ecu, const std::vector<uint8_t>& request, std::vector<uint8_t>& routine_result);
 
     /**
      * @brief 
@@ -76,7 +77,15 @@ class RoutineControl
      */
     bool verifySoftware();
     
-    std::string selectEcuPath(canid_t can_id);
+    /**
+     * @brief Get the Current Process Informations
+     * 
+     * @param pid 
+     * @param pname 
+     * @return true 
+     * @return false 
+     */
+    bool getCurrentProcessInfo(pid_t& pid, std::string& pname);
 
     private:
     GenerateFrames generate_frames;

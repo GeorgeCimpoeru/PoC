@@ -2,6 +2,8 @@
 #include "../include/RequestDownload.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 
+size_t RequestDownloadService::max_number_block = 0;
+
 RequestDownloadService::RequestDownloadService(Logger& RDSlogger)
                         : RDSlogger(RDSlogger), generate_frames(socket, RDSlogger)
 {
@@ -18,14 +20,16 @@ RequestDownloadService::~RequestDownloadService()
 }
 
 /**RequestDownload- request method 
- * Expected request:  pci_l + sid + data_format_identifier  +  address_memory_length + memory_address[] +  memory_size[]               +          download_type
- * Expected request:  pci_l + sid + data_format_identifier  +  address_memory_length + memory_address[] +  memory_size[]               +          download_type
- *  Index               [0]   [1]              [2]                  [3]             [3 + size(memory_adress)]  [3+size(memory_adress+memory_size)]  [3+size(memory_adress+memory_size)+1]
+ * Expected request:  pci_l + sid + data_format_identifier  +  address_memory_length + memory_address[] +  memory_size[] + software_version
+ *  Index               [0]   [1]              [2]                  [3]                     [4,5]             [6]               [7]                        
  */
 void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint8_t> stored_data)
 {
+    NegativeResponse nrc(socket, RDSlogger);
     LOG_INFO(RDSlogger.GET_LOGGER(), "Service 0x34 RequestDownload");
-
+    auto ota_status = MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0];
+    /* This will be replaced by OTA Session */
+    bool ota_initialised = (ota_status == INIT);
     /* Extract and switch sender and receiver */
     uint8_t receiver_id = id  & 0xFF;
     uint8_t sender_id = (id >> 8) & 0xFF;
@@ -34,35 +38,6 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     uint8_t target_id = (id >> 16) & 0xFF;
     /* Reverse IDs, target id will be in same position but receiver will be switched with sender */
     id = (target_id << 16) | (receiver_id << 8) | sender_id;
-    NegativeResponse nrc(socket, RDSlogger);
-    if (stored_data.size() < 7)
-    {
-        /* Incorrect message length or invalid format - prepare a negative response */
-        nrc.sendNRC(id, RDS_SID, NegativeResponse::IMLOIF);
-        return;
-    }
-    /** data format identifier is 0x00 when no compression or encryption method is used 
-     * 0x11 when both compression and encryption are used
-     * 0x01 when only encryption is used
-     * 0x10 when only compression is used
-     * we can define more values later if needed
-     */
-    std::unordered_set<uint8_t> valid_data_format_indentifiers = {0x00, 0x01, 0x10, 0x11};
-    if (valid_data_format_indentifiers.find(stored_data[2]) == valid_data_format_indentifiers.end())
-    {
-        /* Request out of range - prepare a negative response */
-        nrc.sendNRC(id, RDS_SID, NegativeResponse::ROOR);
-        return;
-    }
-    /* extract method returns IMLOIF if full length check fails */
-    std::pair<int,int> address_and_size_length = extractSizeAndAddressLength(id, stored_data);
-    int length_memory_address = address_and_size_length.first;
-    int length_memory_size = address_and_size_length.second;
-
-    std::pair<int,int> address_and_size = extractSizeAndAddress(stored_data, length_memory_address, length_memory_size);
-    int memory_address = address_and_size.first;
-    int memory_size = address_and_size.second;
-
 
     if (receiver_id == 0x10 && !SecurityAccess::getMcuState(RDSlogger))
     {
@@ -80,7 +55,49 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
         return;
     }
 
+    if (stored_data.size() < 7)
+    {
+        /* Incorrect message length or invalid format - prepare a negative response */
+        nrc.sendNRC(id, RDS_SID, NegativeResponse::IMLOIF);
+        return;
+    }
+
+    if(ota_status != IDLE && ota_status != INIT)
+    {
+        LOG_WARN(RDSlogger.GET_LOGGER(), "Service 0x34 RequestDownload can be used only from an INIT or IDLE state, current OTA state is {:x}", ota_status);
+        nrc.sendNRC(id, RDS_SID, NegativeResponse::CNC);
+        return;
+    }
+    /** data format identifier is 0x00 when no compression or encryption method is used 
+     * 0x11 when both compression and encryption are used
+     * 0x01 when only encryption is used
+     * 0x10 when only compression is used
+     * we can define more values later if needed
+     */
+    std::unordered_set<uint8_t> valid_data_format_indentifiers = {0x00, 0x01, 0x10, 0x11};
+    if (valid_data_format_indentifiers.find(stored_data[2]) == valid_data_format_indentifiers.end())
+    {
+        /* Request out of range - prepare a negative response */
+        nrc.sendNRC(id, RDS_SID, NegativeResponse::ROOR);
+        return;
+    }
+
     MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT});
+
+    /* extract method returns IMLOIF if full length check fails */
+    std::pair<int,int> address_and_size_length = extractSizeAndAddressLength(id, stored_data);
+    int length_memory_address = address_and_size_length.first;
+    int length_memory_size = address_and_size_length.second;
+
+    std::pair<int,int> address_and_size = extractSizeAndAddress(stored_data, length_memory_address, length_memory_size);
+    int memory_address = address_and_size.first;
+    int memory_size = address_and_size.second;
+
+    if(ota_initialised == 1)
+    {   
+        /* OTA initialised, convert from MB to bytes */
+        memory_size *= 1000000;
+    }
 
     /* Validate memory address and size */
     if (!isValidMemoryRange(memory_address, memory_size))
@@ -91,36 +108,34 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
         MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
         return;
     }
+    /* Extract and Log the data_format_identifier information */
+    uint8_t data_format_identifier = stored_data[2];
+    LOG_INFO(RDSlogger.GET_LOGGER(), "Data Format Identifier: 0x{0:x}", static_cast<int>(data_format_identifier));
+    uint8_t compression_type = (data_format_identifier & 0xF0) >> 4;
+    LOG_INFO(RDSlogger.GET_LOGGER(), "Compression Type: 0x{0:x}", static_cast<int>(compression_type));
+    uint8_t encryption_type = data_format_identifier & 0x0F;
+    LOG_INFO(RDSlogger.GET_LOGGER(), "Encryption Type: 0x{0:x}", static_cast<int>(encryption_type));
+
     /* Check if software is at the latest version */ 
-    else if (!isLatestSoftwareVersion())
+    if (ota_initialised && !isLatestSoftwareVersion())
     {
         LOG_INFO(RDSlogger.GET_LOGGER(), "Software is not at the latest version");
         MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
         return;
     }
-    else
+    /* Check for compression */ 
+    if (compression_type == 0x0) 
     {
-        /* Extract and Log the data_format_identifier information */
-        uint8_t data_format_identifier = stored_data[2];
-        LOG_INFO(RDSlogger.GET_LOGGER(), "Data Format Identifier: 0x{0:x}", static_cast<int>(data_format_identifier));
-        uint8_t compression_type = (data_format_identifier & 0xF0) >> 4;
-        LOG_INFO(RDSlogger.GET_LOGGER(), "Compression Type: 0x{0:x}", static_cast<int>(compression_type));
-        uint8_t encryption_type = data_format_identifier & 0x0F;
-        LOG_INFO(RDSlogger.GET_LOGGER(), "Encryption Type: 0x{0:x}", static_cast<int>(encryption_type));
-
-        /* Calculate the position for software version*/ 
-        size_t position_software_version = 4 + length_memory_address + length_memory_size;
-        uint8_t software_version = stored_data[position_software_version];
-        /* 0x12 => 0001 0010* => v2.2, offset 1 */
-        downloadSoftwareVersion(target_id, software_version);
-
-        /* Check for compression */ 
-        if (compression_type == 0x0) 
+        LOG_INFO(RDSlogger.GET_LOGGER(), "No compression method used");
+    } 
+    else 
+    {
+        if(ota_initialised)
         {
-            LOG_INFO(RDSlogger.GET_LOGGER(), "No compression method used");
-        } 
-        else 
-        {
+            /* Calculate the position for software version*/ 
+            size_t position_software_version = 4 + length_memory_address + length_memory_size;
+            uint8_t software_version = stored_data[position_software_version];
+            /* 0x12 => 0001 0010* => v2.2, offset 1 */
             /* 2 digits + '.' + 2 digits + null terminator */
             char buffer[5];
             /* Map 0-15 to 1-16 */
@@ -132,70 +147,61 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
             std::sprintf(buffer, "%x.%x", highNibble, lowNibble);
             std::string zipFilePath;
 
-            if (access((std::string(PROJECT_PATH) + "/MCU_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x10) {
-                zipFilePath = std::string(PROJECT_PATH) + "/MCU_SW_VERSION_" + buffer + ".zip";
-            }
-            else if (access((std::string(PROJECT_PATH) + "/ECU_BATTERY_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x11) {
-                zipFilePath = std::string(PROJECT_PATH) + "/ECU_BATTERY_SW_VERSION_" + buffer + ".zip";
-            }
-            else if (access((std::string(PROJECT_PATH) + "/ECU_DOORS_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x12) {
-                zipFilePath = std::string(PROJECT_PATH) + "/ECU_DOORS_SW_VERSION_" + buffer + ".zip";
-            }
-            else if (access((std::string(PROJECT_PATH) + "/ECU_ENGINE_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x13) {
-                zipFilePath = std::string(PROJECT_PATH) + "/ECU_ENGINE_SW_VERSION_" + buffer + ".zip";
-            }
-            else if (access((std::string(PROJECT_PATH) + "/ECU_HVAC_SW_VERSION_" + buffer + ".zip").c_str(), F_OK) == 0 && target_id == 0x14) {
-                zipFilePath = std::string(PROJECT_PATH) + "/ECU_HVAC_SW_VERSION_" + buffer + ".zip";
-            }
-            else
+            if(FileManager::getEcuPath(target_id, zipFilePath, 0, RDSlogger, std::string(buffer)) == 0)
             {
                 LOG_ERROR(RDSlogger.GET_LOGGER(), "No valid zip file file found in PROJECT_PATH.");
                 MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
+                nrc.sendNRC(id, RDS_SID, NegativeResponse::UDNA);
                 return;
-            }
+            }            
 
-            std::string outputDir = std::string(PROJECT_PATH);
-
-            if (extractZipFile(target_id, zipFilePath, outputDir)) {
+            if (extractZipFile(target_id, zipFilePath, std::string(PROJECT_PATH)))
+            {
                 LOG_INFO(RDSlogger.GET_LOGGER(), "Files extracted successfully");
-            } else {
+            } 
+            else
+            {
                 LOG_ERROR(RDSlogger.GET_LOGGER(), "Failed to extract files from ZIP archive.");
                 MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
+                nrc.sendNRC(id, RDS_SID, NegativeResponse::UDNA);
+                return;
             }
-        }
-        /* Check for encryption */
-        if (encryption_type == 0x0)
-        {
-            LOG_INFO(RDSlogger.GET_LOGGER(), "No encryption method used");
         }
         else
         {
-            /* check if encryption is needed */
+            /* Handle compression for normal request download */
         }
-
-        int max_number_block = calculate_max_number_block(memory_size);
-        requestDownloadResponse(id, memory_address, max_number_block);
-
-        return;
     }
+    /* Check for encryption */
+    if (encryption_type == 0x0)
+    {
+        LOG_INFO(RDSlogger.GET_LOGGER(), "No encryption method used");
+    }
+    else
+    {
+        if(ota_initialised)
+        {
+            /* Handle encryption for OTA request download */
+        }
+        else
+        {
+            /* Handle encrypthion for normal request download */
+        }
+        /* check if encryption is needed */
+    }
+
+    int max_number_block = calculate_max_number_block(memory_size);
+    requestDownloadResponse(id, memory_address, max_number_block);
+
+    return;
 }
 
 int RequestDownloadService::calculate_max_number_block(int memory_size)
 {
-    /* Assuming 512 bytes as the max length */
-    int block_size = 512;
-    /* Initialize max_number_block with a value that ensures it will be updated */
-    int max_number_block = 0;
-
-    /* Calculate max_number_block as the maximum ceiling of memory_size divided by block_size */
-    int blocks_needed = (memory_size + block_size - 1) / block_size;
-    LOG_INFO(RDSlogger.GET_LOGGER(), "blocks_needed:{}", blocks_needed);
-    
-    /* Update max_number_block with the calculated blocks_needed */
-    max_number_block = blocks_needed;
-
-    LOG_INFO(RDSlogger.GET_LOGGER(), "max_number_block:{}", max_number_block);
-    return 1;
+    /* max_number_block = maximum number of bytes for 1 transfer data */
+    int max_number_block = (memory_size / MAX_TRANSFER_DATA_REQUESTS) + (memory_size % MAX_TRANSFER_DATA_REQUESTS != 0);
+    RequestDownloadService::max_number_block = static_cast<size_t>(max_number_block);
+    return max_number_block;    
 }
 
 void RequestDownloadService::requestDownloadAutomatic(canid_t id, int memory_address, int max_number_block)
@@ -337,7 +343,6 @@ void RequestDownloadService::requestDownloadResponse(canid_t id, int memory_addr
     {
         MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, RDSlogger);
         managerInstance->getAddress();
-        LOG_INFO(RDSlogger.GET_LOGGER(), "max number block {}", static_cast<int>(max_number_block));
         /* Call response method from generate_frames */
         generate_frames.requestDownloadResponse(id, max_number_block);
         MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_COMPLETED});
@@ -460,21 +465,28 @@ void RequestDownloadService::downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_
 {
     namespace py = pybind11;
     py::scoped_interpreter guard{}; // start the interpreter and keep it alive
-
     /* PROJECT_PATH defined in makefile to be the root folder path (POC)*/
     std::string project_path = PROJECT_PATH;
     std::string path_to_drive_api = project_path + "/src/ota/google_drive_api";
+    try
+    {
 
-    auto sys = py::module::import("sys");
-    sys.attr("path").attr("append")(path_to_drive_api);
+        auto sys = py::module::import("sys");
+        sys.attr("path").attr("append")(path_to_drive_api);
 
-    /* Get the created Python module */
-    py::module python_module = py::module::import("GoogleDriveApi");
-    /* From the module, get the needed functionality (gDrive object) */
-    py::object gGdrive_object = python_module.attr("gDrive");
+        /* Get the created Python module */
+        py::module python_module = py::module::import("GoogleDriveApi");
+        /* From the module, get the needed functionality (gDrive object) */
+        py::object gGdrive_object = python_module.attr("gDrive");
 
-    /* Call the downloadFile method from GoogleDriveApi.py */
-     gGdrive_object.attr("downloadFile")(ecu_id, sw_version);
+        /* Call the downloadFile method from GoogleDriveApi.py */
+        gGdrive_object.attr("downloadFile")(ecu_id, sw_version);
+    }
+    catch(const py::error_already_set& e)
+    {
+        LOG_ERROR(RDSlogger.GET_LOGGER(), "Python error: {}", e.what());
+        MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ERROR});
+    }
 }
 
 bool RequestDownloadService::extractZipFile(uint8_t target_id, const std::string &zipFilePath, const std::string &outputDir) {
@@ -534,4 +546,9 @@ bool RequestDownloadService::extractZipFile(uint8_t target_id, const std::string
 
     zip_close(archive);
     return true;
+}
+
+size_t RequestDownloadService::getMaxNumberBlock()
+{
+    return RequestDownloadService::max_number_block;
 }
