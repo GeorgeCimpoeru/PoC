@@ -4,8 +4,15 @@ import struct
 import subprocess
 import threading
 from config import Config
+from utils.logger import SingletonLogger
 
+can_lock = threading.Lock()
 
+logger_singleton = SingletonLogger('logger.log')
+logger = logger_singleton.logger
+logger_frame = logger_singleton.logger_frame
+
+@logger_frame
 class CanBridge:
     def __init__(self):
         """
@@ -71,13 +78,12 @@ class CanBridge:
                 self.send_frame(can_id, data)
 
     def send_frame(self, can_id, data):
-        """Send CAN frame."""
-        message = can.Message(
-            arbitration_id=can_id,
-            data=data,
-            is_extended_id=True
-        )
-        self.bus.send(message)
+        with can_lock:
+            message = can.Message(arbitration_id=can_id, data=data, is_extended_id=True)
+            try:
+                self.bus.send(message)
+            except can.CanError as e:
+                logger.error(f"Message not sent: {e}")
 
     def get_bus(self):
         """Expose the bus instance for external use."""
