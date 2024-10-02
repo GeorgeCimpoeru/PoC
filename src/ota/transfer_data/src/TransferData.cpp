@@ -11,6 +11,10 @@ TransferData::TransferData(int socket, Logger transfer_data_logger)
 
 /* Definition and initialization of the static member variable */
 uint8_t TransferData::expected_block_sequence_number = 0x01;  /* Start from 1 */
+bool TransferData::is_first_transfer = false;
+size_t TransferData::chunk_size = 0;
+uint8_t TransferData::expected_transfer_data_requests = 0;
+
 
 /* method used to transfer the data */
 /* frame format = {PCI_L, SID(0x36), block_sequence_counter, transfer_request_parameter_record}*/
@@ -48,7 +52,8 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
         return;
     }
     else
-    {   OtaUpdateStatesEnum ota_state = static_cast<OtaUpdateStatesEnum>(MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0]);
+    {   
+        OtaUpdateStatesEnum ota_state = static_cast<OtaUpdateStatesEnum>(MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0]);
         if(ota_state == WAIT_DOWNLOAD_COMPLETED)
         {
             is_first_transfer = true;
@@ -56,7 +61,16 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
             chunk_size = static_cast<size_t>(RequestDownloadService::getMaxNumberBlock());
             /* set expected transfer data requests that is defined in request download */
             expected_transfer_data_requests = MAX_TRANSFER_DATA_REQUESTS;
+            expected_block_sequence_number = 1;
             MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING});
+            ota_state = static_cast<OtaUpdateStatesEnum>(MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0]);
+        }
+
+        if(ota_state != PROCESSING)
+        {
+            LOG_WARN(transfer_data_logger.GET_LOGGER(), "Data transfer is not initialized. Use Request Download in order to initialize a data transfer. Current OTA state:{}", ota_state);
+            nrc.sendNRC(can_id, TD_SID, NegativeResponse::CNC);
+            return;
         }
 
         /* Handle the transfer of parameter record (data after PCI, SID and block sequence countre in the frame format of transfer data)*/
@@ -191,14 +205,6 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
                     
                     /* Increment expected_block_sequence_number only if it matches the current block_sequence_counter */
                     expected_block_sequence_number++;
-                }
-
-                /* Check if all data has been sent */
-                if (bytes_sent >= total_size)
-                {
-                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_COMPLETE});
-                    /* Reset the flag for the next transfer */
-                    is_first_transfer = true;
                 }
             }
 

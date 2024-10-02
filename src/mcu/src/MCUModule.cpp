@@ -132,8 +132,9 @@ namespace MCU
     }
     void MCUModule::writeDataToFile()
     {
+        std::string file_path = std::string(PROJECT_PATH) + "/src/mcu/mcu_data.txt";
         /* Insert the default DID values in the file */
-        std::ofstream outfile("mcu_data.txt");
+        std::ofstream outfile(file_path);
         if (!outfile.is_open())
         {
             throw std::runtime_error("Failed to open file: mcu_data.txt");
@@ -188,7 +189,7 @@ namespace MCU
             return;
         }
         did_it->second = value;
-        FileManager::writeMapToFile("mcu_data.txt", data_map);
+        FileManager::writeMapToFile(file_path, data_map);
     }
 
     std::vector<uint8_t> MCUModule::getDidValue(const uint16_t did) const
