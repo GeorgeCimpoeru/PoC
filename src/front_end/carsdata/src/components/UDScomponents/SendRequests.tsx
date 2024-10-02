@@ -20,7 +20,8 @@ let intervalID: number | NodeJS.Timeout | null = null;
 
 const SendRequests = () => {
     const [logs, setLogs] = useState<string[]>([]);
-    const [data23, setData23] = useState<{ ecu_ids: [], mcu_id: any, status: string, time_stamp: string } | string[] | string | null>();
+    const [data23, setData23] = useState<{ ecu_ids: [], mcu_id: any, status: string, time_stamp: string } | string[] | string | null | 
+    { name: string; version: string; }[] >();
     const [batteryData, setBatteryData] = useState<batteryData | null>();
     const [canId, setCanId] = useState("");
     const [canData, setCanData] = useState("");
@@ -293,10 +294,27 @@ const SendRequests = () => {
             console.log(error);
             removeLoadingCicle();
         }
-        // removeLoadingCicle();
+    };
+
+    const readInfoEngine = async () => { 
+        displayLoadingCircle();
+        console.log("Reading info engine..");
+        try {
+            await fetch(`http://127.0.0.1:5000/api/read_info_engine`, {
+                method: 'GET',
+            }).then(response => response.json())
+                .then(data => {
+                    setData23(data);
+                    console.log(data);
+                    fetchLogs();
+                });
+        } catch (error) {
+            console.log(error);
+            removeLoadingCicle();
+        }
+        removeLoadingCicle();
     }
 
-    const readInfoEngine = async () => { }
     const writeInfoEngine = async () => { }
 
     const readInfoDoors = async () => {
@@ -316,33 +334,91 @@ const SendRequests = () => {
             removeLoadingCicle();
         }
         removeLoadingCicle();
-    }
+    };
 
-    const getNewSoftVersions = async () => {
+    const getNewSoftVersions = async (): Promise<{ message: string; versions: { name: string; version: string }[] }> => {
         displayLoadingCircle();
-        console.log("Geting new soft versions...");
+        const responseContainer = document.getElementById('response-data');
+
+        if (responseContainer) {
+            responseContainer.innerHTML = "<p>Getting new soft versions...</p>";
+        }
+
+        let versionsArray: { name: string; version: string }[] = [];
+
         try {
-            await fetch(`http://127.0.0.1:5000/api/drive_update_data`, {
+            const response = await fetch(`http://127.0.0.1:5000/api/drive_update_data`, {
                 method: 'GET',
-            }).then(response => response.json())
-                .then(data => {
-                    console.log(data);
-                    const versionsArray: string[] = [];
-                    for (let i = 0; i < data.children[4].children.length; ++i) {
-                        versionsArray.push(data.children[4].children[i].name)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log("Response data:", data);
+
+            if (data && data.children && data.children.length > 0) {
+
+                for (const folder of data.children) {
+                    console.log("Processing folder:", folder.name);
+
+                    for (const child of folder.children) {
+                        const fullName: string = child.name;
+                        const version: string = getVersion(fullName);
+                        console.log(`Found file: ${fullName}, version: ${version}`);
+                        const nameWithoutId: string = fullName.split('.zip')[0];
+                        versionsArray.push({ name: nameWithoutId, version });
                     }
-                    for (let i = 0; i < data.children[5].children.length; ++i) {
-                        versionsArray.push(data.children[5].children[i].name)
-                    }
-                    setData23(versionsArray);
-                    fetchLogs();
-                });
+                };
+
+                console.log("Versions array:", versionsArray);
+
+
+                const searchTerms = ["HVAC", "battery", "engine", "doors"];
+                const filteredVersions = getElementByName(versionsArray, searchTerms);
+                console.log("Filtered ECU Versions:", filteredVersions);
+
+                setData23(versionsArray);
+
+                return {
+                    message: "Versions retrieved successfully",
+                    versions: filteredVersions
+                };
+            } else {
+                return { message: "No versions available", versions: [] };
+            }
+
         } catch (error) {
-            console.log(error);
+            console.error("Error:", error);
+            const errorMessage = (error instanceof Error) ? error.message : "Unknown error occurred";
+
+            if (responseContainer) {
+                responseContainer.innerHTML += `<h3>Error:</h3><p>${errorMessage}</p>`;
+            }
+
+            return {
+                message: "Failed to retrieve versions",
+                versions: []
+            };
+        } finally {
             removeLoadingCicle();
         }
-        removeLoadingCicle();
-    }
+    };
+
+    const getVersion = (fullName: string): string => {
+        const versionMatch = fullName.match(/_(\d+\.\d+)\.zip/);
+        console.log(`Extracting version from: ${fullName}`);
+        return versionMatch ? versionMatch[1] : "unknown";
+    };  // to be removed 
+
+    const getElementByName = (versionsArray: { name: string; version: string }[], searchTerms: string[]) => {
+        const filteredVersions = versionsArray.filter(version =>
+            searchTerms.some(term => version.name.toLowerCase().includes(term.toLowerCase()))
+        );
+        return filteredVersions;
+    };
+
 
     const writeInfoDoors = async () => {
         displayLoadingCircle();
@@ -553,10 +629,10 @@ const SendRequests = () => {
             p2_max: parseInt(prompt("Enter p2_max value:") || "0", 10),
             p2_star_max: parseInt(prompt("Enter p2_star_max value:") || "0", 10)
         };
-    
+
         console.log("Writing timing data...", timingData);
         displayLoadingCircle();
-    
+
         try {
             const response = await fetch(`http://127.0.0.1:5000/api/write_timing`, {
                 method: 'POST',
@@ -565,34 +641,34 @@ const SendRequests = () => {
                 },
                 body: JSON.stringify(timingData),
             });
-    
+
             const data = await response.json();
             console.log("Response data:", data);
-    
+
             if (data.status === "success") {
-                setData23(data) 
+                setData23(data)
                 console.log(data)
-                
+
                 const writtenValues = data.written_values;
                 const message = `Timing parameters written successfully.\n` +
-                                `New P2 Max Time: ${writtenValues["New P2 Max Time"]}\n` +
-                                `New P2 Star Max: ${writtenValues["New P2 Star Max"]}`;
-                
+                    `New P2 Max Time: ${writtenValues["New P2 Max Time"]}\n` +
+                    `New P2 Star Max: ${writtenValues["New P2 Star Max"]}`;
+
                 displayMessagePopup(message);
             } else {
                 displayMessagePopup(`Error: ${data.message}`);
             }
-    
+
             fetchLogs();
-    
+
         } catch (error) {
             console.error("Error:", error);
             displayMessagePopup("Failed to write timing values");
         }
-    
+
         removeLoadingCicle();
     };
-    
+
     const getIdentifiers = async () => {
         console.log("Reading all data identifiers...");
         displayLoadingCircle();
@@ -773,7 +849,7 @@ const SendRequests = () => {
                 <div>
                     <button className="btn btn-success w-fit mt-2 text-white" onClick={readDTC} disabled={disableFrameAndDtcBtns}>Read DTC</button>
                     {/* <button className="btn btn-success w-fit ml-5 mt-2 text-white" onClick={hexToAscii} disabled={disableConvertBtn}>Convert response to ASCII</button> */}
-                    <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getNewSoftVersions} disabled={disableFrameAndDtcBtns}>Check new soft versions</button>
+                    <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getNewSoftVersions}>Check new soft versions</button>
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={authenticate} disabled={disableFrameAndDtcBtns}>Authenticate</button>
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getIdentifiers} disabled={disableFrameAndDtcBtns}>Read identifiers</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => requestIds(false)} disabled={disableRequestIdsBtn}>Request IDs</button>
