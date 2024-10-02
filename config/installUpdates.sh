@@ -75,7 +75,7 @@ replace_executable() {
         echo "Removed $2"
     else
         echo "Failed to remove $2"
-        exit 1
+        # exit 1
     fi
 }
 
