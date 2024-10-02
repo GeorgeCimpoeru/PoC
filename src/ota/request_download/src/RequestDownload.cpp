@@ -20,9 +20,8 @@ RequestDownloadService::~RequestDownloadService()
 }
 
 /**RequestDownload- request method 
- * Expected request:  pci_l + sid + data_format_identifier  +  address_memory_length + memory_address[] +  memory_size[]               +          download_type
- * Expected request:  pci_l + sid + data_format_identifier  +  address_memory_length + memory_address[] +  memory_size[]               +          download_type
- *  Index               [0]   [1]              [2]                  [3]             [3 + size(memory_adress)]  [3+size(memory_adress+memory_size)]  [3+size(memory_adress+memory_size)+1]
+ * Expected request:  pci_l + sid + data_format_identifier  +  address_memory_length + memory_address[] +  memory_size[] + software_version
+ *  Index               [0]   [1]              [2]                  [3]                     [4,5]             [6]               [7]                        
  */
 void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint8_t> stored_data)
 {

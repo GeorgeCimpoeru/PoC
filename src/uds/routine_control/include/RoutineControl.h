@@ -77,6 +77,14 @@ class RoutineControl
      */
     bool verifySoftware();
     
+    /**
+     * @brief Get the Current Process Informations
+     * 
+     * @param pid 
+     * @param pname 
+     * @return true 
+     * @return false 
+     */
     bool getCurrentProcessInfo(pid_t& pid, std::string& pname);
 
     private:
