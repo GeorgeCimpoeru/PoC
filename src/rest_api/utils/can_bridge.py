@@ -3,8 +3,9 @@ import socket
 import struct
 import subprocess
 import threading
-from config import Config
+# from config import Config
 from utils.logger import SingletonLogger
+from ..config import Config
 
 can_lock = threading.Lock()
 
@@ -60,7 +61,7 @@ class CanBridge:
             data = message.data.ljust(8, b'\x00')  # Ensure data is 8 bytes
 
             packet_data = struct.pack('I8s', can_id, data)
-            sock.sendto(packet_data, (Config.UDP_IP, Config.UDP_CAN_TO_UDP_PORT))
+            sock.sendto(packet_data, (Config.UDP_IP, Config.CAN_TO_UDP_PORT))
 
     def udp_to_can(self):
         """Bridge UDP to CAN in release mode."""
