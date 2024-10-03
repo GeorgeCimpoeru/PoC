@@ -19,8 +19,8 @@ class CanBridge:
         Initialize CanBridge module
         :param mode: 'test' for direct binding to vcan1, 'release' for using the CAN bridge
         """
-        self.CAN_INTERFACE = Config.CAN_CHANNEL
-        self.mode = Config.mode
+        self.CAN_INTERFACE = 'vcan1'
+        self.mode = 'release'
         self.bus = None
         self.setup_bus()
 
