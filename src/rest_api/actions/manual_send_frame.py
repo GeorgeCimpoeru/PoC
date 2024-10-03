@@ -3,7 +3,7 @@ import can
 from utils.logger import *
 from config import Config
 from actions.base_actions import *
-from rest_api.can_bridge import CanBridge
+from can_bridge import CanBridge
 
 
 def manual_send_frame(can_id, can_data):

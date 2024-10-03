@@ -75,11 +75,11 @@ class Action:
     """
 
     def __init__(self, my_id, id_ecu: list = []):
-        self.bus = can.interface.Bus(channel=Config.CAN_CHANNEL, interface='socketcan')
-        self.generate = GF(bus=self.bus)
         self.my_id = my_id
         self.id_ecu = id_ecu
         self.last_msg = None
+        self.generate = GF()
+        self.bus = self.generate.can_bridge.get_bus()
 
     def __collect_response(self, sid: int):
         """

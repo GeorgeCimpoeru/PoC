@@ -21,7 +21,15 @@ class CanBridge:
         """
         self.CAN_INTERFACE = Config.CAN_CHANNEL
         self.mode = Config.mode
-        self.bus = None
+        self.bus = can.interface.Bus(channel=self.CAN_INTERFACE, bustype='socketcan')
+
+    def send_frame(self, id, data):
+        with can_lock:
+            message = can.Message(arbitration_id=id, data=data, is_extended_id=True)
+            try:
+                self.bus.send(message)
+            except can.CanError as e:
+                logger.error(f"Message not sent: {e}")
 
     def setup_vcan_interface(self):
         """Runs the bash script to set up vcan1."""
@@ -37,14 +45,6 @@ class CanBridge:
         fi
         """
         subprocess.run(bash_script, shell=True, check=True)
-
-    def bind_vcan(self):
-        """Bind directly to the vcan1 interface in test mode."""
-        if self.mode == 'test':
-            self.bus = can.interface.Bus(channel=self.CAN_INTERFACE, bustype='socketcan')
-            print(f"Bound directly to {self.CAN_INTERFACE} in test mode.")
-        else:
-            raise RuntimeError("Bind method is available only in test mode.")
 
     def can_to_udp(self):
         """Bridge CAN to UDP in release mode."""
@@ -85,18 +85,11 @@ class CanBridge:
 
     def run(self):
         """Run the appropriate function based on the mode."""
-        self.setup_vcan_interface()
-        if self.mode == 'test':
-            self.bind_vcan()
-        elif self.mode == 'release':
-            self.bus = can.interface.Bus(channel=self.CAN_INTERFACE, bustype='socketcan')
-            t1 = threading.Thread(target=self.udp_to_can)
-            t2 = threading.Thread(target=self.can_to_udp)
+        t1 = threading.Thread(target=self.udp_to_can)
+        t2 = threading.Thread(target=self.can_to_udp)
 
-            t1.start()
-            t2.start()
+        t1.start()
+        t2.start()
 
-            t1.join()
-            t2.join()
-        else:
-            raise ValueError(f"Unknown mode: {self.mode}")
+        t1.join()
+        t2.join()

@@ -1,9 +1,6 @@
-import can
 from utils.logger import SingletonLogger
-import threading
 from can_bridge import CanBridge
 
-can_lock = threading.Lock()
 
 logger_singleton = SingletonLogger('logger.log')
 logger = logger_singleton.logger
@@ -12,23 +9,12 @@ logger_frame = logger_singleton.logger_frame
 
 @logger_frame
 class GenerateFrame:
-    def __init__(self, bus=None):
-        if bus is None:
-            bridge = CanBridge()
-            bridge.run()
-            self.bus = bridge.get_bus()
-            self.send = bridge.send_frame
-        else:
-            self.bus = bus
-            self.send = bridge.send_frame
+    def __init__(self, can_bridge: CanBridge):
+        self.can_bridge = can_bridge
 
-    def send_frame(self, id, data):
-        with can_lock:
-            message = can.Message(arbitration_id=id, data=data, is_extended_id=True)
-            try:
-                self.bus.send(message)
-            except can.CanError as e:
-                logger.error(f"Message not sent: {e}")
+    def send(self, id, data):
+        self.can_bridge.run()
+        self.can_bridge.send_frame(id, data)
 
     def control_frame(self, id):
         data = [0x30, 0x00, 0x00, 0x00]
