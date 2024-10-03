@@ -229,7 +229,6 @@ UDS_OBJS_TEST = $(OBJ_DIR)/DiagnosticSessionControl_test.o \
                 $(OBJ_DIR)/EcuReset_test.o \
                 $(OBJ_DIR)/SecurityAccess_test.o \
 				$(OBJ_DIR)/TesterPresent_test.o \
-				$(OBJ_DIR)/TesterPresent_test.o \
                 $(OBJ_DIR)/ReadDtcInformation_test.o \
                 $(OBJ_DIR)/ClearDtc_test.o \
                 $(OBJ_DIR)/RoutineControl_test.o \
@@ -239,8 +238,6 @@ OBJS_DIAGNOSTICSESSIONCONTROL_TEST = $(OBJ_DIR)/Logger_test.o \
 			   						 $(OBJ_DIR)/GenerateFrames_test.o \
 			   						 $(OBJ_DIR)/DiagnosticSessionControl_test.o
 
-
-
 OBJS_SECURITYACCESS_TEST = $(OBJ_DIR)/Logger_test.o \
 						   $(OBJ_DIR)/GenerateFrames_test.o \
 			   			   $(OBJ_DIR)/SecurityAccess_test.o \
@@ -248,11 +245,14 @@ OBJS_SECURITYACCESS_TEST = $(OBJ_DIR)/Logger_test.o \
 
 OBJS_TESTERPRESENT_TEST = $(OBJ_DIR)/Logger_test.o \
 						  $(OBJ_DIR)/GenerateFrames_test.o \
-			   			  $(OBJ_DIR)/TesterPresent_test.o
+			   			  $(OBJ_DIR)/TesterPresent_test.o \
+			   			  $(OBJ_DIR)/NegativeResponse_test.o \
+			   			  $(OBJ_DIR)/DiagnosticSessionControl_test.o \
+			   			  $(OBJ_DIR)/AccessTimingParameter_test.o \
+			   			  $(OBJ_DIR)/MCUModule_test.o \
+			   			  $(OBJ_DIR)/ReceiveFrames_test.o \
+			   			  $(OBJ_DIR)/CreateInterface_test.o
 
-OBJS_TESTERPRESENT_TEST = $(OBJ_DIR)/Logger_test.o \
-						  $(OBJ_DIR)/GenerateFrames_test.o \
-			   			  $(OBJ_DIR)/TesterPresent_test.o
 
 OBJS_READDTC_TEST = $(OBJ_DIR)/Logger_test.o \
 			   		$(OBJ_DIR)/GenerateFrames_test.o \
@@ -273,8 +273,8 @@ OBJS_ROUTINECONTROL_TEST = $(OBJ_DIR)/MemoryManager_test.o \
 			   			   $(OBJ_DIR)/SecurityAccess_test.o
 					
 OBJS_ACCESSTIMINGPARAMETER_TEST = $(OBJ_DIR)/Logger_test.o \
-			   						 $(OBJ_DIR)/GenerateFrames_test.o \
-			   						 $(OBJ_DIR)/AccessTimingParameter_test.o
+                                  $(OBJ_DIR)/GenerateFrames_test.o \
+                                  $(OBJ_DIR)/AccessTimingParameter_test.o
 
 OTA_OBJS_TEST = $(OBJ_DIR)/RequestUpdateStatus_test.o \
 				$(OBJ_DIR)/RequestTransferExit_test.o \
