@@ -24,11 +24,11 @@ class RequestIdAction(Action):
             self._send_request_frame()
             response_data = self._read_response_frames()
             response_json = IDsToJson()._to_json(response_data)
-            self.bus.shutdown()
+            self.can_bus.shutdown()
             return response_json
 
         except CustomError as e:
-            self.bus.shutdown()
+            self.can_bus.shutdown()
             return {"status": "Error", "message": str(e)}
 
     def _send_request_frame(self):
@@ -39,7 +39,7 @@ class RequestIdAction(Action):
     def _read_response_frames(self, timeout=10):
         end_time = time.time() + timeout
         while time.time() < end_time:
-            response = self.bus.recv(Config.BUS_RECEIVE_TIMEOUT)
+            response = self.can_bus.recv(Config.BUS_RECEIVE_TIMEOUT)
             if response:
                 data = response.data
                 if len(data) < 3:
