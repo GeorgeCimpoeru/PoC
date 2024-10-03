@@ -70,11 +70,15 @@ class CanBridge:
 
         while True:
             message = self.bus.recv()
+
             can_id = message.arbitration_id
             data = message.data.ljust(8, b'\x00')  # Ensure data is 8 bytes
+            log_info_message(logger, f"message to CAN {can_id, data}")
 
             packet_data = struct.pack('I8s', can_id, data)
-            sock.sendto(packet_data, (Config.UDP_IP, Config.CAN_TO_UDP_PORT))
+            log_info_message(logger, f"message to CAN {can_id, data}")
+
+            sock.sendto(packet_data, ('192.168.241.255', 5000))
 
     def udp_to_can(self):
         log_info_message(logger, "UDP_TO_CAN Called 1")
@@ -85,7 +89,7 @@ class CanBridge:
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind(('0.0.0.0', Config.UDP_TO_CAN_PORT))
+        sock.bind(('0.0.0.0', 5000))
 
         while True:
             packed_data, _ = sock.recvfrom(12)
