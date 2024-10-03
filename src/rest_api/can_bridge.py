@@ -80,7 +80,7 @@ class CanBridge:
     def get_bus(self):
         """Expose the bus instance for external use."""
         if self.bus is None:
-            raise RuntimeError("The CAN bus is not initialized yet.")
+            self.bus = can.interface.Bus(channel=self.CAN_INTERFACE, bustype='socketcan')
         return self.bus
 
     def run(self):
