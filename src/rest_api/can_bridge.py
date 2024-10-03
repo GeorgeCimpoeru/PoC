@@ -62,6 +62,7 @@ class CanBridge:
             raise RuntimeError("CAN to UDP bridge is available only in release mode.")
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
         while True:
@@ -78,6 +79,7 @@ class CanBridge:
             raise RuntimeError("UDP to CAN bridge is available only in release mode.")
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind(('0.0.0.0', Config.UDP_TO_CAN_PORT))
 
         while True:
