@@ -21,7 +21,17 @@ class CanBridge:
         """
         self.CAN_INTERFACE = Config.CAN_CHANNEL
         self.mode = Config.mode
-        self.bus = can.interface.Bus(channel=self.CAN_INTERFACE, bustype='socketcan')
+        self.bus = None
+        self.setup_bus()
+
+    def setup_bus(self):
+        """Initialize the CAN bus based on the configuration."""
+        if self.bus is None:
+            try:
+                self.bus = can.interface.Bus(channel=self.CAN_INTERFACE, bustype='socketcan')
+            except Exception as e:
+                logger.error(f"Failed to initialize CAN bus: {e}")
+                raise RuntimeError(f"Failed to initialize CAN bus: {e}")
 
     def send_frame(self, id, data):
         with can_lock:
