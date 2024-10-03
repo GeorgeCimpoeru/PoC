@@ -315,6 +315,25 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
+    const readInfoHvac = async () => { 
+        displayLoadingCircle();
+        console.log("Reading info hvac...");
+        try {
+            await fetch(`http://127.0.0.1:5000/api/read_info_hvac`, {
+                method: 'GET',
+            }).then(response => response.json())
+                .then(data => {
+                    setData23(data);
+                    console.log(data);
+                    fetchLogs();
+                });
+        } catch (error) {
+            console.log(error);
+            removeLoadingCicle();
+        }
+        removeLoadingCicle();
+    }
+
     const writeInfoEngine = async () => { }
 
     const readInfoDoors = async () => {
@@ -904,6 +923,7 @@ const SendRequests = () => {
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoEngine} disabled={disableInfoEngineBtns}>Write Info Engine</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoDoors} disabled={disableInfoDoorsBtns}>Read Info Doors</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoDoors} disabled={disableInfoDoorsBtns}>Write Doors Info</button>
+                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoHvac}>Read Info Hvac</button>
                 </div>
 
                 <h1 className="text-2xl mt-2">Response</h1>
