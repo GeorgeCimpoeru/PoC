@@ -1,4 +1,4 @@
-package com.poc.p_couds;
+package com.poc.p_couds.models;
 
 public class Update {
     private String artifact;
