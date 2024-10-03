@@ -18,6 +18,13 @@ class IDsToJson():
 
 
 class RequestIdAction(Action):
+    def __init__(self, my_id, id_ecu=None):
+        if id_ecu is None:
+            id_ecu = []
+        super().__init__(my_id, id_ecu)
+        self.mode = Config.mode
+        self.bus = self.get_bus()
+
     def read_ids(self):
         self.id = self.my_id
         try:

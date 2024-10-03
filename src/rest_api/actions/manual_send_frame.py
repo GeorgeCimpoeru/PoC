@@ -12,10 +12,7 @@ def manual_send_frame(can_id, can_data):
     error_text = None
     try:
         log_info_message(logger, f"Attempting to connect to CAN bus on channel: {Config.CAN_CHANNEL}")
-        # bus = can.interface.Bus(channel=Config.CAN_CHANNEL, bustype='socketcan')
-        bridge = CanBridge()
-        bridge.run()
-        bus = bridge.get_bus()
+        # bus = bridge.get_bus()
         log_info_message(logger, "Successfully connected to CAN bus")
 
         can_id = int(data.get('can_id'), 16)
