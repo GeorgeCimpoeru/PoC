@@ -22,7 +22,6 @@ class RequestIdAction(Action):
         if id_ecu is None:
             id_ecu = []
         super().__init__(my_id, id_ecu)
-        self.mode = Config.mode
 
     def read_ids(self):
         self.id = self.my_id

@@ -58,11 +58,9 @@ class CanBridge:
         subprocess.run(bash_script, shell=True, check=True)
 
     def can_to_udp(self):
-        log_info_message(logger, "CAN_TO_UDP Called 1")
         """Bridge CAN to UDP in release mode."""
         if self.mode != 'release':
             raise RuntimeError("CAN to UDP bridge is available only in release mode.")
-        log_info_message(logger, "CAN_TO_UDP Called 2")
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -73,19 +71,14 @@ class CanBridge:
 
             can_id = message.arbitration_id
             data = message.data.ljust(8, b'\x00')  # Ensure data is 8 bytes
-            log_info_message(logger, f"message to CAN {can_id, data}")
-
             packet_data = struct.pack('I8s', can_id, data)
-            log_info_message(logger, f"message to CAN {can_id, data}")
 
             sock.sendto(packet_data, ('192.168.241.255', 5000))
 
     def udp_to_can(self):
-        log_info_message(logger, "UDP_TO_CAN Called 1")
         """Bridge UDP to CAN in release mode."""
         if self.mode != 'release':
             raise RuntimeError("UDP to CAN bridge is available only in release mode.")
-        log_info_message(logger, "UDP_TO_CAN Called 2")
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -97,6 +90,7 @@ class CanBridge:
                 can_id, data = struct.unpack('I8s', packed_data)
                 data = data.rstrip(b'\x00')
                 self.send_frame(can_id, data)
+
 
     def get_bus(self):
         """Expose the bus instance for external use."""

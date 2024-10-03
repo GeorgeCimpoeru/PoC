@@ -13,7 +13,6 @@ class GenerateFrame(CanBridge):
         super().__init__()
 
     def send(self, id, data):
-        self.run()
         self.send_frame(id, data)
 
     def control_frame(self, id):
