@@ -6,13 +6,16 @@ from actions.base_actions import *
 from can_bridge import CanBridge
 
 
+bridge = CanBridge()
+
+
 def manual_send_frame(can_id, can_data):
     log_info_message(logger, "Starting manual_send_frame function")
     data = request.get_json()
     error_text = None
     try:
         log_info_message(logger, f"Attempting to connect to CAN bus on channel: {Config.CAN_CHANNEL}")
-        # bus = bridge.get_bus()
+        bus = bridge.get_bus()
         log_info_message(logger, "Successfully connected to CAN bus")
 
         can_id = int(data.get('can_id'), 16)

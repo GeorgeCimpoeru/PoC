@@ -16,9 +16,9 @@ class Auth(Action):
         try:
             id = (self.id_ecu[ECU_BATTERY] << 16) + (self.my_id << 8) + self.id_ecu[MCU]
             self.authentication_seed(id,
-                                              sid_send=AUTHENTICATION_SEND,
-                                              sid_recv=AUTHENTICATION_RECV,
-                                              subf=AUTHENTICATION_SUBF_REQ_SEED)
+                                     sid_send=AUTHENTICATION_SEND,
+                                     sid_recv=AUTHENTICATION_RECV,
+                                     subf=AUTHENTICATION_SUBF_REQ_SEED)
             frame_response = self._passive_response(AUTHENTICATION_SEND,
                                                     "Error requesting seed")
 
@@ -47,10 +47,10 @@ class Auth(Action):
 
                 # Send the key for authentication
                 self.authentication_key(id,
-                                                 key=key,
-                                                 sid_send=AUTHENTICATION_RECV,
-                                                 sid_recv=AUTHENTICATION_SEND,
-                                                 subf=AUTHENTICATION_SUBF_SEND_KEY)
+                                        key=key,
+                                        sid_send=AUTHENTICATION_RECV,
+                                        sid_recv=AUTHENTICATION_SEND,
+                                        subf=AUTHENTICATION_SUBF_SEND_KEY)
                 frame_response = self._passive_response(AUTHENTICATION_SEND,
                                                         "Error sending key")
 

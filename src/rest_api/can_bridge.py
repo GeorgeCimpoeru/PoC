@@ -3,15 +3,14 @@ import socket
 import struct
 import subprocess
 import threading
-from config import Config
 from utils.logger import SingletonLogger
-from utils.logger import *
 
 can_lock = threading.Lock()
 
 logger_singleton = SingletonLogger('logger.log')
 logger = logger_singleton.logger
 logger_frame = logger_singleton.logger_frame
+
 
 @logger_frame
 class CanBridge:
@@ -90,7 +89,6 @@ class CanBridge:
                 can_id, data = struct.unpack('I8s', packed_data)
                 data = data.rstrip(b'\x00')
                 self.send_frame(can_id, data)
-
 
     def get_bus(self):
         """Expose the bus instance for external use."""

@@ -1,6 +1,5 @@
 from actions.base_actions import *
 from configs.data_identifiers import *
-from can_bridge import CanBridge
 
 
 class ReadAccessTiming(Action):

@@ -4,7 +4,6 @@ from actions.generate_frames import GenerateFrame as GF
 from utils.logger import *
 from config import Config
 from configs.data_identifiers import *
-from can_bridge import CanBridge
 
 logger_singleton = SingletonLogger('base_action.log')
 logger = logger_singleton.logger
@@ -242,9 +241,9 @@ class Action(GF):
 
         # Send the request for authentication seed
         self.authentication_seed(id,
-                                          sid_send=AUTHENTICATION_SEND,
-                                          sid_recv=AUTHENTICATION_RECV,
-                                          subf=AUTHENTICATION_SUBF_REQ_SEED)
+                                 sid_send=AUTHENTICATION_SEND,
+                                 sid_recv=AUTHENTICATION_RECV,
+                                 subf=AUTHENTICATION_SUBF_REQ_SEED)
         frame_response = self._passive_response(AUTHENTICATION_SEND,
                                                 "Error requesting seed")
 
@@ -272,10 +271,10 @@ class Action(GF):
 
             # Send the key for authentication
             self.authentication_key(id,
-                                             key=key,
-                                             sid_send=AUTHENTICATION_RECV,
-                                             sid_recv=AUTHENTICATION_SEND,
-                                             subf=AUTHENTICATION_SUBF_SEND_KEY)
+                                    key=key,
+                                    sid_send=AUTHENTICATION_RECV,
+                                    sid_recv=AUTHENTICATION_SEND,
+                                    subf=AUTHENTICATION_SUBF_SEND_KEY)
             frame_response = self._passive_response(AUTHENTICATION_SEND,
                                                     "Error sending key")
 

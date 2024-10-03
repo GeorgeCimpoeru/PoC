@@ -159,10 +159,10 @@ class Updates(Action):
         -> search/change "/dev/loopXX" in RequestDownload.cpp, MemoryManager.cpp; (Depends which partition is attributed)
         """
         self.request_download(self.id,
-                                       data_format_identifier=type,  # No compression/encryption
-                                       memory_address=0x0801,  # Memory address starting from 2049
-                                       memory_size=0x01,  # Memory size
-                                       version=version)  # Version 2
+                              data_format_identifier=type,  # No compression/encryption
+                              memory_address=0x0801,  # Memory address starting from 2049
+                              memory_size=0x01,  # Memory size
+                              version=version)  # Version 2
         self._passive_response(REQUEST_DOWNLOAD, "Error requesting download")
 
         self.transfer_data(self.id, 0x01)
