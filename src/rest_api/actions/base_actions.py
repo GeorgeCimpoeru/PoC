@@ -4,6 +4,7 @@ from actions.generate_frames import GenerateFrame as GF
 from utils.logger import *
 from config import Config
 from configs.data_identifiers import *
+from can_bridge import CanBridge
 
 logger_singleton = SingletonLogger('base_action.log')
 logger = logger_singleton.logger
@@ -78,7 +79,7 @@ class Action:
         self.my_id = my_id
         self.id_ecu = id_ecu
         self.last_msg = None
-        self.generate = GF()
+        self.generate = GF(CanBridge)
         self.bus = self.generate.can_bridge.get_bus()
 
     def __collect_response(self, sid: int):
