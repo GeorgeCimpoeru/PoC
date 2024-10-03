@@ -31,7 +31,7 @@ class WriteInfo(Action):
 
         try:
             log_info_message(logger, "Changing session to programming")
-            self.generate.session_control(id, 0x02)
+            self.session_control(id, 0x02)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
             self._authentication(id)
         except CustomError as e:
@@ -83,11 +83,11 @@ class WriteInfo(Action):
 
                 data_parameter = [value]
                 if len(data_parameter) <= 4:
-                    self.generate.write_data_by_identifier(id, identifier, data_parameter)
+                    self.write_data_by_identifier(id, identifier, data_parameter)
                     self._passive_response(WRITE_BY_IDENTIFIER, f"Error writing {identifier}")
 
                 else:
-                    self.generate.write_data_by_identifier_long(id, identifier, data_parameter)
+                    self.write_data_by_identifier_long(id, identifier, data_parameter)
 
             log_info_message(logger, f"Data written successfully to ECU ID: {id_battery}")
             response_json = self._to_json("success", 0)
@@ -117,7 +117,7 @@ class WriteInfo(Action):
         - JSON response.
         """
         log_info_message(logger, "Changing session to programming")
-        self.generate.session_control(self.id, 0x02)
+        self.session_control(self.id, 0x02)
         self._passive_response(SESSION_CONTROL, "Error changing session control")
 
         auth_result = self._auth_mcu()
@@ -145,9 +145,9 @@ class WriteInfo(Action):
                     log_info_message(logger, f"Write by identifier {identifier}")
 
                     if isinstance(value_list, list) and len(value_list) > 4:
-                        self.generate.write_data_by_identifier_long(id, identifier, value_list)
+                        self.write_data_by_identifier_long(id, identifier, value_list)
                     else:
-                        self.generate.write_data_by_identifier(id, identifier, value_list)
+                        self.write_data_by_identifier(id, identifier, value_list)
                         self._passive_response(WRITE_BY_IDENTIFIER, f"Error writing {identifier}")
 
             log_info_message(logger, f"Data written successfully to ECU ID: {id_doors}")

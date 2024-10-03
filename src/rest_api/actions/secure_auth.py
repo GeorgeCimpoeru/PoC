@@ -15,7 +15,7 @@ class Auth(Action):
 
         try:
             id = (self.id_ecu[ECU_BATTERY] << 16) + (self.my_id << 8) + self.id_ecu[MCU]
-            self.generate.authentication_seed(id,
+            self.authentication_seed(id,
                                               sid_send=AUTHENTICATION_SEND,
                                               sid_recv=AUTHENTICATION_RECV,
                                               subf=AUTHENTICATION_SUBF_REQ_SEED)
@@ -46,7 +46,7 @@ class Auth(Action):
                 log_info_message(logger, f"Key: {key}")
 
                 # Send the key for authentication
-                self.generate.authentication_key(id,
+                self.authentication_key(id,
                                                  key=key,
                                                  sid_send=AUTHENTICATION_RECV,
                                                  sid_recv=AUTHENTICATION_SEND,

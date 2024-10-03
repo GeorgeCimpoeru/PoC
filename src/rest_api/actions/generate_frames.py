@@ -8,13 +8,13 @@ logger_frame = logger_singleton.logger_frame
 
 
 @logger_frame
-class GenerateFrame:
-    def __init__(self, can_bridge: CanBridge):
-        self.can_bridge = can_bridge
+class GenerateFrame(CanBridge):
+    def __init__(self):
+        super().__init__()
 
     def send(self, id, data):
-        self.can_bridge.run()
-        self.can_bridge.send_frame(id, data)
+        self.run()
+        self.send_frame(id, data)
 
     def control_frame(self, id):
         data = [0x30, 0x00, 0x00, 0x00]
