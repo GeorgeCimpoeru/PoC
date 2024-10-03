@@ -21,7 +21,7 @@ class CanBridge:
         """
         self.CAN_INTERFACE = Config.CAN_CHANNEL
         self.mode = Config.mode
-        self.bus = can.interface.Bus(channel=self.CAN_INTERFACE, bustype='socketcan')
+        self.can_bus = can.interface.Bus(channel=self.CAN_INTERFACE, bustype='socketcan')
 
     def send_frame(self, id, data):
         with can_lock:

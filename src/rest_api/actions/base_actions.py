@@ -79,8 +79,7 @@ class Action(GF):
         self.my_id = my_id
         self.id_ecu = id_ecu
         self.last_msg = None
-        self.bus = self.get_bus()
-
+        self.bus = self.can_bus
 
     def __collect_response(self, sid: int):
         """
