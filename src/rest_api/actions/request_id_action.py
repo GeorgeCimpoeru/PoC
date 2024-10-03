@@ -23,7 +23,6 @@ class RequestIdAction(Action):
             id_ecu = []
         super().__init__(my_id, id_ecu)
         self.mode = Config.mode
-        self.bus = self.get_bus()
 
     def read_ids(self):
         self.id = self.my_id
@@ -31,11 +30,11 @@ class RequestIdAction(Action):
             self._send_request_frame()
             response_data = self._read_response_frames()
             response_json = IDsToJson()._to_json(response_data)
-            self.can_bus.shutdown()
+            self.bus.shutdown()
             return response_json
 
         except CustomError as e:
-            self.can_bus.shutdown()
+            self.bus.shutdown()
             return {"status": "Error", "message": str(e)}
 
     def _send_request_frame(self):
@@ -46,7 +45,7 @@ class RequestIdAction(Action):
     def _read_response_frames(self, timeout=10):
         end_time = time.time() + timeout
         while time.time() < end_time:
-            response = self.can_bus.recv(Config.BUS_RECEIVE_TIMEOUT)
+            response = self.bus.recv(Config.BUS_RECEIVE_TIMEOUT)
             if response:
                 data = response.data
                 if len(data) < 3:
