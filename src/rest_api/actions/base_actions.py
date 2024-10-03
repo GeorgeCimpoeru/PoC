@@ -231,7 +231,6 @@ class Action:
         Method to generate a key based on the seed.
         """
         return [(~num + 1) & 0xFF for num in seed]
-        # return [(~num - 1) & 0xFF for num in seed] # Test case 0x35 Invalid Key
 
     def _authentication(self, id):
         """
@@ -240,7 +239,6 @@ class Action:
         """
         log_info_message(logger, "Authenticating")
 
-        # Send the request for authentication seed
         self.generate.authentication_seed(id,
                                           sid_send=AUTHENTICATION_SEND,
                                           sid_recv=AUTHENTICATION_RECV,

@@ -18,18 +18,6 @@ class ToJSON():
 
 
 class Updates(Action):
-    # def _auth_mcu(self):
-    #     id = self.my_id * 0x100 + self.id_ecu[0]
-    #     try:
-    #         log_info_message(logger, "Changing session to default")
-    #         self.generate.session_control(id, 0x02)
-    #         self._passive_response(SESSION_CONTROL, "Error changing session control")
-    #         self._authentication(id)
-
-    #     except CustomError as e:
-    #         self.bus.shutdown()
-    #         return e.message
-
     """
     Update class for managing software updates on an Electronic Control Unit (ECU).
 
@@ -58,15 +46,13 @@ class Updates(Action):
         try:
             self.id = (int(id, 16) << 16) + (self.my_id << 8) + self.id_ecu[0]
 
+
             log_info_message(logger, "Changing session to programming")
             self.generate.session_control(self.id, sub_funct=0x02)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
 
-            self._authentication(self.id)
-
-            log_info_message(logger, "Changing session to default")
-            self.generate.session_control(self.id, 0x01)
-            self._passive_response(SESSION_CONTROL, "Error changing session control")
+            log_info_message(logger, "Authenticating...")
+            self._authentication(self.my_id * 0x100 + self.id_ecu[0]) # -> security only to MCU
 
             # log_info_message(logger, "Reading data from battery")
             # current_version = self._verify_version(version)
@@ -75,21 +61,9 @@ class Updates(Action):
             #     self.bus.shutdown()
             #     return response_json
 
-            log_info_message(logger, "Changing session to programming")
-            self.generate.session_control(self.id, sub_funct=0x02)
-            self._passive_response(SESSION_CONTROL, "Error changing session control")
-            self._authentication(self.my_id * 0x100 + self.id_ecu[0])
-
-            log_info_message(logger, "Authenticating...")
-            self._authentication(self.id)
-
             log_info_message(logger, "Downloading... Please wait")
             self._download_data(type, version, id)
             log_info_message(logger, "Download finished, restarting ECU...")
-
-            # log_info_message(logger, "Changing session to default")
-            # self.generate.session_control(self.id, 0x01)
-            # self._passive_response(SESSION_CONTROL, "Error changing session control")
 
             # Reset the ECU to apply the update
             # self.id = (self.my_id * 0x100) + int(ecu_id, 16)
