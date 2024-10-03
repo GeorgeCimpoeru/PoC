@@ -5,6 +5,7 @@ import subprocess
 import threading
 from config import Config
 from utils.logger import SingletonLogger
+from utils.logger import *
 
 can_lock = threading.Lock()
 
@@ -57,9 +58,11 @@ class CanBridge:
         subprocess.run(bash_script, shell=True, check=True)
 
     def can_to_udp(self):
+        log_info_message(logger, "CAN_TO_UDP Called 1")
         """Bridge CAN to UDP in release mode."""
         if self.mode != 'release':
             raise RuntimeError("CAN to UDP bridge is available only in release mode.")
+        log_info_message(logger, "CAN_TO_UDP Called 2")
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -74,9 +77,11 @@ class CanBridge:
             sock.sendto(packet_data, (Config.UDP_IP, Config.CAN_TO_UDP_PORT))
 
     def udp_to_can(self):
+        log_info_message(logger, "UDP_TO_CAN Called 1")
         """Bridge UDP to CAN in release mode."""
         if self.mode != 'release':
             raise RuntimeError("UDP to CAN bridge is available only in release mode.")
+        log_info_message(logger, "UDP_TO_CAN Called 2")
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
