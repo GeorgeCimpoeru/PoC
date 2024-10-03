@@ -1,8 +1,7 @@
 import can
 from utils.logger import SingletonLogger
 import threading
-import subprocess
-from rest_api.can_bridge import CanBridge
+from can_bridge import CanBridge
 
 can_lock = threading.Lock()
 
