@@ -71,19 +71,11 @@ class CanBridge:
         sock.bind(('0.0.0.0', Config.UDP_TO_CAN_PORT))
 
         while True:
-            packed_data, _ = sock.recvfrom(12)  # 4 bytes for CAN ID, 8 bytes for data
+            packed_data, _ = sock.recvfrom(12)
             if len(packed_data) > 0:
                 can_id, data = struct.unpack('I8s', packed_data)
-                data = data.rstrip(b'\x00')  # Remove padding bytes
+                data = data.rstrip(b'\x00')
                 self.send_frame(can_id, data)
-
-    def send_frame(self, can_id, data):
-        with can_lock:
-            message = can.Message(arbitration_id=can_id, data=data, is_extended_id=True)
-            try:
-                self.bus.send(message)
-            except can.CanError as e:
-                logger.error(f"Message not sent: {e}")
 
     def get_bus(self):
         """Expose the bus instance for external use."""

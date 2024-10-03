@@ -2,7 +2,7 @@ import can
 from utils.logger import SingletonLogger
 import threading
 import subprocess
-from utils.can_bridge import CanBridge
+from rest_api.can_bridge import CanBridge
 
 can_lock = threading.Lock()
 
@@ -23,25 +23,13 @@ class GenerateFrame:
             self.bus = bus
             self.send = bridge.send_frame
 
-    @staticmethod
-    def is_interface_up(interface: str) -> bool:
-        """
-        Check if the given network interface is up.
-        """
-        try:
-            result = subprocess.run(['ip', 'link', 'show', interface], capture_output=True, text=True)
-            return "state UP" in result.stdout
-        except Exception as e:
-            logger.info(f"Error checking interface status: {e}")
-            return False
-
-    # def send_frame(self, id, data):
-        # with can_lock:
-            # message = can.Message(arbitration_id=id, data=data, is_extended_id=True)
-            # try:
-                # self.bus.send(message)
-            # except can.CanError as e:
-                # logger.error(f"Message not sent: {e}")
+    def send_frame(self, id, data):
+        with can_lock:
+            message = can.Message(arbitration_id=id, data=data, is_extended_id=True)
+            try:
+                self.bus.send(message)
+            except can.CanError as e:
+                logger.error(f"Message not sent: {e}")
 
     def control_frame(self, id):
         data = [0x30, 0x00, 0x00, 0x00]
