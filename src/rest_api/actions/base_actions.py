@@ -79,6 +79,7 @@ class Action(GF):
         self.my_id = my_id
         self.id_ecu = id_ecu
         self.last_msg = None
+        super().__init__()
 
     def __collect_response(self, sid: int):
         """
