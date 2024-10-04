@@ -17,7 +17,7 @@
 class TransferData 
 {
     public:
-    static constexpr uint8_t TD_SID = 0x34;
+    static constexpr uint8_t TD_SID = 0x36;
     /**
      * @brief Constructor for transfer data object
      * 
@@ -36,11 +36,14 @@ class TransferData
     Logger transfer_data_logger;
     GenerateFrames generate_frames;
     int socket = -1;
-    static uint8_t expected_block_sequence_number;
-    bool is_first_transfer;
     size_t total_size;
     size_t bytes_sent;
-
+    static uint8_t expected_block_sequence_number;
+    static bool is_first_transfer;
+    /* This represents 1 transfer data size, calculated in Request Download representing the  max_number_block */
+    static size_t chunk_size;
+    /* Used to check if all transfers are done, this is set in Request Download*/
+    static uint8_t expected_transfer_data_requests;
 
 };
 

@@ -26,11 +26,13 @@
 const uint8_t SID_DIAGNOSTIC_SESSION_CONTROL = 0x10;
 const uint8_t SUB_FUNCTION_DEFAULT_SESSION = 1;
 const uint8_t SUB_FUNCTION_PROGRAMMING_SESSION = 2;
+const uint8_t SUB_FUNCTION_EXTENDED_DIAGNOSTIC_SESSION = 3;
 
 enum DiagnosticSession
 {
-    DEFAULT_SESSION,
-    PROGRAMMING_SESSION
+    DEFAULT_SESSION = 0x01,
+    PROGRAMMING_SESSION,
+    EXTENDED_DIAGNOSTIC_SESSION
     /* Other sessions can be defined here */
 };
 
@@ -104,6 +106,14 @@ private:
      * @param frame_id The id of the received frame.
      */
     void switchToProgrammingSession(canid_t frame_id);
+
+    /**
+     * @brief Method to switch the current session
+     * 
+     * @param frame_id The id of the received frame.
+     * @param session New session
+     */
+    void switchSession(canid_t frame_id, DiagnosticSession session);
 };
 
 #endif

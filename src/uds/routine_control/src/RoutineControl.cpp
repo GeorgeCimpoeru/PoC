@@ -19,8 +19,13 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     NegativeResponse nrc(socket, rc_logger);
     uint8_t lowerbits = can_id & 0xFF;
     uint8_t upperbits = can_id >> 8 & 0xFF;
+    uint8_t target_id = can_id >> 16 & 0xFF; 
+    uint8_t sub_function = request[2];
+    std::vector<uint8_t> routine_result = {0x00};
     /* reverse ids */
     can_id = lowerbits << 8 | upperbits;
+    OtaUpdateStatesEnum ota_state = static_cast<OtaUpdateStatesEnum>(MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0]);
+
     if (request.size() < 6)
     {
         /* Incorrect message length or invalid format - prepare a negative response */
@@ -28,7 +33,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
         AccessTimingParameter::stopTimingFlag(lowerbits, 0x31);
         return;
     }
-    else if (request[2] < 0x01 || request [2] > 0x03)
+    else if (sub_function < 0x01 || sub_function > 0x03)
     {
         /* Sub Function not supported - prepare a negative response */
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SFNS);
@@ -57,101 +62,106 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     }
     else
     {   
-        std::string command;
-        std::string path_to_main;
-        std::cout << "status is: " << std::string(PROJECT_PATH) << std::endl;
-        if (access((std::string(PROJECT_PATH) + "/main_mcu_new").c_str(), F_OK) == 0 && lowerbits == 0x10) {
-            path_to_main = std::string(PROJECT_PATH) + "/main_mcu_new";
-            command = "./../../config/installUpdates.sh";
-        }
-        else if (access((std::string(PROJECT_PATH) + "/main_battery_new").c_str(), F_OK) == 0 && lowerbits == 0x11) {
-            path_to_main = std::string(PROJECT_PATH) + "/main_battery_new";
-            command = "./../../../config/installUpdates.sh";
-            MemoryManager* managerInstance = MemoryManager::getInstance(0x0801, DEV_LOOP, rc_logger);
-            managerInstance->getAddress();
-        }
-        else if (access((std::string(PROJECT_PATH) + "/main_doors_new").c_str(), F_OK) == 0 && lowerbits == 0x12) {
-            path_to_main = std::string(PROJECT_PATH) + "/main_doors_new";
-            command = "./../../../config/installUpdates.sh";
-        }
-        else if (access((std::string(PROJECT_PATH) + "/main_engine_new").c_str(), F_OK) == 0 && lowerbits == 0x13) {
-            path_to_main = std::string(PROJECT_PATH) + "/main_engine_new";
-            command = "./../../../config/installUpdates.sh";
-        }
-        else if (access((std::string(PROJECT_PATH) + "/main_hvac_new").c_str(), F_OK) == 0 && lowerbits == 0x14) {
-            path_to_main = std::string(PROJECT_PATH) + "/main_hvac_new";
-            command = "./../../../config/installUpdates.sh";
-        }
-        else
-        {
-            LOG_ERROR(rc_logger.GET_LOGGER(), "No valid main_xxx_new file found in PROJECT_PATH.");
-            return;
-        }
         std::vector<uint8_t> binary_data;
         std::vector<uint8_t> adress_data;
-        MemoryManager* memory_manager;
+        MemoryManager* memory_manager = MemoryManager::getInstance(0x0801, DEV_LOOP, rc_logger);
         switch(routine_identifier)
         {
             case 0x0101:
+            {
                 /* Erase memory or specific data */
                 /* call eraseMemory routine */
                 LOG_INFO(rc_logger.GET_LOGGER(), "eraseMemory routine called.");
-                routineControlResponse(can_id, request, routine_identifier);
+                routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
                 break;
+            }
             case 0x0201:
-                /* Install updates */
-                /* call installUpdates routine*/
-                LOG_INFO(rc_logger.GET_LOGGER(), "installUpdates routine called.");
-                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE});
-                system(command.c_str());
-                routineControlResponse(can_id, request, routine_identifier);
-                break;
-            case 0x0301:
-                /* call writeToFile routine*/
-                LOG_INFO(rc_logger.GET_LOGGER(), "writeToFile routine called.");
-                binary_data = MemoryManager::readBinary(path_to_main, rc_logger);
-                memory_manager = MemoryManager::getInstance(rc_logger); 
-                adress_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), binary_data.size(), rc_logger);
-                MemoryManager::writeToFile(adress_data, selectEcuPath(can_id), rc_logger);
-                routineControlResponse(can_id, request, routine_identifier);
-                break;
-            case 0x0401:
+            {
                 /* Initialise OTA Update */
-                LOG_INFO(rc_logger.GET_LOGGER(), "Initialise OTA update routine called.");
-                if(initialiseOta() == true)
+                if(DiagnosticSessionControl::getCurrentSessionToString() != "EXTENDED_DIAGNOSTIC_SESSION")
                 {
-                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {INIT});
+                    LOG_WARN(rc_logger.GET_LOGGER(), "OTA update can be initialised only in EXTENDED_DIAGNOSTIC_SESSION");
+                    nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
+                    return;
+                }
+                if(ota_state != IDLE && ota_state != ERROR)
+                {
+                    LOG_INFO(rc_logger.GET_LOGGER(), "OTA update can be initialised only from an IDLE or ERROR state, current state is {:x}", ota_state);
+                    nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::CNC);
+                    return;
+                }
+
+                LOG_INFO(rc_logger.GET_LOGGER(), "Initialise OTA update routine called.");
+                if(initialiseOta(target_id, request, routine_result) == false)
+                {
+                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ERROR});
+                    nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::IMLOIF);
                 }
                 else
                 {
-                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {IDLE});
+                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {INIT});
+                    routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
                 }
                 break;
-            case 0x0501:
+            }
+            case 0x0301:
+            {
+                /* call writeToFile routine*/
+                LOG_INFO(rc_logger.GET_LOGGER(), "writeToFile routine called.");
+                std::string ecu_path;
+                if(FileManager::getEcuPath(lowerbits, ecu_path, 1, rc_logger) == 0)
+                {
+                    LOG_INFO(rc_logger.GET_LOGGER(), "Invalid ecu path for reading binary:\n{}", ecu_path);
+                    nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
+                    return;
+                }
+                binary_data = MemoryManager::readBinary(ecu_path, rc_logger);
+                memory_manager = MemoryManager::getInstance(rc_logger); 
+                adress_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), binary_data.size(), rc_logger);
+
+                if(FileManager::getEcuPath(lowerbits, ecu_path, 2, rc_logger) == 0)
+                {
+                    LOG_INFO(rc_logger.GET_LOGGER(), "Invalid ecu path for writting to file:\n{}", ecu_path);
+                    nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
+                    return;
+                }
+                MemoryManager::writeToFile(adress_data, ecu_path, rc_logger);
+                routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
+                break;
+            }
+            case 0x0401:
+            {
                 LOG_INFO(rc_logger.GET_LOGGER(), "Verify installation routine called.");
-                if(verifySoftware() == true)
+                if(verifySoftware() == false)
+                {
+                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {VERIFY_FAILED});
+                    nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::IMLOIF);
+                }
+                else
                 {
                     MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {VERIFY_COMPLETE});
                 }
-                else
-                {
-                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {VERIFY_FAILED});
-                }
                 break;
-            case 0x0601:
+            }
+            case 0x0501:
+            {
                 LOG_INFO(rc_logger.GET_LOGGER(), "Rollback routine called.");
                 break;
-            case 0x0701:
+            }
+            case 0x0601:
+            {
                 LOG_INFO(rc_logger.GET_LOGGER(), "Activate software routine called.");
-                if(activateSoftware() == true)
-                {
-                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_COMPLETE});
-                }
-                else
+                if(activateSoftware() == false)
                 {
                     MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_FAILED});
                 }
+                else
+                {
+                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_COMPLETE});
+                    routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
+                }
                 break;
+            }
             default:
                 LOG_INFO(rc_logger.GET_LOGGER(), "Unknown routine.");
                 break;
@@ -159,55 +169,97 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     }
 }
 
-void RoutineControl::routineControlResponse(canid_t can_id, const std::vector<uint8_t>& request, const uint16_t& routine_identifier)
+void RoutineControl::routineControlResponse(canid_t can_id, const uint8_t sub_function, const uint16_t& routine_identifier, std::vector<uint8_t>& routine_result)
 {
     uint8_t receiver_id = can_id >> 8 & 0xFF;
 
-    generate_frames.routineControl(can_id, request[2], routine_identifier, true);
+    generate_frames.routineControl(can_id, sub_function, routine_identifier, routine_result, true);
     LOG_INFO(rc_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame for routine: {:2x}", 0x31, routine_identifier);
                 
     AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
 }
 
-std::string RoutineControl::selectEcuPath(canid_t can_id)
+bool RoutineControl::initialiseOta(uint8_t target_ecu, const std::vector<uint8_t>& request, std::vector<uint8_t>& routine_result)
 {
-    uint8_t receiver_id = can_id >> 8 & 0xFF;
+    /* More checks here */
 
-        switch(receiver_id)
-        {
-            case 0x10:
-                return std::string(PROJECT_PATH) + "/src/mcu/main_mcu_new";
-            break;
-            case 0x11:
-                return std::string(PROJECT_PATH) + "/src/ecu_simulation/BatteryModule/main_battery_new";
-            break;
-            case 0x12:
-                return std::string(PROJECT_PATH) + "/src/ecu_simulation/DoorsModule/main_doors_new";
-            break;
-            case 0x13:
-                return std::string(PROJECT_PATH) + "/src/ecu_simulation/EngineModule/main_engine_new";
-            break;
-            case 0x14:
-                return std::string(PROJECT_PATH) + "/src/ecu_simulation/HvacModule/main_hvac_new";
-            break;
-            default:
-                LOG_ERROR(rc_logger.GET_LOGGER(), "No valid path.");
-                return "no valid path";
-            break;
-        }
-    return "no path found";
-}
+    namespace py = pybind11;
+    py::scoped_interpreter guard{}; // start the interpreter and keep it alive
 
-bool RoutineControl::initialiseOta()
-{
+    /* PROJECT_PATH defined in makefile to be the root folder path (POC)*/
+    std::string project_path = PROJECT_PATH;
+    std::string path_to_drive_api = project_path + "/src/ota/google_drive_api";
+    uint8_t sw_version = request[5];
+    short version_size = -1;
+    try
+    {
+        auto sys = py::module::import("sys");
+        sys.attr("path").attr("append")(path_to_drive_api);
+
+        /* Get the created Python module */
+        py::module python_module = py::module::import("GoogleDriveApi");
+        /* From the module, get the needed functionality (gDrive object) */
+        py::object gGdrive_object = python_module.attr("gDrive");
+
+        /* Call the searchVersion method from GoogleDriveApi.py that returns the size of the version, or 0 if not found*/
+        version_size = (gGdrive_object.attr("downloadFile")(target_ecu, sw_version)).cast<short>();
+    }
+    catch(const py::error_already_set& e)
+    {
+        LOG_ERROR(rc_logger.GET_LOGGER(), "Python error: {}", e.what());
+        MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ERROR});
+        return false;
+    }
+    if(version_size == -1)
+    {
+        /* NRC*/
+        return false;
+    }
+    else
+    {
+        /* Send response */
+        routine_result[0] = version_size;
+    }
     return true;
+    
 }
 
 bool RoutineControl::activateSoftware()
 {
-    return true;
+    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE});
+    /* Checks for the system exit value to update the status in COMPLETED or FAILED */
+    pid_t pid;
+    std::string pname;
+    if(getCurrentProcessInfo(pid, pname) == 0)
+    {
+        return 0;
+    }
+    std::string cmd = std::string(PROJECT_PATH) + "/config/installUpdates.sh " + std::to_string(pid) + " " + pname;
+    int install_update_status = system(cmd.c_str());
+    if(install_update_status != 0)
+    {
+        return 0;
+    }
+    
+    return 1;
 }
 bool RoutineControl::verifySoftware()
 {
     return true;
+}
+
+bool RoutineControl::getCurrentProcessInfo(pid_t& pid, std::string& pname) 
+{
+    pid = getpid(); // Get the current process ID
+    std::ifstream file("/proc/" + std::to_string(pid) + "/comm"); // Open the process file
+
+    if (file.is_open()) {
+        std::getline(file, pname);
+        file.close();
+    } else {
+        std::cerr << "Error: Unable to open /proc/" << pid << "/comm" << std::endl;
+        return 0;
+    }
+
+    return 1;
 }

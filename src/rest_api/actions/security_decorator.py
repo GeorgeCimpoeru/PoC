@@ -12,10 +12,7 @@ def requires_auth(func):
             id = (API_ID << 8) + 0x10
 
             session = SessionManager(API_ID)
-            response = session._change_session(id, 2)
-
-            if response["status"] == "error":
-                return jsonify({"error": "Session change failed", "message": response["message"]}), 500
+            session._change_session(id, 2)
 
             auth = Auth(API_ID, [0x10, 0x11, 0x12, 0x13, 0x14])
             auth_response = auth._auth_to()
