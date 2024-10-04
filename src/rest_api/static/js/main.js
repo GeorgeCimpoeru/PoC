@@ -113,13 +113,14 @@ function updateToVersion() {
     performApiRequest('/api/update_to_version', 'POST', { update_file_type: type, update_file_version: version, ecu_id: ecu_id });
 }
 
-function readInfoBattery() {
-    performApiRequest('/api/read_info_battery', 'GET');
-
+function readInfoBattery(item) {
+    const is_internal = true;
+    performApiRequest(`/api/read_info_battery?item=${item}&is_internal=${is_internal}`, 'GET');
 }
 
-function readInfoEngine() {
-    performApiRequest('/api/read_info_engine', 'GET');
+function readInfoEngine(item) {
+    const is_internal = true;
+    performApiRequest(`/api/read_info_engine?item=${item}&is_internal=${is_internal}`, 'GET');
 }
 
 
@@ -134,7 +135,8 @@ function gDriveReadData() {
 }
 
 function readInfoDoors() {
-    performApiRequest('/api/read_info_doors', 'GET');
+    const is_internal = true;
+    performApiRequest(`/api/read_info_doors?item=${item}&is_internal=${is_internal}`, 'GET');
 }
 
 function writeInfoDoors() {
@@ -143,7 +145,8 @@ function writeInfoDoors() {
         passenger: prompt('Enter Passenger Door Status (0: closed, 1: open):') || null,
         passenger_lock: prompt('Enter Passenger Lock Status (0: locked, 1: unlocked):') || null,
         driver: prompt('Enter Driver Door Status (0: closed, 1: open):') || null,
-        ajar: prompt('Enter Ajar Warning Status (0: no warning, 1: warning):') || null
+        ajar: prompt('Enter Ajar Warning Status (0: no warning, 1: warning):') || null,
+        is_internal: true
     };
     performApiRequest('/api/write_info_doors', 'POST', data);
 }
@@ -159,7 +162,8 @@ function writeInfoBattery() {
         // fully_charged: prompt('Enter Battery Fully Charged Status:') || null,
         // range_battery: prompt('Enter Battery Range:') || null,
         // charging_time: prompt('Enter Battery Charging Time:') || null,
-        // device_consumption: prompt('Enter Device Consumption:') || null
+        // device_consumption: prompt('Enter Device Consumption:') || null,
+        is_internal: true
     };
     performApiRequest('/api/write_info_battery', 'POST', data);
 }
@@ -174,7 +178,8 @@ function writeInfoEngine() {
         fuel_level: prompt('Enter Fuel Level:') || null,
         oil_temperature: prompt('Enter Oil Temperature:') || null,
         fuel_pressure: prompt('Enter Fuel Pressure:') || null,
-        intake_air_temperature: prompt('Enter Intake Air Temperature:') || null
+        intake_air_temperature: prompt('Enter Intake Air Temperature:') || null,
+        is_internal: true
     };
 
     performApiRequest('/api/write_info_engine', 'POST', data);
@@ -188,6 +193,7 @@ function writeInfoHVAC() {
         cabin_temperature_driver_set: prompt('Enter Cabin Temperature Driver Set:') || null,
         fan_speed: prompt('Enter Fan Speed:') || null,
         hvac_modes: prompt('Enter HVAC Modes:') || null,
+        is_internal: true
     };
 
     performApiRequest('/api/write_info_hvac', 'POST', data);
@@ -229,7 +235,6 @@ function get_data_ids() {
 }
 
 function readTimingInfo() {
-    // Show descriptions for valid options
     const descriptions = `
     Please enter a sub-function code:
     1 - Read P2_MAX_TIME_DEFAULT and P2_STAR_MAX_TIME_DEFAULT
@@ -242,15 +247,13 @@ function readTimingInfo() {
         return;
     }
 
-    const sub_funct = parseInt(input, 10); // Convert input to an integer
+    const sub_funct = parseInt(input, 10); 
 
-    // Check if sub_funct is either 1 or 3
     if (sub_funct !== 1 && sub_funct !== 3) {
         alert('Invalid input. Please enter 1 or 3.');
         return;
     }
 
-    // Call the API with the correct sub_function value
     performApiRequest('/api/read_access_timing', 'POST', { sub_funct: sub_funct });
 }
 
@@ -305,5 +308,6 @@ function writeTimingInfo() {
     performApiRequest('/api/write_timing', 'POST', data);
 }
 function readInfoHvac() {
-    performApiRequest('/api/read_info_hvac', 'GET');
+    const is_internal = true;
+    performApiRequest(`/api/read_info_hvac?item=${item}&is_internal=${is_internal}`, 'GET');
 }

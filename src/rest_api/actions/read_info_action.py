@@ -89,14 +89,18 @@ class ReadInfo(Action):
                 if item in identifiers:
                     identifier = identifiers[item]
                     result_value = self._read_by_identifier(id, int(identifier, 16))
-                    self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
 
                     if item == "state_of_charge" and result_value:
                         result_value = self._get_battery_state_of_charge(result_value)
 
-                    results[item] = result_value if result_value else "No data"
+                    response_json = {
+                        item: self.hex_to_dec(result_value) if result_value else "No data",
+                        "time_stamp": datetime.datetime.now().isoformat()
+                    }
+                    return response_json
                 else:
                     return {"error": f"Invalid parameter '{item}'. Use /get_identifiers to see valid parameters."}
+
             else:
                 for key, identifier in identifiers.items():
                     result_value = self._read_by_identifier(id, int(identifier, 16))
@@ -104,21 +108,16 @@ class ReadInfo(Action):
                     if key == "state_of_charge" and result_value:
                         result_value = self._get_battery_state_of_charge(result_value)
 
+                    log_info_message(logger, f"{identifier}, {key}, {item}")
                     results[key] = result_value if result_value else "No data"
 
-            response_json = {
-                "battery_level": self.hex_to_dec(results.get("battery_level")),
-                "voltage": self.hex_to_dec(results.get("voltage")),
-                "percentage": self.hex_to_dec(results.get("percentage")),
-                "battery_state_of_charge": results.get("state_of_charge"),
-                # "life_cycle": self.hex_to_dec(results.get("life_cycle", "No data")),
-                # "fully_charged": self.hex_to_dec(results.get("fully_charged", "No data")),
-                # "serial_number": self.hex_to_dec(results.get("serial_number", "No data")),
-                # "range_battery": self.hex_to_dec(results.get("range", "No data")),
-                # "charging_time": self.hex_to_dec(results.get("charging_time", "No data")),
-                # "device_consumption": self.hex_to_dec(results.get("device_consumption", "No data")),
-                "time_stamp": datetime.datetime.now().isoformat()
-            }
+                response_json = {
+                    "battery_level": self.hex_to_dec(results.get("battery_level")),
+                    "voltage": self.hex_to_dec(results.get("voltage")),
+                    "percentage": self.hex_to_dec(results.get("percentage")),
+                    "battery_state_of_charge": results.get("state_of_charge"),
+                    "time_stamp": datetime.datetime.now().isoformat()
+                }
 
             self.bus.shutdown()
             log_info_message(logger, "Sending JSON response")
@@ -153,42 +152,50 @@ class ReadInfo(Action):
             identifiers = data_identifiers["Doors_Identifiers"]
             results = {}
 
+            def get_context(key):
+                if key in ["door", "passenger", "driver"]:
+                    return "door"
+                elif key == "passenger_lock":
+                    return "lock"
+                elif key == "ajar":
+                    return "ajar"
+                else:
+                    return "unknown"
+
             if item:
                 if item in identifiers:
                     identifier = identifiers[item]
                     result_value = self._read_by_identifier(id, int(identifier, 16))
-                    self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
+                    context = get_context(item)
 
-                    results[item] = self._interpret_status(result_value) if result_value else "No data"
+                    results[item] = self._interpret_status(result_value, context) if result_value else "No data"
 
+                    response_json = {
+                        item: self.hex_to_dec(results.get(item, "No data")),
+                        "time_stamp": datetime.datetime.now().isoformat()
+                    }
+                    return response_json
                 else:
                     return {"error": f"Invalid parameter '{item}'. Use /get_identifiers to see valid parameters."}
+
             else:
                 for key, identifier in identifiers.items():
                     result_value = self._read_by_identifier(id, int(identifier, 16))
-
-                    if key in ["door", "passenger", "driver"]:
-                        context = "door"
-                    elif key == "passenger_lock":
-                        context = "lock"
-                    elif key == "ajar":
-                        context = "ajar"
-                    else:
-                        context = "unknown"
+                    context = get_context(key)
 
                     results[key] = self._interpret_status(result_value, context) if result_value else "No data"
 
-            response_json = {
-                "door": self.hex_to_dec(results.get("door", "No data")),
-                "passenger": self.hex_to_dec(results.get("passenger", "No data")),
-                "passenger_lock": self.hex_to_dec(results.get("passenger_lock", "No data")),
-                "ajar": self.hex_to_dec(results.get("ajar", "No data")),
-                "time_stamp": datetime.datetime.now().isoformat()
-            }
+                response_json = {
+                    "door": self.hex_to_dec(results.get("door", "No data")),
+                    "passenger": self.hex_to_dec(results.get("passenger", "No data")),
+                    "passenger_lock": self.hex_to_dec(results.get("passenger_lock", "No data")),
+                    "ajar": self.hex_to_dec(results.get("ajar", "No data")),
+                    "time_stamp": datetime.datetime.now().isoformat()
+                }
 
-            self.bus.shutdown()
-            log_info_message(logger, "Sending JSON response")
-            return response_json
+                self.bus.shutdown()
+                log_info_message(logger, "Sending JSON response")
+                return response_json
 
         except CustomError:
             self.bus.shutdown()
@@ -220,11 +227,9 @@ class ReadInfo(Action):
             results = {}
 
             if item:
-                # Handle reading a specific item
                 if item in identifiers:
                     identifier = identifiers[item]
                     result_value = self._read_by_identifier(id, int(identifier, 16))
-                    self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
                     interpreted_value = self.hex_to_dec(result_value) if result_value else "No data"
 
                     response_json = {
@@ -280,18 +285,16 @@ class ReadInfo(Action):
             identifiers = data_identifiers["HVAC_Identifiers"]
             results = {}
             if item:
-                # Handle reading a specific item
                 if item in identifiers:
                     identifier = identifiers[item]
                     result_value = self._read_by_identifier(id, int(identifier, 16))
-                    self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
+                    # self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
 
                     if item == "hvac_modes":
                         interpreted_value = self._interpret_hvac_modes(self.hex_to_dec(result_value)) if result_value else "No data"
                     else:
                         interpreted_value = self.hex_to_dec(result_value) if result_value else "No data"
 
-                    # Build response with only the requested item
                     response_json = {
                         item: interpreted_value,
                         "time_stamp": datetime.datetime.now().isoformat()
@@ -309,7 +312,6 @@ class ReadInfo(Action):
                     else:
                         results[key] = self.hex_to_dec(result_value) if result_value else "No data"
 
-                    # Build response with all items
                 response_json = {
                     **results,
                     "time_stamp": datetime.datetime.now().isoformat()

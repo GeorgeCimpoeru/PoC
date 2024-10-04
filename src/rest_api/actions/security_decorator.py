@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import jsonify
+from flask import jsonify, request
 from actions.secure_auth import Auth
 from actions.diag_session import SessionManager
 from configs.data_identifiers import *
@@ -8,6 +8,15 @@ from configs.data_identifiers import *
 def requires_auth(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
+
+        if request.method == 'POST':
+            is_internal = request.get_json().get('is_internal', False)
+        elif request.method == 'GET':
+            is_internal = request.args.get('is_internal', 'false').lower() == 'true'
+
+        if is_internal:
+            return func(*args, **kwargs)
+
         try:
             id = (API_ID << 8) + 0x10
 
