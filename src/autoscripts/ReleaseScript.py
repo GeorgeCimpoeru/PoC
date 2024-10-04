@@ -34,6 +34,7 @@ engine_size_uncompressed = 0
 doors_size_uncompressed = 0
 hvac_size_uncompressed = 0
 
+
 def create_exec(version: str, sw_to_build: str, extra_args: str):
     dir_name = "release_" + sw_to_build + '_' + version
     directory_path = os.path.expanduser(PATH_SOFTWARE_RELEASES + "/"+dir_name)
@@ -69,7 +70,7 @@ def create_exec(version: str, sw_to_build: str, extra_args: str):
                 PATH_SOFTWARE_RELEASES)
             mcu_archive_name = "{0}/{1}/MCU_SW_VERSION_{2}".format(
                 PATH_SOFTWARE_RELEASES, dir_name, version)
-            global mcu_size_uncompressed 
+            global mcu_size_uncompressed
             mcu_size_uncompressed = createArchive(mcu_executable_path, mcu_archive_name)
         if sw_to_build == "battery" or sw_to_build == "all":
             if "clean" in extra_args:
@@ -136,16 +137,18 @@ def create_exec(version: str, sw_to_build: str, extra_args: str):
         print(error)
     return directory_path
 
+
 def createArchive(executable_path, archive_name):
     size_uncompressed = int((os.path.getsize(executable_path) / 1000000)) + 1
     shutil.make_archive(archive_name, 'zip', root_dir=os.path.dirname(
                 executable_path), base_dir=os.path.basename(executable_path))
     return size_uncompressed
-    
+
+
 def uploadRelease(directory_path: str):
     google_drive_api_path = PROJECT_PATH + '/src/ota/google_drive_api'
     sys.path.append(google_drive_api_path)
-    from GoogleDriveApi import gDrive, DRIVE_MCU_SW_VERSIONS_FILE, DRIVE_ECU_BATTERY_SW_VERSIONS_FILE, DRIVE_ECU_ENGINE_SW_VERSIONS_FILE, DRIVE_ECU_DOORS_SW_VERSIONS_FILE, DRIVE_ECU_HVAC_SW_VERSIONS_FILE 
+    from GoogleDriveApi import gDrive, DRIVE_MCU_SW_VERSIONS_FILE, DRIVE_ECU_BATTERY_SW_VERSIONS_FILE, DRIVE_ECU_ENGINE_SW_VERSIONS_FILE, DRIVE_ECU_DOORS_SW_VERSIONS_FILE, DRIVE_ECU_HVAC_SW_VERSIONS_FILE
 
     for file in os.listdir(directory_path):
 
