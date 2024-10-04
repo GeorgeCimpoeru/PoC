@@ -214,8 +214,8 @@ UTILS_OBJS_TEST = $(OBJ_DIR)/MemoryManager_test.o \
                   $(OBJ_DIR)/CreateInterface_test.o \
                   $(OBJ_DIR)/GenerateFrames_test.o \
                   $(OBJ_DIR)/NegativeResponse_test.o \
-				  $(OBJ_DIR)/HandleFrames_test.o \
-				  $(OBJ_DIR)/FileManager_test.o
+                  $(OBJ_DIR)/HandleFrames_test.o \
+                  $(OBJ_DIR)/FileManager_test.o
 
 OBJS_GENERATE_TEST = $(OBJ_DIR)/Logger_test.o \
                   	 $(OBJ_DIR)/GenerateFrames_test.o
@@ -233,16 +233,16 @@ UDS_OBJS_TEST = $(OBJ_DIR)/DiagnosticSessionControl_test.o \
                 $(OBJ_DIR)/WriteDataByIdentifier_test.o \
                 $(OBJ_DIR)/EcuReset_test.o \
                 $(OBJ_DIR)/SecurityAccess_test.o \
-				$(OBJ_DIR)/TesterPresent_test.o \
+                $(OBJ_DIR)/TesterPresent_test.o \
                 $(OBJ_DIR)/ReadDtcInformation_test.o \
                 $(OBJ_DIR)/ClearDtc_test.o \
                 $(OBJ_DIR)/RoutineControl_test.o \
-				$(OBJ_DIR)/AccessTimingParameter_test.o \
-				$(OBJ_DIR)/ReadMemoryByAddress_test.o 
+                $(OBJ_DIR)/AccessTimingParameter_test.o \
+                $(OBJ_DIR)/ReadMemoryByAddress_test.o 
 
 OBJS_DIAGNOSTICSESSIONCONTROL_TEST = $(OBJ_DIR)/Logger_test.o \
-			   						 $(OBJ_DIR)/GenerateFrames_test.o \
-			   						 $(OBJ_DIR)/DiagnosticSessionControl_test.o
+                                     $(OBJ_DIR)/GenerateFrames_test.o \
+                                     $(OBJ_DIR)/DiagnosticSessionControl_test.o
 
 OBJS_SECURITYACCESS_TEST = $(OBJ_DIR)/Logger_test.o \
 						   $(OBJ_DIR)/GenerateFrames_test.o \
@@ -292,8 +292,8 @@ OBJS_REQUESTUPDATESTATUS_TEST = $(OBJ_DIR)/Logger_test.o \
 			   			  		$(OBJ_DIR)/RequestUpdateStatus_test.o
 
 OBJS_REQUESTTRANSFEREXIT_TEST = $(OBJ_DIR)/Logger_test.o \
-			   			  $(OBJ_DIR)/GenerateFrames_test.o \
-			   			  $(OBJ_DIR)/RequestTransferExit_test.o
+                                $(OBJ_DIR)/GenerateFrames_test.o \
+                                $(OBJ_DIR)/RequestTransferExit_test.o
 						
 OBJS_REQUESTDOWNLOAD_TEST = $(OBJ_DIR)/Logger_test.o \
 			   			  $(OBJ_DIR)/GenerateFrames_test.o \
@@ -304,8 +304,8 @@ OBJS_TRANSFERDATA_TEST = $(OBJ_DIR)/Logger_test.o \
 			   			  $(OBJ_DIR)/TransferData_test.o
 
 OBJS_NEGATIVERESPONSE_TEST = $(OBJ_DIR)/Logger_test.o \
-							 $(OBJ_DIR)/GenerateFrames_test.o \
-							 $(OBJ_DIR)/NegativeResponse_test.o \
+                             $(OBJ_DIR)/GenerateFrames_test.o \
+                             $(OBJ_DIR)/NegativeResponse_test.o \
 
 OBJS_TEST = $(MCU_OBJS_TEST) \
             $(ECU_OBJS_TEST) \
