@@ -1,4 +1,29 @@
 <resources>
     <string name="app_name">CarsData</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="large_text">
+        "Material is the metaphor.\n\n"
+
+    </string>
+    <string name="unified_diagnostic_services">Unified Diagnostic Services</string>
+    <string name="uds">UDS</string>
+    <string name="uds_car">UDS car</string>
+    <string name="ota_car">ota_car</string>
+    <string name="over_the_air_updates">Over the Air Updates</string>
+    <string name="ota">ota</string>
+    <string name="PoC_2024">PoC 2024 ©</string>
+    <string name="country_of_nmanufacturer">Country of\nmanufacturer</string>
+    <string name="vehicle_type_n_or_division">Vehicle type\n or division</string>
+    <string name="security_ncheck_digit">Security\ncheck digit</string>
+    <string name="assembly_n_plant">Assembly\n plant</string>
+    <string name="vehicle_nmanufacturer">Vehicle\nManufacturer</string>
+    <string name="vehicle_brand_n_model_series">Vehicle brand/\n model series</string>
+    <string name="model_n_year">Model \n year</string>
+    <string name="vehicle_nproduction_no">Vehicle \nproduction no.</string>
+    <string name="vin">1FTFW1R6XBFB08616</string>
+    <string name="smooth_edges">smooth edges</string>
+    <string name="your_car_details">Your car details:</string>
+    <string name="info">info</string>
+    <string name="more_info">More info</string>
+    <string name="less_info">Less info</string>
 </resources>
