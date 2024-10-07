@@ -89,17 +89,27 @@ class ReadInfo(Action):
                 if item in identifiers:
                     identifier = identifiers[item]
                     result_value = self._read_by_identifier(id, int(identifier, 16))
-                    self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
+                    if not result_value:
+                        self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
 
                     if item == "state_of_charge" and result_value:
                         result_value = self._get_battery_state_of_charge(result_value)
 
                     results[item] = result_value if result_value else "No data"
+                
+                    response_json = {
+                            item: self.hex_to_dec(result_value) if result_value else "No data",
+                            "time_stamp": datetime.datetime.now().isoformat()
+                        }
+                    return response_json
+            
                 else:
                     return {"error": f"Invalid parameter '{item}'. Use /get_identifiers to see valid parameters."}
             else:
                 for key, identifier in identifiers.items():
                     result_value = self._read_by_identifier(id, int(identifier, 16))
+                    if not result_value:
+                        self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
 
                     if key == "state_of_charge" and result_value:
                         result_value = self._get_battery_state_of_charge(result_value)
@@ -153,42 +163,54 @@ class ReadInfo(Action):
             identifiers = data_identifiers["Doors_Identifiers"]
             results = {}
 
+            def get_context(key):
+                if key in ["door", "passenger", "driver"]:
+                    return "door"
+                elif key == "passenger_lock":
+                    return "lock"
+                elif key == "ajar":
+                    return "ajar"
+                else:
+                    return "unknown"
+
             if item:
                 if item in identifiers:
                     identifier = identifiers[item]
                     result_value = self._read_by_identifier(id, int(identifier, 16))
-                    self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
+                    if not result_value:
+                        self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
+                    context = get_context(item)
 
-                    results[item] = self._interpret_status(result_value) if result_value else "No data"
+                    results[item] = self._interpret_status(result_value, context) if result_value else "No data"
 
+                    response_json = {
+                        item: self.hex_to_dec(results.get(item, "No data")),
+                        "time_stamp": datetime.datetime.now().isoformat()
+                    }
+                    return response_json
                 else:
                     return {"error": f"Invalid parameter '{item}'. Use /get_identifiers to see valid parameters."}
+
             else:
                 for key, identifier in identifiers.items():
                     result_value = self._read_by_identifier(id, int(identifier, 16))
-
-                    if key in ["door", "passenger", "driver"]:
-                        context = "door"
-                    elif key == "passenger_lock":
-                        context = "lock"
-                    elif key == "ajar":
-                        context = "ajar"
-                    else:
-                        context = "unknown"
+                    if not result_value:
+                        self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
+                    context = get_context(key)
 
                     results[key] = self._interpret_status(result_value, context) if result_value else "No data"
 
-            response_json = {
-                "door": self.hex_to_dec(results.get("door", "No data")),
-                "passenger": self.hex_to_dec(results.get("passenger", "No data")),
-                "passenger_lock": self.hex_to_dec(results.get("passenger_lock", "No data")),
-                "ajar": self.hex_to_dec(results.get("ajar", "No data")),
-                "time_stamp": datetime.datetime.now().isoformat()
-            }
+                response_json = {
+                    "door": self.hex_to_dec(results.get("door", "No data")),
+                    "passenger": self.hex_to_dec(results.get("passenger", "No data")),
+                    "passenger_lock": self.hex_to_dec(results.get("passenger_lock", "No data")),
+                    "ajar": self.hex_to_dec(results.get("ajar", "No data")),
+                    "time_stamp": datetime.datetime.now().isoformat()
+                }
 
-            self.bus.shutdown()
-            log_info_message(logger, "Sending JSON response")
-            return response_json
+                self.bus.shutdown()
+                log_info_message(logger, "Sending JSON response")
+                return response_json
 
         except CustomError:
             self.bus.shutdown()
@@ -201,6 +223,7 @@ class ReadInfo(Action):
                 "message": "Error during Read by ID",
                 "negative_response": negative_response
             }
+
 
     def read_from_engine(self, item=None):
         """
@@ -220,11 +243,12 @@ class ReadInfo(Action):
             results = {}
 
             if item:
-                # Handle reading a specific item
+            
                 if item in identifiers:
                     identifier = identifiers[item]
                     result_value = self._read_by_identifier(id, int(identifier, 16))
-                    self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
+                    if not result_value:
+                        self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
                     interpreted_value = self.hex_to_dec(result_value) if result_value else "No data"
 
                     response_json = {
@@ -241,6 +265,8 @@ class ReadInfo(Action):
                 for key, identifier in identifiers.items():
                     result_value = self._read_by_identifier(id, int(identifier, 16))
                     results[key] = self.hex_to_dec(result_value) if result_value else "No data"
+                    if not result_value:
+                        self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
 
                 response_json = {
                     **results,
@@ -280,18 +306,19 @@ class ReadInfo(Action):
             identifiers = data_identifiers["HVAC_Identifiers"]
             results = {}
             if item:
-                # Handle reading a specific item
+            
                 if item in identifiers:
                     identifier = identifiers[item]
                     result_value = self._read_by_identifier(id, int(identifier, 16))
-                    self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
+                    if not result_value:
+                        self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
 
                     if item == "hvac_modes":
                         interpreted_value = self._interpret_hvac_modes(self.hex_to_dec(result_value)) if result_value else "No data"
                     else:
                         interpreted_value = self.hex_to_dec(result_value) if result_value else "No data"
 
-                    # Build response with only the requested item
+                    
                     response_json = {
                         item: interpreted_value,
                         "time_stamp": datetime.datetime.now().isoformat()
@@ -304,12 +331,15 @@ class ReadInfo(Action):
             else:
                 for key, identifier in identifiers.items():
                     result_value = self._read_by_identifier(id, int(identifier, 16))
+                    if not result_value:
+                        self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
+                        
                     if key == "hvac_modes":
                         results[key] = self._interpret_hvac_modes(self.hex_to_dec(result_value)) if result_value else "No data"
                     else:
                         results[key] = self.hex_to_dec(result_value) if result_value else "No data"
 
-                    # Build response with all items
+                    
                 response_json = {
                     **results,
                     "time_stamp": datetime.datetime.now().isoformat()

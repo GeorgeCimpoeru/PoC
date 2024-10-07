@@ -120,10 +120,10 @@ class WriteInfo(Action):
 
                 data_parameter = [value]
                 if len(data_parameter) <= 4:
-                    self.generate.write_data_by_identifier(id, identifier, data_parameter)
+                    self.write_data_by_identifier(id, identifier, data_parameter)
                     self._passive_response(WRITE_BY_IDENTIFIER, f"Error writing {identifier}")
                 else:
-                    self.generate.write_data_by_identifier_long(id, identifier, data_parameter)
+                    self.write_data_by_identifier_long(id, identifier, data_parameter)
 
             log_info_message(logger, f"Data written successfully to ECU ID: {ECU_DOORS}")
             response_json = self._to_json("success", 0)
@@ -185,10 +185,10 @@ class WriteInfo(Action):
 
                 data_parameter = [value]
                 if len(data_parameter) <= 4:
-                    self.generate.write_data_by_identifier(id, identifier, data_parameter)
+                    self.write_data_by_identifier(id, identifier, data_parameter)
                     self._passive_response(WRITE_BY_IDENTIFIER, f"Error writing {identifier}")
                 else:
-                    self.generate.write_data_by_identifier_long(id, identifier, data_parameter)
+                    self.write_data_by_identifier_long(id, identifier, data_parameter)
 
             log_info_message(logger, f"Data written successfully to ECU ID: {ECU_ENGINE}")
             response_json = self._to_json("success", 0)
@@ -247,10 +247,10 @@ class WriteInfo(Action):
 
                 data_parameter = [value]
                 if len(data_parameter) <= 4:
-                    self.generate.write_data_by_identifier(id, identifier, data_parameter)
+                    self.write_data_by_identifier(id, identifier, data_parameter)
                     self._passive_response(WRITE_BY_IDENTIFIER, f"Error writing {identifier}")
                 else:
-                    self.generate.write_data_by_identifier_long(id, identifier, data_parameter)
+                    self.write_data_by_identifier_long(id, identifier, data_parameter)
 
             log_info_message(logger, f"Data written successfully to ECU ID: {ECU_HVAC}")
             response_json = self._to_json("success", 0)

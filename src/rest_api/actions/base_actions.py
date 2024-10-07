@@ -155,6 +155,11 @@ class Action(GF):
         log_info_message(logger, "Collecting the response")
         response = self.__collect_response(sid)
 
+        if response:
+            log_info_message(logger, f"Collected response: {response}")
+        else:
+            log_error_message(logger, error_str)
+
         if response is None:
             log_error_message(logger, error_str)
             response_json = self._to_json_error("interrupted", 1)
