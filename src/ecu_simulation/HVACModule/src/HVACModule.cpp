@@ -9,7 +9,12 @@ std::unordered_map<uint16_t, std::vector<uint8_t>> HVACModule::default_DID_hvac 
         {CABIN_TEMPERATURE_DID, {DEFAULT_DID_VALUE}}, /* Cabin temperature */
         {HVAC_SET_TEMPERATURE_DID, {DEFAULT_DID_VALUE}}, /* HVAC set temperature */
         {FAN_SPEED_DID, {DEFAULT_DID_VALUE}}, /* Fan speed (Duty cycle) */
-        {HVAC_MODES_DID, {DEFAULT_DID_VALUE}}  /* HVAC modes */
+        {HVAC_MODES_DID, {DEFAULT_DID_VALUE}},  /* HVAC modes */
+#ifdef SOFTWARE_VERSION
+        {0xF1A2, {static_cast<uint8_t>(SOFTWARE_VERSION)}}
+#else
+        {0xF1A2, {0x00}}
+#endif
     };
 
 HVACModule::HVACModule() : _logger(*hvacModuleLogger)
