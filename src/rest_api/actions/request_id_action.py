@@ -18,6 +18,11 @@ class IDsToJson():
 
 
 class RequestIdAction(Action):
+    def __init__(self, my_id, id_ecu=None):
+        if id_ecu is None:
+            id_ecu = []
+        super().__init__(my_id, id_ecu)
+
     def read_ids(self):
         self.id = self.my_id
         try:
@@ -33,7 +38,7 @@ class RequestIdAction(Action):
 
     def _send_request_frame(self):
         log_info_message(logger, "Sending request frame for ECU IDs")
-        self.generate.send_frame(self.id, [0x01, 0x99])
+        self.send(self.id, [0x01, 0x99])
         log_info_message(logger, "Request frame sent")
 
     def _read_response_frames(self, timeout=10):

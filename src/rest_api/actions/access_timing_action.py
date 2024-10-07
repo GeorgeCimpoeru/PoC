@@ -19,7 +19,7 @@ class ReadAccessTiming(Action):
             id = (self.id_ecu[ECU_BATTERY] << 16) + (self.my_id << 8) + self.id_ecu[MCU]
 
             log_info_message(logger, "Changing session to programming")
-            self.generate.access_timing_parameters(id, sub_funct)
+            self.access_timing_parameters(id, sub_funct)
             frame_response = self._passive_response(ACCESS_TIMING_PARAMETERS, "Error reading timing parameters")
 
             if len(frame_response.data) < 4:
@@ -100,13 +100,13 @@ class WriteAccessTiming(Action):
             id = (self.id_ecu[ECU_BATTERY] << 16) + (self.my_id << 8) + id_mcu
 
             log_info_message(logger, "Changing session to programming")
-            self.generate.session_control(id, 0x02)
+            self.session_control(id, 0x02)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
 
             p2_max = timing_values.get("p2_max", 0)
             p2_star_max = timing_values.get("p2_star_max", 0)
 
-            self.generate.write_timming_parameters(id, 0x04, p2_max, p2_star_max)
+            self.write_timming_parameters(id, 0x04, p2_max, p2_star_max)
             frame_response = self._passive_response(ACCESS_TIMING_PARAMETERS, "Error writing timing parameters")
 
             if frame_response.data[1] == 0xC3:

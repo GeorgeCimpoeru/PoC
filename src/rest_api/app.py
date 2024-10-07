@@ -5,7 +5,6 @@ from routes.main import main_bp
 from flask_cors import CORS
 from routes.api import api_bp
 
-
 app = Flask(__name__)
 app.config.from_object(Config)
 
@@ -18,4 +17,4 @@ CORS(app)
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(port=5001, debug=True)
