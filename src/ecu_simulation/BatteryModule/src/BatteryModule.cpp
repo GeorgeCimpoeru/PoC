@@ -278,7 +278,8 @@ void BatteryModule::writeDataToFile()
 void BatteryModule::checkDTC()
 {
     /* Check if dtcs.txt exists */
-    std::string dtc_file_path = "dtcs.txt";
+    std::string dtc_file_path = std::string(PROJECT_PATH) + "/src/ecu_simulation/BatteryModule/dtcs.txt";
+    std::string battery_file_path = std::string(PROJECT_PATH) + "/src/ecu_simulation/BatteryModule/battery_data.txt";
     std::ifstream infile(dtc_file_path);
 
     if (!infile.is_open())
@@ -300,7 +301,7 @@ void BatteryModule::checkDTC()
         infile.close();
     }
     /* Read the map with DIDs from the file */
-    std::unordered_map<uint16_t, std::vector<uint8_t>> current_DID_value = FileManager::readMapFromFile("battery_data.txt");
+    std::unordered_map<uint16_t, std::vector<uint8_t>> current_DID_value = FileManager::readMapFromFile(battery_file_path);
 
     /* Voltage DTC */
     FileManager::writeDTC(current_DID_value, dtc_file_path, 0x01B0, 12, 13, "P01B0 24");
