@@ -20,8 +20,8 @@ let intervalID: number | NodeJS.Timeout | null = null;
 
 const SendRequests = () => {
     const [logs, setLogs] = useState<string[]>([]);
-    const [data23, setData23] = useState<{ ecu_ids: [], mcu_id: any, status: string, time_stamp: string } | string[] | string | null | 
-    { name: string; version: string; }[] >();
+    const [data23, setData23] = useState<{ ecu_ids: [], mcu_id: any, status: string, time_stamp: string } | string[] | string | null |
+        { name: string; version: string; }[]>();
     const [batteryData, setBatteryData] = useState<batteryData | null>();
     const [canId, setCanId] = useState("");
     const [canData, setCanData] = useState("");
@@ -86,10 +86,10 @@ const SendRequests = () => {
         popupStyleElement = document.createElement('style');
         popupStyleElement.type = 'text/css';
         popupStyleElement.innerText = `
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }`;
+@keyframes spin {
+0% { transform: rotate(0deg); }
+100% { transform: rotate(360deg); }
+}`;
         document.head.appendChild(popupStyleElement);
     };
 
@@ -146,8 +146,8 @@ const SendRequests = () => {
         // const hexArray: string[] = data23?.response.can_data;
 
         // hexArray.forEach(hexStr => {
-        //     const decimal = parseInt(hexStr.slice(2), 16);
-        //     asciiString += String.fromCharCode(decimal);
+        // const decimal = parseInt(hexStr.slice(2), 16);
+        // asciiString += String.fromCharCode(decimal);
         // });
 
         setData23(asciiString);
@@ -271,12 +271,12 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
-    const readInfoBattery = async (initialRequest: boolean, identifier: string) => {
+    const readInfoBattery = async (initialRequest: boolean, item: string) => {
         displayLoadingCircle();
         console.log("Reading info battery...");
-        console.log(identifier);
+        console.log(item);
         try {
-            await fetch(`http://127.0.0.1:5000/api/read_info_battery?identifier=${identifier}`, {
+            await fetch(`http://127.0.0.1:5000/api/read_info_battery?item=${item}`, {
                 method: 'GET',
                 // mode: 'no-cors',
             }).then(response => response.json())
@@ -296,64 +296,7 @@ const SendRequests = () => {
         }
     };
 
-    const readInfoEngine = async () => { 
-        displayLoadingCircle();
-        console.log("Reading info engine..");
-        try {
-            await fetch(`http://127.0.0.1:5000/api/read_info_engine`, {
-                method: 'GET',
-            }).then(response => response.json())
-                .then(data => {
-                    setData23(data);
-                    console.log(data);
-                    fetchLogs();
-                });
-        } catch (error) {
-            console.log(error);
-            removeLoadingCicle();
-        }
-        removeLoadingCicle();
-    }
-
-    const readInfoHvac = async () => { 
-        displayLoadingCircle();
-        console.log("Reading info hvac...");
-        try {
-            await fetch(`http://127.0.0.1:5000/api/read_info_hvac`, {
-                method: 'GET',
-            }).then(response => response.json())
-                .then(data => {
-                    setData23(data);
-                    console.log(data);
-                    fetchLogs();
-                });
-        } catch (error) {
-            console.log(error);
-            removeLoadingCicle();
-        }
-        removeLoadingCicle();
-    }
-
     const writeInfoEngine = async () => { }
-
-    const readInfoDoors = async () => {
-        displayLoadingCircle();
-        console.log("Reading info doors...");
-        try {
-            await fetch(`http://127.0.0.1:5000/api/read_info_doors`, {
-                method: 'GET',
-            }).then(response => response.json())
-                .then(data => {
-                    setData23(data);
-                    console.log(data);
-                    fetchLogs();
-                });
-        } catch (error) {
-            console.log(error);
-            removeLoadingCicle();
-        }
-        removeLoadingCicle();
-    };
 
     const getNewSoftVersions = async (): Promise<{ message: string; versions: { name: string; version: string }[] }> => {
         displayLoadingCircle();
@@ -393,7 +336,6 @@ const SendRequests = () => {
 
                 console.log("Versions array:", versionsArray);
 
-
                 const searchTerms = ["HVAC", "battery", "engine", "doors"];
                 const filteredVersions = getElementByName(versionsArray, searchTerms);
                 console.log("Filtered ECU Versions:", filteredVersions);
@@ -429,7 +371,7 @@ const SendRequests = () => {
         const versionMatch = fullName.match(/_(\d+\.\d+)\.zip/);
         console.log(`Extracting version from: ${fullName}`);
         return versionMatch ? versionMatch[1] : "unknown";
-    };  // to be removed 
+    }; // to be removed 
 
     const getElementByName = (versionsArray: { name: string; version: string }[], searchTerms: string[]) => {
         const filteredVersions = versionsArray.filter(version =>
@@ -437,7 +379,6 @@ const SendRequests = () => {
         );
         return filteredVersions;
     };
-
 
     const writeInfoDoors = async () => {
         displayLoadingCircle();
@@ -478,9 +419,9 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
-    const writeInfoBattery = async (identifier: string) => {
+    const writeInfoBattery = async (item: string) => {
         let data2 = {}
-        if (identifier === "battery_level") {
+        if (item === "battery_level") {
             let batteryLevel = prompt('Enter Battery Level: ');
             if (batteryLevel === null) {
                 return;
@@ -488,7 +429,7 @@ const SendRequests = () => {
             data2 = {
                 battery_level: parseInt(batteryLevel)
             };
-        } else if (identifier === "state_of_charge") {
+        } else if (item === "state_of_charge") {
             let stateOfCharge = prompt('Enter Battery State of Charge: ');
             if (stateOfCharge === null) {
                 return;
@@ -496,7 +437,7 @@ const SendRequests = () => {
             data2 = {
                 state_of_charge: parseInt(stateOfCharge)
             };
-        } else if (identifier === "percentage") {
+        } else if (item === "percentage") {
             let percentage = prompt('Enter Battery Percentage: ');
             if (percentage === null) {
                 return;
@@ -504,7 +445,7 @@ const SendRequests = () => {
             data2 = {
                 percentage: parseInt(percentage)
             };
-        } else if (identifier === "voltage") {
+        } else if (item === "voltage") {
             let voltage = prompt('Enter Battery Voltage: ');
             if (voltage === null) {
                 return;
@@ -518,7 +459,7 @@ const SendRequests = () => {
         console.log(data2);
         displayLoadingCircle();
         try {
-            await fetch(`http://127.0.0.1:5000/api/write_info_battery?identifier=${identifier}`, {
+            await fetch(`http://127.0.0.1:5000/api/write_info_battery?item=${item}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -830,8 +771,8 @@ const SendRequests = () => {
                                     <li><a onClick={() => { setSelectedECUid("10"); setSelectedECU("MCU"); setIsDropdownOpen(false) }}>MCU</a></li>
                                     <li><a onClick={() => { setSelectedECUid("11"); setSelectedECU("Battery"); setIsDropdownOpen(false) }}>Battery</a></li>
                                     {/* <li><a onClick={() => { setSelectedECUid("12"); setSelectedECU("Engine"); setIsDropdownOpen(false) }}>Engine</a></li>
-                                    <li><a onClick={() => { setSelectedECUid("13"); setSelectedECU("Doors"); setIsDropdownOpen(false) }}>Doors</a></li>
-                                    <li><a onClick={() => { setSelectedECUid("14"); setSelectedECU("HVAC"); setIsDropdownOpen(false) }}>HVAC</a></li> */}
+<li><a onClick={() => { setSelectedECUid("13"); setSelectedECU("Doors"); setIsDropdownOpen(false) }}>Doors</a></li>
+<li><a onClick={() => { setSelectedECUid("14"); setSelectedECU("HVAC"); setIsDropdownOpen(false) }}>HVAC</a></li> */}
                                 </ul>
                             )}
                         </div>
@@ -867,7 +808,6 @@ const SendRequests = () => {
                 <div className="w-full h-px mt-2 bg-gray-300"></div>
                 <div>
                     <button className="btn btn-success w-fit mt-2 text-white" onClick={readDTC} disabled={disableFrameAndDtcBtns}>Read DTC</button>
-                    {/* <button className="btn btn-success w-fit ml-5 mt-2 text-white" onClick={hexToAscii} disabled={disableConvertBtn}>Convert response to ASCII</button> */}
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getNewSoftVersions}>Check new soft versions</button>
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={authenticate} disabled={disableFrameAndDtcBtns}>Authenticate</button>
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getIdentifiers} disabled={disableFrameAndDtcBtns}>Read identifiers</button>
@@ -919,11 +859,8 @@ const SendRequests = () => {
                             </ul>
                         )}
                     </div>
-                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoEngine} disabled={disableInfoEngineBtns}>Read Info Engine</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoEngine} disabled={disableInfoEngineBtns}>Write Info Engine</button>
-                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoDoors} disabled={disableInfoDoorsBtns}>Read Info Doors</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoDoors} disabled={disableInfoDoorsBtns}>Write Doors Info</button>
-                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoHvac}>Read Info Hvac</button>
                 </div>
 
                 <h1 className="text-2xl mt-2">Response</h1>
@@ -962,3 +899,4 @@ const SendRequests = () => {
 }
 
 export default SendRequests
+
