@@ -1,6 +1,7 @@
 package com.poc.p_couds
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -56,23 +57,39 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.rememberNavController
 import com.poc.p_couds.ui.theme.CarsDataTheme
+import androidx.activity.OnBackPressedCallback
 
 class UDSactivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val backMethod: Any
+        if (Build.VERSION.SDK_INT > 32) {
+            backMethod = onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    finish()
+                }
+            })
+        } else {
+            backMethod = onBackPressed()
+        }
 
         setContent {
             CarsDataTheme {
-                ActivityLayout()
+                ActivityLayout(backMethod)
             }
         }
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        finish()
     }
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun ActivityLayout() {
+fun ActivityLayout(backMethod: Any) {
     var selectedIndex = remember { mutableIntStateOf(0) }
 
     Scaffold(
@@ -87,7 +104,7 @@ fun ActivityLayout() {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            TopBarNavigation()
+            TopBarNavigation(backMethod)
 
             ThreeColumnLayout(
                 modifier = Modifier
@@ -220,7 +237,7 @@ fun handleMenuItemClick() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBarNavigation() {
+fun TopBarNavigation(backMethod: Any) {
     var showMenu by remember { mutableStateOf(false) }
     val navController = rememberNavController()
 
@@ -233,7 +250,9 @@ fun TopBarNavigation() {
             )
         },
         navigationIcon = {
-            IconButton(onClick = {navController.popBackStack()}) {
+            IconButton(onClick = {
+                backMethod
+            }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Localized description"
@@ -315,14 +334,5 @@ fun CustomButtonForBottomAppBar(isSelected: Boolean, onClick: () -> Unit, ecuNam
                 modifier = Modifier.padding(top = 0.dp)
             )
         }
-    }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun ActivPreview() {
-    CarsDataTheme {
-        ActivityLayout()
     }
 }
