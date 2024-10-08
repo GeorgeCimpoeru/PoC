@@ -22,7 +22,7 @@ class Updates(Action):
     #     id = self.my_id * 0x100 + self.id_ecu[0]
     #     try:
     #         log_info_message(logger, "Changing session to default")
-    #         self.generate.session_control(id, 0x02)
+    #         self.session_control(id, 0x02)
     #         self._passive_response(SESSION_CONTROL, "Error changing session control")
     #         self._authentication(id)
 
@@ -59,13 +59,13 @@ class Updates(Action):
             self.id = (int(id, 16) << 16) + (self.my_id << 8) + self.id_ecu[0]
 
             log_info_message(logger, "Changing session to programming")
-            self.generate.session_control(self.id, sub_funct=0x02)
+            self.session_control(self.id, sub_funct=0x02)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
 
             self._authentication(self.id)
 
             log_info_message(logger, "Changing session to default")
-            self.generate.session_control(self.id, 0x01)
+            self.session_control(self.id, 0x01)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
 
             # log_info_message(logger, "Reading data from battery")
@@ -76,7 +76,7 @@ class Updates(Action):
             #     return response_json
 
             log_info_message(logger, "Changing session to programming")
-            self.generate.session_control(self.id, sub_funct=0x02)
+            self.session_control(self.id, sub_funct=0x02)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
             self._authentication(self.my_id * 0x100 + self.id_ecu[0])
 
@@ -88,12 +88,12 @@ class Updates(Action):
             log_info_message(logger, "Download finished, restarting ECU...")
 
             # log_info_message(logger, "Changing session to default")
-            # self.generate.session_control(self.id, 0x01)
+            # self.session_control(self.id, 0x01)
             # self._passive_response(SESSION_CONTROL, "Error changing session control")
 
             # Reset the ECU to apply the update
             # self.id = (self.my_id * 0x100) + int(ecu_id, 16)
-            # self.generate.ecu_reset(self.id)
+            # self.ecu_reset(self.id)
             # self._passive_response(RESET_ECU, "Error trying to reset ECU") # ToDo reactivate when using real hardware
 
             # Add a delay to wait until the ECU completes the reset process
@@ -158,18 +158,18 @@ class Updates(Action):
         create locally a virtual partition used for download.
         -> search/change "/dev/loopXX" in RequestDownload.cpp, MemoryManager.cpp; (Depends which partition is attributed)
         """
-        self.generate.request_download(self.id,
-                                       data_format_identifier=type,  # No compression/encryption
-                                       memory_address=0x0801,  # Memory address starting from 2049
-                                       memory_size=0x01,  # Memory size
-                                       version=version)  # Version 2
+        self.request_download(self.id,
+                              data_format_identifier=type,  # No compression/encryption
+                              memory_address=0x0801,  # Memory address starting from 2049
+                              memory_size=0x01,  # Memory size
+                              version=version)  # Version 2
         self._passive_response(REQUEST_DOWNLOAD, "Error requesting download")
 
-        self.generate.transfer_data(self.id, 0x01)
+        self.transfer_data(self.id, 0x01)
         time.sleep(1)
-        self.generate.control_frame_write_file(self.id)
+        self.control_frame_write_file(self.id)
         time.sleep(1)
-        self.generate.control_frame_install_updates(self.id)
+        self.control_frame_install_updates(self.id)
 
     def _verify_version(self, version):
         """
@@ -197,7 +197,7 @@ class Updates(Action):
         Raises:
         - CustomError: If any error occurs during the error checking process.
         """
-        self.generate.request_read_dtc_information(self.id, 0x01, 0x01)
+        self.request_read_dtc_information(self.id, 0x01, 0x01)
         response = self._passive_response(READ_DTC, "Error reading DTC")
 
         if response is not None:
