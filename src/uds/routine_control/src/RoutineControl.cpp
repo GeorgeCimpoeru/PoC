@@ -4,6 +4,7 @@
 #include "../../../ecu_simulation/DoorsModule/include/DoorsModule.h"
 #include "../../../ecu_simulation/HVACModule/include/HVACModule.h"
 #include "../../../mcu/include/MCUModule.h"
+#include <limits.h>
 
 RoutineControl::RoutineControl(int socket, Logger& rc_logger) 
             : generate_frames(socket, rc_logger), rc_logger(rc_logger)
@@ -150,7 +151,16 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
             }
             case 0x0601:
             {
-                LOG_INFO(rc_logger.GET_LOGGER(), "Activate software routine called.");
+                LOG_INFO(rc_logger.GET_LOGGER(), "Activate software routine called. Saving the current software..");
+                if(saveCurrentSoftware() == false)
+                {
+                    LOG_INFO(rc_logger.GET_LOGGER(), "Current software saving failed.");
+                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_FAILED});
+                    nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::IMLOIF);
+                    return;
+                }
+                LOG_INFO(rc_logger.GET_LOGGER(), "Current software saved. Activating the new software..");
+                
                 if(activateSoftware() == false)
                 {
                     MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_FAILED});
@@ -229,8 +239,8 @@ bool RoutineControl::activateSoftware()
     MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE});
     /* Checks for the system exit value to update the status in COMPLETED or FAILED */
     pid_t pid;
-    std::string pname;
-    if(getCurrentProcessInfo(pid, pname) == 0)
+    std::string pname, ppath;
+    if(getCurrentProcessInfo(pid, pname, ppath) == 0)
     {
         return 0;
     }
@@ -248,18 +258,64 @@ bool RoutineControl::verifySoftware()
     return true;
 }
 
-bool RoutineControl::getCurrentProcessInfo(pid_t& pid, std::string& pname) 
+bool RoutineControl::getCurrentProcessInfo(pid_t& pid, std::string& pname, std::string& ppath) 
 {
-    pid = getpid(); // Get the current process ID
-    std::ifstream file("/proc/" + std::to_string(pid) + "/comm"); // Open the process file
+    /* Get the current process ID */
+    pid = getpid();
+    /* Open the process file */ 
+    std::ifstream file("/proc/" + std::to_string(pid) + "/comm");
 
-    if (file.is_open()) {
+    if (file.is_open()) 
+    {
         std::getline(file, pname);
         file.close();
-    } else {
+    } 
+    else
+    {
         std::cerr << "Error: Unable to open /proc/" << pid << "/comm" << std::endl;
         return 0;
     }
 
+    /* Get the path of the executable using /proc/self/exe */
+    char result[PATH_MAX];
+    ssize_t count = readlink(("/proc/" + std::to_string(pid) + "/exe").c_str(), result, PATH_MAX);
+    if (count != -1) 
+    {
+        ppath = std::string(result, count);
+    } 
+    else 
+    {
+        std::cerr << "Error: Unable to resolve path for /proc/" << pid << "/exe" << std::endl;
+        return false;
+    }
+    return 1;
+}
+
+bool RoutineControl::rollbackSoftware()
+{
+    return 1;
+}
+
+bool RoutineControl::saveCurrentSoftware()
+{
+    pid_t pid;
+    std::string pname, ppath;
+    if(getCurrentProcessInfo(pid, pname, ppath) == 0)
+    {
+        return 0;
+    }
+    /* Read the current software binary data */
+    auto binary_data = MemoryManager::readBinary(ppath, rc_logger);
+
+    MemoryManager* memory_manager = MemoryManager::getInstance(rc_logger);   
+    memory_manager->setPath(DEV_LOOP);
+    /* Set address to point to partition 2 */
+    memory_manager->setAddress(206848);
+    /* Write to the second partition (used for rollback) */
+    bool write_success = memory_manager->writeToAddress(binary_data);
+    if(write_success == false)
+    {
+        return 0;
+    }
     return 1;
 }
