@@ -14,7 +14,26 @@ uint8_t TransferData::expected_block_sequence_number = 0x01;  /* Start from 1 */
 bool TransferData::is_first_transfer = false;
 size_t TransferData::chunk_size = 0;
 uint8_t TransferData::expected_transfer_data_requests = 0;
+/* Static vector to store the checksums */
+std::vector<uint8_t>TransferData::checksums;
 
+/* Method to compute a simple XOR checksum for a block of data */
+uint8_t TransferData::computeChecksum(const uint8_t* data, size_t block_size)
+{
+    uint8_t checksum = 0;
+    for (size_t i = 0; i < block_size; ++i)
+    {
+        checksum ^= data[i];
+    }
+    /* Return the checksum */
+    return checksum;
+}
+
+/* Retrieve the checksum vector */
+const std::vector<uint8_t>&TransferData::getChecksums()
+{
+    return checksums;
+}
 
 /* method used to transfer the data */
 /* frame format = {PCI_L, SID(0x36), block_sequence_counter, transfer_request_parameter_record}*/
@@ -189,6 +208,11 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
                 }
                 else
                 {
+                    /* Compute and store checksum for this chunk */
+                    uint8_t checksum = computeChecksum(chunk_data.data(), chunk_data.size());
+                    
+                    /* Store the checksum in a static vector */
+                    checksums.push_back(checksum);
                     /* Update bytes sent */
                     bytes_sent += current_chunk_size;
 

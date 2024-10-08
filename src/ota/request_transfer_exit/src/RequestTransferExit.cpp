@@ -77,6 +77,12 @@ void RequestTransferExit::requestTRansferExitRequest(canid_t can_id, const std::
         /* Check if the transfer data has been completed */
         if (value == PROCESSING_TRANSFER_COMPLETE)        
         {
+            /* Get the store checksums from transfer data */
+            const std::vector<uint8_t>& stored_checksums = TransferData::getChecksums();
+
+            /* Prepare positive response if the checksums match */
+            if (stored_checksums.size() == MAX_TRANSFER_DATA_REQUESTS && checkValidChecksums(stored_checksums))
+            {                
             /* prepare positive response */
             response.push_back(0x02); /* PCI */
             response.push_back(0x77); /* Service ID */
@@ -85,6 +91,7 @@ void RequestTransferExit::requestTRansferExitRequest(canid_t can_id, const std::
             generate_frames.sendFrame(can_id, response);
             /* Since the response is positive, update the DID to the verification status */
             MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {READY});	
+            }
         }
         else
         {                                
@@ -96,4 +103,18 @@ void RequestTransferExit::requestTRansferExitRequest(canid_t can_id, const std::
             return;
         }       
     }
+}
+
+/* Method to check if all the checksums computed for each chunk transferred have data */
+bool RequestTransferExit::checkValidChecksums(const std::vector<uint8_t>&stored_checksums)
+{
+    for (const auto& checksum :stored_checksums)
+    {
+        if (checksum == 0)
+        {
+            return false;
+        }
+    }
+    /* if all checksums are different than 0, return true */
+    return true;
 }
