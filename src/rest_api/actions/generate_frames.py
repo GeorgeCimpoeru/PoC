@@ -280,6 +280,25 @@ class GenerateFrame:
     def write_data_by_identifier_long(self, id, identifier, data, first_frame=True):
         self.__generate_long_response(id, 0x2E, identifier, data, first_frame)
 
+    def init_ota_routine(self, id, version):
+        # cansend vcan1 0010fa10#04 31 01 02 01 10
+        if isinstance(version, str):
+            if '.' not in version:
+                version += '.0'
+            major, minor = map(int, version.split('.'))
+            major -= 1
+            if major < 0 or major > 15 or minor < 0 or minor > 15:
+                raise ValueError(f"Invalid version: {version}. Major and minor must be between 0 and 15.")
+            version_byte = (major << 4) | minor  # Encode directly without reduction
+        elif isinstance(version, int):
+            # Assume the int is already in the correct format
+            version_byte = version
+        else:
+            raise ValueError(f"Invalid version format: {version}")
+
+        data = [4, 0x31, 0x01, 0x02, 0x01, version_byte]
+        self.send_frame(id, data)
+
     def __generate_long_response(self, id, sid, identifier, response , first_frame):
         if first_frame:
             data = [0x10, len(response) + 3, sid, identifier // 0x100, identifier % 0x100] + response[:3]

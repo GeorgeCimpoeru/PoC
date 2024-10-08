@@ -41,6 +41,14 @@ class Updates(Action):
         Raises:
         - CustomError: If the current software version matches the desired version,
           indicating that the latest version is already installed.
+
+        curl -X POST http://127.0.0.1:5000/api/update_to_version -H "Content-Type: application/json" -d '{
+            "update_file_type": "mcu",
+            "update_file_version": "1.4",
+            "ecu_id": "0x10"
+        }'
+
+
         """
 
         try:
@@ -54,12 +62,12 @@ class Updates(Action):
             log_info_message(logger, "Authenticating...")
             self._authentication(self.my_id * 0x100 + self.id_ecu[0]) # -> security only to MCU
 
-            # log_info_message(logger, "Reading data from battery")
-            # current_version = self._verify_version(version)
-            # if current_version == version:
-            #     response_json = ToJSON()._to_json(f"Version {version} already installed", 0)
-            #     self.bus.shutdown()
-            #     return response_json
+            log_info_message(logger, "Reading data from battery")
+            current_version = self._verify_version(version)
+            if current_version == version:
+                response_json = ToJSON()._to_json(f"Version {version} already installed", 0)
+                self.bus.shutdown()
+                return response_json
 
             log_info_message(logger, "Downloading... Please wait")
             self._download_data(type, version, id)
@@ -132,6 +140,9 @@ class Updates(Action):
         create locally a virtual partition used for download.
         -> search/change "/dev/loopXX" in RequestDownload.cpp, MemoryManager.cpp; (Depends which partition is attributed)
         """
+        self.generate.init_ota_routine(self.id, version=version)
+        self._passive_response(ROUTINE_CONTROL, "Error initialzing OTA")
+
         self.generate.request_download(self.id,
                                        data_format_identifier=type,  # No compression/encryption
                                        memory_address=0x0801,  # Memory address starting from 2049
@@ -157,8 +168,8 @@ class Updates(Action):
           indicating that the latest version is already installed.
         """
         log_info_message(logger, "Reading current version")
-        self._write_by_identifier(self.id, IDENTIFIER_SYSTEM_ECU_FLASH_SOFTWARE_VERSION_NUMBER, value=12)
-        current_version = self._read_by_identifier(self.id, IDENTIFIER_SYSTEM_ECU_FLASH_SOFTWARE_VERSION_NUMBER)
+        # self._write_by_identifier(self.id, IDENTIFIER_SYSTEM_ECU_FLASH_SOFTWARE_VERSION_NUMBER, value=12)
+        current_version = self._read_by_identifier(self.id, IDENTIFIER_SYSTEM_SUPPLIER_ECU_SOFTWARE_VERSION_NUMBER)
         return current_version
 
     def _check_errors(self):
