@@ -78,4 +78,9 @@ dependencies {
     implementation (libs.androidx.fragment.ktx)
     implementation (libs.ui)
     implementation (libs.androidx.appcompat.v160)
+    implementation (libs.material)
+    implementation (libs.retrofit)
+    implementation (libs.converter.gson)
+    implementation (libs.okhttp)
+    implementation (libs.logging.interceptor)
 }
