@@ -32,6 +32,11 @@ class TransferData
      * @param transfer_request data to be transferred
      */
     void transferData(canid_t can_id, std::vector<uint8_t>& transfer_request);
+    /**
+     * @brief Static method to get checksums for validation in transfer exit
+     *    
+     */
+    static const std::vector<uint8_t>& getChecksums();
     private:
     Logger transfer_data_logger;
     GenerateFrames generate_frames;
@@ -44,12 +49,17 @@ class TransferData
     static size_t chunk_size;
     /* Used to check if all transfers are done, this is set in Request Download*/
     static uint8_t expected_transfer_data_requests;
+    /* Static vector used in Request Transfer Exit thta contains the checksums for each chunk data transfer */
+    static std::vector<uint8_t>checksums;
+    /**
+     * @brief method used to compute a simple checksum for a block of data transferred
+     * 
+     * @param data pointer to the data block
+     * @param block_size te size of the data block
+     * @return 1 byte checksum
+     */
+    uint8_t computeChecksum(const uint8_t* data, size_t block_size);
 
 };
-
-
-
-
-
 
 #endif
