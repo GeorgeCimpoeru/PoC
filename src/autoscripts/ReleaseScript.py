@@ -40,8 +40,7 @@ def create_exec(version: str, sw_to_build: str, extra_args: str):
     directory_path = os.path.expanduser(PATH_SOFTWARE_RELEASES + "/"+dir_name)
     version_integer = validateSoftwareVersion(version, convert=True)
     if subprocess.run(["ls {0}/{1} 2>/dev/null".format(PATH_SOFTWARE_RELEASES, dir_name)], shell=True).returncode == 0:
-        print(f"{YELLOW}release_{0}_{1} already exists locally{RESET}".format(
-            version, sw_to_build))
+        print(f"{YELLOW}release_{version}_{sw_to_build} already exists locally{RESET}")
         user_input = input(
             f"{GREEN}Do you want to delete it and create a new one? y/n: {RESET}")
         if user_input.lower() == 'y':
