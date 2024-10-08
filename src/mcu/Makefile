@@ -242,7 +242,9 @@ UDS_OBJS_TEST = $(OBJ_DIR)/DiagnosticSessionControl_test.o \
 
 OBJS_DIAGNOSTICSESSIONCONTROL_TEST = $(OBJ_DIR)/Logger_test.o \
                                      $(OBJ_DIR)/GenerateFrames_test.o \
-                                     $(OBJ_DIR)/DiagnosticSessionControl_test.o
+                                     $(OBJ_DIR)/DiagnosticSessionControl_test.o \
+									 $(OBJ_DIR)/AccessTimingParameter_test.o \
+									 $(OBJ_DIR)/NegativeResponse_test.o
 
 OBJS_SECURITYACCESS_TEST = $(OBJ_DIR)/Logger_test.o \
 						   $(OBJ_DIR)/GenerateFrames_test.o \
@@ -489,8 +491,8 @@ $(UTILS_TEST)/CreateInterface_test.o: $(UTILS_TEST)/CreateInterface_test.cpp
 # DiagnosticSessionControl Unit tests
 diagnosticSessionControlTest: $(OBJ_DIR) $(UDS_DIR)/diagnostic_session_control/utest/diagnosticSessionControlTest.out
 
-$(UDS_DIR)/diagnostic_session_control/utest/diagnosticSessionControlTest.out: $(OBJ_DIR) $(OBJS_DIAGNOSTICSESSIONCONTROL_TEST) $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControl_test.o
-	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/diagnostic_session_control/utest/diagnosticSessionControlTest.out $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControl_test.o $(OBJS_DIAGNOSTICSESSIONCONTROL_TEST) $(CFLAGSTST2) $(LDFLAGS)
+$(UDS_DIR)/diagnostic_session_control/utest/diagnosticSessionControlTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControl_test.o
+	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/diagnostic_session_control/utest/diagnosticSessionControlTest.out $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControl_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
 
 $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControl_test.o: $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControlTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControlTest.cpp -o $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControl_test.o $(CFLAGSTST2) $(LDFLAGS)
@@ -632,8 +634,8 @@ $(OTA_DIR)/transfer_data/utest/TransferData_test.o: $(OTA_DIR)/transfer_data/ute
 # AccessTimingParameter Unit tests
 accessTimingParameterTest: $(OBJ_DIR) $(UDS_DIR)/access_timing_parameters/utest/accessTimingParameterTest.out
 
-$(UDS_DIR)/access_timing_parameters/utest/accessTimingParameterTest.out: $(UDS_DIR) $(OBJS_ACCESSTIMINGPARAMETER_TEST) $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o
-	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/access_timing_parameters/utest/accessTimingParameterTest.out $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o $(OBJS_ACCESSTIMINGPARAMETER_TEST) $(CFLAGSTST2) $(LDFLAGS)
+$(UDS_DIR)/access_timing_parameters/utest/accessTimingParameterTest.out: $(UDS_DIR) $(OBJS_TEST) $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o
+	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/access_timing_parameters/utest/accessTimingParameterTest.out $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
 
 $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o: $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameterTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameterTest.cpp -o $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o $(CFLAGSTST2) $(LDFLAGS)
