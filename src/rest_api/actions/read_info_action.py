@@ -96,13 +96,13 @@ class ReadInfo(Action):
                         result_value = self._get_battery_state_of_charge(result_value)
 
                     results[item] = result_value if result_value else "No data"
-                
+
                     response_json = {
                             item: self.hex_to_dec(result_value) if result_value else "No data",
                             "time_stamp": datetime.datetime.now().isoformat()
                         }
                     return response_json
-            
+
                 else:
                     return {"error": f"Invalid parameter '{item}'. Use /get_identifiers to see valid parameters."}
             else:
@@ -223,7 +223,8 @@ class ReadInfo(Action):
                 "message": "Error during Read by ID",
                 "negative_response": negative_response
             }
-
+        except Exception as e:
+            return {"error": f"Unexpected error: {str(e)}"}
 
     def read_from_engine(self, item=None):
         """
@@ -243,7 +244,7 @@ class ReadInfo(Action):
             results = {}
 
             if item:
-            
+
                 if item in identifiers:
                     identifier = identifiers[item]
                     result_value = self._read_by_identifier(id, int(identifier, 16))
@@ -306,7 +307,7 @@ class ReadInfo(Action):
             identifiers = data_identifiers["HVAC_Identifiers"]
             results = {}
             if item:
-            
+
                 if item in identifiers:
                     identifier = identifiers[item]
                     result_value = self._read_by_identifier(id, int(identifier, 16))
@@ -318,7 +319,6 @@ class ReadInfo(Action):
                     else:
                         interpreted_value = self.hex_to_dec(result_value) if result_value else "No data"
 
-                    
                     response_json = {
                         item: interpreted_value,
                         "time_stamp": datetime.datetime.now().isoformat()
@@ -333,13 +333,12 @@ class ReadInfo(Action):
                     result_value = self._read_by_identifier(id, int(identifier, 16))
                     if not result_value:
                         self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
-                        
+
                     if key == "hvac_modes":
                         results[key] = self._interpret_hvac_modes(self.hex_to_dec(result_value)) if result_value else "No data"
                     else:
                         results[key] = self.hex_to_dec(result_value) if result_value else "No data"
 
-                    
                 response_json = {
                     **results,
                     "time_stamp": datetime.datetime.now().isoformat()
