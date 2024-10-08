@@ -95,7 +95,10 @@ void RequestTransferExit::requestTRansferExitRequest(canid_t can_id, const std::
             else
             {
                 /* Update the DID to the Error status if the checksums were not computed */
-                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ERROR});                
+                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ERROR});
+                /* Send the negative response frame */        
+                nrc.sendNRC(can_id, RTES_SERVICE_ID, NegativeResponse::IMLOIF);
+                return;
             }
         }
         else

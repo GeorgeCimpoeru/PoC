@@ -17,7 +17,6 @@
 #include "../../utils/include/Logger.h"
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../../utils/include/NegativeResponse.h"
-#include "../../../utils/include/MemoryManager.h"
 
 /* Define the callback function type */
 using transferCompleteCallBack = std::function<bool(bool)>;
