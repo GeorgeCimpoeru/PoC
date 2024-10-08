@@ -38,15 +38,16 @@ hvac_size_uncompressed = 0
 def create_exec(version: str, sw_to_build: str, extra_args: str):
     dir_name = "release_" + sw_to_build + '_' + version
     directory_path = os.path.expanduser(PATH_SOFTWARE_RELEASES + "/"+dir_name)
+    version_integer = validateSoftwareVersion(version, convert=True)
     if subprocess.run(["ls {0}/{1} 2>/dev/null".format(PATH_SOFTWARE_RELEASES, dir_name)], shell=True).returncode == 0:
-        print(f"{YELLOW}release_{0}_{1} already exists locally{RESET}".format(
-            version, sw_to_build))
+        print(f"{YELLOW}release_{version}_{sw_to_build} already exists locally{RESET}")
         user_input = input(
             f"{GREEN}Do you want to delete it and create a new one? y/n: {RESET}")
         if user_input.lower() == 'y':
             shutil.rmtree(directory_path)
         else:
-            user_input = input(f"{GREEN}Upload to Google Drive?(only if the release already exists locally) y/n: {RESET}")
+            user_input = input(
+                f"{GREEN}Upload to Google Drive?(only if the release already exists locally) y/n: {RESET}")
             if user_input.lower() == 'y':
                 uploadRelease(directory_path)
                 exit(1)
@@ -64,8 +65,8 @@ def create_exec(version: str, sw_to_build: str, extra_args: str):
                 subprocess.run(
                     ["sudo", "make", "clean", "-C", "{0}/../src/mcu/".format(PATH_SOFTWARE_RELEASES)], check=True)
             # Build the MCU executable
-            subprocess.run(
-                ["sudo", "make", "-C", "{0}/../src/mcu/".format(PATH_SOFTWARE_RELEASES)], check=True)
+                subprocess.run(
+                    ["sudo", "make", f"SOFTWARE_VERSION={version_integer}", "-C", "{0}/../src/mcu/".format(PATH_SOFTWARE_RELEASES)], check=True)
             mcu_executable_path = "{0}/../src/mcu/main_mcu".format(
                 PATH_SOFTWARE_RELEASES)
             mcu_archive_name = "{0}/{1}/MCU_SW_VERSION_{2}".format(
@@ -78,52 +79,56 @@ def create_exec(version: str, sw_to_build: str, extra_args: str):
                     ["sudo", "make", "clean", "-C", "{0}/../src/ecu_simulation/BatteryModule".format(PATH_SOFTWARE_RELEASES)], check=True)
             # Build the Battery Module executable
             subprocess.run(
-                ["sudo", "make", "-C", "{0}/../src/ecu_simulation/BatteryModule".format(PATH_SOFTWARE_RELEASES)], check=True)
+                ["sudo", "make", f"SOFTWARE_VERSION={version_integer}", "-C", "{0}/../src/ecu_simulation/BatteryModule".format(PATH_SOFTWARE_RELEASES)], check=True)
             battery_executable_path = "{0}/../src/ecu_simulation/BatteryModule/main_battery".format(
                 PATH_SOFTWARE_RELEASES)
             battery_archive_name = "{0}/{1}/ECU_BATTERY_SW_VERSION_{2}".format(
                 PATH_SOFTWARE_RELEASES, dir_name, version)
             global battery_size_uncompressed
-            battery_size_uncompressed = createArchive(battery_executable_path, battery_archive_name)
+            battery_size_uncompressed = createArchive(
+                battery_executable_path, battery_archive_name)
         if sw_to_build == "engine" or sw_to_build == "all":
             if "clean" in extra_args:
                 subprocess.run(
                     ["sudo", "make", "clean", "-C", "{0}/../src/ecu_simulation/BatteryModule".format(PATH_SOFTWARE_RELEASES)], check=True)
             # Build the engine Module executable
             subprocess.run(
-                ["sudo", "make", "-C", "{0}/../src/ecu_simulation/EngineModule".format(PATH_SOFTWARE_RELEASES)], check=True)
+                ["sudo", "make", f"SOFTWARE_VERSION={version_integer}", "-C", "{0}/../src/ecu_simulation/EngineModule".format(PATH_SOFTWARE_RELEASES)], check=True)
             engine_executable_path = "{0}/../src/ecu_simulation/EngineModule/main_engine".format(
                 PATH_SOFTWARE_RELEASES)
             engine_archive_name = "{0}/{1}/ECU_ENGINE_SW_VERSION_{2}".format(
                 PATH_SOFTWARE_RELEASES, dir_name, version)
             global engine_size_uncompressed
-            engine_size_uncompressed = createArchive(engine_executable_path, engine_archive_name)
+            engine_size_uncompressed = createArchive(
+                engine_executable_path, engine_archive_name)
         if sw_to_build == "doors" or sw_to_build == "all":
             if "clean" in extra_args:
                 subprocess.run(
                     ["sudo", "make", "clean", "-C", "{0}/../src/ecu_simulation/DoorsModule".format(PATH_SOFTWARE_RELEASES)], check=True)
             # Build the doors Module executable
             subprocess.run(
-                ["sudo", "make", "-C", "{0}/../src/ecu_simulation/DoorsModule".format(PATH_SOFTWARE_RELEASES)], check=True)
+                ["sudo", "make", f"SOFTWARE_VERSION={version_integer}", "-C", "{0}/../src/ecu_simulation/DoorsModule".format(PATH_SOFTWARE_RELEASES)], check=True)
             doors_executable_path = "{0}/../src/ecu_simulation/DoorsModule/main_doors".format(
                 PATH_SOFTWARE_RELEASES)
             doors_archive_name = "{0}/{1}/ECU_DOORS_SW_VERSION_{2}".format(
                 PATH_SOFTWARE_RELEASES, dir_name, version)
             global doors_size_uncompressed
-            doors_size_uncompressed = createArchive(doors_executable_path, doors_archive_name)
+            doors_size_uncompressed = createArchive(
+                doors_executable_path, doors_archive_name)
         if sw_to_build == "hvac" or sw_to_build == "all":
             if "clean" in extra_args:
                 subprocess.run(
                     ["sudo", "make", "clean", "-C", "{0}/../src/ecu_simulation/HVACModule".format(PATH_SOFTWARE_RELEASES)], check=True)
             # Build the hvac Module executable
             subprocess.run(
-                ["sudo", "make", "-C", "{0}/../src/ecu_simulation/HVACModule".format(PATH_SOFTWARE_RELEASES)], check=True)
+                ["sudo", "make", f"SOFTWARE_VERSION={version_integer}", "-C", "{0}/../src/ecu_simulation/HVACModule".format(PATH_SOFTWARE_RELEASES)], check=True)
             hvac_executable_path = "{0}/../src/ecu_simulation/HVACModule/main_hvac".format(
                 PATH_SOFTWARE_RELEASES)
             hvac_archive_name = "{0}/{1}/ECU_HVAC_SW_VERSION_{2}".format(
                 PATH_SOFTWARE_RELEASES, dir_name, version)
             global hvac_size_uncompressed
-            hvac_size_uncompressed = createArchive(hvac_executable_path, hvac_archive_name)
+            hvac_size_uncompressed = createArchive(
+                hvac_executable_path, hvac_archive_name)
         user_input = input(f"{GREEN}Upload to Google Drive? y/n: {RESET}")
         if user_input.lower() == 'y':
             uploadRelease(directory_path)
@@ -141,7 +146,7 @@ def create_exec(version: str, sw_to_build: str, extra_args: str):
 def createArchive(executable_path, archive_name):
     size_uncompressed = int((os.path.getsize(executable_path) / 1000000)) + 1
     shutil.make_archive(archive_name, 'zip', root_dir=os.path.dirname(
-                executable_path), base_dir=os.path.basename(executable_path))
+        executable_path), base_dir=os.path.basename(executable_path))
     return size_uncompressed
 
 
@@ -169,7 +174,7 @@ def uploadRelease(directory_path: str):
                 directory_path, file), hvac_size_uncompressed, DRIVE_ECU_HVAC_SW_VERSIONS_FILE)
 
 
-def validateSoftwareVersion(software_version):
+def validateSoftwareVersion(software_version, convert=False):
     if "." not in software_version:
         print(f"{RED}Version not valid, must look like 1.1, 1.6 etc{RESET}")
         exit(-1)
@@ -181,6 +186,10 @@ def validateSoftwareVersion(software_version):
     if major_version < 1 or major_version > 16 or minor_version < 0 or minor_version > 15:
         print(f"{RED}Version not valid. Valid versions are between 1.0 and 16.15{RESET}")
         exit(-1)
+
+    if convert == True:
+        return ((major_version - 1) << 4 | minor_version)
+
     return software_version
 
 
@@ -198,7 +207,7 @@ def main():
         print(f"{RED}Please provide as first argument the version of the release using format 1.0 -> 1.15 and as second argument the software to build mcu/ecu/all{RESET}")
         exit(-1)
     else:
-        version = validateSoftwareVersion(sys.argv[1])
+        version = validateSoftwareVersion(sys.argv[1], convert=False)
         sw_to_build = validateSoftwareToBuild(sys.argv[2])
         extra_args = sys.argv[3:]
 

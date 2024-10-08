@@ -21,7 +21,12 @@ std::unordered_map<uint16_t, std::vector<uint8_t>> EngineModule::default_DID_eng
         /* Fuel Pressure */
         {0x012C, {0}},
         /* Intake Air Temperature */
-        {0x0130, {0}}
+        {0x0130, {0}},
+#ifdef SOFTWARE_VERSION
+        {0xF1A2, {static_cast<uint8_t>(SOFTWARE_VERSION)}}
+#else
+        {0xF1A2, {0x00}}
+#endif
     };
 
 /** Constructor - initializes the EngineModule with default values,
