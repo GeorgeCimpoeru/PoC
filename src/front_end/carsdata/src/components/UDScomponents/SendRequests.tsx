@@ -20,8 +20,8 @@ let intervalID: number | NodeJS.Timeout | null = null;
 
 const SendRequests = () => {
     const [logs, setLogs] = useState<string[]>([]);
-    const [data23, setData23] = useState<{ ecu_ids: [], mcu_id: any, status: string, time_stamp: string } | string[] | string | null |
-        { name: string; version: string; }[]>();
+    const [data23, setData23] = useState<{ ecu_ids: [], mcu_id: any, status: string, time_stamp: string } | string[] | string | null | 
+    { name: string; version: string; }[] >();
     const [batteryData, setBatteryData] = useState<batteryData | null>();
     const [canId, setCanId] = useState("");
     const [canData, setCanData] = useState("");
@@ -31,6 +31,7 @@ const SendRequests = () => {
     const [disableInfoBatteryBtns, setDisableInfoBatteryBtns] = useState<boolean>(false);
     const [disableInfoEngineBtns, setDisableInfoEngineBtns] = useState<boolean>(false);
     const [disableInfoDoorsBtns, setDisableInfoDoorsBtns] = useState<boolean>(false);
+    const [disableInfoHvacBtns, setDisableInfoHvacsBtns] = useState<boolean>(false);
     const [disableConvertBtn, setDisableConvertBtn] = useState<boolean>(true);
     const [session, setSession] = useState<string>("default");
     const [testerPres, setTesterPres] = useState<string>("disabled");
@@ -86,10 +87,10 @@ const SendRequests = () => {
         popupStyleElement = document.createElement('style');
         popupStyleElement.type = 'text/css';
         popupStyleElement.innerText = `
-@keyframes spin {
-0% { transform: rotate(0deg); }
-100% { transform: rotate(360deg); }
-}`;
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }`;
         document.head.appendChild(popupStyleElement);
     };
 
@@ -146,8 +147,8 @@ const SendRequests = () => {
         // const hexArray: string[] = data23?.response.can_data;
 
         // hexArray.forEach(hexStr => {
-        // const decimal = parseInt(hexStr.slice(2), 16);
-        // asciiString += String.fromCharCode(decimal);
+        //     const decimal = parseInt(hexStr.slice(2), 16);
+        //     asciiString += String.fromCharCode(decimal);
         // });
 
         setData23(asciiString);
@@ -271,12 +272,12 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
-    const readInfoBattery = async (initialRequest: boolean, item: string) => {
+    const readInfoBattery = async (initialRequest: boolean, identifier: string) => {
         displayLoadingCircle();
         console.log("Reading info battery...");
-        console.log(item);
+        console.log(identifier);
         try {
-            await fetch(`http://127.0.0.1:5000/api/read_info_battery?item=${item}`, {
+            await fetch(`http://127.0.0.1:5000/api/read_info_battery?identifier=${identifier}`, {
                 method: 'GET',
                 // mode: 'no-cors',
             }).then(response => response.json())
@@ -296,7 +297,64 @@ const SendRequests = () => {
         }
     };
 
+    const readInfoEngine = async () => { 
+        displayLoadingCircle();
+        console.log("Reading info engine..");
+        try {
+            await fetch(`http://127.0.0.1:5000/api/read_info_engine`, {
+                method: 'GET',
+            }).then(response => response.json())
+                .then(data => {
+                    setData23(data);
+                    console.log(data);
+                    fetchLogs();
+                });
+        } catch (error) {
+            console.log(error);
+            removeLoadingCicle();
+        }
+        removeLoadingCicle();
+    }
+
+    const readInfoHvac = async () => { 
+        displayLoadingCircle();
+        console.log("Reading info hvac...");
+        try {
+            await fetch(`http://127.0.0.1:5000/api/read_info_hvac`, {
+                method: 'GET',
+            }).then(response => response.json())
+                .then(data => {
+                    setData23(data);
+                    console.log(data);
+                    fetchLogs();
+                });
+        } catch (error) {
+            console.log(error);
+            removeLoadingCicle();
+        }
+        removeLoadingCicle();
+    }
+
     const writeInfoEngine = async () => { }
+
+    const readInfoDoors = async () => {
+        displayLoadingCircle();
+        console.log("Reading info doors...");
+        try {
+            await fetch(`http://127.0.0.1:5000/api/read_info_doors`, {
+                method: 'GET',
+            }).then(response => response.json())
+                .then(data => {
+                    setData23(data);
+                    console.log(data);
+                    fetchLogs();
+                });
+        } catch (error) {
+            console.log(error);
+            removeLoadingCicle();
+        }
+        removeLoadingCicle();
+    };
 
     const getNewSoftVersions = async (): Promise<{ message: string; versions: { name: string; version: string }[] }> => {
         displayLoadingCircle();
@@ -336,6 +394,7 @@ const SendRequests = () => {
 
                 console.log("Versions array:", versionsArray);
 
+
                 const searchTerms = ["HVAC", "battery", "engine", "doors"];
                 const filteredVersions = getElementByName(versionsArray, searchTerms);
                 console.log("Filtered ECU Versions:", filteredVersions);
@@ -371,7 +430,7 @@ const SendRequests = () => {
         const versionMatch = fullName.match(/_(\d+\.\d+)\.zip/);
         console.log(`Extracting version from: ${fullName}`);
         return versionMatch ? versionMatch[1] : "unknown";
-    }; // to be removed 
+    };  // to be removed 
 
     const getElementByName = (versionsArray: { name: string; version: string }[], searchTerms: string[]) => {
         const filteredVersions = versionsArray.filter(version =>
@@ -380,22 +439,34 @@ const SendRequests = () => {
         return filteredVersions;
     };
 
+    const checkInput = (message: any) => {
+        let value;
+        do {
+            value = prompt(message);
+            if (value !== '0' && value !== '1') {
+                alert('Accepted value: 0/1');
+            }
+        } while (value !== '0' && value !== '1'); 
+        return value;
+    };
+
+
     const writeInfoDoors = async () => {
         displayLoadingCircle();
-        const door = prompt('Enter Door Parameter:');
-        const serial_number = prompt('Enter Serial Number:');
-        const lighter_voltage = prompt('Enter Cigarette Lighter Voltage:');
-        const light_state = prompt('Enter Light State:');
-        const belt = prompt('Enter Belt Card State:');
-        const windows_closed = prompt('Enter Window Status:');
+        const door = checkInput('Enter Door Parameter:');
+        const passenger = checkInput('Enter Passenger:');
+        const passenger_lock = checkInput('Enter Passenger Lock:');
+        const driver = checkInput('Enter Driver:');
+        const ajar = checkInput('Enter Ajar:');
+        // const windows_closed = prompt('Enter Window Status:');
 
         const data = {
             door: door || null,
-            serial_number: serial_number || null,
-            lighter_voltage: lighter_voltage || null,
-            light_state: light_state || null,
-            belt: belt || null,
-            windows_closed: windows_closed || null,
+            passenger: passenger || null,
+            passenger_lock: passenger_lock || null,
+            driver: driver || null,
+            ajar: ajar || null,
+            // windows_closed: windows_closed || null,
         };
         console.log("Writing info doors...");
         console.log(data);
@@ -419,9 +490,48 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
-    const writeInfoBattery = async (item: string) => {
+    const writeInfoHvac = async () => {
+        displayLoadingCircle();
+        const mass_air_flow = prompt('Enter Mass Air Flow:');
+        const ambient_air_temperature = prompt('Enter Ambient Air Temperature:');
+        const cabin_temperature = prompt('Enter Cabin Temperature:');
+        const cabin_temperature_driver_set = prompt('Enter Cabin Temperature Driver Set:');
+        const fan_speed = prompt('Enter Fan Speed:');
+        const hvac_modes = checkInput('Enter Hvac Modes:');
+
+        const data = {
+            mass_air_flow: mass_air_flow || null,
+            ambient_air_temperature: ambient_air_temperature || null,
+            cabin_temperature: cabin_temperature || null,
+            cabin_temperature_driver_set: cabin_temperature_driver_set || null,
+            fan_speed: fan_speed || null,
+            hvac_modes: hvac_modes || null,
+        };
+        console.log("Writing info hvac...");
+        console.log(data);
+        try {
+            await fetch(`http://127.0.0.1:5000/api/write_info_hvac`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            }).then(response => response.json())
+                .then(data => {
+                    setData23(data);
+                    console.log(data);
+                    fetchLogs();
+                });
+        } catch (error) {
+            console.log(error);
+            removeLoadingCicle();
+        }
+        removeLoadingCicle();
+    }
+
+    const writeInfoBattery = async (identifier: string) => {
         let data2 = {}
-        if (item === "battery_level") {
+        if (identifier === "battery_level") {
             let batteryLevel = prompt('Enter Battery Level: ');
             if (batteryLevel === null) {
                 return;
@@ -429,7 +539,7 @@ const SendRequests = () => {
             data2 = {
                 battery_level: parseInt(batteryLevel)
             };
-        } else if (item === "state_of_charge") {
+        } else if (identifier === "state_of_charge") {
             let stateOfCharge = prompt('Enter Battery State of Charge: ');
             if (stateOfCharge === null) {
                 return;
@@ -437,7 +547,7 @@ const SendRequests = () => {
             data2 = {
                 state_of_charge: parseInt(stateOfCharge)
             };
-        } else if (item === "percentage") {
+        } else if (identifier === "percentage") {
             let percentage = prompt('Enter Battery Percentage: ');
             if (percentage === null) {
                 return;
@@ -445,7 +555,7 @@ const SendRequests = () => {
             data2 = {
                 percentage: parseInt(percentage)
             };
-        } else if (item === "voltage") {
+        } else if (identifier === "voltage") {
             let voltage = prompt('Enter Battery Voltage: ');
             if (voltage === null) {
                 return;
@@ -459,7 +569,7 @@ const SendRequests = () => {
         console.log(data2);
         displayLoadingCircle();
         try {
-            await fetch(`http://127.0.0.1:5000/api/write_info_battery?item=${item}`, {
+            await fetch(`http://127.0.0.1:5000/api/write_info_battery?identifier=${identifier}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -771,8 +881,8 @@ const SendRequests = () => {
                                     <li><a onClick={() => { setSelectedECUid("10"); setSelectedECU("MCU"); setIsDropdownOpen(false) }}>MCU</a></li>
                                     <li><a onClick={() => { setSelectedECUid("11"); setSelectedECU("Battery"); setIsDropdownOpen(false) }}>Battery</a></li>
                                     {/* <li><a onClick={() => { setSelectedECUid("12"); setSelectedECU("Engine"); setIsDropdownOpen(false) }}>Engine</a></li>
-<li><a onClick={() => { setSelectedECUid("13"); setSelectedECU("Doors"); setIsDropdownOpen(false) }}>Doors</a></li>
-<li><a onClick={() => { setSelectedECUid("14"); setSelectedECU("HVAC"); setIsDropdownOpen(false) }}>HVAC</a></li> */}
+                                    <li><a onClick={() => { setSelectedECUid("13"); setSelectedECU("Doors"); setIsDropdownOpen(false) }}>Doors</a></li>
+                                    <li><a onClick={() => { setSelectedECUid("14"); setSelectedECU("HVAC"); setIsDropdownOpen(false) }}>HVAC</a></li> */}
                                 </ul>
                             )}
                         </div>
@@ -808,6 +918,7 @@ const SendRequests = () => {
                 <div className="w-full h-px mt-2 bg-gray-300"></div>
                 <div>
                     <button className="btn btn-success w-fit mt-2 text-white" onClick={readDTC} disabled={disableFrameAndDtcBtns}>Read DTC</button>
+                    {/* <button className="btn btn-success w-fit ml-5 mt-2 text-white" onClick={hexToAscii} disabled={disableConvertBtn}>Convert response to ASCII</button> */}
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getNewSoftVersions}>Check new soft versions</button>
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={authenticate} disabled={disableFrameAndDtcBtns}>Authenticate</button>
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getIdentifiers} disabled={disableFrameAndDtcBtns}>Read identifiers</button>
@@ -859,8 +970,12 @@ const SendRequests = () => {
                             </ul>
                         )}
                     </div>
+                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoEngine} disabled={disableInfoEngineBtns}>Read Info Engine</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoEngine} disabled={disableInfoEngineBtns}>Write Info Engine</button>
+                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoDoors} disabled={disableInfoDoorsBtns}>Read Info Doors</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoDoors} disabled={disableInfoDoorsBtns}>Write Doors Info</button>
+                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoHvac} disabled={disableInfoHvacBtns}>Read Info Hvac</button>
+                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoHvac} disabled={disableInfoHvacBtns}>Write Info Hvac</button>
                 </div>
 
                 <h1 className="text-2xl mt-2">Response</h1>
@@ -899,4 +1014,3 @@ const SendRequests = () => {
 }
 
 export default SendRequests
-
