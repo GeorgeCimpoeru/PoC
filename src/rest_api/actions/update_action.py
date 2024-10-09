@@ -55,8 +55,8 @@ class Updates(Action):
             self.id = (int(id, 16) << 16) + (self.my_id << 8) + self.id_ecu[0]
 
 
-            log_info_message(logger, "Changing session to programming")
-            self.generate.session_control(self.id, sub_funct=0x02)
+            log_info_message(logger, "Changing session to extended diagonstic mode")
+            self.generate.session_control(self.id, sub_funct=0x03)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
 
             log_info_message(logger, "Authenticating...")
@@ -70,7 +70,7 @@ class Updates(Action):
                 return response_json
 
             log_info_message(logger, "Downloading... Please wait")
-            self._download_data(type, version, id)
+            self._download_data(type, version)
             log_info_message(logger, "Download finished, restarting ECU...")
 
             # Reset the ECU to apply the update
@@ -101,7 +101,7 @@ class Updates(Action):
             self.bus.shutdown()
             return e.message
 
-    def _download_data(self, type, version, ecu_id):
+    def _download_data(self, type, version):
         """
         Request Sid = 0x34
         Response Sid = 0x74
@@ -141,16 +141,21 @@ class Updates(Action):
         -> search/change "/dev/loopXX" in RequestDownload.cpp, MemoryManager.cpp; (Depends which partition is attributed)
         """
         self.generate.init_ota_routine(self.id, version=version)
-        self._passive_response(ROUTINE_CONTROL, "Error initialzing OTA")
+        frame_response = self._passive_response(ROUTINE_CONTROL, "Error initialzing OTA")
+
+        mem_size = frame_response.data[5]
 
         self.generate.request_download(self.id,
                                        data_format_identifier=type,  # No compression/encryption
                                        memory_address=0x0801,  # Memory address starting from 2049
-                                       memory_size=0x01,  # Memory size
+                                       memory_size=mem_size,  # Memory size
                                        version=version)  # Version 2
-        self._passive_response(REQUEST_DOWNLOAD, "Error requesting download")
+        frame_response = self._passive_response(REQUEST_DOWNLOAD, "Error requesting download")
 
         self.generate.transfer_data(self.id, 0x01)
+        time.sleep(1)
+        self.generate.request_update_status(REQUEST_UPDATE_STATUS)
+        self._passive_response(REQUEST_UPDATE_STATUS, "Error requesting update status")
         time.sleep(1)
         self.generate.control_frame_write_file(self.id)
         time.sleep(1)

@@ -296,8 +296,13 @@ class GenerateFrame:
         else:
             raise ValueError(f"Invalid version format: {version}")
 
-        data = [4, 0x31, 0x01, 0x02, 0x01, version_byte]
+        data = [0x04, 0x31, 0x01, 0x02, 0x01, version_byte]
         self.send_frame(id, data)
+
+    def request_update_status(self, func):
+        data = [0x01, func]
+        _id = (0x00 << 16) + (0xFA << 8) + 0x10
+        self.send_frame(_id, data)
 
     def __generate_long_response(self, id, sid, identifier, response , first_frame):
         if first_frame:
