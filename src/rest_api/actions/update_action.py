@@ -87,7 +87,7 @@ class Updates(Action):
                 return response_json
 
             log_info_message(logger, "Downloading... Please wait")
-            self._download_data(type, version)
+            self._download_data(type, version, id)
             log_info_message(logger, "Download finished, restarting ECU...")
 
             # Reset the ECU to apply the update
@@ -118,7 +118,7 @@ class Updates(Action):
             self.bus.shutdown()
             return e.message
 
-    def _download_data(self, type, version):
+    def _download_data(self, type, version, id):
         """
         Request Sid = 0x34
         Response Sid = 0x74
@@ -190,10 +190,10 @@ class Updates(Action):
                 else:
                     log_info_message(logger, f"Unexpected state encountered: {state}")
                     break
-
-        self.generate.control_frame_write_file(self.id)
+        ecu_id = (0x00 << 16) + (0xFA << 8) + int(id, 16)
+        self.generate.control_frame_write_file(ecu_id)
         time.sleep(1)
-        self.generate.control_frame_install_updates(self.id)
+        self.generate.control_frame_install_updates(ecu_id)
 
     def _verify_version(self):
         """
