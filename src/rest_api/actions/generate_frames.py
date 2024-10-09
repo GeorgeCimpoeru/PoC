@@ -50,11 +50,11 @@ class GenerateFrame:
         self.send_frame(id, data)
 
     def control_frame_write_file(self, id):
-        data = [0x03, 0x31, 0x01, 0x03, 0x01, 0x00]
+        data = [0x04, 0x31, 0x01, 0x03, 0x01, 0x00]
         self.send_frame(id, data)
 
     def control_frame_install_updates(self, id):
-        data = [0x03, 0x31, 0x01, 0x02, 0x01, 0x00]
+        data = [0x04, 0x31, 0x01, 0x06, 0x01, 0x00]
         self.send_frame(id, data)
 
     def request_id_mcu(self, api_id):
