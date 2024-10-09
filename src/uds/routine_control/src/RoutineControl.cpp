@@ -147,6 +147,14 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
             case 0x0501:
             {
                 LOG_INFO(rc_logger.GET_LOGGER(), "Rollback routine called.");
+                if(rollbackSoftware() == false)
+                {
+                    LOG_INFO(rc_logger.GET_LOGGER(), "Rollback failed.");
+                }
+                else
+                {
+                    LOG_INFO(rc_logger.GET_LOGGER(), "Rollback succesfull.");
+                }
                 break;
             }
             case 0x0601:
@@ -161,15 +169,15 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 }
                 LOG_INFO(rc_logger.GET_LOGGER(), "Current software saved. Activating the new software..");
                 
-                if(activateSoftware() == false)
-                {
-                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_FAILED});
-                }
-                else
-                {
-                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_COMPLETE});
-                    routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
-                }
+                // if(activateSoftware() == false)
+                // {
+                //     MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_FAILED});
+                // }
+                // else
+                // {
+                //     MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_COMPLETE});
+                //     routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
+                // }
                 break;
             }
             default:
@@ -293,6 +301,31 @@ bool RoutineControl::getCurrentProcessInfo(pid_t& pid, std::string& pname, std::
 
 bool RoutineControl::rollbackSoftware()
 {
+    /* Check if software exists at the specific address */
+    uint8_t binary_size_format = MemoryManager::readFromAddress(DEV_LOOP, DEV_LOOP_PARTITION_2_ADDRESS, 1, rc_logger)[0];
+    auto binary_size_bytes = MemoryManager::readFromAddress(DEV_LOOP, DEV_LOOP_PARTITION_2_ADDRESS + 1, binary_size_format, rc_logger);
+    uint8_t binary_offset = sizeof(binary_size_format) + binary_size_format;
+
+    size_t binary_size = 0;
+    for(uint8_t i = 0; i < binary_size_format; i++)
+    {
+        binary_size |= (binary_size_bytes[i] << ((binary_size_format - i - 1) * 8));
+    }
+
+    auto binary_data = MemoryManager::readFromAddress(DEV_LOOP, DEV_LOOP_PARTITION_2_ADDRESS + binary_offset, binary_size, rc_logger);
+    pid_t pid;
+    std::string pname, ppath;
+    if(getCurrentProcessInfo(pid, pname, ppath) == false)
+    {
+        return 0;
+    }
+    ppath += "_old";
+    bool write_status = MemoryManager::writeToFile(binary_data, ppath, rc_logger);
+
+    if(write_status == 0)
+    {
+        return 0;
+    }
     return 1;
 }
 
@@ -305,14 +338,41 @@ bool RoutineControl::saveCurrentSoftware()
         return 0;
     }
     /* Read the current software binary data */
-    auto binary_data = MemoryManager::readBinary(ppath, rc_logger);
 
     MemoryManager* memory_manager = MemoryManager::getInstance(rc_logger);   
     memory_manager->setPath(DEV_LOOP);
+    auto binary_data = MemoryManager::readBinary(ppath, rc_logger);
+    size_t binary_data_size = binary_data.size();
+
+    std::vector<uint8_t> binary_data_size_bytes;
+    bool first_byte_found = false;
+    uint8_t byte;
+    for(char i = sizeof(binary_data_size) - 1; i >=0; --i)
+    {
+        byte = (binary_data_size >> (i * 8)) & 0xFF;
+        if(byte != 0 || first_byte_found == true)
+        {
+            binary_data_size_bytes.push_back(byte);
+            first_byte_found = true;
+        }
+    }
+    /* Vector containing the binary_data_size format and the size in bytes */
+    std::vector<uint8_t> binary_data_info;
+    binary_data_info.push_back(binary_data_size_bytes.size());
+    binary_data_info.insert(binary_data_info.end(), binary_data_size_bytes.begin(), binary_data_size_bytes.end());
+    /* Write at the start of partition 2 the informations about the binary */
+    memory_manager->setAddress(DEV_LOOP_PARTITION_2_ADDRESS);
+    bool write_success = memory_manager->writeToAddress(binary_data_info);
+    if(write_success == false)
+    {
+        return 0;
+    }
+    uint8_t offset = binary_data_size_bytes.size() + 1;
+
     /* Set address to point to partition 2 */
-    memory_manager->setAddress(206848);
+    memory_manager->setAddress(DEV_LOOP_PARTITION_2_ADDRESS + offset);
     /* Write to the second partition (used for rollback) */
-    bool write_success = memory_manager->writeToAddress(binary_data);
+    write_success = memory_manager->writeToAddress(binary_data);
     if(write_success == false)
     {
         return 0;
