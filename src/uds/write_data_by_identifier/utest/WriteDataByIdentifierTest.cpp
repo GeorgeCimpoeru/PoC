@@ -11,7 +11,6 @@
 
 int socket1;
 int socket2;
-const int id = 0x10FA;
 
 std::vector<uint8_t> seed;
 
