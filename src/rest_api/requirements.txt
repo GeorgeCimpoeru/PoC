@@ -6,6 +6,7 @@ exceptiongroup==1.2.2
 flake8==7.1.0
 flasgger==0.9.7b2
 flask==3.0.3
+Flask-Limiter==3.8.0
 Flask-Cors==4.0.1
 importlib-metadata==8.0.0
 importlib-resources==6.4.0
