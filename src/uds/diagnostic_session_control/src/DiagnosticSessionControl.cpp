@@ -6,18 +6,10 @@
 #include "../../../mcu/include/MCUModule.h"
 
 // Initialize current_session
-DiagnosticSession DiagnosticSessionControl::current_session;
+DiagnosticSession DiagnosticSessionControl::current_session = DEFAULT_SESSION;
 
 /* Default constructor, used in MCU */
 DiagnosticSessionControl::DiagnosticSessionControl(Logger& logger, int socket) : dsc_logger(logger)
-{
-    this->socket = socket;
-    LOG_INFO(dsc_logger.GET_LOGGER(), "Diagnostic Session Control (0x10) started. Current session: {}", getCurrentSessionToString());
-}
-
-/* Parameterized constructor, used for ECUs */
-DiagnosticSessionControl::DiagnosticSessionControl(int module_id, Logger& logger, int socket) : module_id(module_id), 
-                                                                                   dsc_logger(logger)
 {
     this->socket = socket;
     LOG_INFO(dsc_logger.GET_LOGGER(), "Diagnostic Session Control (0x10) started. Current session: {}", getCurrentSessionToString());
@@ -47,62 +39,13 @@ void DiagnosticSessionControl::sessionControl(canid_t frame_id, uint8_t sub_func
     default:
         LOG_ERROR(dsc_logger.GET_LOGGER(), "Unsupported sub-function");
         NegativeResponse negative_response(socket, dsc_logger);
-        negative_response.sendNRC(frame_id, 0x10, 0x12);
+        /* Form the new id */
+        int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+        negative_response.sendNRC(id, 0x10, 0x12);
         uint8_t receiver_id = frame_id & 0xFF;
         AccessTimingParameter::stopTimingFlag(receiver_id, 0x10);
         break;
     }
-}
-
-/* Method to switch current session to Default Session */
-void DiagnosticSessionControl::switchToDefaultSession(canid_t frame_id)
-{
-    LOG_INFO(dsc_logger.GET_LOGGER(), "Session before change: {}", getCurrentSessionToString());
-
-    /* Switch to Default Session */
-    current_session = DEFAULT_SESSION;
-
-    LOG_INFO(dsc_logger.GET_LOGGER(), "Current session: {}", getCurrentSessionToString());
-
-    /* Create instance of Generate Frames to send response frame */
-    GenerateFrames response_frame(socket, dsc_logger);
-
-    /** Check the module where the request was made from
-     * More ECUs can be added here in future.
-     * If no module_id is provided, request of sessionControl was made from MCU
-     */
-
-    /* Form the new id */
-    int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
-    uint8_t receiver_id = frame_id & 0xFF;
-
-    response_frame.sessionControl(id, 0x01, true);
-    LOG_INFO(dsc_logger.GET_LOGGER(), "Sent positive response");
-     
-    AccessTimingParameter::stopTimingFlag(receiver_id, 0x10);
-}
-
-/* Method to switch current session to Programming Session */
-void DiagnosticSessionControl::switchToProgrammingSession(canid_t frame_id)
-{
-    
-    LOG_INFO(dsc_logger.GET_LOGGER(), "Session before change: {}", getCurrentSessionToString());
-    /* Switch to Programming Session */
-    current_session = PROGRAMMING_SESSION;
-
-    LOG_INFO(dsc_logger.GET_LOGGER(), "Current session: {}", getCurrentSessionToString());
-
-    /* Create instance of Generate Frames to send response frame */
-    GenerateFrames response_frame(socket, dsc_logger);
-
-    /* Form the new id */
-    int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
-    uint8_t receiver_id = frame_id & 0xFF;
-
-    response_frame.sessionControl(id, 0x02, true);
-    LOG_INFO(dsc_logger.GET_LOGGER(), "Sent positive response");
-    
-    AccessTimingParameter::stopTimingFlag(receiver_id, 0x10);
 }
 
 void DiagnosticSessionControl::switchSession(canid_t frame_id, DiagnosticSession session)

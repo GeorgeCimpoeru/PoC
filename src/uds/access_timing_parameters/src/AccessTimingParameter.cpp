@@ -50,7 +50,9 @@ void AccessTimingParameter::handleRequest(canid_t frame_id, uint8_t sub_function
                 /* Call negative response service with NRC 0x13 */
                 LOG_ERROR(atp_logger.GET_LOGGER(), "Incorrect Message Length Or Invalid Format");
                 NegativeResponse negative_response(socket, atp_logger);
-                negative_response.sendNRC(frame_id, 0x83, 0x13);
+                /* New id */
+                int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+                negative_response.sendNRC(id, 0x83, 0x13);
                 stopTimingFlag(receiver_id, 0x83);
             }
             break;
@@ -58,7 +60,9 @@ void AccessTimingParameter::handleRequest(canid_t frame_id, uint8_t sub_function
             /* Call negative response service with NRC 0x12 */
             LOG_ERROR(atp_logger.GET_LOGGER(), "Unsupported sub-function");
             NegativeResponse negative_response(socket, atp_logger);
-            negative_response.sendNRC(frame_id, 0x83, 0x12);
+            /* New id */
+            int id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
+            negative_response.sendNRC(id, 0x83, 0x12);
             stopTimingFlag(receiver_id, 0x83);
             break;
     }
@@ -133,7 +137,7 @@ void AccessTimingParameter::readCurrentlyActiveTimingParameters(canid_t frame_id
 
     std::vector<uint8_t> response;
     /* PCI */
-    response.push_back(0x02);
+    response.push_back(0x06);
     /* Response sid */
     response.push_back(0xc3);
     /* Subfunction */
