@@ -77,6 +77,11 @@ class ReadInfo(Action):
 
         Returns:
         - JSON response.
+
+        Endpoint test (external flow):
+
+        curl -X GET "http://127.0.0.1:5000/api/read_info_battery?is_manual_flow=false" -H "Content-Type: application/json"
+
         """
         try:
             log_info_message(logger, "Reading data from battery")
@@ -155,6 +160,11 @@ class ReadInfo(Action):
 
         Returns:
         - JSON response.
+
+        Endpoint test (external flow):
+
+        curl -X GET "http://127.0.0.1:5000/api/read_info_doors?is_manual_flow=false" -H "Content-Type: application/json"
+
         """
         try:
             log_info_message(logger, "Reading data from doors")
@@ -235,6 +245,11 @@ class ReadInfo(Action):
 
         Returns:
         - JSON response with engine data or the data for a specific item if provided.
+
+        Endpoint test (external flow):
+
+        curl -X GET "http://127.0.0.1:5000/api/read_info_engine?is_manual_flow=false" -H "Content-Type: application/json"
+
         """
         try:
             log_info_message(logger, "Reading data from engine")
@@ -299,6 +314,12 @@ class ReadInfo(Action):
 
         Returns:
         - JSON response with HVAC data or the data for a specific item if provided.
+
+        Endpoint test (external flow):
+
+        curl -X GET "http://127.0.0.1:5000/api/read_info_hvac?is_manual_flow=false" -H "Content-Type: application/json"
+
+        
         """
         try:
             log_info_message(logger, "Reading data from HVAC")
