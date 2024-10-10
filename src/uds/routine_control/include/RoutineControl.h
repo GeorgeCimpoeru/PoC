@@ -75,7 +75,7 @@ class RoutineControl
      * @return true 
      * @return false 
      */
-    bool verifySoftware();
+    bool verifySoftware(std::vector<uint8_t> adress_data);
     
     /**
      * @brief Get the Current Process Informations
@@ -91,6 +91,14 @@ class RoutineControl
     GenerateFrames generate_frames;
     int socket = -1;
     Logger& rc_logger;
+
+    /**
+    * @brief Method to compute the checksum of of data from memory for verification
+    * @param data pointer to the data block
+    * @param block_size te size of the data block
+    * @return checksum
+    */
+    uint8_t computeChecksum(const uint8_t* data, size_t block_size);
 
 };
 

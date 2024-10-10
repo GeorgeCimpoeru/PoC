@@ -132,7 +132,18 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
             case 0x0401:
             {
                 LOG_INFO(rc_logger.GET_LOGGER(), "Verify installation routine called.");
-                if(verifySoftware() == false)
+                 std::string ecu_path;
+                if(FileManager::getEcuPath(lowerbits, ecu_path, 1, rc_logger) == 0)
+                {
+                    LOG_INFO(rc_logger.GET_LOGGER(), "Invalid ecu path for reading binary:\n{}", ecu_path);
+                    nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
+                    return;
+                }
+                binary_data = MemoryManager::readBinary(ecu_path, rc_logger);
+                memory_manager = MemoryManager::getInstance(rc_logger); 
+                adress_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), binary_data.size(), rc_logger);
+
+                if(verifySoftware(adress_data) == false)
                 {
                     MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {VERIFY_FAILED});
                     nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::IMLOIF);
@@ -243,8 +254,65 @@ bool RoutineControl::activateSoftware()
     
     return 1;
 }
-bool RoutineControl::verifySoftware()
-{
+bool RoutineControl::verifySoftware(std::vector<uint8_t> adress_data)
+{      
+    /* Check if the binary data is in ELF format */
+    if (adress_data.size() >= 4)
+    {
+        /* Check if the first 4 bytes correspond to the ELF magic number */
+        if (adress_data[0] == 0x7F && adress_data[1] == 'E' && adress_data[2] == 'L' && adress_data[3] == 'F')
+        {
+            LOG_INFO(rc_logger.GET_LOGGER(), "The data read from memory is an ELF file");
+        }
+        else
+        {
+            LOG_ERROR(rc_logger.GET_LOGGER(), "The data read from memory is not an ELF file");
+            /* Return false if the binary is not an ELF file */
+            return false;
+        }
+    }
+    else
+    {
+        LOG_ERROR(rc_logger.GET_LOGGER(), "The data read from memory is too small to be an ELF file");
+        /* Return false if the file is too small */
+        return false;
+    }
+    
+    /* Get the store checksums from transfer data */
+    const std::vector<uint8_t>& stored_checksums = TransferData::getChecksums();
+    
+    size_t bytes_processed = 0;
+    /* Get chunk_size from request download */
+    size_t chunk_size = static_cast<size_t>(RequestDownloadService::getMaxNumberBlock());
+
+    /* Iterate over each chunk and perform byte by byte comparison */
+    for (size_t i = 0; i < stored_checksums.size(); ++i)
+    {                
+        size_t current_chunk_size = std::min(chunk_size, adress_data.size() - bytes_processed);
+
+        /* Extract the current chunk from the binary data */
+        std::vector<uint8_t> chunk_data(adress_data.begin() + bytes_processed, adress_data.begin() + bytes_processed + current_chunk_size);
+
+        /* Recompute and store checksum for this chunk */
+        uint8_t recomputed_checksum = computeChecksum(chunk_data.data(), chunk_data.size());
+
+        /* Compare the recomputed checksum with the stored checksum */
+        if (recomputed_checksum != stored_checksums[i])
+        {
+            LOG_ERROR(rc_logger.GET_LOGGER(), "Checksum mismatch in chunk {}: expected 0x{:X} but got 0x{:X}", i + 1, static_cast<int>(stored_checksums[i]), static_cast<int>(recomputed_checksum));
+            //checksum_match = false;
+            /* Stop further check if checksums don't match */
+            break;
+        }
+        else
+        {
+            LOG_INFO(rc_logger.GET_LOGGER(), "Checksum match in chunk {}: expected 0x{:X} and  got 0x{:X}", i + 1, static_cast<int>(stored_checksums[i]), static_cast<int>(recomputed_checksum));
+        }
+
+            /* Update the offset to move to the next chunk */
+            bytes_processed += current_chunk_size;
+    }
+
     return true;
 }
 
@@ -262,4 +330,16 @@ bool RoutineControl::getCurrentProcessInfo(pid_t& pid, std::string& pname)
     }
 
     return 1;
+}
+
+/* Method to compute a simple XOR checksum for a block of data */
+uint8_t RoutineControl::computeChecksum(const uint8_t* data, size_t block_size)
+{
+    uint8_t checksum = 0;
+    for (size_t i = 0; i < block_size; ++i)
+    {
+        checksum ^= data[i];
+    }
+    /* Return the checksum */
+    return checksum;
 }
