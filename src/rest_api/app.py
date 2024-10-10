@@ -4,8 +4,18 @@ from config import *
 from routes.main import main_bp
 from flask_cors import CORS
 from routes.api import api_bp
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
 
 app = Flask(__name__)
+
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["1 per 10 seconds"]
+)
+
 app.config.from_object(Config)
 
 

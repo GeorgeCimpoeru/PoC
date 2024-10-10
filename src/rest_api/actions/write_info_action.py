@@ -27,6 +27,10 @@ class WriteInfo(Action):
 
         Returns:
         - JSON response.
+
+        Endpoint test (external flow):
+
+        curl -X POST http://127.0.0.1:5000/api/write_info_battery -H "Content-Type: application/json" -d '{"is_manual_flow": false, "battery_level": 75, "voltage": 10, "battery_state_of_charge": 2, "percentage": 10}'
         """
 
         try:
@@ -88,6 +92,10 @@ class WriteInfo(Action):
         - data_dict: Dictionary containing the data to write.
         Returns:
         - JSON response.
+
+        Endpoint test (external flow):
+
+        curl -X POST http://127.0.0.1:5000/api/write_info_doors -H "Content-Type: application/json" -d '{"is_manual_flow": false, "door": 1, "passenger": 0, "passenger_lock": 1, "driver": 1, "ajar": 0}'
         """
 
         try:
@@ -120,10 +128,10 @@ class WriteInfo(Action):
 
                 data_parameter = [value]
                 if len(data_parameter) <= 4:
-                    self.generate.write_data_by_identifier(id, identifier, data_parameter)
+                    self.write_data_by_identifier(id, identifier, data_parameter)
                     self._passive_response(WRITE_BY_IDENTIFIER, f"Error writing {identifier}")
                 else:
-                    self.generate.write_data_by_identifier_long(id, identifier, data_parameter)
+                    self.write_data_by_identifier_long(id, identifier, data_parameter)
 
             log_info_message(logger, f"Data written successfully to ECU ID: {ECU_DOORS}")
             response_json = self._to_json("success", 0)
@@ -149,6 +157,11 @@ class WriteInfo(Action):
         - data_dict: Dictionary containing the data to write.
         Returns:
         - JSON response.
+
+        Endpoint test (external flow):
+
+        curl -X POST http://127.0.0.1:5000/api/write_info_engine -H "Content-Type: application/json" -d '{"is_manual_flow": false, "engine_rpm": 23, "coolant_temperature": 43,
+        "throttle_position": 8, "vehicle_speed": 33, "engine_load": 32, "fuel_level": 67, "oil_temperature": 90, "fuel_pressure": 33, "intake_air_temperature": 33}'
         """
         try:
             id = self.my_id * 0x100 + self.id_ecu[ECU_ENGINE]
@@ -185,10 +198,10 @@ class WriteInfo(Action):
 
                 data_parameter = [value]
                 if len(data_parameter) <= 4:
-                    self.generate.write_data_by_identifier(id, identifier, data_parameter)
+                    self.write_data_by_identifier(id, identifier, data_parameter)
                     self._passive_response(WRITE_BY_IDENTIFIER, f"Error writing {identifier}")
                 else:
-                    self.generate.write_data_by_identifier_long(id, identifier, data_parameter)
+                    self.write_data_by_identifier_long(id, identifier, data_parameter)
 
             log_info_message(logger, f"Data written successfully to ECU ID: {ECU_ENGINE}")
             response_json = self._to_json("success", 0)
@@ -214,6 +227,11 @@ class WriteInfo(Action):
         - data_dict: Dictionary containing HVAC parameters to write.
         Returns:
         - JSON response.
+
+        Endpoint test (external flow):
+
+        curl -X POST http://127.0.0.1:5000/api/write_info_engine -H "Content-Type: application/json" -d '{"is_manual_flow": false, "mass_air_flow": 21, "ambient_air_temperature": 44,
+        "cabin_temperature": 18, "cabin_temperature_driver_set": 25, "fan_speed": 45, "hvac_modes":0}'
         """
 
         try:
@@ -247,10 +265,10 @@ class WriteInfo(Action):
 
                 data_parameter = [value]
                 if len(data_parameter) <= 4:
-                    self.generate.write_data_by_identifier(id, identifier, data_parameter)
+                    self.write_data_by_identifier(id, identifier, data_parameter)
                     self._passive_response(WRITE_BY_IDENTIFIER, f"Error writing {identifier}")
                 else:
-                    self.generate.write_data_by_identifier_long(id, identifier, data_parameter)
+                    self.write_data_by_identifier_long(id, identifier, data_parameter)
 
             log_info_message(logger, f"Data written successfully to ECU ID: {ECU_HVAC}")
             response_json = self._to_json("success", 0)

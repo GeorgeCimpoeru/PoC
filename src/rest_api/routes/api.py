@@ -18,6 +18,7 @@ from actions.tester_present import Tester  # noqa: E402
 from actions.access_timing_action import *  # noqa: E402
 from actions.ecu_reset import Reset  # noqa: E402
 from actions.security_decorator import *  # noqa: E402
+from config import *  # noqa: E402
 
 api_bp = Blueprint('api', __name__)
 
