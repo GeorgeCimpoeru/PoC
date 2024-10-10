@@ -7,9 +7,6 @@ BASE_PATH="./"
 NEW_EXECUTABLES=("main_mcu_new" "main_battery_new" "main_doors_new" "main_engine_new" "main_hvac_new")
 CURRENT_EXECUTABLES=("main_mcu" "main_battery" "main_doors" "main_engine" "main_hvac")
 
-CURRENT_EXECUTABLE_PID=$1
-CURRENT_EXECUTABLE=$2
-NEW_EXECUTABLE=${CURRENT_EXECUTABLE}_new
 # Function to find and kill the running processes
 kill_processes() {
     echo "Attempting to kill running processes with executable: $1"
@@ -120,10 +117,28 @@ start_executable() {
 #     fi
 # done
 
+CURRENT_EXECUTABLE_PID=$1
+CURRENT_EXECUTABLE=$2
+
+if [ $# -ne 3 ]; then
+    echo "Usage: $0 {restore|activate}"
+    exit 1
+fi
+if [ "$3" == "restore" ]; then
+    NEW_EXECUTABLE=${CURRENT_EXECUTABLE}_restored
+elif [ "$3" == "activate" ]; then
+    NEW_EXECUTABLE=${CURRENT_EXECUTABLE}_new
+fi
+
 kill_process_group "${CURRENT_EXECUTABLE_PID}" "${CURRENT_EXECUTABLE}"
 replace_executable "${CURRENT_EXECUTABLE}" "${NEW_EXECUTABLE}"
 start_executable "${CURRENT_EXECUTABLE}"
 sleep 1
 
-echo "Update complete."
+if [ "$3" == "restore" ]; then
+    echo "Rollback complete."
+
+elif [ "$3" == "activate" ]; then
+    echo "Update complete."
+fi
 exit 0

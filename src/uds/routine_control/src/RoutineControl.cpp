@@ -169,15 +169,15 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 }
                 LOG_INFO(rc_logger.GET_LOGGER(), "Current software saved. Activating the new software..");
                 
-                // if(activateSoftware() == false)
-                // {
-                //     MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_FAILED});
-                // }
-                // else
-                // {
-                //     MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_COMPLETE});
-                //     routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
-                // }
+                if(activateSoftware() == false)
+                {
+                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_FAILED});
+                }
+                else
+                {
+                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_COMPLETE});
+                    routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
+                }
                 break;
             }
             default:
@@ -252,7 +252,7 @@ bool RoutineControl::activateSoftware()
     {
         return 0;
     }
-    std::string cmd = std::string(PROJECT_PATH) + "/config/installUpdates.sh " + std::to_string(pid) + " " + pname;
+    std::string cmd = std::string(PROJECT_PATH) + "/config/installUpdates.sh " + std::to_string(pid) + " " + pname + " " + "activate";
     int install_update_status = system(cmd.c_str());
     if(install_update_status != 0)
     {
@@ -319,10 +319,17 @@ bool RoutineControl::rollbackSoftware()
     {
         return 0;
     }
-    ppath += "_old";
+    ppath += "_restored";
     bool write_status = MemoryManager::writeToFile(binary_data, ppath, rc_logger);
 
     if(write_status == 0)
+    {
+        return 0;
+    }
+
+    std::string cmd = std::string(PROJECT_PATH) + "/config/installUpdates.sh " + std::to_string(pid) + " " + pname + " " + "restore";
+    int install_update_status = system(cmd.c_str());
+    if(install_update_status != 0)
     {
         return 0;
     }
