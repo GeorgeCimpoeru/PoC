@@ -4,13 +4,13 @@ import Image from 'next/image';
 import ModalUDS from './ModalUDS';
 import './style.css';
 
-interface HvacModes {
-    AC_Status: string;
-    Air_Recirculation: string;
-    Defrost: string;
-    Front: string;
-    Legs: string;
-}
+// interface HvacModes {
+//     AC_Status: string;
+//     Air_Recirculation: string;
+//     Defrost: string;
+//     Front: string;
+//     Legs: string;
+// }
 
 interface HVACData {
     ambient_air_temperature: string;
@@ -18,7 +18,7 @@ interface HVACData {
     cabin_temperature_driver_set: string;
     fan_speed: string;
 
-    hvac_modes: HvacModes;
+    // hvac_modes: HvacModes;
 
     mass_air_flow: string;
     time_stamp: string;
@@ -90,7 +90,7 @@ const DivCenterHVAC = (props: any) => {
                         <p>Cabin temperature driver set</p>
                     </div>
 
-
+{/* 
                     <div className="w-[30%] m-7 text-white grid justify-items-end">
                         <label htmlFor="my_modal_3"
                             className="inline-flex items-center justify-center p-2 bg-green-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-green-700">
@@ -98,16 +98,16 @@ const DivCenterHVAC = (props: any) => {
                         </label>
                         <ModalUDS id="my_modal_3" cardTitle={'Air recirculation'} />
                         <p>Air Recirculation</p>
-                    </div>
+                    </div> */}
 
-                    <div className="w-[30%] m-7 text-white grid justify-items-end">
+                    {/* <div className="w-[30%] m-7 text-white grid justify-items-end">
                         <label htmlFor="my_modal_3"
                             className="inline-flex items-center justify-center p-2 bg-green-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-green-700">
                             {data?.hvac_modes.Defrost}°C
                         </label>
                         <ModalUDS id="my_modal_3" cardTitle={'Defrost'} />
                         <p>Defrost</p>
-                    </div>
+                    </div> */}
 
                 </div>
             </div>
@@ -128,33 +128,33 @@ const DivCenterHVAC = (props: any) => {
                 </div>
 
 
-                <div className="w-[30%] m-7 text-white grid justify-items-end">
+                {/* <div className="w-[30%] m-7 text-white grid justify-items-end">
                     <label htmlFor="my_modal_5"
                         className="inline-flex items-center justify-center p-2 bg-red-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-red-700">
                         {data?.hvac_modes.AC_Status}
                     </label>
                     <ModalUDS id="my_modal_5" cardTitle={'HVAC modes'} />
                     <p>HVAC modes</p>
-                </div>
+                </div> */}
 
-                <div className="w-[30%] m-7 text-white grid justify-items-end">
+                {/* <div className="w-[30%] m-7 text-white grid justify-items-end">
                     <label htmlFor="my_modal_5"
                         className="inline-flex items-center justify-center p-2 bg-red-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-red-700">
                         {data?.hvac_modes.Front}
                     </label>
                     <ModalUDS id="my_modal_5" cardTitle={'Front'} />
                     <p>Front</p>
-                </div>
+                </div> */}
 
 
-                <div className="w-[30%] m-7 text-white grid justify-items-end">
+                {/* <div className="w-[30%] m-7 text-white grid justify-items-end">
                     <label htmlFor="my_modal_5"
                         className="inline-flex items-center justify-center p-2 bg-red-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-red-700">
                         {data?.hvac_modes.Legs}
                     </label>
                     <ModalUDS id="my_modal_5" cardTitle={'Legs'} />
                     <p>Legs</p>
-                </div>
+                </div> */}
 
                 <div className="w-[30%] m-7 text-white grid justify-items-end">
                     <label htmlFor="my_modal_6"
