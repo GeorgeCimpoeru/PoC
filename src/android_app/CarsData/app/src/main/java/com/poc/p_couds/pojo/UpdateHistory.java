@@ -4,13 +4,13 @@ import com.google.gson.annotations.SerializedName;
 
 public class UpdateHistory {
     @SerializedName("artifact")
-    public String  artifact;
+    private String  artifact;
     @SerializedName("status")
-    public String status;
+    private String status;
     @SerializedName("start_time")
-    public String startTime;
+    private String startTime;
     @SerializedName("size")
-    public String size;
+    private String size;
 
     public UpdateHistory(String artifact, String status, String startTime, String size) {
         this.artifact = artifact;
@@ -19,5 +19,21 @@ public class UpdateHistory {
         this.size = size;
     }
     public UpdateHistory() {
+    }
+
+    public String getArtifact() {
+        return artifact;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public String getSize() {
+        return size;
+    }
+
+    public String getStartTime() {
+        return startTime;
     }
 }

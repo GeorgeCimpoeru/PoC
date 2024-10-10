@@ -9,11 +9,27 @@ import java.util.List;
 public class ECU {
 
     @SerializedName("ecu_ids")
-    public ArrayList<String> ecus;
+    private ArrayList<String> ecus;
     @SerializedName("mcu_id")
-    public String mcuId;
+    private String mcuId;
     @SerializedName("status")
-    public String status;
+    private String status;
     @SerializedName("time_stamp")
-    public String timeStamp;
+    private String timeStamp;
+
+    public ArrayList<String> getEcus() {
+        return ecus;
+    }
+
+    public String getMcuId() {
+        return mcuId;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public String getTimeStamp() {
+        return timeStamp;
+    }
 }

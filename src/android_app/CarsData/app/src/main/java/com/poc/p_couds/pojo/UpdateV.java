@@ -6,15 +6,27 @@ import java.util.List;
 
 public class UpdateV {
     @SerializedName("update_file_version")
-    public String updateFileVersion;
+    private String updateFileVersion;
     @SerializedName("update_file_type")
-    public String updateFileType;
+    private String updateFileType;
     @SerializedName("ecu_id")
-    public String ecuId;
+    private String ecuId;
     public UpdateV(String updateFileVersion, String updateFileType, String ecuId)
     {
         this.updateFileVersion = updateFileVersion;
         this.updateFileType = updateFileType;
         this.ecuId = ecuId;
+    }
+
+    public String getUpdateFileVersion() {
+        return updateFileVersion;
+    }
+
+    public String getUpdateFileType() {
+        return updateFileType;
+    }
+
+    public String getEcuId() {
+        return ecuId;
     }
 }

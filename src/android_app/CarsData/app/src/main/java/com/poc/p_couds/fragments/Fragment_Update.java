@@ -59,8 +59,6 @@ import retrofit2.Response;
  */
 public class Fragment_Update extends Fragment implements View.OnClickListener {
 
-    // TODO collect size from call to API and calculate the time base on it
-
     // Constants
     private final String TAG = "PoC";
 
@@ -87,7 +85,7 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
     private boolean isPaused = false;
     private boolean downloading = false;
     private APIInterface apiInterface;
-    private List<UpdateHistory> listHistoryUpdates;
+    private List<UpdateHistory> listHistoryUpdates = new ArrayList<>();
 
     // String variables
     private String folderNameVersions = "";
@@ -109,7 +107,7 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
             idEcu = args.getString("id","Error");
             folderNameVersions = args.getString("folderName", "Error");
             ecuTxt.setText(title);
-            Toast.makeText(this.getContext(), "ID: "+idEcu, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), "ID: "+idEcu, Toast.LENGTH_SHORT).show();
         }
 
         // Get current version from API
@@ -117,12 +115,10 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
         displayCurrentVersions();
 
         // Get list of the versions from the API
-        getListOfVersionsAPI();
+        //getListOfVersionsAPI();
 
         // Get history of updates from endpoint and update table base on teh info received
-        getListOfUpdatesHistory(idEcu);
-        updateTable(listHistoryUpdates);
-
+        //getListOfUpdatesHistory(idEcu);
         
     }
 
@@ -182,13 +178,13 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
 
             // Artifact TextView
             TextView textViewArtifact = new TextView(getContext());
-            textViewArtifact.setText(update.artifact);
+            textViewArtifact.setText(update.getArtifact());
             textViewArtifact.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f));  // Width 0dp, Weight 1
             tableRow.addView(textViewArtifact);
 
             // Status TextView
             TextView textViewStatus = new TextView(getContext());
-            String status = update.status;
+            String status = update.getStatus();
             textViewStatus.setText(status);
             if (status.equals("Succeeded")) {
                 textViewStatus.setTextColor(getResources().getColor(R.color.green));
@@ -200,13 +196,13 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
 
             // Start Time TextView
             TextView textViewStartTime = new TextView(getContext());
-            textViewStartTime.setText(update.startTime);
+            textViewStartTime.setText(update.getStartTime());
             textViewStartTime.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f));
             tableRow.addView(textViewStartTime);
 
             // Size TextView
             TextView textViewSize = new TextView(getContext());
-            textViewSize.setText(String.valueOf(update.size));
+            textViewSize.setText(String.valueOf(update.getSize()));
             textViewSize.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f));
             tableRow.addView(textViewSize);
 
@@ -214,13 +210,13 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
             tableRow.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Toast.makeText(view.getContext(), update.artifact, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(view.getContext(), update.getArtifact(), Toast.LENGTH_SHORT).show();
 
                     mDialog.setContentView(R.layout.pop_up_logs);
                     TextView textViewPopup = mDialog.findViewById(R.id.title);
 
                     // Set the text dynamically (e.g., based on the update artifact)
-                    textViewPopup.setText(update.artifact);
+                    textViewPopup.setText(update.getArtifact());
                     mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
                     mDialog.show();
                 }
@@ -400,7 +396,7 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
                 UpdateVResponse updateVResponse = response.body();
                 if (response.isSuccessful() && updateVResponse !=null)
                 {
-                    if (updateVResponse.errors.equals("No errors."))
+                    if (updateVResponse.getErrors().equals("No errors."))
                     {
                         Log.i(TAG, "Download completed");
 
@@ -412,9 +408,9 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
 
                         Toast.makeText(Fragment_Update.this.getContext(), "Download completed", Toast.LENGTH_SHORT).show();
                     } else {
-                        Log.e(TAG, updateVResponse.errors);
+                        Log.e(TAG, updateVResponse.getErrors());
                         errorDownload();
-                        Toast.makeText(Fragment_Update.this.getContext(), updateVResponse.errors, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(Fragment_Update.this.getContext(), updateVResponse.getErrors(), Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     // Response was not successful or body is null
@@ -460,7 +456,7 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
 
                 if (response.isSuccessful() && body != null)
                 {
-                    List<FileNode> children = body.children;
+                    List<FileNode> children = body.getChildren();
                     versions = extractVersion(body,folderNameVersions);
                     if (versions != null) {
                         versionFilter.clear(); // Clear existing items in the filter
@@ -487,9 +483,9 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
         if (!Objects.equals(ecuFolderName, "") || !Objects.equals(ecuFolderName, "Error"))
         {
             FileNode targetFolder = null;
-            for (FileNode folder : swVersions.children)
+            for (FileNode folder : swVersions.getChildren())
             {
-                if (Objects.equals(folder.name, ecuFolderName))
+                if (Objects.equals(folder.getName(), ecuFolderName))
                 {
                     targetFolder = folder;
                     break;
@@ -498,11 +494,11 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
             if (targetFolder != null)
             {
                 List<Pair<String,String>> versions = new ArrayList<>();
-                for (FileNode swVersion: targetFolder.children)
+                for (FileNode swVersion: targetFolder.getChildren())
                 {
-                    if (!Objects.equals(swVersion.type, "folder"))
+                    if (!Objects.equals(swVersion.getType(), "folder"))
                     {
-                        versions.add(new Pair<>(swVersion.swVersion, swVersion.size));
+                        versions.add(new Pair<>(swVersion.getSwVersion(), swVersion.getSize()));
                     }
                 }
                 return versions;
@@ -521,6 +517,8 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
                 if (response.isSuccessful() && response.body() != null)
                 {
                     listHistoryUpdates = response.body();
+                    updateTable(listHistoryUpdates);
+                    Log.i(TAG, "All good");
                 }
             }
 
@@ -534,7 +532,7 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
         });
 
         // TODO !!!IMPORTANT!!! Delete when call to endpoint is implemented
-        listHistoryUpdates = Arrays.asList(new UpdateHistory[]{new UpdateHistory("Software update 1", "Succeeded", "1 Sept 2024", "23"),
-                new UpdateHistory("Software update 2", "Faied", "1 Ian 20243", "12")});
+//        listHistoryUpdates = Arrays.asList(new UpdateHistory[]{new UpdateHistory("Software update 1", "Succeeded", "1 Sept 2024", "23"),
+//                new UpdateHistory("Software update 2", "Failed", "1 Ian 20243", "12")});
     }
 }

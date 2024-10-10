@@ -20,6 +20,7 @@ import com.poc.p_couds.APIClient;
 import com.poc.p_couds.R;
 import com.poc.p_couds.fragments.Fragment_RequestSend;
 import com.poc.p_couds.fragments.Fragment_Update;
+import com.poc.p_couds.fragments.ManualFragment;
 import com.poc.p_couds.pojo.ECU;
 import com.poc.p_couds.pojo.FileNode;
 
@@ -66,27 +67,27 @@ public class OTA extends AppCompatActivity {
                         if(item.getItemId() == R.id.mcu)
                         {
                             title = "MCU";
-                            idEcu = ecu.mcuId;
+                            idEcu = ecu.getMcuId();
                             fileName = "MCU_SW_VERSIONS";
                         } else if(item.getItemId() == R.id.battery)
                         {
                             title = "Battery";
-                            idEcu = ecu.ecus.get(0);
+                            idEcu = ecu.getEcus().get(0);
                             fileName = "ECU_BATTERY_SW_VERSIONS";
                         } else if(item.getItemId() == R.id.engine)
                         {
                             title = "Engine";
-                            idEcu = ecu.ecus.get(1);
+                            idEcu = ecu.getEcus().get(1);
                             fileName = "";
                         }else if(item.getItemId() == R.id.door)
                         {
                             title = "Door";
-                            idEcu = ecu.ecus.get(2);
+                            idEcu = ecu.getEcus().get(2);
                             fileName = "";
                         }else if(item.getItemId() == R.id.hvac)
                         {
                             title = "HVAC";
-                            idEcu = ecu.ecus.get(3);
+                            idEcu = ecu.getEcus().get(3);
                             fileName = "";
                         }
                         openFragment(new Fragment_Update(),title, idEcu, fileName);
@@ -135,12 +136,12 @@ public class OTA extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if(item.getItemId() == R.id.sendRe_btn)
         {
-            Fragment fr = new Fragment_RequestSend();
+            Fragment fr = new ManualFragment();
             openFragment(fr,"","","");
         } else if(item.getItemId() == R.id.updates_btn)
         {
             Fragment fr = new Fragment_Update();
-            openFragment(fr,"MCU",ecu.ecus.get(0), "MCU_SW_VERSIONS");
+            openFragment(fr,"MCU",ecu.getEcus().get(0), "MCU_SW_VERSIONS");
         }
         return super.onOptionsItemSelected(item);
     }
@@ -156,10 +157,10 @@ public class OTA extends AppCompatActivity {
                 {
                     Log.d(TAG,response.code()+"");
                     ecu = response.body();
-                    List<String> listOfEcus = response.body().ecus;
-                    String mcu_id = response.body().mcuId;
-                    String status = response.body().status;
-                    String time_stamp = response.body().timeStamp;
+                    List<String> listOfEcus = response.body().getEcus();
+                    String mcu_id = response.body().getMcuId();
+                    String status = response.body().getStatus();
+                    String time_stamp = response.body().getTimeStamp();
                     if (listOfEcus != null && mcu_id != null && status !=null)
                     {
                         initElements();

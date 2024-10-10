@@ -32,6 +32,7 @@
                 android:rowCount="1"
                 android:paddingHorizontal="15dp">
                 <Switch
+                    android:id="@+id/sw"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Tester present"/>

@@ -6,15 +6,39 @@ import java.util.ArrayList;
 
 public class FileNode {
     @SerializedName("children")
-    public ArrayList<FileNode> children;
+    private ArrayList<FileNode> children;
     @SerializedName("id")
-    public String id_f;
+    private String id_f;
     @SerializedName("name")
-    public String name;
+    private String name;
     @SerializedName("type")
-    public String type;
+    private String type;
     @SerializedName("size")
-    public String size;
+    private String size;
     @SerializedName("sw_version")
-    public String swVersion;
+    private String swVersion;
+
+    public ArrayList<FileNode> getChildren() {
+        return children;
+    }
+
+    public String getId_f() {
+        return id_f;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getSize() {
+        return size;
+    }
+
+    public String getSwVersion() {
+        return swVersion;
+    }
 }

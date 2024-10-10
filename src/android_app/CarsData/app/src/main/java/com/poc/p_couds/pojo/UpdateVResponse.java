@@ -4,9 +4,21 @@ import com.google.gson.annotations.SerializedName;
 
 public class UpdateVResponse {
     @SerializedName("errors")
-    public String errors;
+    private String errors;
     @SerializedName("status_download")
-    public String statusDownload;
+    private String statusDownload;
     @SerializedName("time_stamp")
-    public String timeStamp;
+    private String timeStamp;
+
+    public String getErrors() {
+        return errors;
+    }
+
+    public String getStatusDownload() {
+        return statusDownload;
+    }
+
+    public String getTimeStamp() {
+        return timeStamp;
+    }
 }
