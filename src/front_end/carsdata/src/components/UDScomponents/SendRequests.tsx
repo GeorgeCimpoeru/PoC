@@ -272,12 +272,12 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
-    const readInfoBattery = async (initialRequest: boolean, identifier: string) => {
+    const readInfoBattery = async (initialRequest: boolean, item: string) => {
         displayLoadingCircle();
         console.log("Reading info battery...");
-        console.log(identifier);
+        console.log(item);
         try {
-            await fetch(`http://127.0.0.1:5000/api/read_info_battery?identifier=${identifier}`, {
+            await fetch(`http://127.0.0.1:5000/api/read_info_battery?item=${item}`, {
                 method: 'GET',
                 // mode: 'no-cors',
             }).then(response => response.json())
@@ -529,9 +529,9 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
-    const writeInfoBattery = async (identifier: string) => {
+    const writeInfoBattery = async (item: string) => {
         let data2 = {}
-        if (identifier === "battery_level") {
+        if (item === "battery_level") {
             let batteryLevel = prompt('Enter Battery Level: ');
             if (batteryLevel === null) {
                 return;
@@ -539,7 +539,7 @@ const SendRequests = () => {
             data2 = {
                 battery_level: parseInt(batteryLevel)
             };
-        } else if (identifier === "state_of_charge") {
+        } else if (item === "state_of_charge") {
             let stateOfCharge = prompt('Enter Battery State of Charge: ');
             if (stateOfCharge === null) {
                 return;
@@ -547,7 +547,7 @@ const SendRequests = () => {
             data2 = {
                 state_of_charge: parseInt(stateOfCharge)
             };
-        } else if (identifier === "percentage") {
+        } else if (item === "percentage") {
             let percentage = prompt('Enter Battery Percentage: ');
             if (percentage === null) {
                 return;
@@ -555,7 +555,7 @@ const SendRequests = () => {
             data2 = {
                 percentage: parseInt(percentage)
             };
-        } else if (identifier === "voltage") {
+        } else if (item === "voltage") {
             let voltage = prompt('Enter Battery Voltage: ');
             if (voltage === null) {
                 return;
@@ -569,7 +569,7 @@ const SendRequests = () => {
         console.log(data2);
         displayLoadingCircle();
         try {
-            await fetch(`http://127.0.0.1:5000/api/write_info_battery?identifier=${identifier}`, {
+            await fetch(`http://127.0.0.1:5000/api/write_info_battery?item=${item}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
