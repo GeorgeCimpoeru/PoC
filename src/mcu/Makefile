@@ -538,8 +538,8 @@ $(OTA_DIR)/request_transfer_exit/utest/RequestTransferExit_test.o: $(OTA_DIR)/re
 # ReadDTC Unit tests
 readDtcTest: $(OBJ_DIR) $(UDS_DIR)/read_dtc_information/utest/readDtcTest.out
 
-$(UDS_DIR)/read_dtc_information/utest/readDtcTest.out: $(OBJ_DIR) $(OBJS_READDTC_TEST) $(UDS_DIR)/read_dtc_information/utest/ReadDtcInformation_test.o
-	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/read_dtc_information/utest/readDtcTest.out $(UDS_DIR)/read_dtc_information/utest/ReadDtcInformation_test.o $(OBJS_READDTC_TEST) $(CFLAGSTST2) $(LDFLAGS)
+$(UDS_DIR)/read_dtc_information/utest/readDtcTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UDS_DIR)/read_dtc_information/utest/ReadDtcInformation_test.o
+	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/read_dtc_information/utest/readDtcTest.out $(UDS_DIR)/read_dtc_information/utest/ReadDtcInformation_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
 
 $(UDS_DIR)/read_dtc_information/utest/ReadDtcInformation_test.o: $(UDS_DIR)/read_dtc_information/utest/ReadDtcInformationTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/read_dtc_information/utest/ReadDtcInformationTest.cpp -o $(UDS_DIR)/read_dtc_information/utest/ReadDtcInformation_test.o $(CFLAGSTST2) $(LDFLAGS)
@@ -549,8 +549,8 @@ $(UDS_DIR)/read_dtc_information/utest/ReadDtcInformation_test.o: $(UDS_DIR)/read
 # ClearDTC Unit tests
 clearDtcTest: $(OBJ_DIR) $(UDS_DIR)/clear_dtc/utest/clearDtcTest.out
 
-$(UDS_DIR)/clear_dtc/utest/clearDtcTest.out: $(OBJ_DIR) $(OBJS_CLEARDTC_TEST) $(UDS_DIR)/clear_dtc/utest/ClearDtc_test.o
-	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/clear_dtc/utest/clearDtcTest.out $(UDS_DIR)/clear_dtc/utest/ClearDtc_test.o $(OBJS_CLEARDTC_TEST) $(CFLAGSTST2) $(LDFLAGS)
+$(UDS_DIR)/clear_dtc/utest/clearDtcTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UDS_DIR)/clear_dtc/utest/ClearDtc_test.o
+	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/clear_dtc/utest/clearDtcTest.out $(UDS_DIR)/clear_dtc/utest/ClearDtc_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
 
 $(UDS_DIR)/clear_dtc/utest/ClearDtc_test.o: $(UDS_DIR)/clear_dtc/utest/ClearDtcTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/clear_dtc/utest/ClearDtcTest.cpp -o $(UDS_DIR)/clear_dtc/utest/ClearDtc_test.o $(CFLAGSTST2) $(LDFLAGS)
