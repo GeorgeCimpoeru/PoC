@@ -21,3 +21,4 @@ src/rest_api/database/mcu_ids.db
 key.json
 src/ota/google_drive_api/__pycache__
 src/ota/google_drive_api/__init__.py
+src/rest_api/tests/__pycache__
