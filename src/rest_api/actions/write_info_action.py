@@ -94,7 +94,7 @@ class WriteInfo(Action):
         - JSON response.
 
         Endpoint test (external flow):
-        
+
         curl -X POST http://127.0.0.1:5000/api/write_info_doors -H "Content-Type: application/json" -d '{"is_manual_flow": false, "door": 1, "passenger": 0, "passenger_lock": 1, "driver": 1, "ajar": 0}'
         """
 
