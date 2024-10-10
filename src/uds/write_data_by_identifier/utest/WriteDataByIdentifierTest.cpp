@@ -202,6 +202,7 @@ TEST_F(WriteDataByIdentifierTest, RequestOutOfRangeBattery) {
     c1->capture();
     testFrames(result_frame, *c1);
     std::cerr << "Finished RequestOutOfRangeBattery" << std::endl;
+    delete receiveFrames;
 }
 
 /* Test Request Out Of Range Engine */
@@ -306,6 +307,48 @@ TEST_F(WriteDataByIdentifierTest, ModuleNotSupported) {
     c1->capture();
     testFrames(result_frame, *c1);
     std::cerr << "Finished ModuleNotSupported" << std::endl;
+}
+
+TEST_F(WriteDataByIdentifierTest, ErrorReadingFromFile)
+{
+    std::string file_name = std::string(PROJECT_PATH) + "/src/mcu/mcu_data.txt";
+    std::string original_content;
+    std::ifstream original_file(file_name);
+    if (original_file)
+    {
+        original_content.assign((std::istreambuf_iterator<char>(original_file)),
+                                std::istreambuf_iterator<char>());
+        original_file.close();
+    }
+    std::remove(file_name.c_str());
+
+    struct can_frame result_frame = createFrame(0x10FA, {0x03, 0x7F, 0x2e, NegativeResponse::ROOR});
+    w->WriteDataByIdentifierService(0xFA10, {0x04, 0x2e, 0x11, 0x11, 0x11});
+    c1->capture();
+
+    std::ofstream new_file(file_name);
+    if (new_file)
+    {
+        if (!original_content.empty())
+        {
+            new_file << original_content;
+        }
+        new_file.close();
+    }
+    else
+    {
+        FAIL() << "Error recreating the file.";
+    }
+    std::ifstream recreated_file(file_name);
+    EXPECT_TRUE(recreated_file.good());
+
+    if (!original_content.empty())
+    {
+        std::string recreated_content((std::istreambuf_iterator<char>(recreated_file)),
+                                      std::istreambuf_iterator<char>());
+        EXPECT_EQ(recreated_content, original_content);
+    }
+    testFrames(result_frame, *c1);
 }
 
 int main(int argc, char* argv[])

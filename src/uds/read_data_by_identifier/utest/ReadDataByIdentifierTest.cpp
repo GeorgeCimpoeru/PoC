@@ -209,6 +209,7 @@ TEST_F(ReadDataByIdentifierTest, RequestOutOfRangeBattery)
     rdbi->readDataByIdentifier(0xFA11, {0x04, 0x22, 0x11, 0x11, 0x11}, true);
     c1->capture();
     testFrames(result_frame, *c1);
+    delete receiveFrames;
 }
 
 /* Test Request Out Of Range Engine */
@@ -232,8 +233,8 @@ TEST_F(ReadDataByIdentifierTest, RequestOutOfRangeDoors)
 /* Test Request Out Of Range HVAC */
 TEST_F(ReadDataByIdentifierTest, RequestOutOfRangeHVAC)
 {
-    struct can_frame result_frame = createFrame(0x13FA, {0x03, 0x7F, 0x22, NegativeResponse::ROOR});
-    rdbi->readDataByIdentifier(0xFA13, {0x04, 0x22, 0x11, 0x11, 0x11}, true);
+    struct can_frame result_frame = createFrame(0x14FA, {0x03, 0x7F, 0x22, NegativeResponse::ROOR});
+    rdbi->readDataByIdentifier(0xFA14, {0x04, 0x22, 0x11, 0x11, 0x11}, true);
     c1->capture();
     testFrames(result_frame, *c1);
 }
@@ -290,6 +291,14 @@ TEST_F(ReadDataByIdentifierTest, ErrorReadingFromFile)
     testFrames(result_frame, *c1);
 }
 
+/* Test Corect DID MCU */
+TEST_F(ReadDataByIdentifierTest, CorectDIDMCU)
+{
+    struct can_frame result_frame = createFrame(0x10FA, {0x04, 0x62, 0xF1, 0xA2, 0x00});
+    rdbi->readDataByIdentifier(0xFA10, {0x03, 0x22, 0xF1, 0xA2}, true);
+    c1->capture();
+    testFrames(result_frame, *c1);
+}
 
 int main(int argc, char* argv[])
 {
