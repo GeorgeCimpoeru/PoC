@@ -13,7 +13,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 if (err) {
                     reject(err);
                 }
-                    
                 resolve(results || null);
             });
         });

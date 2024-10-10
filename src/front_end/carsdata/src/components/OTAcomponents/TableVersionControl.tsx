@@ -2,17 +2,19 @@
 import React, { useEffect, useState } from 'react';
 import UpgradeButton from './UpgradeButton';
 import DowngradeButton from './DowngradeButton';
+import {removeLoadingCicle} from '../sharedComponents/LoadingCircle';
 
 const TableVersionControl = (props: any) => {
     const [newSoftVersions, setNewSoftVersions] = useState<string[]>([]);
 
     const getNewSoftVersions = () => {
         setNewSoftVersions(props.versions.split('; '));
+        removeLoadingCicle();
     };
 
     useEffect(() => {
         getNewSoftVersions();
-    }, [props.device, props.versions]); /////////?????????????
+    }, [props.device, props.versions]);
 
     return (
         <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1 m-6">

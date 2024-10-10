@@ -26,7 +26,6 @@ const getAvailable = async () => {
             Engine_versions = data.versions[2].versions;
             Doors_versions = data.versions[3].versions;
             HVAC_versions = data.versions[4].versions;
-            removeLoadingCicle();
         })
         .catch(error => {
             console.log(error);
