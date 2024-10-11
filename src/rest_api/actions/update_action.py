@@ -71,13 +71,12 @@ class Updates(Action):
         try:
             self.id = (int(id, 16) << 16) + (self.my_id << 8) + self.id_ecu[0]
 
-
             log_info_message(logger, "Changing session to extended diagonstic mode")
             self.generate.session_control(self.id, sub_funct=0x03)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
 
             log_info_message(logger, "Authenticating...")
-            self._authentication(self.my_id * 0x100 + self.id_ecu[0]) # -> security only to MCU
+            self._authentication(self.my_id * 0x100 + self.id_ecu[0])  # -> security only to MCU
 
             log_info_message(logger, "Reading data from battery")
             current_version = self._verify_version()
@@ -248,9 +247,7 @@ class Updates(Action):
 
             elapsed_time = time.time() - start_time
             if elapsed_time >= 5:
-                log_info_message(logger, \
-                                 f"Timeout reached. \
-                                 State {hex(value)} is still invalid.")
+                log_info_message(logger, f"Timeout reached. State {hex(value)} is still invalid.")
                 return "INVALID_STATE_TIMEOUT"
 
             time.sleep(1)

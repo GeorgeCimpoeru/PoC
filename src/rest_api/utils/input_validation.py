@@ -1,6 +1,7 @@
 from functools import wraps
 from flask import request, jsonify
 
+
 def validate_update_request(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -25,4 +26,3 @@ def validate_update_request(func):
 
         return func(*args, **kwargs)
     return wrapper
-
