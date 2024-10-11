@@ -9,7 +9,6 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import android.os.CountDownTimer;
-import android.os.Handler;
 import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -31,11 +30,8 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 
 import com.poc.p_couds.APIClient;
-import com.poc.p_couds.APIInterface;
+import com.poc.p_couds.IApiService;
 import com.poc.p_couds.R;
-import com.poc.p_couds.activities.OTA;
-import com.poc.p_couds.models.Update;
-import com.poc.p_couds.pojo.ECU;
 import com.poc.p_couds.pojo.FileNode;
 import com.poc.p_couds.pojo.UpdateHistory;
 import com.poc.p_couds.pojo.UpdateV;
@@ -43,8 +39,6 @@ import com.poc.p_couds.pojo.UpdateVResponse;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
@@ -84,7 +78,7 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
     private int totalTimeInMillis;  // Total time for the progress bar
     private boolean isPaused = false;
     private boolean downloading = false;
-    private APIInterface apiInterface;
+    private IApiService apiInterface;
     private List<UpdateHistory> listHistoryUpdates = new ArrayList<>();
 
     // String variables
@@ -388,7 +382,7 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
     {
         String version = spinnerVersions.getSelectedItem().toString();
         UpdateV updateV = new UpdateV(version, "zip",idEcu);
-        apiInterface = APIClient.getClient().create(APIInterface.class);
+        apiInterface = APIClient.getClient().create(IApiService.class);
         Call<UpdateVResponse> call = apiInterface.updateVersion(updateV);
         call.enqueue(new Callback<UpdateVResponse>() {
             @Override
@@ -446,7 +440,7 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
 
     private void getListOfVersionsAPI()
     {
-        apiInterface = APIClient.getClient().create(APIInterface.class);
+        apiInterface = APIClient.getClient().create(IApiService.class);
         Call<FileNode> call = apiInterface.requestListOfVersions();
         call.enqueue(new Callback<FileNode>() {
             @Override
@@ -509,7 +503,7 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
 
     private void getListOfUpdatesHistory(String idEcu)
     {
-        apiInterface = APIClient.getClient().create(APIInterface.class);
+        apiInterface = APIClient.getClient().create(IApiService.class);
         Call<List<UpdateHistory>> call = apiInterface.requestListOfUpdatesHistory();
         call.enqueue(new Callback<List<UpdateHistory>>() {
             @Override

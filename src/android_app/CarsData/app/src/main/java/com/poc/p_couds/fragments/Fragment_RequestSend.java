@@ -14,7 +14,7 @@ import android.widget.CompoundButton;
 import android.widget.Switch;
 
 import com.poc.p_couds.APIClient;
-import com.poc.p_couds.APIInterface;
+import com.poc.p_couds.IApiService;
 import com.poc.p_couds.R;
 import com.poc.p_couds.pojo.Authenticate;
 import com.poc.p_couds.pojo.ChangeStatus;
@@ -58,10 +58,10 @@ public class Fragment_RequestSend extends Fragment {
         });
     }
 
-    APIInterface apiInterface;
+    IApiService apiInterface;
 
     private void changeSession() {
-        apiInterface = APIClient.getClient().create(APIInterface.class);
+        apiInterface = APIClient.getClient().create(IApiService.class);
         Call<ChangeStatus> call = apiInterface.requestChangeStatus();
 
         call.enqueue(new Callback<ChangeStatus>() {
@@ -79,7 +79,7 @@ public class Fragment_RequestSend extends Fragment {
 
     private void readDtcInfo()
     {
-        apiInterface = APIClient.getClient().create(APIInterface.class);
+        apiInterface = APIClient.getClient().create(IApiService.class);
         Call<ReadDtc> call = apiInterface.requestReadDtcInfo();
         call.enqueue(new Callback<ReadDtc>() {
             @Override
@@ -95,7 +95,7 @@ public class Fragment_RequestSend extends Fragment {
     }
     private void authenticate()
     {
-        apiInterface = APIClient.getClient().create(APIInterface.class);
+        apiInterface = APIClient.getClient().create(IApiService.class);
         Call<Authenticate> call = apiInterface.requestAuthenticate();
         call.enqueue(new Callback<Authenticate>() {
             @Override
@@ -122,7 +122,7 @@ public class Fragment_RequestSend extends Fragment {
     private void readAccessTiming(int subFunction)
     {
         ReadAccessTimingPost readAccessTimingPost = new ReadAccessTimingPost(subFunction);
-        apiInterface = APIClient.getClient().create(APIInterface.class);
+        apiInterface = APIClient.getClient().create(IApiService.class);
         Call<ReadAccesTiming> call = apiInterface.requestReadAccessTiming(readAccessTimingPost);
 
         call.enqueue(new Callback<ReadAccesTiming>() {
@@ -139,7 +139,7 @@ public class Fragment_RequestSend extends Fragment {
     }
     private void testerPresent()
     {
-        apiInterface = APIClient.getClient().create(APIInterface.class);
+        apiInterface = APIClient.getClient().create(IApiService.class);
         Call<TesterPresent> call = apiInterface.requestTesterPresent();
 
         call.enqueue(new Callback<TesterPresent>() {
@@ -169,7 +169,7 @@ public class Fragment_RequestSend extends Fragment {
     private void resetEcu(String ecuId, String typeReset)
     {
         ResetEcuPost resetEcuPost = new ResetEcuPost(ecuId, typeReset);
-        apiInterface = APIClient.getClient().create(APIInterface.class);
+        apiInterface = APIClient.getClient().create(IApiService.class);
         Call<ResetEcu> call = apiInterface.requestResetEcu(resetEcuPost);
 
         call.enqueue(new Callback<ResetEcu>() {
@@ -196,7 +196,7 @@ public class Fragment_RequestSend extends Fragment {
     }
     private void getIdentifiers()
     {
-        apiInterface = APIClient.getClient().create(APIInterface.class);
+        apiInterface = APIClient.getClient().create(IApiService.class);
         Call<GetIdentifiers> call = apiInterface.requestGetIdentifiers();
 
         call.enqueue(new Callback<GetIdentifiers>() {

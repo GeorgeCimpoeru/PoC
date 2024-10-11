@@ -15,20 +15,16 @@ import android.widget.Toast;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
-import com.poc.p_couds.APIInterface;
 import com.poc.p_couds.APIClient;
+import com.poc.p_couds.IApiService;
 import com.poc.p_couds.R;
-import com.poc.p_couds.fragments.Fragment_RequestSend;
 import com.poc.p_couds.fragments.Fragment_Update;
 import com.poc.p_couds.fragments.ManualFragment;
 import com.poc.p_couds.pojo.ECU;
-import com.poc.p_couds.pojo.FileNode;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -148,7 +144,7 @@ public class OTA extends AppCompatActivity {
 
     public void getListOfECUs()
     {
-        APIInterface apiInterface = APIClient.getClient().create(APIInterface.class);
+        IApiService apiInterface = APIClient.getClient().create(IApiService.class);
         Call<ECU> call = apiInterface.requestListOfEcus();
         call.enqueue(new Callback<ECU>() {
             @Override

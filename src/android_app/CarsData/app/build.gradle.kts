@@ -79,11 +79,10 @@ dependencies {
     implementation (libs.androidx.fragment.ktx)
     implementation (libs.ui)
     implementation (libs.androidx.appcompat.v160)
-    implementation(libs.retrofit) {
-        exclude("com.squareup.okhttp3", "okhttp")
-    }
     implementation(libs.logging.interceptor)
     implementation(libs.okhttps)
     implementation (libs.gson)
     implementation (libs.converter.gson)
+    implementation (libs.retrofit)
+
 }
