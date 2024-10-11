@@ -19,7 +19,12 @@ import com.poc.p_couds.pojo.UpdateHistory
 import com.poc.p_couds.pojo.UpdateV
 import com.poc.p_couds.pojo.UpdateVResponse
 import com.poc.p_couds.pojo.VINResponse
+import com.poc.p_couds.pojo.WriteBatteryResponseDataClass
+import com.poc.p_couds.pojo.WriteDoorsResponseDataClass
+import com.poc.p_couds.pojo.WriteEngineResponseDataClass
+import com.poc.p_couds.pojo.WriteHvacResponseDataClass
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -39,6 +44,26 @@ interface IApiService {
 
     @GET("api/read_info_hvac")
     fun getInfoHVAC(): Call<HVACDataClass>
+
+    @POST("api/write_info_battery")
+    suspend fun writeInfoBattery(
+        @Body request: Any
+    ): Response<WriteBatteryResponseDataClass>
+
+    @POST("api/write_info_engine")
+    suspend fun writeInfoEngine(
+        @Body request: Any
+    ): Response<WriteEngineResponseDataClass>
+
+    @POST("api/write_info_doors")
+    suspend fun writeInfoDoors(
+        @Body request: Any
+    ): Response<WriteDoorsResponseDataClass>
+
+    @POST("api/write_info_hvac")
+    suspend fun writeInfoHVAC(
+        @Body request: Any
+    ): Response<WriteHvacResponseDataClass>
 
     //MAIN
 
