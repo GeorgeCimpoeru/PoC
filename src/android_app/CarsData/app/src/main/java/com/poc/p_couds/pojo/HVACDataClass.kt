@@ -1,4 +1,4 @@
-package com.poc.p_couds
+package com.poc.p_couds.pojo
 
 data class hvacModes(
     val AC_Status: String,

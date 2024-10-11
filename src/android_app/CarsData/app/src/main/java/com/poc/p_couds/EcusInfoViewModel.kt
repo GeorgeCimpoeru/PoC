@@ -10,6 +10,11 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import android.util.Log
+import com.poc.p_couds.pojo.BatteryDataClass
+import com.poc.p_couds.pojo.DoorsDataClass
+import com.poc.p_couds.pojo.EngineDataClass
+import com.poc.p_couds.pojo.HVACDataClass
+import retrofit2.create
 
 class EcusInfoViewModel : ViewModel() {
     var batteryInfo by mutableStateOf<BatteryDataClass?>(null)
@@ -18,7 +23,7 @@ class EcusInfoViewModel : ViewModel() {
         private set
     fun fetchBatteryInfo() {
         viewModelScope.launch {
-            val call = RetrofitInstance.api.getInfoBattery()
+            val call = APIClient.getClient().create(IApiService::class.java).getInfoBattery();
             call.enqueue(object : Callback<BatteryDataClass> {
                 override fun onResponse(call: Call<BatteryDataClass>, response: Response<BatteryDataClass>) {
                     Log.d("error1", response.toString())
@@ -43,7 +48,7 @@ class EcusInfoViewModel : ViewModel() {
         private set
     fun fetchEngineInfo() {
         viewModelScope.launch {
-            val call = RetrofitInstance.api.getInfoEngine()
+            val call = APIClient.getClient().create(IApiService::class.java).getInfoEngine();
             call.enqueue(object : Callback<EngineDataClass> {
                 override fun onResponse(call: Call<EngineDataClass>, response: Response<EngineDataClass>) {
                     Log.d("error1", response.toString())
@@ -68,7 +73,7 @@ class EcusInfoViewModel : ViewModel() {
         private set
     fun fetchDoorsInfo() {
         viewModelScope.launch {
-            val call = RetrofitInstance.api.getInfoDoors()
+            val call = APIClient.getClient().create(IApiService::class.java).getInfoDoors();
             call.enqueue(object : Callback<DoorsDataClass> {
                 override fun onResponse(call: Call<DoorsDataClass>, response: Response<DoorsDataClass>) {
                     Log.d("error1", response.toString())
@@ -93,7 +98,7 @@ class EcusInfoViewModel : ViewModel() {
         private set
     fun fetchHvacInfo() {
         viewModelScope.launch {
-            val call = RetrofitInstance.api.getInfoHVAC()
+            val call = APIClient.getClient().create(IApiService::class.java).getInfoHVAC();
             call.enqueue(object : Callback<HVACDataClass> {
                 override fun onResponse(call: Call<HVACDataClass>, response: Response<HVACDataClass>) {
                     Log.d("error1", response.toString())

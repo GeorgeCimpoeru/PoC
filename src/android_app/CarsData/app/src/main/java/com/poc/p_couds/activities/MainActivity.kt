@@ -1,9 +1,8 @@
-package com.poc.p_couds
+package com.poc.p_couds.activities
 
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -54,6 +53,11 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentContainerView
 import androidx.fragment.app.commit
+import com.poc.p_couds.fragments.AccessibilityFragment
+import com.poc.p_couds.R
+import com.poc.p_couds.fragments.HomeFragment
+import com.poc.p_couds.fragments.LogInFragment
+import com.poc.p_couds.fragments.SignUpFragment
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

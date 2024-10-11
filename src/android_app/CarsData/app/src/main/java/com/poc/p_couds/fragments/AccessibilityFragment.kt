@@ -1,4 +1,4 @@
-package com.poc.p_couds
+package com.poc.p_couds.fragments
 
 import android.content.Intent
 import android.os.Bundle
@@ -9,6 +9,11 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.poc.p_couds.HandleNetworkReq
+import com.poc.p_couds.R
+import com.poc.p_couds.pojo.VINResponse
+import com.poc.p_couds.activities.OTA
+import com.poc.p_couds.activities.UDSactivity
 import retrofit2.Call
 import retrofit2.Response
 

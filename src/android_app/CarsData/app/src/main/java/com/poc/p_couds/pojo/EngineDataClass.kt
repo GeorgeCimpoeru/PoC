@@ -1,4 +1,4 @@
-package com.poc.p_couds
+package com.poc.p_couds.pojo
 
 data class EngineDataClass(
     val coolant_temperature: String,
