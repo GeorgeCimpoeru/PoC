@@ -94,8 +94,6 @@ class ReadInfo(Action):
                 if item in identifiers:
                     identifier = identifiers[item]
                     result_value = self._read_by_identifier(id, int(identifier, 16))
-                    if not result_value:
-                        self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
 
                     if item == "state_of_charge" and result_value:
                         result_value = self._get_battery_state_of_charge(result_value)
@@ -113,8 +111,6 @@ class ReadInfo(Action):
             else:
                 for key, identifier in identifiers.items():
                     result_value = self._read_by_identifier(id, int(identifier, 16))
-                    if not result_value:
-                        self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
 
                     if key == "state_of_charge" and result_value:
                         result_value = self._get_battery_state_of_charge(result_value)
@@ -187,8 +183,6 @@ class ReadInfo(Action):
                 if item in identifiers:
                     identifier = identifiers[item]
                     result_value = self._read_by_identifier(id, int(identifier, 16))
-                    if not result_value:
-                        self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
                     context = get_context(item)
 
                     results[item] = self._interpret_status(result_value, context) if result_value else "No data"
@@ -204,8 +198,6 @@ class ReadInfo(Action):
             else:
                 for key, identifier in identifiers.items():
                     result_value = self._read_by_identifier(id, int(identifier, 16))
-                    if not result_value:
-                        self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
                     context = get_context(key)
 
                     results[key] = self._interpret_status(result_value, context) if result_value else "No data"
@@ -263,8 +255,6 @@ class ReadInfo(Action):
                 if item in identifiers:
                     identifier = identifiers[item]
                     result_value = self._read_by_identifier(id, int(identifier, 16))
-                    if not result_value:
-                        self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
                     interpreted_value = self.hex_to_dec(result_value) if result_value else "No data"
 
                     response_json = {
@@ -281,8 +271,6 @@ class ReadInfo(Action):
                 for key, identifier in identifiers.items():
                     result_value = self._read_by_identifier(id, int(identifier, 16))
                     results[key] = self.hex_to_dec(result_value) if result_value else "No data"
-                    if not result_value:
-                        self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
 
                 response_json = {
                     **results,
@@ -329,8 +317,6 @@ class ReadInfo(Action):
                 if item in identifiers:
                     identifier = identifiers[item]
                     result_value = self._read_by_identifier(id, int(identifier, 16))
-                    if not result_value:
-                        self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
 
                     if item == "hvac_modes":
                         interpreted_value = self._interpret_hvac_modes(self.hex_to_dec(result_value)) if result_value else "No data"
@@ -349,8 +335,6 @@ class ReadInfo(Action):
             else:
                 for key, identifier in identifiers.items():
                     result_value = self._read_by_identifier(id, int(identifier, 16))
-                    if not result_value:
-                        self._passive_response(READ_BY_IDENTIFIER, f"Error reading {identifier}")
 
                     if key == "hvac_modes":
                         results[key] = self._interpret_hvac_modes(self.hex_to_dec(result_value)) if result_value else "No data"
