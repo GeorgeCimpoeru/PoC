@@ -65,7 +65,7 @@ class CustomError(Exception):
         super().__init__(self.message)
 
 
-class Action:
+class Action(GF):
     """
     Base class for actions involving CAN bus communication.
 
@@ -76,11 +76,10 @@ class Action:
     """
 
     def __init__(self, my_id, id_ecu: list = []):
-        self.bus = can.interface.Bus(channel=Config.CAN_CHANNEL, interface='socketcan')
         self.my_id = my_id
         self.id_ecu = id_ecu
-        self.generate = GF(self.bus)
         self.last_msg = None
+        super().__init__()
 
     def __collect_response(self, sid: int):
         """
@@ -195,7 +194,7 @@ class Action:
         - Data as a string.
         """
         log_info_message(logger, f"Read from identifier {identifier}")
-        self.generate.read_data_by_identifier(id, identifier)
+        self.read_data_by_identifier(id, identifier)
         frame_response = self._passive_response(READ_BY_IDENTIFIER,
                                                 f"Error reading data from identifier {identifier}")
         log_info_message(logger, f"Frame response: {frame_response}")
@@ -220,9 +219,9 @@ class Action:
         value_list = self._number_to_list(value)
 
         if isinstance(value_list, list) and len(value_list) > 4:
-            self.generate.write_data_by_identifier_long(id, identifier, value_list)
+            self.write_data_by_identifier_long(id, identifier, value_list)
         else:
-            self.generate.write_data_by_identifier(id, identifier, value_list)
+            self.write_data_by_identifier(id, identifier, value_list)
 
         self._passive_response(WRITE_BY_IDENTIFIER, f"Operation complete for identifier {identifier}")
 
@@ -240,11 +239,11 @@ class Action:
         Returns a JSON response with detailed information about the authentication process.
         """
         log_info_message(logger, "Authenticating")
-
-        self.generate.authentication_seed(id,
-                                          sid_send=AUTHENTICATION_SEND,
-                                          sid_recv=AUTHENTICATION_RECV,
-                                          subf=AUTHENTICATION_SUBF_REQ_SEED)
+        # Send the request for authentication seed
+        self.authentication_seed(id,
+                                 sid_send=AUTHENTICATION_SEND,
+                                 sid_recv=AUTHENTICATION_RECV,
+                                 subf=AUTHENTICATION_SUBF_REQ_SEED)
         frame_response = self._passive_response(AUTHENTICATION_SEND,
                                                 "Error requesting seed")
 
@@ -271,11 +270,11 @@ class Action:
             log_info_message(logger, f"Key: {key}")
 
             # Send the key for authentication
-            self.generate.authentication_key(id,
-                                             key=key,
-                                             sid_send=AUTHENTICATION_RECV,
-                                             sid_recv=AUTHENTICATION_SEND,
-                                             subf=AUTHENTICATION_SUBF_SEND_KEY)
+            self.authentication_key(id,
+                                    key=key,
+                                    sid_send=AUTHENTICATION_RECV,
+                                    sid_recv=AUTHENTICATION_SEND,
+                                    subf=AUTHENTICATION_SUBF_SEND_KEY)
             frame_response = self._passive_response(AUTHENTICATION_SEND,
                                                     "Error sending key")
 

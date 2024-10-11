@@ -27,8 +27,6 @@
 
 int socket_;
 int socket2_;
-/* Const */
-const int id = 0x3412;
 
 /* Class to capture the frame sin the can-bus */
 class CaptureFrame
@@ -41,13 +39,15 @@ class CaptureFrame
         }
 };
 
-struct can_frame createFrame(std::vector<uint8_t> test_data)
+struct can_frame createFrame(uint16_t can_id ,std::vector<uint8_t> test_data)
 {
     struct can_frame result_frame;
-    result_frame.can_id = id;
+    result_frame.can_id = can_id;
     int i=0;
     for (auto d : test_data)
+    {
         result_frame.data[i++] = d;
+    }
     result_frame.can_dlc = test_data.size();
     return result_frame;
 }
@@ -107,8 +107,9 @@ struct ReadDtcTest : testing::Test
     Logger* logger;
     ReadDtcTest()
     {
+        std::string dtc_file_path = std::string(PROJECT_PATH) + "/src/ecu_simulation/EngineModule/dtcs.txt";
         logger = new Logger("log_test_read_dtc","./log_test_read_dtc.log");
-        r = new ReadDTC(*logger, "../dtcs.txt",socket2_);
+        r = new ReadDTC(*logger, dtc_file_path,socket2_);
         c1 = new CaptureFrame();
     }
     ~ReadDtcTest()
@@ -118,42 +119,77 @@ struct ReadDtcTest : testing::Test
     }
 };
 
+TEST_F(ReadDtcTest, IncorrectMessageLength)
+{
+    struct can_frame result_frame = createFrame(0x12fa, {0x03, 0x7F, 0x19, 0x13});
+
+    r->read_dtc(0xfa12, {0x03, 0x19, 0x01});
+    c1->capture();
+    testFrames(result_frame, *c1);
+}
+
 TEST_F(ReadDtcTest, SubFunction1)
 {
-    struct can_frame result_frame = createFrame({0x06, 0x59, 0x01, 0x3F, 0x01, 0x00, 0x02});
+    struct can_frame result_frame = createFrame(0x12fa, {0x06, 0x59, 0x01, 0x24, 0x01, 0x00, 0x02});
 
-    r->read_dtc(0x1234, {0x4,0x19,0x01, 0x84});
+    r->read_dtc(0xfa12, {0x4,0x19,0x01, 0xff});
     c1->capture();
     testFrames(result_frame, *c1);
 }
 
 TEST_F(ReadDtcTest, SubFunction2)
 {
-    struct can_frame result_frame = createFrame({0x06, 0x59, 0x02, 0x3F, 0x0B, 0x12, 0x01, 0x10});
-    r->read_dtc(0x1234, {0x4,0x19,0x02, 0x10});
+    struct can_frame result_frame = createFrame(0x10fa, {0x010, 0x09, 0x59, 0x02, 0x24, 0x01, 0x90, 0x24});
+    r->read_dtc(0xfa10, {0x4,0x19,0x02, 0xff});
+    /* First frame */
+    c1->capture();
+    testFrames(result_frame, *c1);
+
+    result_frame = createFrame(0x10fa, {0x21, 0x01, 0x96, 0x24});
     c1->capture();
     testFrames(result_frame, *c1);
 }
 
-TEST_F(ReadDtcTest, SubFunction2_Test2)
+TEST_F(ReadDtcTest, SubfunctionNotSupported)
 {
-    struct can_frame result_frame = createFrame({0x10, 0x0B, 0x59, 0x02, 0x3F, 0x0A, 0x9B, 0x17});
-    Logger logger;
-    GenerateFrames g = GenerateFrames(socket_,logger);
-    g.flowControlFrame(0x1234);
-    r->read_dtc(0x1234, {0x4,0x19,0x02, 0x84});
+    struct can_frame result_frame = createFrame(0x12fa, {0x03, 0x7F, 0x19, 0x12});
+
+    r->read_dtc(0xfa12, {0x4,0x19,0x03, 0xff});
     c1->capture();
-    
     testFrames(result_frame, *c1);
 }
 
-TEST_F(ReadDtcTest, SubFunction2_Test3)
+TEST_F(ReadDtcTest, UnableToOpenFile1)
 {
-    testing::internal::CaptureStdout();
-    r->read_dtc(0x1234, {0x4,0x19,0x02, 0x84});
+    std::string dtc_file_path = std::string(PROJECT_PATH) + "/src/ecu_simulation/WrongPath/dtcs.txt";
+    r = new ReadDTC(*logger, dtc_file_path,socket2_);
+    struct can_frame result_frame = createFrame(0x12fa, {0x03, 0x7F, 0x19, 0x94});
+
+    r->read_dtc(0xfa12, {0x4,0x19,0x01, 0xff});
     c1->capture();
-    std::string output = testing::internal::GetCapturedStdout();
-    EXPECT_NE(output.find("Timeout. FLow control frame not received!"), std::string::npos);
+    testFrames(result_frame, *c1);
+}
+
+TEST_F(ReadDtcTest, UnableToOpenFile2)
+{
+    std::string dtc_file_path = std::string(PROJECT_PATH) + "/src/ecu_simulation/WrongPath/dtcs.txt";
+    r = new ReadDTC(*logger, dtc_file_path,socket2_);
+    struct can_frame result_frame = createFrame(0x12fa, {0x03, 0x7F, 0x19, 0x94});
+
+    r->read_dtc(0xfa12, {0x4,0x19,0x02, 0xff});
+    c1->capture();
+    testFrames(result_frame, *c1);
+}
+
+TEST_F(ReadDtcTest, NoDtcFound)
+{
+    std::string dtc_file_path = std::string(PROJECT_PATH) + "/src/uds/read_dtc_information/dtcs.txt";
+    r = new ReadDTC(*logger, dtc_file_path, socket2_);
+    struct can_frame result_frame = createFrame(0x12fa, {0x03, 0x59, 0x02, 0x00});
+
+    r->read_dtc(0xfa12, {0x4,0x19,0x02, 0xff});
+    c1->capture();
+    testFrames(result_frame, *c1);
 }
 
 int main(int argc, char* argv[])

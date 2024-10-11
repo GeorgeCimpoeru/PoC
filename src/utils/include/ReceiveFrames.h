@@ -179,6 +179,12 @@ public:
      * @return true if the ecu security is enabled, false otherwise.
      */
     static bool getEcuState();
+
+    /**
+     * @brief Set the state of the ecu security system.
+     * 
+     */
+    static void setEcuState(bool value);
     /**
      * @brief Starts the receive process by creating bufferFrameIn and bufferFrameOut threads.
      * 

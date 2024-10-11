@@ -47,16 +47,6 @@ public:
      * @param socket The socket descriptor used for communication over the CAN bus.
      */
     DiagnosticSessionControl(Logger& logger, int socket);
-    /**
-     * @brief Construct a new Diagnostic Session Control object
-     * with a parameter given for 'module_id'. For example, battery
-     * will currently use 0x11 as 'module_id'.
-     * 
-     * @param module_id Custom module identifier.
-     * @param logger A logger instance used to record information and errors during the execution.
-     * @param socket The socket descriptor used for communication over the CAN bus.
-     */
-    DiagnosticSessionControl(int module_id, Logger& logger, int socket);
 
     /**
      * @brief Destroy the Diagnostic Session Control object
@@ -89,23 +79,8 @@ public:
     static DiagnosticSession current_session;
 
 private:
-    int module_id;
     Logger& dsc_logger;
     int socket = -1;
-
-    /**
-     * @brief Method to switch the current session to Default session
-     * 
-     * @param frame_id The id of the received frame.
-     */
-    void switchToDefaultSession(canid_t frame_id);
-
-    /**
-     * @brief Method to switch the current session to Programming session
-     * 
-     * @param frame_id The id of the received frame.
-     */
-    void switchToProgrammingSession(canid_t frame_id);
 
     /**
      * @brief Method to switch the current session

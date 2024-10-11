@@ -41,6 +41,11 @@ bool ReceiveFrames::getEcuState()
     return ecu_state;
 }
 
+void ReceiveFrames::setEcuState(bool value)
+{
+    ecu_state = value;
+}
+
 void ReceiveFrames::receive(HandleFrames &handle_frame) 
 {
     try 

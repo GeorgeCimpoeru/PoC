@@ -65,9 +65,6 @@ class Updates(Action):
             "ecu_id": "0x10"
         }'
 
-
-        """
-
         try:
             self.id = (int(id, 16) << 16) + (self.my_id << 8) + self.id_ecu[0]
 
@@ -91,7 +88,7 @@ class Updates(Action):
 
             # Reset the ECU to apply the update
             # self.id = (self.my_id * 0x100) + int(ecu_id, 16)
-            # self.generate.ecu_reset(self.id)
+            # self.ecu_reset(self.id)
             # self._passive_response(RESET_ECU, "Error trying to reset ECU") # ToDo reactivate when using real hardware
 
             # Add a delay to wait until the ECU completes the reset process
@@ -220,7 +217,7 @@ class Updates(Action):
         Raises:
         - CustomError: If any error occurs during the error checking process.
         """
-        self.generate.request_read_dtc_information(self.id, 0x01, 0x01)
+        self.request_read_dtc_information(self.id, 0x01, 0x01)
         response = self._passive_response(READ_DTC, "Error reading DTC")
 
         if response is not None:

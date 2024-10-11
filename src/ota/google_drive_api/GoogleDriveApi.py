@@ -98,8 +98,8 @@ class GDriveAPI:
             # pylint: disable=maybe-no-member
 
             file_to_download = self.searchVersion(ecu_id, sw_version_byte, True)
-            if file_to_download == -1:
-                return -1
+            if file_to_download in(-1, 0):
+                return file_to_download
 
             print(f"{GREEN}Downloading..{RESET}")
             request = self.__drive_service.files().get_media(
@@ -127,6 +127,12 @@ class GDriveAPI:
         sw_version = self.__convertByteToSwVersion(hex(sw_version_byte))
         print(f"{GREEN}Searching for version {RESET}" +
               ecu_map[ecu_id] + ' ' + sw_version)
+
+        for file_name in os.listdir(DRIVE_DOWNLOAD_PATH):
+            if ecu_map[ecu_id].upper() in file_name and sw_version in file_name:
+                print(f"{GREEN}Version {file_name} already downloaded.{RESET}")
+                return 0
+
         self.getDriveData()
         file_to_download = [
             data for data in self.__drive_data_array if data['type'] == ecu_map[ecu_id] and data['sw_version'] == str(sw_version)]
@@ -134,7 +140,7 @@ class GDriveAPI:
         file_to_download = file_to_download[0] if file_to_download else None
         if file_to_download is None:
             print(
-                    f"{RED}No file found with type:{ecu_map[ecu_id]} and version {sw_version}{RESET}")
+                f"{RED}No file found with type:{ecu_map[ecu_id]} and version {sw_version}{RESET}")
             return -1
         print(f"{GREEN}Version found{RESET}")
         return file_to_download
@@ -186,7 +192,8 @@ class GDriveAPI:
         if (json_file['type'] != "folder"):
             json_file['sw_version'] = self.__getSoftwareVersion(file['name'])
             json_file['size'] = file.get('size', 'N/A')
-            json_file['size_uncompressed'] = file.get('appProperties', {}).get('size_uncompressed', 0)
+            json_file['size_uncompressed'] = file.get(
+                'appProperties', {}).get('size_uncompressed', 0)
         self.__drive_data_array.append(json_file)
         if json_file['type'] == "folder":
             json_file['children'].extend(self.getDriveData(file)

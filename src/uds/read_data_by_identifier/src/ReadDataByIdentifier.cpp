@@ -152,23 +152,12 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
     // Log the data
     LOG_INFO(rdbi_logger.GET_LOGGER(), "Data for DID 0x{:04X} from {}: {}", data_identifier, file_name, oss.str());
 
-
     if (use_send_frame)
     {
-        if (response.size() > 7)
-        {
-            /* Send response frame */
-            generate_frames.readDataByIdentifierLongResponse(can_id, data_identifier, response, true);
-            LOG_INFO(rdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x22);
-            AccessTimingParameter::stopTimingFlag(lowerbits, 0x22);
-        } 
-        else
-        {
-            /* Send response frame */
-            generate_frames.readDataByIdentifier(can_id, data_identifier, response);
-            LOG_INFO(rdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x22);
-            AccessTimingParameter::stopTimingFlag(lowerbits, 0x22);
-        }
+        /* Send response frame */
+        generate_frames.readDataByIdentifier(can_id, data_identifier, response);
+        LOG_INFO(rdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x22);
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x22);
     }
     return response;
 }

@@ -402,11 +402,7 @@ bool ReceiveFrames::receiveFramesFromAPI()
                 std::lock_guard<std::mutex> lock(queue_mutex);
                 for (auto it = ecu_timers.begin(); it != ecu_timers.end();) {
                     if (std::chrono::duration_cast<std::chrono::seconds>(now - it->second) >= timeout_duration) {
-                        /* reset all to 0 */
-                        for (int i = 0; i < 4; ++i) 
-                        {
-                            ecus_up[i] = 0;
-                        }/* Send request frame */
+                         ecus_up[(it->first-0x11)] = 0;
                         std::vector<uint8_t> data = {0x01, 0x99};
                         uint16_t id = (0x10 << 8) | it->first;
                         ReceiveFrames::generate_frames.sendFrame(id, data);
