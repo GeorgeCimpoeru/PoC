@@ -98,9 +98,14 @@ class GDriveAPI:
             # pylint: disable=maybe-no-member
 
             file_to_download = self.searchVersion(ecu_id, sw_version_byte, True)
-            if file_to_download in(-1, 0):
-                return file_to_download
+            if file_to_download == -1:
+                return -1
 
+            for file_name in os.listdir(DRIVE_DOWNLOAD_PATH):
+                if file_to_download['name'] in file_name:
+                    print(f"{GREEN}{file_name} already downloaded.{RESET}")
+                    return int(file_to_download['size_uncompressed'])
+            
             print(f"{GREEN}Downloading..{RESET}")
             request = self.__drive_service.files().get_media(
                 fileId=file_to_download['id'])
@@ -125,15 +130,11 @@ class GDriveAPI:
 
     def searchVersion(self, ecu_id, sw_version_byte, return_file=False):
         sw_version = self.__convertByteToSwVersion(hex(sw_version_byte))
-        print(f"{GREEN}Searching for version {RESET}" +
-              ecu_map[ecu_id] + ' ' + sw_version)
-
-        for file_name in os.listdir(DRIVE_DOWNLOAD_PATH):
-            if ecu_map[ecu_id].upper() in file_name and sw_version in file_name:
-                print(f"{GREEN}Version {file_name} already downloaded.{RESET}")
-                return 0
+        print(f"{GREEN}Searching in Google Drive for version" +
+              ecu_map[ecu_id] + ' ' + sw_version + f"{RESET}")
 
         self.getDriveData()
+        
         file_to_download = [
             data for data in self.__drive_data_array if data['type'] == ecu_map[ecu_id] and data['sw_version'] == str(sw_version)]
 
@@ -142,7 +143,8 @@ class GDriveAPI:
             print(
                 f"{RED}No file found with type:{ecu_map[ecu_id]} and version {sw_version}{RESET}")
             return -1
-        print(f"{GREEN}Version found{RESET}")
+
+        print(f"{GREEN}Version found on Google Drive{RESET}")
         return file_to_download
 
     # PRIVATE METHODS

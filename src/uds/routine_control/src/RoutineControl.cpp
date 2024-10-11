@@ -90,7 +90,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
             }
             if(ota_state != IDLE && ota_state != ERROR)
             {
-                LOG_INFO(rc_logger.GET_LOGGER(), "OTA update can be initialised only from an IDLE or ERROR state, current state is {:x}", ota_state);
+                LOG_WARN(rc_logger.GET_LOGGER(), "OTA update can be initialised only from an IDLE or ERROR state, current state is {:x}", ota_state);
                 nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::CNC);
                 return;
             }
@@ -115,7 +115,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
             std::string ecu_path;
             if(FileManager::getEcuPath(lowerbits, ecu_path, 1, rc_logger) == 0)
             {
-                LOG_INFO(rc_logger.GET_LOGGER(), "Invalid ecu path for reading binary:\n{}", ecu_path);
+                LOG_ERROR(rc_logger.GET_LOGGER(), "Invalid ecu path for reading binary:\n{}", ecu_path);
                 nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
                 return;
             }
@@ -125,7 +125,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
 
             if(FileManager::getEcuPath(lowerbits, ecu_path, 2, rc_logger) == 0)
             {
-                LOG_INFO(rc_logger.GET_LOGGER(), "Invalid ecu path for writting to file:\n{}", ecu_path);
+                LOG_ERROR(rc_logger.GET_LOGGER(), "Invalid ecu path for writting to file:\n{}", ecu_path);
                 nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
                 return;
             }
@@ -150,10 +150,18 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
         }
         case 0x0501:
         {
-            LOG_INFO(rc_logger.GET_LOGGER(), "Rollback routine called.");
+            if(ota_state != IDLE && ota_state != ERROR && ota_state != ACTIVATE_INSTALL_FAILED)
+            {
+                LOG_WARN(rc_logger.GET_LOGGER(), "OTA software rollback can be started only from an IDLE, ERROR or ACTIVATE_INSTALL_FAILED state, current state is {:x}", ota_state);
+                nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::CNC);
+                return;
+            }
+
             if(rollbackSoftware() == false)
             {
-                LOG_INFO(rc_logger.GET_LOGGER(), "Rollback failed.");
+                LOG_ERROR(rc_logger.GET_LOGGER(), "Rollback failed.");
+                nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::CNC);
+                return;
             }
             else
             {
@@ -166,7 +174,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
             LOG_INFO(rc_logger.GET_LOGGER(), "Activate software routine called. Saving the current software..");
             if(saveCurrentSoftware() == false)
             {
-                LOG_INFO(rc_logger.GET_LOGGER(), "Current software saving failed.");
+                LOG_ERROR(rc_logger.GET_LOGGER(), "Current software saving failed.");
                 MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_FAILED});
                 nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::IMLOIF);
                 return;
@@ -176,7 +184,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
             if(activateSoftware() == false)
             {
                 MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_FAILED});
-                LOG_INFO(rc_logger.GET_LOGGER(), "Software activation failed, restoring previous software version..");
+                LOG_ERROR(rc_logger.GET_LOGGER(), "Software activation failed, restoring previous software version..");
                 rollbackSoftware();
             }
             else
@@ -285,7 +293,7 @@ bool RoutineControl::getCurrentProcessInfo(pid_t& pid, std::string& pname, std::
     } 
     else
     {
-        std::cerr << "Error: Unable to open /proc/" << pid << "/comm" << std::endl;
+        LOG_ERROR(rc_logger.GET_LOGGER(), "Error: Unable to open /proc/{}/comm", pid);
         return 0;
     }
 
@@ -298,7 +306,7 @@ bool RoutineControl::getCurrentProcessInfo(pid_t& pid, std::string& pname, std::
     } 
     else 
     {
-        std::cerr << "Error: Unable to resolve path for /proc/" << pid << "/exe" << std::endl;
+        LOG_ERROR(rc_logger.GET_LOGGER(), "Error: Unable to resolve path for /proc/{}/exe", pid);
         return false;
     }
     return 1;
@@ -306,18 +314,33 @@ bool RoutineControl::getCurrentProcessInfo(pid_t& pid, std::string& pname, std::
 
 bool RoutineControl::rollbackSoftware()
 {
-    /* Check if software exists at the specific address */
+    LOG_INFO(rc_logger.GET_LOGGER(), "Rollback routine called.");
+    /* Get the size of the stored binary. 
+        First byte represents the size in bytes of the binary size. 03 means the following 3 bytes are used for representing the size 
+        Following n bytes are used to represent the size.
+        The following bytes after this are the binary data.
+    */
     uint8_t binary_size_format = MemoryManager::readFromAddress(DEV_LOOP, DEV_LOOP_PARTITION_2_ADDRESS, 1, rc_logger)[0];
     auto binary_size_bytes = MemoryManager::readFromAddress(DEV_LOOP, DEV_LOOP_PARTITION_2_ADDRESS + 1, binary_size_format, rc_logger);
     uint8_t binary_offset = sizeof(binary_size_format) + binary_size_format;
 
     size_t binary_size = 0;
+    /* Recreate the number that represents the size of the binary. */
     for(uint8_t i = 0; i < binary_size_format; i++)
     {
         binary_size |= (binary_size_bytes[i] << ((binary_size_format - i - 1) * 8));
     }
 
     auto binary_data = MemoryManager::readFromAddress(DEV_LOOP, DEV_LOOP_PARTITION_2_ADDRESS + binary_offset, binary_size, rc_logger);
+
+    /* Check is software is saved in the memory by checking the .elf extension */
+    if( (binary_data[1] != 'E') || 
+        (binary_data[2] != 'L') || 
+        (binary_data[3] != 'F'))
+    {
+        LOG_WARN(rc_logger.GET_LOGGER(), "Current software is not saved in the memory before doing the rollback. Aborting rollback..");
+        return 0;        
+    }
     pid_t pid;
     std::string pname, ppath;
     if(getCurrentProcessInfo(pid, pname, ppath) == false)
