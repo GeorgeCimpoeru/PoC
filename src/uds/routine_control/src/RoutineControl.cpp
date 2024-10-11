@@ -27,26 +27,30 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     can_id = lowerbits << 8 | upperbits;
     OtaUpdateStatesEnum ota_state = static_cast<OtaUpdateStatesEnum>(MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0]);
 
-    if (request.size() < 6)
+    if (request.size() < 6 || (request.size() - 1 != request[0]))
     {
         /* Incorrect message length or invalid format - prepare a negative response */
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::IMLOIF);
         AccessTimingParameter::stopTimingFlag(lowerbits, 0x31);
         return;
     }
-    else if (sub_function < 0x01 || sub_function > 0x03)
+
+    if (sub_function < 0x01 || sub_function > 0x03)
     {
         /* Sub Function not supported - prepare a negative response */
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SFNS);
         AccessTimingParameter::stopTimingFlag(lowerbits, 0x31);
         return;
     }
-    else if (lowerbits == 0x10 && !SecurityAccess::getMcuState(rc_logger))
+
+    if (lowerbits == 0x10 && !SecurityAccess::getMcuState(rc_logger))
     {
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
         AccessTimingParameter::stopTimingFlag(lowerbits, 0x31);
+        return;
     }
-    else if ((lowerbits == 0x11 || lowerbits == 0x12 ||
+
+    if ((lowerbits == 0x11 || lowerbits == 0x12 ||
               lowerbits == 0x13 || lowerbits == 0x14) &&
               !ReceiveFrames::getEcuState())
     {
@@ -54,136 +58,137 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
         AccessTimingParameter::stopTimingFlag(lowerbits, 0x31);
     }
     /* when our identifiers will be defined, this range should be smaller */
-    else if (routine_identifier < 0x0100 || routine_identifier > 0xEFFF)
+    if (routine_identifier < 0x0100 || routine_identifier > 0x0601)
     {
         /* Request Out of Range - prepare a negative response */
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::ROOR);
         AccessTimingParameter::stopTimingFlag(lowerbits, 0x31);
         return;
     }
-    else
-    {   
-        std::vector<uint8_t> binary_data;
-        std::vector<uint8_t> adress_data;
-        MemoryManager* memory_manager = MemoryManager::getInstance(0x0801, DEV_LOOP, rc_logger);
-        switch(routine_identifier)
+  
+    std::vector<uint8_t> binary_data;
+    std::vector<uint8_t> adress_data;
+    MemoryManager* memory_manager = MemoryManager::getInstance(0x0801, DEV_LOOP, rc_logger);
+    switch(routine_identifier)
+    {
+        case 0x0101:
         {
-            case 0x0101:
-            {
-                /* Erase memory or specific data */
-                /* call eraseMemory routine */
-                LOG_INFO(rc_logger.GET_LOGGER(), "eraseMemory routine called.");
-                routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
-                break;
-            }
-            case 0x0201:
-            {
-                /* Initialise OTA Update */
-                if(DiagnosticSessionControl::getCurrentSessionToString() != "EXTENDED_DIAGNOSTIC_SESSION")
-                {
-                    LOG_WARN(rc_logger.GET_LOGGER(), "OTA update can be initialised only in EXTENDED_DIAGNOSTIC_SESSION");
-                    nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
-                    return;
-                }
-                if(ota_state != IDLE && ota_state != ERROR)
-                {
-                    LOG_INFO(rc_logger.GET_LOGGER(), "OTA update can be initialised only from an IDLE or ERROR state, current state is {:x}", ota_state);
-                    nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::CNC);
-                    return;
-                }
-
-                LOG_INFO(rc_logger.GET_LOGGER(), "Initialise OTA update routine called.");
-                if(initialiseOta(target_id, request, routine_result) == false)
-                {
-                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ERROR});
-                    nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::IMLOIF);
-                }
-                else
-                {
-                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {INIT});
-                    routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
-                }
-                break;
-            }
-            case 0x0301:
-            {
-                /* call writeToFile routine*/
-                LOG_INFO(rc_logger.GET_LOGGER(), "writeToFile routine called.");
-                std::string ecu_path;
-                if(FileManager::getEcuPath(lowerbits, ecu_path, 1, rc_logger) == 0)
-                {
-                    LOG_INFO(rc_logger.GET_LOGGER(), "Invalid ecu path for reading binary:\n{}", ecu_path);
-                    nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
-                    return;
-                }
-                binary_data = MemoryManager::readBinary(ecu_path, rc_logger);
-                memory_manager = MemoryManager::getInstance(rc_logger); 
-                adress_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), binary_data.size(), rc_logger);
-
-                if(FileManager::getEcuPath(lowerbits, ecu_path, 2, rc_logger) == 0)
-                {
-                    LOG_INFO(rc_logger.GET_LOGGER(), "Invalid ecu path for writting to file:\n{}", ecu_path);
-                    nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
-                    return;
-                }
-                MemoryManager::writeToFile(adress_data, ecu_path, rc_logger);
-                routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
-                break;
-            }
-            case 0x0401:
-            {
-                LOG_INFO(rc_logger.GET_LOGGER(), "Verify installation routine called.");
-                if(verifySoftware() == false)
-                {
-                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {VERIFY_FAILED});
-                    nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::IMLOIF);
-                }
-                else
-                {
-                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {VERIFY_COMPLETE});
-                }
-                break;
-            }
-            case 0x0501:
-            {
-                LOG_INFO(rc_logger.GET_LOGGER(), "Rollback routine called.");
-                if(rollbackSoftware() == false)
-                {
-                    LOG_INFO(rc_logger.GET_LOGGER(), "Rollback failed.");
-                }
-                else
-                {
-                    LOG_INFO(rc_logger.GET_LOGGER(), "Rollback succesfull.");
-                }
-                break;
-            }
-            case 0x0601:
-            {
-                LOG_INFO(rc_logger.GET_LOGGER(), "Activate software routine called. Saving the current software..");
-                if(saveCurrentSoftware() == false)
-                {
-                    LOG_INFO(rc_logger.GET_LOGGER(), "Current software saving failed.");
-                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_FAILED});
-                    nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::IMLOIF);
-                    return;
-                }
-                LOG_INFO(rc_logger.GET_LOGGER(), "Current software saved. Activating the new software..");
-                
-                if(activateSoftware() == false)
-                {
-                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_FAILED});
-                }
-                else
-                {
-                    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_COMPLETE});
-                    routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
-                }
-                break;
-            }
-            default:
-                LOG_INFO(rc_logger.GET_LOGGER(), "Unknown routine.");
-                break;
+            /* Erase memory or specific data */
+            /* call eraseMemory routine */
+            LOG_INFO(rc_logger.GET_LOGGER(), "eraseMemory routine called.");
+            routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
+            break;
         }
+        case 0x0201:
+        {
+            /* Initialise OTA Update */
+            if(DiagnosticSessionControl::getCurrentSessionToString() != "EXTENDED_DIAGNOSTIC_SESSION")
+            {
+                LOG_WARN(rc_logger.GET_LOGGER(), "OTA update can be initialised only in EXTENDED_DIAGNOSTIC_SESSION");
+                nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
+                return;
+            }
+            if(ota_state != IDLE && ota_state != ERROR)
+            {
+                LOG_INFO(rc_logger.GET_LOGGER(), "OTA update can be initialised only from an IDLE or ERROR state, current state is {:x}", ota_state);
+                nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::CNC);
+                return;
+            }
+
+            LOG_INFO(rc_logger.GET_LOGGER(), "Initialise OTA update routine called.");
+            if(initialiseOta(target_id, request, routine_result) == false)
+            {
+                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ERROR});
+                nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::IMLOIF);
+            }
+            else
+            {
+                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {INIT});
+                routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
+            }
+            break;
+        }
+        case 0x0301:
+        {
+            /* call writeToFile routine*/
+            LOG_INFO(rc_logger.GET_LOGGER(), "writeToFile routine called.");
+            std::string ecu_path;
+            if(FileManager::getEcuPath(lowerbits, ecu_path, 1, rc_logger) == 0)
+            {
+                LOG_INFO(rc_logger.GET_LOGGER(), "Invalid ecu path for reading binary:\n{}", ecu_path);
+                nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
+                return;
+            }
+            binary_data = MemoryManager::readBinary(ecu_path, rc_logger);
+            memory_manager = MemoryManager::getInstance(rc_logger); 
+            adress_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), binary_data.size(), rc_logger);
+
+            if(FileManager::getEcuPath(lowerbits, ecu_path, 2, rc_logger) == 0)
+            {
+                LOG_INFO(rc_logger.GET_LOGGER(), "Invalid ecu path for writting to file:\n{}", ecu_path);
+                nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
+                return;
+            }
+            MemoryManager::writeToFile(adress_data, ecu_path, rc_logger);
+            routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
+            break;
+        }
+        case 0x0401:
+        {
+            LOG_INFO(rc_logger.GET_LOGGER(), "Verify installation routine called.");
+            if(verifySoftware() == false)
+            {
+                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {VERIFY_FAILED});
+                nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::IMLOIF);
+            }
+            else
+            {
+                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {VERIFY_COMPLETE});
+                routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
+            }
+            break;
+        }
+        case 0x0501:
+        {
+            LOG_INFO(rc_logger.GET_LOGGER(), "Rollback routine called.");
+            if(rollbackSoftware() == false)
+            {
+                LOG_INFO(rc_logger.GET_LOGGER(), "Rollback failed.");
+            }
+            else
+            {
+                LOG_INFO(rc_logger.GET_LOGGER(), "Rollback succesfull.");
+            }
+            break;
+        }
+        case 0x0601:
+        {
+            LOG_INFO(rc_logger.GET_LOGGER(), "Activate software routine called. Saving the current software..");
+            if(saveCurrentSoftware() == false)
+            {
+                LOG_INFO(rc_logger.GET_LOGGER(), "Current software saving failed.");
+                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_FAILED});
+                nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::IMLOIF);
+                return;
+            }
+            LOG_INFO(rc_logger.GET_LOGGER(), "Current software saved. Activating the new software..");
+            
+            if(activateSoftware() == false)
+            {
+                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_FAILED});
+                LOG_INFO(rc_logger.GET_LOGGER(), "Software activation failed, restoring previous software version..");
+                rollbackSoftware();
+            }
+            else
+            {
+                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_COMPLETE});
+                routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
+            }
+            break;
+        }
+        default:
+            LOG_INFO(rc_logger.GET_LOGGER(), "Unknown routine.");
+            break;
     }
 }
 
