@@ -76,7 +76,7 @@ class GDriveAPI:
         file_metadata = {
             'name': file_name,
             'parents': [parent_folder_id],  # ID of the folder where you want to upload
-            'appProperties': {
+            'appProperties' : {
                 'size_uncompressed': str(size_uncompressed)
             }
         }

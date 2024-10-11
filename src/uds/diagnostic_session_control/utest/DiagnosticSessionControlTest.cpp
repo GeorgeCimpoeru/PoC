@@ -1,131 +1,196 @@
-#include <iostream>
-#include <vector>
-#include <cstdint>
+#include <cstring>
 #include <string>
+#include <thread>
+#include <fcntl.h>
+#include <sys/ioctl.h>
 #include <gtest/gtest.h>
-#include <linux/can.h>
+#include <net/if.h>
+
 #include "../include/DiagnosticSessionControl.h"
-#include "../../../utils/include/Logger.h"
 
-/* Test Fixture for DiagnosticSessionControl */
-class DiagnosticSessionControlTest : public ::testing::Test {
-protected:
-    int socket;
-    Logger mockLogger;
-    DiagnosticSessionControl* dsc;
+int socket1;
+int socket2;
 
-    void SetUp() override {
-        socket = 1; // Example socket number
-        dsc = new DiagnosticSessionControl(&mockLogger, socket);
+class CaptureFrame
+{
+    public:
+        struct can_frame frame;
+        void capture()
+        {
+            read(socket1, &frame, sizeof(struct can_frame));
+        }
+};
+
+struct can_frame createFrame(uint16_t can_id ,std::vector<uint8_t> test_data)
+{
+    struct can_frame result_frame;
+    result_frame.can_id = can_id;
+    int i=0;
+    for (auto d : test_data)
+    {
+        result_frame.data[i++] = d;
     }
+    result_frame.can_dlc = test_data.size();
+    return result_frame;
+}
 
-    void TearDown() override {
+int createSocket()
+{
+    /* Create socket */
+    std::string name_interface = "vcan1";
+    struct sockaddr_can addr;
+    struct ifreq ifr;
+    int s;
+
+    s = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+    if (s < 0)
+    {
+        std::cout<<"Error trying to create the socket\n";
+        return 1;
+    }
+    /* Giving name and index to the interface created */
+    strcpy(ifr.ifr_name, name_interface.c_str() );
+    ioctl(s, SIOCGIFINDEX, &ifr);
+    /* Set addr structure with info. of the CAN interface */
+    addr.can_family = AF_CAN;
+    addr.can_ifindex = ifr.ifr_ifindex;
+    /* Bind the socket to the CAN interface */
+    int b = bind(s, (struct sockaddr*)&addr, sizeof(addr));
+    if( b < 0 )
+    {
+        std::cout<<"Error binding\n";
+        return 1;
+    }
+    int flags = fcntl(s, F_GETFL, 0);
+    if (flags == -1)
+    {
+        return 1;
+    }
+    /* Set the O_NONBLOCK flag to make the socket non-blocking */
+    flags |= O_NONBLOCK;
+    if (fcntl(s, F_SETFL, flags) == -1)
+    {
+        return -1;
+    }
+    return s;
+}
+
+void testFrames(struct can_frame expected_frame, CaptureFrame &c1 )
+{
+    EXPECT_EQ(expected_frame.can_id & 0xFFFF, c1.frame.can_id & 0xFFFF);
+    EXPECT_EQ(expected_frame.can_dlc, c1.frame.can_dlc);
+    for (int i = 0; i < expected_frame.can_dlc; ++i)
+    {
+        EXPECT_EQ(expected_frame.data[i], c1.frame.data[i]);
+    }
+}
+
+struct DiagnosticSessionControlTest : testing::Test
+{
+    DiagnosticSessionControl * dsc;
+    CaptureFrame* c1;
+    Logger* logger;
+    DiagnosticSessionControlTest()
+    {
+        logger = new Logger();
+        dsc = new DiagnosticSessionControl(*logger, socket2);
+        c1 = new CaptureFrame();
+    }
+    ~DiagnosticSessionControlTest()
+    {
         delete dsc;
+        delete c1;
+        delete logger;
     }
 };
 
-/* Test for Default Constructor Initializing Default Session */
-TEST_F(DiagnosticSessionControlTest, DefaultConstructorInitializesDefaultSession) {
-    EXPECT_EQ(dsc->getCurrentSession(), DEFAULT_SESSION);
-}
-
-/* Test for Parameterized Constructor Initializing Default Session */
-TEST_F(DiagnosticSessionControlTest, ParameterizedConstructorInitializesDefaultSession) {
-    DiagnosticSessionControl dscWithModuleId(0x11, &mockLogger, socket);
-    EXPECT_EQ(dscWithModuleId.getCurrentSession(), DEFAULT_SESSION);
+/* Test for get Current Session To String method */
+TEST_F(DiagnosticSessionControlTest, GetCurrentSessionToStringUnknownSession) {
+    dsc->getCurrentSessionToString();
 }
 
 /* Test for Switching to Default Session */
 TEST_F(DiagnosticSessionControlTest, SwitchToDefaultSession) {
-    dsc->sessionControl(0x1011, SUB_FUNCTION_DEFAULT_SESSION);
+    std::cerr << "Running SwitchToDefaultSession" << std::endl;
+    
+    struct can_frame result_frame = createFrame(0x10FA, {0x02, 0x50, 0x01});
+
+    dsc->sessionControl(0xFA10, 0x01);
+    c1->capture();
+    testFrames(result_frame, *c1);
+    std::cerr << "Finished SwitchToDefaultSession" << std::endl;
+}
+
+/* Test for get Current Session method */
+TEST_F(DiagnosticSessionControlTest, GetCurrentSession) {
     EXPECT_EQ(dsc->getCurrentSession(), DEFAULT_SESSION);
 }
 
+/* Test for get Current Session To String method in Default Session*/
+TEST_F(DiagnosticSessionControlTest, GetCurrentSessionToStringDefaultSession) {
+    EXPECT_EQ(dsc->getCurrentSessionToString(), "DEFAULT_SESSION");
+}
+
+
 /* Test for Switching to Programming Session */
 TEST_F(DiagnosticSessionControlTest, SwitchToProgrammingSession) {
-    dsc->sessionControl(0x1011, SUB_FUNCTION_PROGRAMMING_SESSION);
-    EXPECT_EQ(dsc->getCurrentSession(), PROGRAMMING_SESSION);
-}
-
-/* Test for Unsupported Sub-Function */
-TEST_F(DiagnosticSessionControlTest, UnsupportedSubFunction) {
-    std::cerr << "Running TestUnsupportedSubFunction" << std::endl;
-
-    testing::internal::CaptureStdout();
-    dsc->sessionControl(0x1011, 0x99);
-
-    std::string output = testing::internal::GetCapturedStdout();
-    EXPECT_NE(output.find("Unsupported sub-function"), std::string::npos);
-    std::cerr << "Finished TestUnsupportedSubFunction" << std::endl;
-}
-
-/* Test for Sending Negative Response */
-TEST_F(DiagnosticSessionControlTest, SendNegativeResponse) {
-    std::cerr << "Running TestSendNegativeResponse" << std::endl;
+    std::cerr << "Running SwitchToProgrammingSession" << std::endl;
     
-    testing::internal::CaptureStdout();
-    dsc->sendNegativeResponse(NR_AUTHENTICATION_FAILED);
+    struct can_frame result_frame = createFrame(0x10FA, {0x02, 0x50, 0x02});
 
-    std::string output = testing::internal::GetCapturedStdout();
-    EXPECT_NE(output.find("Sending Negative Response: 52"), std::string::npos);
-    std::cerr << "Finished TestSendNegativeResponse" << std::endl;
+    dsc->sessionControl(0xFA10, 0x02);
+    c1->capture();
+    testFrames(result_frame, *c1);
+    std::cerr << "Finished SwitchToProgrammingSession" << std::endl;
 }
 
-/* Test for Valid Session Switch to Default Session */
-TEST_F(DiagnosticSessionControlTest, ValidSessionSwitchToDefaultSession) {
-    std::cerr << "Running TestValidSessionSwitchToDefaultSession" << std::endl;
-
-    testing::internal::CaptureStdout();
-    dsc->sessionControl(0x1011, SUB_FUNCTION_DEFAULT_SESSION);
-
-    std::string output = testing::internal::GetCapturedStdout();
-    EXPECT_NE(output.find("Switched to Default Session"), std::string::npos);
-    std::cerr << "Finished TestValidSessionSwitchToDefaultSession" << std::endl;
+/* Test for get Current Session To String method in Programming Session*/
+TEST_F(DiagnosticSessionControlTest, GetCurrentSessionToStringProgrammingSession) {
+    EXPECT_EQ(dsc->getCurrentSessionToString(), "PROGRAMMING_SESSION");
 }
 
-/* Test for Switching to Default Session with Specific Module ID */
-TEST_F(DiagnosticSessionControlTest, SwitchToDefaultSessionWithModuleId) {
-    std::cerr << "Running SwitchToDefaultSessionWithModuleId" << std::endl;
+/* Test for Switching to Extended Session */
+TEST_F(DiagnosticSessionControlTest, SwitchToExtendedSession) {
+    std::cerr << "Running SwitchToExtendedSession" << std::endl;
+    
+    struct can_frame result_frame = createFrame(0x10FA, {0x02, 0x50, 0x03});
 
-    DiagnosticSessionControl dscWithModuleId(0x11, &mockLogger, socket);
-
-    testing::internal::CaptureStdout();
-    dscWithModuleId.sessionControl(0x1011, SUB_FUNCTION_DEFAULT_SESSION);
-
-    std::string output = testing::internal::GetCapturedStdout();
-    EXPECT_NE(output.find("Sent pozitive response frame to ECU"), std::string::npos);
-    std::cerr << "Finished SwitchToDefaultSessionWithModuleId" << std::endl;
+    dsc->sessionControl(0xFA10, 0x03);
+    c1->capture();
+    testFrames(result_frame, *c1);
+    std::cerr << "Finished SwitchToExtendedSession" << std::endl;
 }
 
-
-/* Test for Valid Session Switch to Programming Session */
-TEST_F(DiagnosticSessionControlTest, ValidSessionSwitchToProgrammingSession) {
-    std::cerr << "Running TestValidSessionSwitchToProgrammingSession" << std::endl;
-
-    testing::internal::CaptureStdout();
-    dsc->sessionControl(0x1011, SUB_FUNCTION_PROGRAMMING_SESSION);
-
-    std::string output = testing::internal::GetCapturedStdout();
-    EXPECT_NE(output.find("Switched to Programming Session"), std::string::npos);
-    std::cerr << "Finished TestValidSessionSwitchToProgrammingSession" << std::endl;
+/* Test for get Current Session To String method in Extended Session */
+TEST_F(DiagnosticSessionControlTest, GetCurrentSessionToStringExtendedSession) {
+    EXPECT_EQ(dsc->getCurrentSessionToString(), "EXTENDED_DIAGNOSTIC_SESSION");
 }
 
-/* Test for Switching to Programming Session with Specific Module ID */
-TEST_F(DiagnosticSessionControlTest, SwitchToProgrammingSessionWithModuleId) {
-    std::cerr << "Running SwitchToProgrammingSessionWithModuleId" << std::endl;
+/* Test for Unsupported Subfunction */
+TEST_F(DiagnosticSessionControlTest, UnsupportedSubfunction) {
+    std::cerr << "Running UnsupportedSubfunction" << std::endl;
+    
+    struct can_frame result_frame = createFrame(0x10FA, {0x03, 0x7F, 0x10, 0x12});
 
-    DiagnosticSessionControl dscWithModuleId(0x11, &mockLogger, socket);
-
-    testing::internal::CaptureStdout();
-    dscWithModuleId.sessionControl(0x1011, SUB_FUNCTION_PROGRAMMING_SESSION);
-
-    std::string output = testing::internal::GetCapturedStdout();
-    EXPECT_NE(output.find("Sent pozitive response frame to ECU"), std::string::npos);
-    std::cerr << "Finished SwitchToProgrammingSessionWithModuleId" << std::endl;
+    dsc->sessionControl(0xFA10, 0x04);
+    c1->capture();
+    testFrames(result_frame, *c1);
+    std::cerr << "Finished UnsupportedSubfunction" << std::endl;
 }
 
-
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+int main(int argc, char* argv[])
+{
+    socket1 = createSocket();
+    socket2 = createSocket();
+    testing::InitGoogleTest(&argc, argv);
+    int result = RUN_ALL_TESTS();
+    if (socket1 > 0)
+    {
+        close(socket1);
+    }
+    if (socket2 > 0)
+    {
+        close(socket2);
+    }
+    return result;
 }

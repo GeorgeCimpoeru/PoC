@@ -493,7 +493,7 @@ void GenerateFrames::accessTimingParameters(int id, uint8_t sub_function, std::v
     }
     else if(!data_parameter.size())
     {
-        std::vector<uint8_t> data = {0x02, 0x3c, sub_function};
+        std::vector<uint8_t> data = {0x02, 0xc3, sub_function};
         this->sendFrame(id, data);
         return;
     }

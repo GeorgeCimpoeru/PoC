@@ -6,6 +6,23 @@ ECU_BATTERY = 1
 ECU_ENGINE = 2
 ECU_DOORS = 3
 
+OTA_UPDATE_STATES = {
+    0x00: "IDLE",
+    0x10: "INIT",
+    0x20: "READY",
+    0x30: "PROCESSING",
+    0x31: "PROCESSING_TRANSFER_COMPLETE",
+    0x32: "PROCESSING_TRANSFER_FAILED",
+    0x40: "WAIT",
+    0x41: "WAIT_DOWNLOAD_COMPLETED",
+    0x42: "WAIT_DOWNLOAD_FAILED",
+    0x50: "VERIFY",
+    0x60: "ACTIVATE",
+    0x61: "ACTIVATE_INSTALL_COMPLETE",
+    0x62: "ACTIVATE_INSTALL_FAILED",
+    0x70: "ERROR"
+}
+
 
 class ToJSON():
     def _to_json(self, status: str, no_errors):
@@ -18,18 +35,6 @@ class ToJSON():
 
 
 class Updates(Action):
-    # def _auth_mcu(self):
-    #     id = self.my_id * 0x100 + self.id_ecu[0]
-    #     try:
-    #         log_info_message(logger, "Changing session to default")
-    #         self.session_control(id, 0x02)
-    #         self._passive_response(SESSION_CONTROL, "Error changing session control")
-    #         self._authentication(id)
-
-    #     except CustomError as e:
-    #         self.bus.shutdown()
-    #         return e.message
-
     """
     Update class for managing software updates on an Electronic Control Unit (ECU).
 
@@ -53,43 +58,33 @@ class Updates(Action):
         Raises:
         - CustomError: If the current software version matches the desired version,
           indicating that the latest version is already installed.
-        """
 
+        curl -X POST http://127.0.0.1:5000/api/update_to_version -H "Content-Type: application/json" -d '{
+            "update_file_type": "mcu",
+            "update_file_version": "1.4",
+            "ecu_id": "0x10"
+        }'
+        """
         try:
             self.id = (int(id, 16) << 16) + (self.my_id << 8) + self.id_ecu[0]
 
-            log_info_message(logger, "Changing session to programming")
-            self.session_control(self.id, sub_funct=0x02)
+            log_info_message(logger, "Changing session to extended diagonstic mode")
+            self.generate.session_control(self.id, sub_funct=0x03)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
-
-            self._authentication(self.id)
-
-            log_info_message(logger, "Changing session to default")
-            self.session_control(self.id, 0x01)
-            self._passive_response(SESSION_CONTROL, "Error changing session control")
-
-            # log_info_message(logger, "Reading data from battery")
-            # current_version = self._verify_version(version)
-            # if current_version == version:
-            #     response_json = ToJSON()._to_json(f"Version {version} already installed", 0)
-            #     self.bus.shutdown()
-            #     return response_json
-
-            log_info_message(logger, "Changing session to programming")
-            self.session_control(self.id, sub_funct=0x02)
-            self._passive_response(SESSION_CONTROL, "Error changing session control")
-            self._authentication(self.my_id * 0x100 + self.id_ecu[0])
 
             log_info_message(logger, "Authenticating...")
-            self._authentication(self.id)
+            self._authentication(self.my_id * 0x100 + self.id_ecu[0])  # -> security only to MCU
+
+            log_info_message(logger, "Reading data from battery")
+            current_version = self._verify_version()
+            if current_version == version:
+                response_json = ToJSON()._to_json(f"Version {version} already installed", 0)
+                self.bus.shutdown()
+                return response_json
 
             log_info_message(logger, "Downloading... Please wait")
             self._download_data(type, version, id)
             log_info_message(logger, "Download finished, restarting ECU...")
-
-            # log_info_message(logger, "Changing session to default")
-            # self.session_control(self.id, 0x01)
-            # self._passive_response(SESSION_CONTROL, "Error changing session control")
 
             # Reset the ECU to apply the update
             # self.id = (self.my_id * 0x100) + int(ecu_id, 16)
@@ -119,7 +114,7 @@ class Updates(Action):
             self.bus.shutdown()
             return e.message
 
-    def _download_data(self, type, version, ecu_id):
+    def _download_data(self, type, version, id):
         """
         Request Sid = 0x34
         Response Sid = 0x74
@@ -158,20 +153,45 @@ class Updates(Action):
         create locally a virtual partition used for download.
         -> search/change "/dev/loopXX" in RequestDownload.cpp, MemoryManager.cpp; (Depends which partition is attributed)
         """
+        self.init_ota_routine(self.id, version=version)
+        frame_response = self._passive_response(ROUTINE_CONTROL, "Error initialzing OTA")
+
+        mem_size = frame_response.data[5]
+
         self.request_download(self.id,
-                              data_format_identifier=type,  # No compression/encryption
-                              memory_address=0x0801,  # Memory address starting from 2049
-                              memory_size=0x01,  # Memory size
-                              version=version)  # Version 2
-        self._passive_response(REQUEST_DOWNLOAD, "Error requesting download")
+                              data_format_identifier=type,
+                              memory_address=0x0801,
+                              memory_size=mem_size,
+                              version=version)
+        frame_response = self._passive_response(REQUEST_DOWNLOAD, "Error requesting download")
 
-        self.transfer_data(self.id, 0x01)
-        time.sleep(1)
-        self.control_frame_write_file(self.id)
-        time.sleep(1)
-        self.control_frame_install_updates(self.id)
+        transfer_data_counter = 0x01
+        while True:
+            self.transfer_data(self.id, transfer_data_counter)
+            self._passive_response(TRANSFER_DATA, "Error transfering data")
+            time.sleep(2)
+            self.request_update_status(REQUEST_UPDATE_STATUS)
+            frame_response = self._passive_response(REQUEST_UPDATE_STATUS, "Error requesting update status")
 
-    def _verify_version(self, version):
+            if frame_response.data[1] == 0x72:
+                state = self.get_ota_update_state(frame_response.data[2])
+
+                if state == "READY":
+                    log_info_message(logger, "Software update complete")
+                    break
+                elif state == "PROCESSING":
+                    transfer_data_counter += 0x01
+                    log_info_message(logger, f"Update in progress, retrying with transfer_data value: {transfer_data_counter}")
+                    time.sleep(2)
+                else:
+                    log_info_message(logger, f"Unexpected state encountered: {state}")
+                    break
+        ecu_id = (0x00 << 16) + (0xFA << 8) + int(id, 16)
+        self.control_frame_write_file(ecu_id)
+        time.sleep(1)
+        self.control_frame_install_updates(ecu_id)
+
+    def _verify_version(self):
         """
         Private method to verify if the current software version matches the desired version.
 
@@ -183,8 +203,8 @@ class Updates(Action):
           indicating that the latest version is already installed.
         """
         log_info_message(logger, "Reading current version")
-        self._write_by_identifier(self.id, IDENTIFIER_SYSTEM_ECU_FLASH_SOFTWARE_VERSION_NUMBER, value=12)
-        current_version = self._read_by_identifier(self.id, IDENTIFIER_SYSTEM_ECU_FLASH_SOFTWARE_VERSION_NUMBER)
+
+        current_version = self._read_by_identifier(self.id, IDENTIFIER_SYSTEM_SUPPLIER_ECU_SOFTWARE_VERSION_NUMBER)
         return current_version
 
     def _check_errors(self):
@@ -204,3 +224,27 @@ class Updates(Action):
             number_of_dtc = response.data[5]
             log_info_message(logger, f"There are {number_of_dtc} errors found after download")
             return number_of_dtc
+
+    def get_ota_update_state(self, value):
+        """
+        Takes a hexadecimal value as input, looks it up in the OTA_UPDATE_STATES dictionary,
+        and returns the corresponding state. If the state is READY, it continues execution.
+
+        :param value: Hexadecimal value (e.g., 0x10)
+        :return: The state name if found, otherwise an error message.
+        """
+        start_time = time.time()
+
+        while True:
+            state = OTA_UPDATE_STATES.get(value)
+
+            if state is not None:
+                log_info_message(logger, f"State found: {state}.")
+                return state
+
+            elapsed_time = time.time() - start_time
+            if elapsed_time >= 5:
+                log_info_message(logger, f"Timeout reached. State {hex(value)} is still invalid.")
+                return "INVALID_STATE_TIMEOUT"
+
+            time.sleep(1)

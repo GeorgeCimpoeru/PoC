@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import jsonify
+from flask import jsonify, request
 from actions.secure_auth import Auth
 from actions.diag_session import SessionManager
 from configs.data_identifiers import *
@@ -8,6 +8,19 @@ from configs.data_identifiers import *
 def requires_auth(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
+
+        if request.method == 'POST':
+            is_manual_flow = request.get_json().get('is_manual_flow', None)
+        elif request.method == 'GET':
+            is_manual_flow = request.args.get('is_manual_flow', None)
+
+        if is_manual_flow is None:
+            return jsonify({"error": "Missing 'is_manual_flow' flag."}), 400
+
+        is_manual_flow = is_manual_flow.lower() == 'true' if isinstance(is_manual_flow, str) else bool(is_manual_flow)
+
+        if is_manual_flow:
+            return func(*args, **kwargs)
         try:
             id = (API_ID << 8) + 0x10
 
