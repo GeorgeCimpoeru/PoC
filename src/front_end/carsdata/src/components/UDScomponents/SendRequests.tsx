@@ -297,12 +297,40 @@ const SendRequests = () => {
         }
     };
 
-    const readInfoEngine = async () => { 
+    const writeInfoEngine = async () => {
         displayLoadingCircle();
-        console.log("Reading info engine..");
+        const engine_rpm = prompt('Enter Engine rpm:');
+        const coolant_temperature = prompt('Enter coolant temperature:');
+        const throttle_position = prompt('Enter throttle position:');
+        const vehicle_speed = prompt('Enter vehicle speed:');
+        const engine_load = prompt('Enter engine load:');
+        const fuel_level = prompt('Enter fuel level:');
+        const oil_temperature = prompt('Enter oil temperature:');
+        const fuel_pressure = prompt('Enter fuel pressure:');
+        const intake_air_temperature = prompt('Enter intake air temperature:');
+        // "is_manual_flow": true or false only   // to be done  after merging a PR from the API with this change
+
+        const data = {
+            engine_rpm: engine_rpm || null,
+            coolant_temperature: coolant_temperature || null,
+            throttle_position: throttle_position || null,
+            vehicle_speed: vehicle_speed || null,
+            engine_load: engine_load || null,
+            fuel_level: fuel_level || null,
+            oil_temperature: oil_temperature || null,
+            fuel_pressure: fuel_pressure || null,
+            intake_air_temperature: intake_air_temperature || null,
+
+        };
+        console.log("Writing info engine...");
+        console.log(data);
         try {
-            await fetch(`http://127.0.0.1:5000/api/read_info_engine`, {
-                method: 'GET',
+            await fetch(`http://127.0.0.1:5000/api/write_info_engine`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
             }).then(response => response.json())
                 .then(data => {
                     setData23(data);
@@ -315,27 +343,6 @@ const SendRequests = () => {
         }
         removeLoadingCicle();
     }
-
-    const readInfoHvac = async () => { 
-        displayLoadingCircle();
-        console.log("Reading info hvac...");
-        try {
-            await fetch(`http://127.0.0.1:5000/api/read_info_hvac`, {
-                method: 'GET',
-            }).then(response => response.json())
-                .then(data => {
-                    setData23(data);
-                    console.log(data);
-                    fetchLogs();
-                });
-        } catch (error) {
-            console.log(error);
-            removeLoadingCicle();
-        }
-        removeLoadingCicle();
-    }
-
-    const writeInfoEngine = async () => { }
 
     const readInfoDoors = async () => {
         displayLoadingCircle();

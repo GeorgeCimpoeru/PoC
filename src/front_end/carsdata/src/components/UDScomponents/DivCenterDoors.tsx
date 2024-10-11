@@ -11,6 +11,7 @@ interface doorsData {
     passenger_lock: any,
 }
 
+
 const DivCenterDoors = (props: any) => {
     const [data, setData] = useState<doorsData | null>(null);
     const [loading, setLoading] = useState(true);
