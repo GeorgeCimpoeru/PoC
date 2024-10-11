@@ -18,6 +18,7 @@ from actions.tester_present import Tester  # noqa: E402
 from actions.access_timing_action import *  # noqa: E402
 from actions.ecu_reset import Reset  # noqa: E402
 from actions.security_decorator import *  # noqa: E402
+from utils.input_validation import validate_update_request  # noqa: E402
 from config import *  # noqa: E402
 
 api_bp = Blueprint('api', __name__)
@@ -31,6 +32,7 @@ def request_ids():
 
 
 @api_bp.route('/update_to_version', methods=['POST'])
+@validate_update_request
 def update_to_version():
     data = request.get_json()
     sw_file_type = data.get('update_file_type')

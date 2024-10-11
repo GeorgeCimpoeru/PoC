@@ -76,7 +76,7 @@ class GDriveAPI:
         file_metadata = {
             'name': file_name,
             'parents': [parent_folder_id],  # ID of the folder where you want to upload
-            'appProperties': {
+            'appProperties' : {
                 'size_uncompressed': str(size_uncompressed)
             }
         }
@@ -98,7 +98,7 @@ class GDriveAPI:
             # pylint: disable=maybe-no-member
 
             file_to_download = self.searchVersion(ecu_id, sw_version_byte, True)
-            if file_to_download in(-1, 0):
+            if file_to_download in (-1, 0):
                 return file_to_download
 
             print(f"{GREEN}Downloading..{RESET}")

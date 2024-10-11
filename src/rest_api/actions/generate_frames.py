@@ -20,12 +20,12 @@ class GenerateFrame(CanBridge):
         self.send(id, data)
 
     def control_frame_write_file(self, id):
-        data = [0x03, 0x31, 0x01, 0x03, 0x01, 0x00]
-        self.send(id, data)
+        data = [0x04, 0x31, 0x01, 0x03, 0x01, 0x00]
+        self.send_frame(id, data)
 
     def control_frame_install_updates(self, id):
-        data = [0x03, 0x31, 0x01, 0x02, 0x01, 0x00]
-        self.send(id, data)
+        data = [0x04, 0x31, 0x01, 0x06, 0x01, 0x00]
+        self.send_frame(id, data)
 
     def request_id_mcu(self, api_id):
         data = [1, 0x99]
@@ -249,6 +249,30 @@ class GenerateFrame(CanBridge):
 
     def write_data_by_identifier_long(self, id, identifier, data, first_frame=True):
         self.__generate_long_response(id, 0x2E, identifier, data, first_frame)
+
+    def init_ota_routine(self, id, version):
+        # cansend vcan1 0010fa10#04 31 01 02 01 10
+        if isinstance(version, str):
+            if '.' not in version:
+                version += '.0'
+            major, minor = map(int, version.split('.'))
+            major -= 1
+            if major < 0 or major > 15 or minor < 0 or minor > 15:
+                raise ValueError(f"Invalid version: {version}. Major and minor must be between 0 and 15.")
+            version_byte = (major << 4) | minor  # Encode directly without reduction
+        elif isinstance(version, int):
+            # Assume the int is already in the correct format
+            version_byte = version
+        else:
+            raise ValueError(f"Invalid version format: {version}")
+
+        data = [0x04, 0x31, 0x01, 0x02, 0x01, version_byte]
+        self.send_frame(id, data)
+
+    def request_update_status(self, func):
+        data = [0x01, func]
+        _id = (0x00 << 16) + (0xFA << 8) + 0x10
+        self.send_frame(_id, data)
 
     def __generate_long_response(self, id, sid, identifier, response , first_frame):
         if first_frame:

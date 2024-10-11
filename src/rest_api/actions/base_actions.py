@@ -21,6 +21,7 @@ ROUTINE_CONTROL = 0X31
 WRITE_BY_IDENTIFIER = 0X2E
 READ_DTC = 0X19
 CLEAR_DTC = 0X14
+REQUEST_UPDATE_STATUS = 0x32
 REQUEST_DOWNLOAD = 0X34
 TRANSFER_DATA = 0X36
 REQUEST_TRANSFER_EXIT = 0X37
@@ -137,7 +138,6 @@ class Action(GF):
         return None
 
     def __verify_frame(self, msg: can.Message, sid: int):
-
         log_info_message(logger, f"[Verify Frame] Verifying frame with SID: {sid:02X}, message data: {[hex(byte) for byte in msg.data]}")
 
         if msg.arbitration_id % 0x100 != self.my_id:
@@ -252,7 +252,6 @@ class Action(GF):
         Method to generate a key based on the seed.
         """
         return [(~num + 1) & 0xFF for num in seed]
-        # return [(~num - 1) & 0xFF for num in seed] # Test case 0x35 Invalid Key
 
     def _authentication(self, id):
         """
@@ -260,7 +259,6 @@ class Action(GF):
         Returns a JSON response with detailed information about the authentication process.
         """
         log_info_message(logger, "Authenticating")
-
         # Send the request for authentication seed
         self.authentication_seed(id,
                                  sid_send=AUTHENTICATION_SEND,

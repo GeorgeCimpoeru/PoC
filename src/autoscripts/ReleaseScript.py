@@ -187,7 +187,7 @@ def validateSoftwareVersion(software_version, convert=False):
         print(f"{RED}Version not valid. Valid versions are between 1.0 and 16.15{RESET}")
         exit(-1)
 
-    if convert == True:
+    if convert :
         return ((major_version - 1) << 4 | minor_version)
 
     return software_version
