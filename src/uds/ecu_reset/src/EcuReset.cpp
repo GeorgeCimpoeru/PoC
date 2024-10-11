@@ -64,48 +64,58 @@ void EcuReset::hardReset()
     switch(lowerbits)
     {
         case 0x10:
-        {    
+        {   
+            #ifndef UNIT_TESTING_MODE
             const char *args[] = {"/bin/bash", "../autoscripts/reset_hard.sh", "main_mcu", NULL};
             execvp(args[0], const_cast<char *const *>(args));
 
             perror("execvp failed");
             exit(EXIT_FAILURE);
+            #endif
             break;
         }
         case 0x11:
         {
+            #ifndef UNIT_TESTING_MODE
             const char *args[] = {"/bin/bash", "../../autoscripts/reset_hard.sh", "main_battery", NULL};
             execvp(args[0], const_cast<char *const *>(args));
 
             perror("execvp failed");
             exit(EXIT_FAILURE);
+            #endif
             break;
         }
         case 0x12:
         {
+            #ifndef UNIT_TESTING_MODE
             const char *args[] = {"/bin/bash", "../../autoscripts/reset_hard.sh", "main_engine", NULL};
             execvp(args[0], const_cast<char *const *>(args));
 
             perror("execvp failed");
             exit(EXIT_FAILURE);
+            #endif
             break;
         }
         case 0x13:
         {
+            #ifndef UNIT_TESTING_MODE
             const char *args[] = {"/bin/bash", "../../autoscripts/reset_hard.sh", "main_doors", NULL};
             execvp(args[0], const_cast<char *const *>(args));
 
             perror("execvp failed");
             exit(EXIT_FAILURE);
+            #endif
             break;
         }
         case 0x14:
         {
+            #ifndef UNIT_TESTING_MODE
             const char *args[] = {"/bin/bash", "../../autoscripts/reset_hard.sh", "main_hvac", NULL};
             execvp(args[0], const_cast<char *const *>(args));
 
             perror("execvp failed");
             exit(EXIT_FAILURE);
+            #endif
             break;
         }
         default:
@@ -156,10 +166,6 @@ void EcuReset::keyOffReset()
     case 0x10:
     {
         std::ofstream outfile("old_mcu_data.txt");
-        if (!outfile.is_open())
-        {
-            throw std::runtime_error("Failed to open file: old_mcu_data.txt");
-        }
         outfile << original_file_contents;
         outfile.close();
         break;
@@ -167,10 +173,6 @@ void EcuReset::keyOffReset()
     case 0x11:
     {
         std::ofstream outfile("old_battery_data.txt");
-        if (!outfile.is_open())
-        {
-            throw std::runtime_error("Failed to open file: old_battery_data.txt");
-        }
         outfile << original_file_contents;
         outfile.close();
         break;
@@ -178,10 +180,6 @@ void EcuReset::keyOffReset()
     case 0x12:
     {
         std::ofstream outfile("old_engine_data.txt");
-        if (!outfile.is_open())
-        {
-            throw std::runtime_error("Failed to open file: old_engine_data.txt");
-        }
         outfile << original_file_contents;
         outfile.close();
         break;
@@ -189,27 +187,17 @@ void EcuReset::keyOffReset()
     case 0x13:
     {
         std::ofstream outfile("old_doors_data.txt");
-        if (!outfile.is_open())
-        {
-            throw std::runtime_error("Failed to open file: old_doors_data.txt");
-        }
         outfile << original_file_contents;
         outfile.close();
         break;
     }
-        break;
     case 0x14:
     {
         std::ofstream outfile("old_hvac_data.txt");
-        if (!outfile.is_open())
-        {
-            throw std::runtime_error("Failed to open file: old_hvac_data.txt");
-        }
         outfile << original_file_contents;
         outfile.close();
         break;
     }
-        break;
     default:
         LOG_ERROR(ECUResetLog.GET_LOGGER(), "ECU doesn't exist");
         break;

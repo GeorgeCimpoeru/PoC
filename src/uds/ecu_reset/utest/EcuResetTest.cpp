@@ -6,7 +6,7 @@
  * @date 2024-10-11
  */
 #include <gtest/gtest.h>
-#include "../include/ReadDataByIdentifier.h"
+#include "../include/EcuReset.h"
 #include "../../../utils/include/ReceiveFrames.h"
 
 int socket1;
@@ -100,205 +100,235 @@ uint8_t computeKey(uint8_t& seed)
 
 struct EcuResetTest : testing::Test
 {
-    EcuReset* ecureset;
     SecurityAccess* security;
     CaptureFrame* c1;
     Logger* logger;
     EcuResetTest()
     {
         logger = new Logger();
-        ecureset = new EcuReset(socket2, *logger);
         security = new SecurityAccess(socket2, *logger);
         c1 = new CaptureFrame();
     }
     ~EcuResetTest()
     {
-        delete rdbi;
         delete security;
         delete c1;
         delete logger;
     }
 };
 
-// TEST_F(ReadDataByIdentifierTest, IncorrectMessageLength)
-// {
-//     struct can_frame result_frame = createFrame(0x10FA, {0x03, 0x7F, 0x22, NegativeResponse::IMLOIF});
-//     rdbi->readDataByIdentifier(0xFA10, {0x01, 0x22}, true);
-//     c1->capture();
-//     testFrames(result_frame, *c1);
-// }
+TEST_F(EcuResetTest, ConstructorInitializesFieldsCorrectly)
+{
+    EcuReset *ecuReset;
+    EXPECT_NO_THROW(
+    {
+        ecuReset = new EcuReset(0xFA10, 0x01, socket2, *logger);
+    });
+    delete ecuReset;
+}
 
-// TEST_F(ReadDataByIdentifierTest, MCUSecurity)
-// {
-//     struct can_frame result_frame = createFrame(0x10FA, {0x03, 0x7F, 0x22, NegativeResponse::SAD});
-//     rdbi->readDataByIdentifier(0xFA10, {0x04, 0x22, 0xf1, 0x90, 0x11}, true);
-//     c1->capture();
-//     testFrames(result_frame, *c1);
-// }
+TEST_F(EcuResetTest, IncorrectMessageLength)
+{
+    EcuReset *ecuReset;
+    ecuReset = new EcuReset(0xFA10, 0x01, socket2, *logger);
+    struct can_frame result_frame = createFrame(0x10FA, {0x03, 0x7F, 0x11, NegativeResponse::IMLOIF});
+    ecuReset->ecuResetRequest({0x01, 0x11});
+    c1->capture();
+    testFrames(result_frame, *c1);
+    delete ecuReset;
+}
 
-// TEST_F(ReadDataByIdentifierTest, ECUsSecurity)
-// {
-//     /* Battery Module */
-//     struct can_frame result_frame = createFrame(0x11FA, {0x03, 0x7F, 0x22, NegativeResponse::SAD});
+TEST_F(EcuResetTest, SubFunctionNotSupported)
+{
+    EcuReset *ecuReset;
+    ecuReset = new EcuReset(0xFA10, 0x03, socket2, *logger);
+    struct can_frame result_frame = createFrame(0x10FA, {0x03, 0x7F, 0x11, NegativeResponse::SFNS});
+    ecuReset->ecuResetRequest({0x02, 0x11,0x03});
+    c1->capture();
+    testFrames(result_frame, *c1);
+    delete ecuReset;
+}
 
-//     rdbi->readDataByIdentifier(0xFA11, {0x04, 0x22, 0xf1, 0x90, 0x11}, true);
-//     c1->capture();
-//     testFrames(result_frame, *c1);
+TEST_F(EcuResetTest, MCUSecurity)
+{
+    EcuReset *ecuReset;
+    ecuReset = new EcuReset(0xFA10, 0x01, socket2, *logger);
+    struct can_frame result_frame = createFrame(0x10FA, {0x03, 0x7F, 0x11, NegativeResponse::SAD});
+    ecuReset->ecuResetRequest({0x02, 0x11,0x01});
+    c1->capture();
+    testFrames(result_frame, *c1);
+    delete ecuReset;
+}
 
-//     /* Engine Module */
-//     result_frame = createFrame(0x12FA, {0x03, 0x7F, 0x22, NegativeResponse::SAD});
+TEST_F(EcuResetTest, ECUSecurity)
+{
+    /* Battery */
+    EcuReset *ecuReset;
+    ecuReset = new EcuReset(0xFA11, 0x01, socket2, *logger);
+    struct can_frame result_frame = createFrame(0x11FA, {0x03, 0x7F, 0x11, NegativeResponse::SAD});
+    ecuReset->ecuResetRequest({0x02, 0x11,0x01});
+    c1->capture();
+    testFrames(result_frame, *c1);
+    delete ecuReset;
 
-//     rdbi->readDataByIdentifier(0xFA12, {0x04, 0x22, 0xf1, 0x90, 0x11}, true);
-//     c1->capture();
-//     testFrames(result_frame, *c1);
+    /* Engine */
+    ecuReset = new EcuReset(0xFA12, 0x01, socket2, *logger);
+    result_frame = createFrame(0x12FA, {0x03, 0x7F, 0x11, NegativeResponse::SAD});
+    ecuReset->ecuResetRequest({0x02, 0x11,0x01});
+    c1->capture();
+    testFrames(result_frame, *c1);
+    delete ecuReset;
 
-//     /* Doors Module */
-//     result_frame = createFrame(0x13FA, {0x03, 0x7F, 0x22, NegativeResponse::SAD});
+    /* Doors */
+    ecuReset = new EcuReset(0xFA13, 0x01, socket2, *logger);
+    result_frame = createFrame(0x13FA, {0x03, 0x7F, 0x11, NegativeResponse::SAD});
+    ecuReset->ecuResetRequest({0x02, 0x11,0x01});
+    c1->capture();
+    testFrames(result_frame, *c1);
+    delete ecuReset;
 
-//     rdbi->readDataByIdentifier(0xFA13, {0x04, 0x22, 0xf1, 0x90, 0x11}, true);
-//     c1->capture();
-//     testFrames(result_frame, *c1);
+    /* HVAC */
+    ecuReset = new EcuReset(0xFA14, 0x01, socket2, *logger);
+    result_frame = createFrame(0x14FA, {0x03, 0x7F, 0x11, NegativeResponse::SAD});
+    ecuReset->ecuResetRequest({0x02, 0x11,0x01});
+    c1->capture();
+    testFrames(result_frame, *c1);
+    delete ecuReset;
+}
 
-//     /* HVAC Module */
-//     result_frame = createFrame(0x14FA, {0x03, 0x7F, 0x22, NegativeResponse::SAD});
-//     rdbi->readDataByIdentifier(0xFA14, {0x04, 0x22, 0xf1, 0x90, 0x11}, true);
-//     c1->capture();
-//     testFrames(result_frame, *c1);
-// }
+TEST_F(EcuResetTest, HardResetMCU)
+{
+    EcuReset *ecuReset;
 
-// TEST_F(ReadDataByIdentifierTest, RequestOutOfRangeMCU)
-// {
+    security->securityAccess(0xFA10, {0x02, 0x27, 0x01});
 
-//     struct can_frame result_frame = createFrame(0x10FA, {0x03, 0x7F, 0x22, NegativeResponse::ROOR});
+    c1->capture();
+    if (c1->frame.can_dlc >= 4)
+    {
+        seed.clear();
+        /* from 3 to pci_length we have the seed generated in response */
+        for (int i = 3; i <= c1->frame.data[0]; i++)
+        {
+            seed.push_back(c1->frame.data[i]);
+        }
+    }
+    /* Compute key from seed */
+    for (auto &elem : seed)
+    {
+        elem = computeKey(elem);
+    }
+    std::vector<uint8_t> data_frame = {static_cast<uint8_t>(seed.size() + 2), 0x27, 0x02};
+    data_frame.insert(data_frame.end(), seed.begin(), seed.end());
+    security->securityAccess(0xFA10, data_frame);
+    c1->capture();
 
-//     /* Check the security */
-//     /* Request seed */
-//     security->securityAccess(0xFA10, {0x02, 0x27, 0x01});
+    ecuReset = new EcuReset(0xFA10, 0x01, socket2, *logger);
+    struct can_frame result_frame = createFrame(0x10FA, {0x02, 0x51,0x01});
+    ecuReset->ecuResetRequest({0x02, 0x11,0x01});
+    c1->capture();
+    testFrames(result_frame, *c1);
+    delete ecuReset;
+}
 
-//     c1->capture();
-//     if (c1->frame.can_dlc >= 4)
-//     {
-//         seed.clear();
-//         /* from 3 to pci_length we have the seed generated in response */
-//         for (int i = 3; i <= c1->frame.data[0]; i++)
-//         {
-//             seed.push_back(c1->frame.data[i]);
-//         }
-//     }
-//     /* Compute key from seed */
-//     for (auto &elem : seed)
-//     {
-//         elem = computeKey(elem);
-//     }
-//     std::vector<uint8_t> data_frame = {static_cast<uint8_t>(seed.size() + 2), 0x27, 0x02};
-//     data_frame.insert(data_frame.end(), seed.begin(), seed.end());
-//     security->securityAccess(0xFA10, data_frame);
-//     c1->capture();
+TEST_F(EcuResetTest, HardResetECU)
+{
+    /* Battery */
+    EcuReset *ecuReset;
+    ReceiveFrames* receiveFrames = new ReceiveFrames(socket2, 0x11, *logger);
+    receiveFrames->setEcuState(true);
+    ecuReset = new EcuReset(0xFA11, 0x01, socket2, *logger);
+    struct can_frame result_frame = createFrame(0x11FA, {0x02, 0x51,0x01});
+    ecuReset->ecuResetRequest({0x02, 0x11,0x01});
+    c1->capture();
+    testFrames(result_frame, *c1);
+    delete ecuReset;
+    delete receiveFrames;
 
-//     rdbi->readDataByIdentifier(0xFA10, {0x04, 0x22, 0x11, 0x11, 0x11}, true);
-//     c1->capture();
-//     testFrames(result_frame, *c1);
-// }
+    /* Engine */
+    ecuReset = new EcuReset(0xFA12, 0x01, socket2, *logger);
+    result_frame = createFrame(0x12FA, {0x02, 0x51,0x01});
+    ecuReset->ecuResetRequest({0x02, 0x11,0x01});
+    c1->capture();
+    testFrames(result_frame, *c1);
+    delete ecuReset;
 
-// /* Test Request Out Of Range Battery */
-// TEST_F(ReadDataByIdentifierTest, RequestOutOfRangeBattery)
-// {
-//     ReceiveFrames* receiveFrames = new ReceiveFrames(socket2, 0x11, *logger);
-//     receiveFrames->setEcuState(true);
-//     struct can_frame result_frame = createFrame(0x11FA, {0x03, 0x7F, 0x22, NegativeResponse::ROOR});
-//     rdbi->readDataByIdentifier(0xFA11, {0x04, 0x22, 0x11, 0x11, 0x11}, true);
-//     c1->capture();
-//     testFrames(result_frame, *c1);
-//     delete receiveFrames;
-// }
+    /* Doors */
+    ecuReset = new EcuReset(0xFA13, 0x01, socket2, *logger);
+    result_frame = createFrame(0x13FA, {0x02, 0x51,0x01});
+    ecuReset->ecuResetRequest({0x02, 0x11,0x01});
+    c1->capture();
+    testFrames(result_frame, *c1);
+    delete ecuReset;
 
-// /* Test Request Out Of Range Engine */
-// TEST_F(ReadDataByIdentifierTest, RequestOutOfRangeEngine)
-// {
-//     struct can_frame result_frame = createFrame(0x12FA, {0x03, 0x7F, 0x22, NegativeResponse::ROOR});
-//     rdbi->readDataByIdentifier(0xFA12, {0x04, 0x22, 0x11, 0x11, 0x11}, true);
-//     c1->capture();
-//     testFrames(result_frame, *c1);
-// }
+    /* HVAC */
+    ecuReset = new EcuReset(0xFA14, 0x01, socket2, *logger);
+    result_frame = createFrame(0x14FA, {0x02, 0x51,0x01});
+    ecuReset->ecuResetRequest({0x02, 0x11,0x01});
+    c1->capture();
+    testFrames(result_frame, *c1);
+    delete ecuReset;
 
-// /* Test Request Out Of Range Doors */
-// TEST_F(ReadDataByIdentifierTest, RequestOutOfRangeDoors)
-// {
-//     struct can_frame result_frame = createFrame(0x13FA, {0x03, 0x7F, 0x22, NegativeResponse::ROOR});
-//     rdbi->readDataByIdentifier(0xFA13, {0x04, 0x22, 0x11, 0x11, 0x11}, true);
-//     c1->capture();
-//     testFrames(result_frame, *c1);
-// }
+    /* Other ECU */
+    ecuReset = new EcuReset(0xFA15, 0x01, socket2, *logger);
+    ecuReset->ecuResetRequest({0x02, 0x11,0x01});
+    c1->capture();
+    delete ecuReset;
+}
 
-// /* Test Request Out Of Range HVAC */
-// TEST_F(ReadDataByIdentifierTest, RequestOutOfRangeHVAC)
-// {
-//     struct can_frame result_frame = createFrame(0x14FA, {0x03, 0x7F, 0x22, NegativeResponse::ROOR});
-//     rdbi->readDataByIdentifier(0xFA14, {0x04, 0x22, 0x11, 0x11, 0x11}, true);
-//     c1->capture();
-//     testFrames(result_frame, *c1);
-// }
+TEST_F(EcuResetTest, SoftResetMCU)
+{
+    EcuReset *ecuReset;
+    ecuReset = new EcuReset(0xFA10, 0x02, socket2, *logger);
+    struct can_frame result_frame = createFrame(0x10FA, {0x02, 0x51,0x02});
+    ecuReset->ecuResetRequest({0x02, 0x11, 0x02});
+    c1->capture();
+    testFrames(result_frame, *c1);
+    delete ecuReset;
+}
 
-// /* Test Module not supported */
-// TEST_F(ReadDataByIdentifierTest, ModuleNotSupported)
-// {
-//     struct can_frame result_frame = createFrame(0x15FA, {0x03, 0x7F, 0x22, NegativeResponse::ROOR});
+TEST_F(EcuResetTest, SoftResetECU)
+{
+    /* Battery */
+    EcuReset *ecuReset;
+    ecuReset = new EcuReset(0xFA11, 0x02, socket2, *logger);
+    struct can_frame result_frame = createFrame(0x11FA, {0x02, 0x51,0x02});
+    ecuReset->ecuResetRequest({0x02, 0x11, 0x02});
+    c1->capture();
+    testFrames(result_frame, *c1);
+    delete ecuReset;
 
-//     rdbi->readDataByIdentifier(0xFA15, {0x04, 0x22, 0x11, 0x11, 0x11}, true);
-//     c1->capture();
-//     testFrames(result_frame, *c1);
-// }
+    /* Engine */
+    ecuReset = new EcuReset(0xFA12, 0x02, socket2, *logger);
+    result_frame = createFrame(0x12FA, {0x02, 0x51,0x02});
+    ecuReset->ecuResetRequest({0x02, 0x11, 0x02});
+    c1->capture();
+    testFrames(result_frame, *c1);
+    delete ecuReset;
 
-// TEST_F(ReadDataByIdentifierTest, ErrorReadingFromFile)
-// {
-//     std::string file_name = std::string(PROJECT_PATH) + "/src/mcu/mcu_data.txt";
-//     std::string original_content;
-//     std::ifstream original_file(file_name);
-//     if (original_file)
-//     {
-//         original_content.assign((std::istreambuf_iterator<char>(original_file)),
-//                                 std::istreambuf_iterator<char>());
-//         original_file.close();
-//     }
-//     std::remove(file_name.c_str());
+    /* Doors */
+    ecuReset = new EcuReset(0xFA13, 0x02, socket2, *logger);
+    result_frame = createFrame(0x13FA, {0x02, 0x51,0x02});
+    ecuReset->ecuResetRequest({0x02, 0x11, 0x02});
+    c1->capture();
+    testFrames(result_frame, *c1);
+    delete ecuReset;
 
-//     struct can_frame result_frame = createFrame(0x10FA, {0x03, 0x7F, 0x22, NegativeResponse::ROOR});
-//     rdbi->readDataByIdentifier(0xFA10, {0x04, 0x22, 0x11, 0x11, 0x11}, true);
-//     c1->capture();
+    /* HVAC */
+    ecuReset = new EcuReset(0xFA14, 0x02, socket2, *logger);
+    result_frame = createFrame(0x14FA, {0x02, 0x51,0x02});
+    ecuReset->ecuResetRequest({0x02, 0x11, 0x02});
+    c1->capture();
+    testFrames(result_frame, *c1);
+    delete ecuReset;
 
-//     std::ofstream new_file(file_name);
-//     if (new_file)
-//     {
-//         if (!original_content.empty())
-//         {
-//             new_file << original_content;
-//         }
-//         new_file.close();
-//     }
-//     else
-//     {
-//         FAIL() << "Error recreating the file.";
-//     }
-//     std::ifstream recreated_file(file_name);
-//     EXPECT_TRUE(recreated_file.good());
-
-//     if (!original_content.empty())
-//     {
-//         std::string recreated_content((std::istreambuf_iterator<char>(recreated_file)),
-//                                       std::istreambuf_iterator<char>());
-//         EXPECT_EQ(recreated_content, original_content);
-//     }
-//     testFrames(result_frame, *c1);
-// }
-
-// /* Test Corect DID MCU */
-// TEST_F(ReadDataByIdentifierTest, CorectDIDMCU)
-// {
-//     struct can_frame result_frame = createFrame(0x10FA, {0x04, 0x62, 0xF1, 0xA2, 0x00});
-//     rdbi->readDataByIdentifier(0xFA10, {0x03, 0x22, 0xF1, 0xA2}, true);
-//     c1->capture();
-//     testFrames(result_frame, *c1);
-// }
+    /* Other ECU */
+    ecuReset = new EcuReset(0xFA15, 0x02, socket2, *logger);
+    result_frame = createFrame(0x15FA, {0x02, 0x51,0x02});
+    ecuReset->ecuResetRequest({0x02, 0x11, 0x02});
+    c1->capture();
+    testFrames(result_frame, *c1);
+    delete ecuReset;
+}
 
 int main(int argc, char* argv[])
 {
