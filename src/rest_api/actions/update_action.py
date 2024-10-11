@@ -64,7 +64,7 @@ class Updates(Action):
             "update_file_version": "1.4",
             "ecu_id": "0x10"
         }'
-
+        """
         try:
             self.id = (int(id, 16) << 16) + (self.my_id << 8) + self.id_ecu[0]
 
@@ -153,24 +153,24 @@ class Updates(Action):
         create locally a virtual partition used for download.
         -> search/change "/dev/loopXX" in RequestDownload.cpp, MemoryManager.cpp; (Depends which partition is attributed)
         """
-        self.generate.init_ota_routine(self.id, version=version)
+        self.init_ota_routine(self.id, version=version)
         frame_response = self._passive_response(ROUTINE_CONTROL, "Error initialzing OTA")
 
         mem_size = frame_response.data[5]
 
-        self.generate.request_download(self.id,
-                                       data_format_identifier=type,
-                                       memory_address=0x0801,
-                                       memory_size=mem_size,
-                                       version=version)
+        self.request_download(self.id,
+                              data_format_identifier=type,
+                              memory_address=0x0801,
+                              memory_size=mem_size,
+                              version=version)
         frame_response = self._passive_response(REQUEST_DOWNLOAD, "Error requesting download")
 
         transfer_data_counter = 0x01
         while True:
-            self.generate.transfer_data(self.id, transfer_data_counter)
+            self.transfer_data(self.id, transfer_data_counter)
             self._passive_response(TRANSFER_DATA, "Error transfering data")
             time.sleep(2)
-            self.generate.request_update_status(REQUEST_UPDATE_STATUS)
+            self.request_update_status(REQUEST_UPDATE_STATUS)
             frame_response = self._passive_response(REQUEST_UPDATE_STATUS, "Error requesting update status")
 
             if frame_response.data[1] == 0x72:
@@ -187,9 +187,9 @@ class Updates(Action):
                     log_info_message(logger, f"Unexpected state encountered: {state}")
                     break
         ecu_id = (0x00 << 16) + (0xFA << 8) + int(id, 16)
-        self.generate.control_frame_write_file(ecu_id)
+        self.control_frame_write_file(ecu_id)
         time.sleep(1)
-        self.generate.control_frame_install_updates(ecu_id)
+        self.control_frame_install_updates(ecu_id)
 
     def _verify_version(self):
         """
