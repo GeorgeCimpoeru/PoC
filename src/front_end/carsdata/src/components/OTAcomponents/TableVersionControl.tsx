@@ -2,39 +2,19 @@
 import React, { useEffect, useState } from 'react';
 import UpgradeButton from './UpgradeButton';
 import DowngradeButton from './DowngradeButton';
-import {displayLoadingCircle, displayErrorPopup, removeLoadingCicle} from '../sharedComponents/LoadingCircle';
-
+import {removeLoadingCicle} from '../sharedComponents/LoadingCircle';
 
 const TableVersionControl = (props: any) => {
     const [newSoftVersions, setNewSoftVersions] = useState<string[]>([]);
 
-    const getNewSoftVersions = async () => {
-        displayLoadingCircle();
-        setNewSoftVersions([]);
-        console.log("Fetching available versions from database...");
-
-        const unit = props.device;
-
-            await fetch(`/api/getAvailableVersions?unit=${unit}`, {
-                method: 'GET',
-            }).then(response => response.json())
-                .then(data => {
-                    const versionsString = data.versions.versions;
-                    setNewSoftVersions(versionsString.split('; '));
-                    removeLoadingCicle();
-                    console.log(versionsString);
-                })
-                .catch(error => {
-                    console.log(error);
-                    setNewSoftVersions([]);
-                    displayErrorPopup();
-                    removeLoadingCicle();
-                });
+    const getNewSoftVersions = () => {
+        setNewSoftVersions(props.versions.split('; '));
+        removeLoadingCicle();
     };
 
     useEffect(() => {
         getNewSoftVersions();
-    }, [props.device]); /////////?????????????
+    }, [props.device, props.versions]);
 
     return (
         <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1 m-6">

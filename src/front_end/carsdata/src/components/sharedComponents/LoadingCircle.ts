@@ -54,9 +54,9 @@ export function displayLoadingCircle () {
     document.head.appendChild(popupStyleElement);
 };
 
-export function displayErrorPopup () {
+export function displayErrorPopup (text: string = 'API connection failed') {
     const popup = document.createElement('div');
-    popup.innerText = "API connection failed";
+    popup.innerText = text;
     popup.style.position = 'fixed';
     popup.style.top = '50%';
     popup.style.left = '50%';
