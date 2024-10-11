@@ -10,10 +10,6 @@ EcuReset::EcuReset(uint32_t can_id, uint8_t sub_function, int socket, Logger &lo
 {
 }
 
-EcuReset::~EcuReset()
-{
-}
-
 void EcuReset::ecuResetRequest(const std::vector<uint8_t>& request)
 {
     uint8_t lowerbits = can_id & 0xFF;
