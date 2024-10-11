@@ -68,7 +68,7 @@ class UDSactivity : ComponentActivity() {
 
         setContent {
             CarsDataTheme {
-                ActivityLayout(ecusInfoViewModel)
+                ActivityLayout(ecusInfoViewModel, onBackPressed = { onBackPressed() })
             }
         }
     }
@@ -76,7 +76,7 @@ class UDSactivity : ComponentActivity() {
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun ActivityLayout(ecusInfoViewModel: EcusInfoViewModel) {
+fun ActivityLayout(ecusInfoViewModel: EcusInfoViewModel, onBackPressed: () -> Unit) {
     var selectedIndex = remember { mutableIntStateOf(0) }
 
     Scaffold(
@@ -91,7 +91,7 @@ fun ActivityLayout(ecusInfoViewModel: EcusInfoViewModel) {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            TopBarNavigation()
+            TopBarNavigation(onBackPressed)
 
             ThreeColumnLayout(
                 modifier = Modifier.weight(1f),
@@ -290,7 +290,7 @@ fun handleMenuItemClick() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBarNavigation() {
+fun TopBarNavigation(onBackPressed: () -> Unit) {
     var showMenu by remember { mutableStateOf(false) }
     val navController = rememberNavController()
 
@@ -303,7 +303,7 @@ fun TopBarNavigation() {
             )
         },
         navigationIcon = {
-            IconButton(onClick = {navController.popBackStack()}) {
+            IconButton(onClick = { onBackPressed() }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Localized description"
