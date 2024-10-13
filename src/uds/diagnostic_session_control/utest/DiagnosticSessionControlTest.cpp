@@ -144,6 +144,16 @@ TEST_F(DiagnosticSessionControlTest, SwitchToProgrammingSession) {
     std::cerr << "Finished SwitchToProgrammingSession" << std::endl;
 }
 
+/* Test for Switching to Programming Session by Tester present*/
+TEST_F(DiagnosticSessionControlTest, SwitchToProgrammingSessionTesterPresent) {
+    std::cerr << "Running SwitchToProgrammingSession" << std::endl;
+
+    dsc->sessionControl(0xFA10, 0x02,true);
+    c1->capture();
+    EXPECT_EQ(dsc->getCurrentSessionToString(), "PROGRAMMING_SESSION");
+    std::cerr << "Finished SwitchToProgrammingSession" << std::endl;
+}
+
 /* Test for get Current Session To String method in Programming Session*/
 TEST_F(DiagnosticSessionControlTest, GetCurrentSessionToStringProgrammingSession) {
     EXPECT_EQ(dsc->getCurrentSessionToString(), "PROGRAMMING_SESSION");
