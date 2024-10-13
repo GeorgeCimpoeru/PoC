@@ -6,7 +6,11 @@
 #include "../../../mcu/include/MCUModule.h"
 
 // Initialize current_session
+#ifndef UNIT_TESTING_MODE
 DiagnosticSession DiagnosticSessionControl::current_session = DEFAULT_SESSION;
+#else
+DiagnosticSession DiagnosticSessionControl::current_session = UNKNOWN_SESSION;
+#endif
 
 /* Default constructor, used in MCU */
 DiagnosticSessionControl::DiagnosticSessionControl(Logger& logger, int socket) : dsc_logger(logger)

@@ -32,7 +32,8 @@ enum DiagnosticSession
 {
     DEFAULT_SESSION = 0x01,
     PROGRAMMING_SESSION,
-    EXTENDED_DIAGNOSTIC_SESSION
+    EXTENDED_DIAGNOSTIC_SESSION,
+    UNKNOWN_SESSION
     /* Other sessions can be defined here */
 };
 
