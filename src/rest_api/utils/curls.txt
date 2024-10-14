@@ -1,0 +1,137 @@
+1. /request_ids - GET Request
+
+curl -X GET http://localhost:5000/api/request_ids
+
+2. /update_to_version - POST Request
+
+curl -X POST http://localhost:5000/api/update_to_version \
+-H "Content-Type: application/json" \
+-d '{
+    "update_file_type": "mcu",
+    "update_file_version": "1.4",
+    "ecu_id": "0x10"
+}'
+3. /read_info_battery - GET Request
+
+curl -X GET "http://localhost:5000/api/read_info_battery?item=battery_status"
+
+4. /read_info_engine - GET Request
+
+curl -X GET "http://localhost:5000/api/read_info_engine?item=engine_temperature"
+
+5. /read_info_doors - GET Request
+
+curl -X GET "http://localhost:5000/api/read_info_doors?item=door_status"
+
+6. /read_info_hvac - GET Request
+
+curl -X GET "http://localhost:5000/api/read_info_hvac?item=hvac_mode"
+
+7. /send_frame - POST Request
+
+curl -X POST http://localhost:5000/api/send_frame \
+-H "Content-Type: application/json" \
+-d '{
+    "can_id": "0x10",
+    "can_data": "01 02 03 04"
+}'
+
+8. /write_info_doors - POST Request
+
+curl -X POST http://localhost:5000/api/write_info_doors \
+-H "Content-Type: application/json" \
+-d '{
+    "parameter": "lock_state",
+    "value": "locked"
+}'
+
+9. /write_info_battery - POST Request
+
+curl -X POST http://localhost:5000/api/write_info_battery \
+-H "Content-Type: application/json" \
+-d '{
+    "parameter": "charge_level",
+    "value": "75%"
+}'
+
+10. /write_info_engine - POST Request
+
+curl -X POST http://localhost:5000/api/write_info_engine \
+-H "Content-Type: application/json" \
+-d '{
+    "parameter": "rpm",
+    "value": "3000"
+}'
+
+11. /write_info_hvac - POST Request
+
+
+curl -X POST http://localhost:5000/api/write_info_hvac \
+-H "Content-Type: application/json" \
+-d '{
+    "parameter": "temperature",
+    "value": "22C"
+}'
+
+12. /logs - GET Request
+
+
+curl -X GET http://localhost:5000/api/logs
+
+13. /drive_update_data - GET Request
+
+curl -X GET http://localhost:5000/api/drive_update_data
+
+14. /authenticate - GET Request
+
+curl -X GET http://localhost:5000/api/authenticate
+
+15. /read_dtc_info - GET Request
+
+curl -X GET http://localhost:5000/api/read_dtc_info
+
+16. /clear_dtc_info - GET Request
+
+curl -X GET http://localhost:5000/api/clear_dtc_info
+
+17. /change_session - POST Request
+
+curl -X POST http://localhost:5000/api/change_session \
+-H "Content-Type: application/json" \
+-d '{
+    "sub_funct": 3
+}'
+
+18. /tester_present - GET Request
+
+curl -X GET http://localhost:5000/api/tester_present
+
+19. /get_identifiers - GET Request
+
+curl -X GET http://localhost:5000/api/get_identifiers
+
+20. /read_access_timing - POST Request
+
+curl -X POST http://localhost:5000/api/read_access_timing \
+-H "Content-Type: application/json" \
+-d '{
+    "sub_funct": 1
+}'
+
+21. /reset_ecu - POST Request
+
+curl -X POST http://localhost:5000/api/reset_ecu \
+-H "Content-Type: application/json" \
+-d '{
+    "type_reset": "soft_reset",
+    "ecu_id": "0x10"
+}'
+
+22. /write_timing - POST Request
+
+curl -X POST http://localhost:5000/api/write_timing \
+-H "Content-Type: application/json" \
+-d '{
+    "p2_max": 500,
+    "p2_star_max": 1000
+}'

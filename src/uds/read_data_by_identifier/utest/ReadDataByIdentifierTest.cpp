@@ -1,154 +1,318 @@
+/**
+ * @file ReadDataByIdentifierTest.cpp
+ * @author Theodor Stoica
+ * @brief Unit test for Read Data By Identifier Service
+ * @version 0.1
+ * @date 2024-10-9
+ */
 #include <gtest/gtest.h>
 #include "../include/ReadDataByIdentifier.h"
-#include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
-#include "../../../mcu/include/MCUModule.h"
+#include "../../../utils/include/ReceiveFrames.h"
 
-int socket_;
-class ReadDataByIdentifierTest : public ::testing::Test {
-protected:
-    Logger* logger;
+int socket1;
+int socket2;
+
+std::vector<uint8_t> seed;
+
+class CaptureFrame
+{
+    public:
+        struct can_frame frame;
+        void capture()
+        {
+            read(socket1, &frame, sizeof(struct can_frame));
+        }
+};
+
+struct can_frame createFrame(uint16_t can_id ,std::vector<uint8_t> test_data)
+{
+    struct can_frame result_frame;
+    result_frame.can_id = can_id;
+    int i=0;
+    for (auto d : test_data)
+    {
+        result_frame.data[i++] = d;
+    }
+    result_frame.can_dlc = test_data.size();
+    return result_frame;
+}
+
+int createSocket()
+{
+    /* Create socket */
+    std::string name_interface = "vcan1";
+    struct sockaddr_can addr;
+    struct ifreq ifr;
+    int s;
+
+    s = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+    if (s < 0)
+    {
+        std::cout<<"Error trying to create the socket\n";
+        return 1;
+    }
+    /* Giving name and index to the interface created */
+    strcpy(ifr.ifr_name, name_interface.c_str() );
+    ioctl(s, SIOCGIFINDEX, &ifr);
+    /* Set addr structure with info. of the CAN interface */
+    addr.can_family = AF_CAN;
+    addr.can_ifindex = ifr.ifr_ifindex;
+    /* Bind the socket to the CAN interface */
+    int b = bind(s, (struct sockaddr*)&addr, sizeof(addr));
+    if( b < 0 )
+    {
+        std::cout<<"Error binding\n";
+        return 1;
+    }
+    int flags = fcntl(s, F_GETFL, 0);
+    if (flags == -1)
+    {
+        return 1;
+    }
+    /* Set the O_NONBLOCK flag to make the socket non-blocking */
+    flags |= O_NONBLOCK;
+    if (fcntl(s, F_SETFL, flags) == -1)
+    {
+        return -1;
+    }
+    return s;
+}
+
+void testFrames(struct can_frame expected_frame, CaptureFrame &c1 )
+{
+    EXPECT_EQ(expected_frame.can_id & 0xFFFF, c1.frame.can_id & 0xFFFF);
+    EXPECT_EQ(expected_frame.can_dlc, c1.frame.can_dlc);
+    for (int i = 0; i < expected_frame.can_dlc; ++i)
+    {
+        EXPECT_EQ(expected_frame.data[i], c1.frame.data[i]);
+    }
+}
+
+bool containsLine(const std::string& output, const std::string& line)
+{
+    return output.find(line) != std::string::npos;
+}
+
+uint8_t computeKey(uint8_t& seed)
+{
+    return ~seed + 1;
+}
+
+struct ReadDataByIdentifierTest : testing::Test
+{
     ReadDataByIdentifier* rdbi;
-    CreateInterface* create_interface;
-
+    SecurityAccess* security;
+    CaptureFrame* c1;
+    Logger* logger;
     ReadDataByIdentifierTest()
     {
-        logger = new Logger;
-        rdbi = new ReadDataByIdentifier(socket_, logger);
-        battery = new BatteryModule(0x00, 0x11);
-        MCU::mcu = new MCU::MCUModule(0x01);
+        logger = new Logger();
+        rdbi = new ReadDataByIdentifier(socket2, *logger);
+        security = new SecurityAccess(socket2, *logger);
+        c1 = new CaptureFrame();
     }
     ~ReadDataByIdentifierTest()
     {
-        delete logger;
         delete rdbi;
-        MCU::mcu = nullptr;
-        battery = nullptr;
+        delete security;
+        delete c1;
+        delete logger;
     }
 };
-TEST_F(ReadDataByIdentifierTest, InvalidMessageLength) {
-    canid_t can_id = 0x10; 
-    MCU::mcu->mcu_data[0x1234] = {0x01, 0x02, 0x03, 0x04};
-    /* ReadDataByIdentifier request for data identifier 0x1234 */
-    std::vector<uint8_t> request = {0x22, 0x01, 0x12};
 
-    std::vector<uint8_t> expected_response = {0x03, 0x7F, 0x22, 0x13};
-    std::vector<uint8_t> actual_response = rdbi->readDataByIdentifier(can_id, request, true);
-
-    EXPECT_EQ(expected_response, actual_response);
+TEST_F(ReadDataByIdentifierTest, IncorrectMessageLength)
+{
+    struct can_frame result_frame = createFrame(0x10FA, {0x03, 0x7F, 0x22, NegativeResponse::IMLOIF});
+    rdbi->readDataByIdentifier(0xFA10, {0x01, 0x22}, true);
+    c1->capture();
+    testFrames(result_frame, *c1);
 }
 
-TEST_F(ReadDataByIdentifierTest, ValidRequestForMCUData) {
-    canid_t can_id = 0x10; 
-    MCU::mcu->mcu_data[0x1234] = {0x01, 0x02, 0x03, 0x04};
-    /* ReadDataByIdentifier request for data identifier 0x1234 */
-    std::vector<uint8_t> request = {0x22, 0x01, 0x12, 0x34};
-
-    std::vector<uint8_t> expected_response = {0x01, 0x02, 0x03, 0x04};
-    std::vector<uint8_t> actual_response = rdbi->readDataByIdentifier(can_id, request, true);
-
-    EXPECT_EQ(expected_response, actual_response);
+TEST_F(ReadDataByIdentifierTest, MCUSecurity)
+{
+    struct can_frame result_frame = createFrame(0x10FA, {0x03, 0x7F, 0x22, NegativeResponse::SAD});
+    rdbi->readDataByIdentifier(0xFA10, {0x04, 0x22, 0xf1, 0x90, 0x11}, true);
+    c1->capture();
+    testFrames(result_frame, *c1);
 }
 
+TEST_F(ReadDataByIdentifierTest, ECUsSecurity)
+{
+    /* Battery Module */
+    struct can_frame result_frame = createFrame(0x11FA, {0x03, 0x7F, 0x22, NegativeResponse::SAD});
 
-TEST_F(ReadDataByIdentifierTest, ValidRequestForBatteryData) {
-    ASSERT_NE(battery, nullptr);
-    canid_t can_id = 0x1011;
-    battery->ecu_data[0x01A0] = {0x01, 0x02, 0x03, 0x04};
-    /* ReadDataByIdentifier request for data identifier 0x5678 */
-    std::vector<uint8_t> request = {0x22, 0x01, 0x01, 0xA0};
+    rdbi->readDataByIdentifier(0xFA11, {0x04, 0x22, 0xf1, 0x90, 0x11}, true);
+    c1->capture();
+    testFrames(result_frame, *c1);
 
-    std::vector<uint8_t> expected_response = {0x01, 0x02, 0x03, 0x04};
-    std::vector<uint8_t> actual_response = rdbi->readDataByIdentifier(can_id, request, false);
+    /* Engine Module */
+    result_frame = createFrame(0x12FA, {0x03, 0x7F, 0x22, NegativeResponse::SAD});
 
-    EXPECT_EQ(expected_response, actual_response);
+    rdbi->readDataByIdentifier(0xFA12, {0x04, 0x22, 0xf1, 0x90, 0x11}, true);
+    c1->capture();
+    testFrames(result_frame, *c1);
+
+    /* Doors Module */
+    result_frame = createFrame(0x13FA, {0x03, 0x7F, 0x22, NegativeResponse::SAD});
+
+    rdbi->readDataByIdentifier(0xFA13, {0x04, 0x22, 0xf1, 0x90, 0x11}, true);
+    c1->capture();
+    testFrames(result_frame, *c1);
+
+    /* HVAC Module */
+    result_frame = createFrame(0x14FA, {0x03, 0x7F, 0x22, NegativeResponse::SAD});
+    rdbi->readDataByIdentifier(0xFA14, {0x04, 0x22, 0xf1, 0x90, 0x11}, true);
+    c1->capture();
+    testFrames(result_frame, *c1);
 }
 
-TEST_F(ReadDataByIdentifierTest, InvalidRequestLength) {
-    canid_t can_id = 0x1000;
-    /* Invalid request (length < 4) */
-    std::vector<uint8_t> request = {0x22, 0x01};  
+TEST_F(ReadDataByIdentifierTest, RequestOutOfRangeMCU)
+{
 
-    std::vector<uint8_t> expected_response = {0x03, 0x7F, 0x22, 0x13};
-    std::vector<uint8_t> actual_response = rdbi->readDataByIdentifier(can_id, request, false);
+    struct can_frame result_frame = createFrame(0x10FA, {0x03, 0x7F, 0x22, NegativeResponse::ROOR});
 
-    EXPECT_EQ(expected_response, actual_response);
-}
+    /* Check the security */
+    /* Request seed */
+    security->securityAccess(0xFA10, {0x02, 0x27, 0x01});
 
-TEST_F(ReadDataByIdentifierTest, DataIdentifierNotFound) {
-    canid_t can_id = 0x1000;
-    /* Data identifier 0x9999 not in MCU data */
-    std::vector<uint8_t> request = {0x22, 0x01, 0x99, 0x99};
-
-    std::vector<uint8_t> expected_response = {};
-    EXPECT_NO_THROW({
-        std::vector<uint8_t> actual_response = rdbi->readDataByIdentifier(can_id, request, false);
-        EXPECT_EQ(expected_response, actual_response);
-    });
-}
-
-TEST_F(ReadDataByIdentifierTest, CheckAPIFrameGeneration) {
-    canid_t can_id = 0xFA00;
-    std::vector<uint8_t> request = {0x22, 0x01, 0x12, 0x34};
-
-    EXPECT_NO_THROW({
-        rdbi->readDataByIdentifier(can_id, request, false);
-    });
-}
-
-TEST_F(ReadDataByIdentifierTest, CheckNonAPIFrameGeneration) {
-    canid_t can_id = 0x1000;
-    std::vector<uint8_t> request = {0x22, 0x01, 0x12, 0x34};
-
-    EXPECT_NO_THROW({
-        rdbi->readDataByIdentifier(can_id, request, false);
-    });
-}
-TEST_F(ReadDataByIdentifierTest, LongResponseForAPIFrame) {
-    canid_t can_id = 0xFA10;
-    std::vector<uint8_t> request = {0x22, 0x01, 0x12, 0x34};
-    /* 10 bytes of data */
-    std::vector<uint8_t> long_data(10, 0xBB);
-    MCU::mcu->mcu_data[0x1234] = long_data;
-
-    std::vector<uint8_t> actual_response = rdbi->readDataByIdentifier(can_id, request, true);
-
-    std::vector<uint8_t> expected_response;
-    expected_response.insert(expected_response.end(), long_data.begin(), long_data.end());
-
-    EXPECT_EQ(expected_response.size(), actual_response.size());
-
-    for (size_t i = 0; i < expected_response.size(); ++i) {
-        EXPECT_EQ(expected_response[i], actual_response[i]) << "Mismatch at index " << i;
+    c1->capture();
+    if (c1->frame.can_dlc >= 4)
+    {
+        seed.clear();
+        /* from 3 to pci_length we have the seed generated in response */
+        for (int i = 3; i <= c1->frame.data[0]; i++)
+        {
+            seed.push_back(c1->frame.data[i]);
+        }
     }
+    /* Compute key from seed */
+    for (auto &elem : seed)
+    {
+        elem = computeKey(elem);
+    }
+    std::vector<uint8_t> data_frame = {static_cast<uint8_t>(seed.size() + 2), 0x27, 0x02};
+    data_frame.insert(data_frame.end(), seed.begin(), seed.end());
+    security->securityAccess(0xFA10, data_frame);
+    c1->capture();
 
-    EXPECT_GT(actual_response.size(), 8);
+    rdbi->readDataByIdentifier(0xFA10, {0x04, 0x22, 0x11, 0x11, 0x11}, true);
+    c1->capture();
+    testFrames(result_frame, *c1);
 }
 
-TEST_F(ReadDataByIdentifierTest, LongResponseForNonAPIFrame) {
-    canid_t can_id = 0x1010;
-    std::vector<uint8_t> request = {0x22, 0x01, 0x12, 0x34};
-    create_interface = nullptr;
-    /* Populate MCU data with a long response */
-    std::vector<uint8_t> long_data(10, 0xBB);
-    MCU::mcu->mcu_data[0x1234] = long_data;
+/* Test Request Out Of Range Battery */
+TEST_F(ReadDataByIdentifierTest, RequestOutOfRangeBattery)
+{
+    ReceiveFrames* receiveFrames = new ReceiveFrames(socket2, 0x11, *logger);
+    receiveFrames->setEcuState(true);
+    struct can_frame result_frame = createFrame(0x11FA, {0x03, 0x7F, 0x22, NegativeResponse::ROOR});
+    rdbi->readDataByIdentifier(0xFA11, {0x04, 0x22, 0x11, 0x11, 0x11}, true);
+    c1->capture();
+    testFrames(result_frame, *c1);
+    delete receiveFrames;
+}
 
-    std::vector<uint8_t> actual_response = rdbi->readDataByIdentifier(can_id, request, false);
+/* Test Request Out Of Range Engine */
+TEST_F(ReadDataByIdentifierTest, RequestOutOfRangeEngine)
+{
+    struct can_frame result_frame = createFrame(0x12FA, {0x03, 0x7F, 0x22, NegativeResponse::ROOR});
+    rdbi->readDataByIdentifier(0xFA12, {0x04, 0x22, 0x11, 0x11, 0x11}, true);
+    c1->capture();
+    testFrames(result_frame, *c1);
+}
 
-    std::vector<uint8_t> expected_response;
-    expected_response.insert(expected_response.end(), long_data.begin(), long_data.end());
+/* Test Request Out Of Range Doors */
+TEST_F(ReadDataByIdentifierTest, RequestOutOfRangeDoors)
+{
+    struct can_frame result_frame = createFrame(0x13FA, {0x03, 0x7F, 0x22, NegativeResponse::ROOR});
+    rdbi->readDataByIdentifier(0xFA13, {0x04, 0x22, 0x11, 0x11, 0x11}, true);
+    c1->capture();
+    testFrames(result_frame, *c1);
+}
 
-    EXPECT_EQ(expected_response.size(), actual_response.size());
+/* Test Request Out Of Range HVAC */
+TEST_F(ReadDataByIdentifierTest, RequestOutOfRangeHVAC)
+{
+    struct can_frame result_frame = createFrame(0x14FA, {0x03, 0x7F, 0x22, NegativeResponse::ROOR});
+    rdbi->readDataByIdentifier(0xFA14, {0x04, 0x22, 0x11, 0x11, 0x11}, true);
+    c1->capture();
+    testFrames(result_frame, *c1);
+}
 
-    for (size_t i = 0; i < expected_response.size(); ++i) {
-        EXPECT_EQ(expected_response[i], actual_response[i]) << "Mismatch at index " << i;
+/* Test Module not supported */
+TEST_F(ReadDataByIdentifierTest, ModuleNotSupported)
+{
+    struct can_frame result_frame = createFrame(0x15FA, {0x03, 0x7F, 0x22, NegativeResponse::ROOR});
+
+    rdbi->readDataByIdentifier(0xFA15, {0x04, 0x22, 0x11, 0x11, 0x11}, true);
+    c1->capture();
+    testFrames(result_frame, *c1);
+}
+
+TEST_F(ReadDataByIdentifierTest, ErrorReadingFromFile)
+{
+    std::string file_name = std::string(PROJECT_PATH) + "/src/mcu/mcu_data.txt";
+    std::string original_content;
+    std::ifstream original_file(file_name);
+    if (original_file)
+    {
+        original_content.assign((std::istreambuf_iterator<char>(original_file)),
+                                std::istreambuf_iterator<char>());
+        original_file.close();
     }
+    std::remove(file_name.c_str());
 
-    /* Assert that the size of the actual response is greater than 8 bytes */
-    EXPECT_GT(actual_response.size(), 8);
+    struct can_frame result_frame = createFrame(0x10FA, {0x03, 0x7F, 0x22, NegativeResponse::ROOR});
+    rdbi->readDataByIdentifier(0xFA10, {0x04, 0x22, 0x11, 0x11, 0x11}, true);
+    c1->capture();
+
+    std::ofstream new_file(file_name);
+    if (new_file)
+    {
+        if (!original_content.empty())
+        {
+            new_file << original_content;
+        }
+        new_file.close();
+    }
+    else
+    {
+        FAIL() << "Error recreating the file.";
+    }
+    std::ifstream recreated_file(file_name);
+    EXPECT_TRUE(recreated_file.good());
+
+    if (!original_content.empty())
+    {
+        std::string recreated_content((std::istreambuf_iterator<char>(recreated_file)),
+                                      std::istreambuf_iterator<char>());
+        EXPECT_EQ(recreated_content, original_content);
+    }
+    testFrames(result_frame, *c1);
+}
+
+/* Test Corect DID MCU */
+TEST_F(ReadDataByIdentifierTest, CorectDIDMCU)
+{
+    struct can_frame result_frame = createFrame(0x10FA, {0x04, 0x62, 0xF1, 0xA2, 0x00});
+    rdbi->readDataByIdentifier(0xFA10, {0x03, 0x22, 0xF1, 0xA2}, true);
+    c1->capture();
+    testFrames(result_frame, *c1);
 }
 
 int main(int argc, char* argv[])
 {
+    socket1 = createSocket();
+    socket2 = createSocket();
     testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    int result = RUN_ALL_TESTS();
+    if (socket1 > 0)
+    {
+        close(socket1);
+    }
+    if (socket2 > 0)
+    {
+        close(socket2);
+    }
+    return result;
 }

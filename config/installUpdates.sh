@@ -34,6 +34,21 @@ kill_processes() {
     done
 }
 
+kill_process_group() {
+    echo "Attempting to kill process group with PID: $1 for the $2 executable"
+    #Can't kill the process group because it also kills the SCRIPT and it stops after the kill
+    #TODO!!
+    kill -9 $1
+
+    if [ $? -eq 0 ]; then
+        echo "Successfully killed process with PID $PID"
+        sleep 1
+    else
+        echo "Failed to kill process with PID $PID"
+        exit 1
+    fi
+
+}
 # Function to replace the executable
 replace_executable() {
     echo "Replacing $1 with $2"
@@ -57,7 +72,7 @@ replace_executable() {
         echo "Removed $2"
     else
         echo "Failed to remove $2"
-        exit 1
+        # exit 1
     fi
 }
 
@@ -66,33 +81,77 @@ start_executable() {
     echo "Starting $1"
 
     # Start the executable in the background
-    "$1" &
+    "./$1" &
 
-    # Check if the start was successful
-    if [ $? -eq 0 ]; then
-        echo "$1 started successfully"
+    # Capture the PID of the last background command
+    local pid=$!
+
+    # Give the process a moment to initialize and check if it's running
+    sleep 1
+    
+    # Check if the process is running
+    if ps -p $pid > /dev/null; then
+        echo "$1 started successfully with PID: $pid"
     else
         echo "Failed to start $1"
         exit 1
     fi
 }
 
+
+# kill_processes "${CURRENT_EXECUTABLE}"
+# replace_executable "${CURRENT_EXECUTABLE}" "${NEW_EXECUTABLE}"
+# start_executable "${CURRENT_EXECUTABLE}"
 # Main script execution
-for i in "${!NEW_EXECUTABLES[@]}"; do
-    NEW_EXECUTABLE="${BASE_PATH}${NEW_EXECUTABLES[$i]}"
-    CURRENT_EXECUTABLE="${BASE_PATH}${CURRENT_EXECUTABLES[$i]}"
+# for i in "${!NEW_EXECUTABLES[@]}"; do
+#     NEW_EXECUTABLE="${BASE_PATH}${NEW_EXECUTABLES[$i]}"
+#     CURRENT_EXECUTABLE="${BASE_PATH}${CURRENT_EXECUTABLES[$i]}"
+#     if [ -f "$NEW_EXECUTABLE" ]; then
+#         echo "Found new executable: $NEW_EXECUTABLE"
+#         kill_processes "$CURRENT_EXECUTABLE"
+#         replace_executable "$CURRENT_EXECUTABLE" "$NEW_EXECUTABLE"
+#         start_executable "$CURRENT_EXECUTABLE"
+#         break
+#     else
+#         echo "No new executable found for $CURRENT_EXECUTABLE"
+#     fi
+# done
+################################################################   SCRIPT START   ###############################################################
+################################################################   SCRIPT START   ###############################################################
+################################################################   SCRIPT START   ###############################################################
 
-    if [ -f "$NEW_EXECUTABLE" ]; then
-        echo "Found new executable: $NEW_EXECUTABLE"
-        kill_processes "$CURRENT_EXECUTABLE"
-        replace_executable "$CURRENT_EXECUTABLE" "$NEW_EXECUTABLE"
-        start_executable "$CURRENT_EXECUTABLE"
-        break
-    else
-        echo "No new executable found for $CURRENT_EXECUTABLE"
-    fi
-done
+# First argument = current executable pid
+CURRENT_EXECUTABLE_PID=$1
+# Second argument = current executable name
+CURRENT_EXECUTABLE=$2
 
+if [ "$3" == "restore" ]; then
+    NEW_EXECUTABLE=${CURRENT_EXECUTABLE}_restored
+    echo "Starting software rollback"
+elif [ "$3" == "activate" ]; then
+    NEW_EXECUTABLE=${CURRENT_EXECUTABLE}_new
+    echo "Starting new software activation"
+else
+    echo "Usage: first argument = current_executable_pid, second argument = current_executable_name, third argument = restore|activate"
+    exit 1
+fi
+# Check if the new executable exists before activating it
+if [ -f "$NEW_EXECUTABLE" ]; then
+    echo "Found new executable: $NEW_EXECUTABLE"
+else
+    echo "No new executable found for $CURRENT_EXECUTABLE"
+    exit 1
+fi
+
+kill_process_group "${CURRENT_EXECUTABLE_PID}" "${CURRENT_EXECUTABLE}"
+replace_executable "${CURRENT_EXECUTABLE}" "${NEW_EXECUTABLE}"
+start_executable "${CURRENT_EXECUTABLE}"
 sleep 1
 
-echo "Update complete."
+if [ "$3" == "restore" ]; then
+    echo "Rollback complete."
+
+elif [ "$3" == "activate" ]; then
+    echo "Update complete."
+fi
+exit 0

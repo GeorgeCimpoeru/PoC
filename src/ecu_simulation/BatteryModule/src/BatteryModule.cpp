@@ -10,7 +10,12 @@ std::unordered_map<uint16_t, std::vector<uint8_t>> BatteryModule::default_DID_ba
         {0x01C0, {0}},  /* Percentage */
         {0x01D0, {0}},   /* State of Charge */
         {0x01E0, {0}},   /* Temperature (C) */
-        {0x01F0, {0}}   /* Life cycle */
+        {0x01F0, {0}},   /* Life cycle */
+#ifdef SOFTWARE_VERSION
+        {0xF1A2, {static_cast<uint8_t>(SOFTWARE_VERSION)}}
+#else
+        {0xF1A2, {0x00}}
+#endif
 };
 
 /** Constructor - initializes the BatteryModule with default values,
@@ -278,7 +283,8 @@ void BatteryModule::writeDataToFile()
 void BatteryModule::checkDTC()
 {
     /* Check if dtcs.txt exists */
-    std::string dtc_file_path = "dtcs.txt";
+    std::string dtc_file_path = std::string(PROJECT_PATH) + "/src/ecu_simulation/BatteryModule/dtcs.txt";
+    std::string battery_file_path = std::string(PROJECT_PATH) + "/src/ecu_simulation/BatteryModule/battery_data.txt";
     std::ifstream infile(dtc_file_path);
 
     if (!infile.is_open())
@@ -300,7 +306,7 @@ void BatteryModule::checkDTC()
         infile.close();
     }
     /* Read the map with DIDs from the file */
-    std::unordered_map<uint16_t, std::vector<uint8_t>> current_DID_value = FileManager::readMapFromFile("battery_data.txt");
+    std::unordered_map<uint16_t, std::vector<uint8_t>> current_DID_value = FileManager::readMapFromFile(battery_file_path);
 
     /* Voltage DTC */
     FileManager::writeDTC(current_DID_value, dtc_file_path, 0x01B0, 12, 13, "P01B0 24");

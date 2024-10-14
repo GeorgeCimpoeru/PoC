@@ -59,7 +59,7 @@ void TesterPresent::handleTesterPresent(uint32_t can_id, std::vector<uint8_t> re
     if(DiagnosticSessionControl::getCurrentSessionToString() == "DEFAULT_SESSION")
     {
         /* Change default session to programming session */
-        sessionControl.sessionControl(can_id, 0x02);
+        sessionControl.sessionControl(can_id, 0x02,true);
         LOG_INFO(logger.GET_LOGGER(), "Default session changed into programming session");
     }
     end_time = std::chrono::steady_clock::now() + 

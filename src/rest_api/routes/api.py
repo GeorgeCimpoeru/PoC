@@ -18,6 +18,8 @@ from actions.tester_present import Tester  # noqa: E402
 from actions.access_timing_action import *  # noqa: E402
 from actions.ecu_reset import Reset  # noqa: E402
 from actions.security_decorator import *  # noqa: E402
+from utils.input_validation import validate_update_request  # noqa: E402
+from config import *  # noqa: E402
 
 api_bp = Blueprint('api', __name__)
 
@@ -30,6 +32,7 @@ def request_ids():
 
 
 @api_bp.route('/update_to_version', methods=['POST'])
+@validate_update_request
 def update_to_version():
     data = request.get_json()
     sw_file_type = data.get('update_file_type')
@@ -87,18 +90,38 @@ def send_frame():
 
 
 @api_bp.route('/write_info_doors', methods=['POST'])
+@requires_auth
 def write_info_doors():
     data = request.get_json()
-    writer = WriteInfo(API_ID, [0x10, 0x11, 0x12], data)
-    response = writer.write_to_doors()
+    writer = WriteInfo(API_ID, [0x10, 0x11, 0x12, 0x13, 0x14], data)
+    response = writer.write_to_doors(data)
     return jsonify(response)
 
 
 @api_bp.route('/write_info_battery', methods=['POST'])
+@requires_auth
 def write_info_battery():
     data = request.get_json()
     writer = WriteInfo(API_ID, [0x10, 0x11, 0x12], data)
     response = writer.write_to_battery(data)
+    return jsonify(response)
+
+
+@api_bp.route('/write_info_engine', methods=['POST'])
+@requires_auth
+def write_info_engine():
+    data = request.get_json()
+    writer = WriteInfo(API_ID, [0x10, 0x11, 0x12, 0x13, 0x14], data)
+    response = writer.write_to_engine(data)
+    return jsonify(response)
+
+
+@api_bp.route('/write_info_hvac', methods=['POST'])
+@requires_auth
+def write_info_hvac():
+    data = request.get_json()
+    writer = WriteInfo(API_ID, [0x10, 0x11, 0x12, 0x13, 0x14], data)
+    response = writer.write_to_hvac(data)
     return jsonify(response)
 
 

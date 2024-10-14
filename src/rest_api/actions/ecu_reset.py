@@ -32,9 +32,9 @@ class Reset(Action):
 
         try:
             if type_reset == "hard":
-                self.generate.ecu_reset(id, 0x01, False)
+                self.ecu_reset(id, 0x01, False)
             elif type_reset == "soft":
-                self.generate.ecu_reset(id, 0x02, False)
+                self.ecu_reset(id, 0x02, False)
             else:
                 log_error_message(logger, f"Invalid reset type: {type_reset}")
                 self.bus.shutdown()
