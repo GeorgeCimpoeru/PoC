@@ -1,4 +1,4 @@
-package com.poc.p_couds
+package com.poc.p_couds.models
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -7,6 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.example.jetpackgettingstarted.pojos.WriteBatteryChargeStateDataClass
+import com.poc.p_couds.APIClient
 import com.poc.p_couds.pojo.BatteryDataClass
 import com.poc.p_couds.pojo.DoorsDataClass
 import com.poc.p_couds.pojo.EngineDataClass
@@ -49,7 +50,7 @@ class EcusInfoViewModel : ViewModel() {
         private set
     fun fetchBatteryInfo() {
         viewModelScope.launch {
-            val call = RetrofitInstance.api.getInfoBattery()
+            val call = APIClient.getClient().create(IApiService::class.java).getInfoBattery()
             call.enqueue(object : Callback<BatteryDataClass> {
                 override fun onResponse(call: Call<BatteryDataClass>, response: Response<BatteryDataClass>) {
                     if (response.isSuccessful) {
@@ -77,7 +78,7 @@ class EcusInfoViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
-                val response: Response<WriteBatteryResponseDataClass> = RetrofitInstance.api.writeInfoBattery(writeBatteryInfoRequest)
+                val response: Response<WriteBatteryResponseDataClass> = APIClient.getClient().create(IApiService::class.java).writeInfoBattery(writeBatteryInfoRequest)
                 if (response.isSuccessful) {
                     Log.d("API_SUCCESS", "Post created: ${response.body()}")
                 } else {
@@ -95,7 +96,7 @@ class EcusInfoViewModel : ViewModel() {
         private set
     fun fetchEngineInfo() {
         viewModelScope.launch {
-            val call = RetrofitInstance.api.getInfoEngine()
+            val call = APIClient.getClient().create(IApiService::class.java).getInfoEngine()
             call.enqueue(object : Callback<EngineDataClass> {
                 override fun onResponse(call: Call<EngineDataClass>, response: Response<EngineDataClass>) {
                     if (response.isSuccessful) {
@@ -128,7 +129,7 @@ class EcusInfoViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
-                val response: Response<WriteEngineResponseDataClass> = RetrofitInstance.api.writeInfoEngine(writeEngineInfoRequest)
+                val response: Response<WriteEngineResponseDataClass> = APIClient.getClient().create(IApiService::class.java).writeInfoEngine(writeEngineInfoRequest)
                 if (response.isSuccessful) {
                     Log.d("API_SUCCESS", "Post created: ${response.body()}")
                 } else {
@@ -146,7 +147,7 @@ class EcusInfoViewModel : ViewModel() {
         private set
     fun fetchDoorsInfo() {
         viewModelScope.launch {
-            val call = RetrofitInstance.api.getInfoDoors()
+            val call = APIClient.getClient().create(IApiService::class.java).getInfoDoors()
             call.enqueue(object : Callback<DoorsDataClass> {
                 override fun onResponse(call: Call<DoorsDataClass>, response: Response<DoorsDataClass>) {
                     if (response.isSuccessful) {
@@ -174,7 +175,7 @@ class EcusInfoViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
-                val response: Response<WriteDoorsResponseDataClass> = RetrofitInstance.api.writeInfoDoors(writeDoorsInfoRequest)
+                val response: Response<WriteDoorsResponseDataClass> = APIClient.getClient().create(IApiService::class.java).writeInfoDoors(writeDoorsInfoRequest)
                 if (response.isSuccessful) {
                     Log.d("API_SUCCESS", "Post created: ${response.body()}")
                 } else {
@@ -192,7 +193,7 @@ class EcusInfoViewModel : ViewModel() {
         private set
     fun fetchHvacInfo() {
         viewModelScope.launch {
-            val call = RetrofitInstance.api.getInfoHVAC()
+            val call = APIClient.getClient().create(IApiService::class.java).getInfoHVAC()
             call.enqueue(object : Callback<HVACDataClass> {
                 override fun onResponse(call: Call<HVACDataClass>, response: Response<HVACDataClass>) {
                     if (response.isSuccessful) {
@@ -226,7 +227,7 @@ class EcusInfoViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
-                val response: Response<WriteHvacResponseDataClass> = RetrofitInstance.api.writeInfoHVAC(writeHVACInfoRequest)
+                val response: Response<WriteHvacResponseDataClass> = APIClient.getClient().create(IApiService::class.java).writeInfoHVAC(writeHVACInfoRequest)
                 if (response.isSuccessful) {
                     Log.d("API_SUCCESS", "Post created: ${response.body()}")
                 } else {

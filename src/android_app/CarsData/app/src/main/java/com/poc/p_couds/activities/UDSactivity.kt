@@ -58,7 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.poc.p_couds.EcusInfoViewModel
+import com.poc.p_couds.models.EcusInfoViewModel
 import com.poc.p_couds.R
 import com.poc.p_couds.ui.theme.CarsDataTheme
 
