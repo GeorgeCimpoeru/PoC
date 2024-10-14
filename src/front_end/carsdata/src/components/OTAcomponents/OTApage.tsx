@@ -4,6 +4,36 @@ import LeftSideBar from "@/src/components/OTAcomponents/LeftSideBar";
 import NavbarOta from "@/src/components/OTAcomponents/NavbarOta";
 import TableVersionControl from "@/src/components/OTAcomponents/TableVersionControl";
 import TableHistory from "@/src/components/OTAcomponents/TableHistory";
+import {displayLoadingCircle, displayErrorPopup, removeLoadingCicle} from '../sharedComponents/LoadingCircle';
+
+
+let MCU_versions : string = '';
+let Battery_versions : string = '';
+let Engine_versions : string = '';
+let Doors_versions : string = '';
+let HVAC_versions : string = '';
+
+const getAvailable = async () => {
+    displayLoadingCircle();
+    console.log("Fetching available versions from database...");
+
+    await fetch(`/api/getAvailableVersions`, {
+        method: 'GET',
+    }).then(response => response.json())
+        .then(data => {
+            MCU_versions = data.versions[0].versions;
+            Battery_versions = data.versions[1].versions;
+            Engine_versions = data.versions[2].versions;
+            Doors_versions = data.versions[3].versions;
+            HVAC_versions = data.versions[4].versions;
+        })
+        .catch(error => {
+            console.log(error);
+            displayErrorPopup();
+            removeLoadingCicle();
+        });
+};
+getAvailable();
 
 
 const OTApage = () => {
@@ -71,15 +101,15 @@ const OTApage = () => {
         if (selectedTable === 1) {
             switch (selectedDevice) {
                 case 1:
-                    return <TableVersionControl device={"MCU"} />;
+                    return <TableVersionControl device={"MCU"} versions={MCU_versions} />;
                 case 2:
-                    return <TableVersionControl device={"Battery"} />;
+                    return <TableVersionControl device={"Battery"} versions={Battery_versions} />;
                 case 3:
-                    return <TableVersionControl device={"Engine"} />;
+                    return <TableVersionControl device={"Engine"} versions={Engine_versions}/>;
                 case 4:
-                    return <TableVersionControl device={"Doors"} />;
+                    return <TableVersionControl device={"Doors"} versions={Doors_versions}/>;
                 default:
-                    return <TableVersionControl device={"HVAC"} />;
+                    return <TableVersionControl device={"HVAC"} versions={HVAC_versions}/>;
             }
         } else {
             return <TableHistory listOfUpdates={history6} />;
