@@ -173,13 +173,14 @@ void GenerateFrames::securityAccessSendKey(int id, const std::vector<uint8_t> &k
 
 void GenerateFrames::routineControl(int id, uint8_t sub_function, uint16_t routine_identifier, std::vector<uint8_t>& routine_result, bool response)
 {
+    uint8_t default_pci = 0x04;
     if (!response)
     {
-        std::vector<uint8_t> data = {0x4, 0x31, sub_function, (uint8_t)(routine_identifier / 0x100), (uint8_t)(routine_identifier % 0x100)};
+        std::vector<uint8_t> data = {default_pci, 0x31, sub_function, (uint8_t)(routine_identifier / 0x100), (uint8_t)(routine_identifier % 0x100)};
         this->sendFrame(id, data);
         return;
     }
-    std::vector<uint8_t> data = {0x04,0x71, sub_function, (uint8_t)(routine_identifier / 0x100), (uint8_t)(routine_identifier % 0x100)};
+    std::vector<uint8_t> data = {static_cast<uint8_t>(default_pci + routine_result.size()), 0x71, sub_function, (uint8_t)(routine_identifier / 0x100), (uint8_t)(routine_identifier % 0x100)};
     data.insert(data.end(), routine_result.begin(), routine_result.end());
     this->sendFrame(id, data);
     return;

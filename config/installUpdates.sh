@@ -7,9 +7,6 @@ BASE_PATH="./"
 NEW_EXECUTABLES=("main_mcu_new" "main_battery_new" "main_doors_new" "main_engine_new" "main_hvac_new")
 CURRENT_EXECUTABLES=("main_mcu" "main_battery" "main_doors" "main_engine" "main_hvac")
 
-CURRENT_EXECUTABLE_PID=$1
-CURRENT_EXECUTABLE=$2
-NEW_EXECUTABLE=${CURRENT_EXECUTABLE}_new
 # Function to find and kill the running processes
 kill_processes() {
     echo "Attempting to kill running processes with executable: $1"
@@ -119,11 +116,42 @@ start_executable() {
 #         echo "No new executable found for $CURRENT_EXECUTABLE"
 #     fi
 # done
+################################################################   SCRIPT START   ###############################################################
+################################################################   SCRIPT START   ###############################################################
+################################################################   SCRIPT START   ###############################################################
+
+# First argument = current executable pid
+CURRENT_EXECUTABLE_PID=$1
+# Second argument = current executable name
+CURRENT_EXECUTABLE=$2
+
+if [ "$3" == "restore" ]; then
+    NEW_EXECUTABLE=${CURRENT_EXECUTABLE}_restored
+    echo "Starting software rollback"
+elif [ "$3" == "activate" ]; then
+    NEW_EXECUTABLE=${CURRENT_EXECUTABLE}_new
+    echo "Starting new software activation"
+else
+    echo "Usage: first argument = current_executable_pid, second argument = current_executable_name, third argument = restore|activate"
+    exit 1
+fi
+# Check if the new executable exists before activating it
+if [ -f "$NEW_EXECUTABLE" ]; then
+    echo "Found new executable: $NEW_EXECUTABLE"
+else
+    echo "No new executable found for $CURRENT_EXECUTABLE"
+    exit 1
+fi
 
 kill_process_group "${CURRENT_EXECUTABLE_PID}" "${CURRENT_EXECUTABLE}"
 replace_executable "${CURRENT_EXECUTABLE}" "${NEW_EXECUTABLE}"
 start_executable "${CURRENT_EXECUTABLE}"
 sleep 1
 
-echo "Update complete."
+if [ "$3" == "restore" ]; then
+    echo "Rollback complete."
+
+elif [ "$3" == "activate" ]; then
+    echo "Update complete."
+fi
 exit 0

@@ -85,7 +85,11 @@ class RoutineControl
      * @return true 
      * @return false 
      */
-    bool getCurrentProcessInfo(pid_t& pid, std::string& pname);
+    bool getCurrentProcessInfo(pid_t& pid, std::string& pname, std::string& ppath);
+
+    bool rollbackSoftware();
+
+    bool saveCurrentSoftware();
 
     private:
     GenerateFrames generate_frames;
