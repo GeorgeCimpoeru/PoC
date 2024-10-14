@@ -3,13 +3,16 @@
 
 #POC Project root path
 PROJECT_PATH := $(shell cd $(shell pwd)/../../ && pwd)
+SOFTWARE_VERSION = 0
+PROJECT_DEFINES = -DPROJECT_PATH=\"$(PROJECT_PATH)\" -DSOFTWARE_VERSION=${SOFTWARE_VERSION}
+
 #Python flags needed for pybing library
 PYTHON_INCL_DIR=-I/usr/include/python3.8
 PYTHON_LDFLAGS = -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -lcrypt -ldl -lutil -lm -lpthread
 
 # Compiler flags
 CXX = g++
-CFLAGS = -std=c++17 -g -Wall -Werror -pthread -I./include -I../utils/include ${PYTHON_INCL_DIR} -DPROJECT_PATH=\"$(PROJECT_PATH)\"
+CFLAGS = -std=c++17 -g -Wall -Werror -pthread -I./include -I../utils/include ${PYTHON_INCL_DIR} ${PROJECT_DEFINES}
 LDFLAGS = -lspdlog -lfmt -lzip ${PYTHON_LDFLAGS}
 
 # Test flags
@@ -202,15 +205,20 @@ $(OBJ_DIR)/NegativeResponse.o: $(UTILS_DIR)/NegativeResponse.cpp
 MCU_OBJS_TEST = $(OBJ_DIR)/MCUModule_test.o \
                 $(OBJ_DIR)/ReceiveFrames_test.o
 
-BATTERY_OBJS_TEST = $(OBJ_DIR)/BatteryModule_test.o \
-                    $(OBJ_DIR)/BatteryModule_ReceiveFrames_test.o
+ECU_OBJS_TEST = $(OBJ_DIR)/BatteryModule_test.o \
+                $(OBJ_DIR)/ECU_ReceiveFrames_test.o \
+                $(OBJ_DIR)/EngineModule_test.o \
+                $(OBJ_DIR)/DoorsModule_test.o \
+                $(OBJ_DIR)/HVACModule_test.o \
+                $(OBJ_DIR)/ECU_test.o
 
 UTILS_OBJS_TEST = $(OBJ_DIR)/MemoryManager_test.o \
                   $(OBJ_DIR)/Logger_test.o \
                   $(OBJ_DIR)/CreateInterface_test.o \
                   $(OBJ_DIR)/GenerateFrames_test.o \
                   $(OBJ_DIR)/NegativeResponse_test.o \
-				  $(OBJ_DIR)/HandleFrames_test.o
+                  $(OBJ_DIR)/HandleFrames_test.o \
+                  $(OBJ_DIR)/FileManager_test.o
 
 OBJS_GENERATE_TEST = $(OBJ_DIR)/Logger_test.o \
                   	 $(OBJ_DIR)/GenerateFrames_test.o
@@ -228,18 +236,18 @@ UDS_OBJS_TEST = $(OBJ_DIR)/DiagnosticSessionControl_test.o \
                 $(OBJ_DIR)/WriteDataByIdentifier_test.o \
                 $(OBJ_DIR)/EcuReset_test.o \
                 $(OBJ_DIR)/SecurityAccess_test.o \
-				$(OBJ_DIR)/TesterPresent_test.o \
-				$(OBJ_DIR)/TesterPresent_test.o \
+                $(OBJ_DIR)/TesterPresent_test.o \
                 $(OBJ_DIR)/ReadDtcInformation_test.o \
                 $(OBJ_DIR)/ClearDtc_test.o \
                 $(OBJ_DIR)/RoutineControl_test.o \
-				$(OBJ_DIR)/AccessTimingParameter_test.o
+                $(OBJ_DIR)/AccessTimingParameter_test.o \
+                $(OBJ_DIR)/ReadMemoryByAddress_test.o 
 
 OBJS_DIAGNOSTICSESSIONCONTROL_TEST = $(OBJ_DIR)/Logger_test.o \
-			   						 $(OBJ_DIR)/GenerateFrames_test.o \
-			   						 $(OBJ_DIR)/DiagnosticSessionControl_test.o
-
-
+                                     $(OBJ_DIR)/GenerateFrames_test.o \
+                                     $(OBJ_DIR)/DiagnosticSessionControl_test.o \
+									 $(OBJ_DIR)/AccessTimingParameter_test.o \
+									 $(OBJ_DIR)/NegativeResponse_test.o
 
 OBJS_SECURITYACCESS_TEST = $(OBJ_DIR)/Logger_test.o \
 						   $(OBJ_DIR)/GenerateFrames_test.o \
@@ -248,11 +256,14 @@ OBJS_SECURITYACCESS_TEST = $(OBJ_DIR)/Logger_test.o \
 
 OBJS_TESTERPRESENT_TEST = $(OBJ_DIR)/Logger_test.o \
 						  $(OBJ_DIR)/GenerateFrames_test.o \
-			   			  $(OBJ_DIR)/TesterPresent_test.o
+			   			  $(OBJ_DIR)/TesterPresent_test.o \
+			   			  $(OBJ_DIR)/NegativeResponse_test.o \
+			   			  $(OBJ_DIR)/DiagnosticSessionControl_test.o \
+			   			  $(OBJ_DIR)/AccessTimingParameter_test.o \
+			   			  $(OBJ_DIR)/MCUModule_test.o \
+			   			  $(OBJ_DIR)/ReceiveFrames_test.o \
+			   			  $(OBJ_DIR)/CreateInterface_test.o
 
-OBJS_TESTERPRESENT_TEST = $(OBJ_DIR)/Logger_test.o \
-						  $(OBJ_DIR)/GenerateFrames_test.o \
-			   			  $(OBJ_DIR)/TesterPresent_test.o
 
 OBJS_READDTC_TEST = $(OBJ_DIR)/Logger_test.o \
 			   		$(OBJ_DIR)/GenerateFrames_test.o \
@@ -273,8 +284,8 @@ OBJS_ROUTINECONTROL_TEST = $(OBJ_DIR)/MemoryManager_test.o \
 			   			   $(OBJ_DIR)/SecurityAccess_test.o
 					
 OBJS_ACCESSTIMINGPARAMETER_TEST = $(OBJ_DIR)/Logger_test.o \
-			   						 $(OBJ_DIR)/GenerateFrames_test.o \
-			   						 $(OBJ_DIR)/AccessTimingParameter_test.o
+                                  $(OBJ_DIR)/GenerateFrames_test.o \
+                                  $(OBJ_DIR)/AccessTimingParameter_test.o
 
 OTA_OBJS_TEST = $(OBJ_DIR)/RequestUpdateStatus_test.o \
 				$(OBJ_DIR)/RequestTransferExit_test.o \
@@ -286,8 +297,8 @@ OBJS_REQUESTUPDATESTATUS_TEST = $(OBJ_DIR)/Logger_test.o \
 			   			  		$(OBJ_DIR)/RequestUpdateStatus_test.o
 
 OBJS_REQUESTTRANSFEREXIT_TEST = $(OBJ_DIR)/Logger_test.o \
-			   			  $(OBJ_DIR)/GenerateFrames_test.o \
-			   			  $(OBJ_DIR)/RequestTransferExit_test.o
+                                $(OBJ_DIR)/GenerateFrames_test.o \
+                                $(OBJ_DIR)/RequestTransferExit_test.o
 						
 OBJS_REQUESTDOWNLOAD_TEST = $(OBJ_DIR)/Logger_test.o \
 			   			  $(OBJ_DIR)/GenerateFrames_test.o \
@@ -298,11 +309,11 @@ OBJS_TRANSFERDATA_TEST = $(OBJ_DIR)/Logger_test.o \
 			   			  $(OBJ_DIR)/TransferData_test.o
 
 OBJS_NEGATIVERESPONSE_TEST = $(OBJ_DIR)/Logger_test.o \
-							 $(OBJ_DIR)/GenerateFrames_test.o \
-							 $(OBJ_DIR)/NegativeResponse_test.o \
+                             $(OBJ_DIR)/GenerateFrames_test.o \
+                             $(OBJ_DIR)/NegativeResponse_test.o \
 
 OBJS_TEST = $(MCU_OBJS_TEST) \
-            $(BATTERY_OBJS_TEST) \
+            $(ECU_OBJS_TEST) \
             $(UTILS_OBJS_TEST) \
             $(UDS_OBJS_TEST) \
             $(OTA_OBJS_TEST)
@@ -313,6 +324,18 @@ $(OBJ_DIR)/MCUModule_test.o: $(SRC_DIR)/MCUModule.cpp
 
 $(OBJ_DIR)/BatteryModule_test.o: $(BATTERY_DIR)/BatteryModule.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(BATTERY_DIR)/BatteryModule.cpp -o $(OBJ_DIR)/BatteryModule_test.o $(CFLAGSTST2) $(LDFLAGS)
+
+$(OBJ_DIR)/EngineModule_test.o: $(ENGINE_DIR)/EngineModule.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(ENGINE_DIR)/EngineModule.cpp -o $(OBJ_DIR)/EngineModule_test.o $(CFLAGSTST2) $(LDFLAGS)
+
+$(OBJ_DIR)/DoorsModule_test.o: $(DOORS_DIR)/DoorsModule.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(DOORS_DIR)/DoorsModule.cpp -o $(OBJ_DIR)/DoorsModule_test.o $(CFLAGSTST2) $(LDFLAGS)
+
+$(OBJ_DIR)/HVACModule_test.o: $(HVAC_DIR)/HVACModule.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(HVAC_DIR)/HVACModule.cpp -o $(OBJ_DIR)/HVACModule_test.o $(CFLAGSTST2) $(LDFLAGS)
+
+$(OBJ_DIR)/ECU_test.o: $(UTILS_DIR)/ECU.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_DIR)/ECU.cpp -o $(OBJ_DIR)/ECU_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 $(OBJ_DIR)/GenerateFrames_test.o: $(UTILS_DIR)/GenerateFrames.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_DIR)/GenerateFrames.cpp -o $(OBJ_DIR)/GenerateFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
@@ -344,11 +367,11 @@ $(OBJ_DIR)/SecurityAccess_test.o: $(UDS_DIR)/authentication/src/SecurityAccess.c
 $(OBJ_DIR)/TesterPresent_test.o: $(UDS_DIR)/tester_present/src/TesterPresent.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/tester_present/src/TesterPresent.cpp -o $(OBJ_DIR)/TesterPresent_test.o $(CFLAGSTST2) $(LDFLAGS)
 
-$(OBJ_DIR)/BatteryModule_HandleFrames_test.o: $(BATTERY_DIR)/HandleFrames.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(BATTERY_DIR)/HandleFrames.cpp -o $(OBJ_DIR)/BatteryModule_HandleFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
+$(OBJ_DIR)/ECU_ReceiveFrames_test.o: $(UTILS_DIR)/ReceiveFrames.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_DIR)/ReceiveFrames.cpp -o $(OBJ_DIR)/ECU_ReceiveFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
 
-$(OBJ_DIR)/BatteryModule_ReceiveFrames_test.o: $(BATTERY_DIR)/ReceiveFrames.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(BATTERY_DIR)/ReceiveFrames.cpp -o $(OBJ_DIR)/BatteryModule_ReceiveFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
+$(OBJ_DIR)/FileManager_test.o: $(UTILS_DIR)/FileManager.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_DIR)/FileManager.cpp -o $(OBJ_DIR)/FileManager_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 $(OBJ_DIR)/ReadDtcInformation_test.o: $(UDS_DIR)/read_dtc_information/src/ReadDtcInformation.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/read_dtc_information/src/ReadDtcInformation.cpp -o $(OBJ_DIR)/ReadDtcInformation_test.o $(CFLAGSTST2) $(LDFLAGS)
@@ -376,6 +399,9 @@ $(OBJ_DIR)/ClearDtc_test.o: $(UDS_DIR)/clear_dtc/src/ClearDtc.cpp
 	
 $(OBJ_DIR)/RoutineControl_test.o: $(UDS_DIR)/routine_control/src/RoutineControl.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/routine_control/src/RoutineControl.cpp -o $(OBJ_DIR)/RoutineControl_test.o $(CFLAGSTST2) $(LDFLAGS)
+
+$(OBJ_DIR)/ReadMemoryByAddress_test.o: $(UDS_DIR)/read_memory_by_address/src/ReadMemoryByAddress.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/read_memory_by_address/src/ReadMemoryByAddress.cpp -o $(OBJ_DIR)/ReadMemoryByAddress_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 $(OBJ_DIR)/AccessTimingParameter_test.o: $(UDS_DIR)/access_timing_parameters/src/AccessTimingParameter.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/access_timing_parameters/src/AccessTimingParameter.cpp -o $(OBJ_DIR)/AccessTimingParameter_test.o $(CFLAGSTST2) $(LDFLAGS)
@@ -468,8 +494,8 @@ $(UTILS_TEST)/CreateInterface_test.o: $(UTILS_TEST)/CreateInterface_test.cpp
 # DiagnosticSessionControl Unit tests
 diagnosticSessionControlTest: $(OBJ_DIR) $(UDS_DIR)/diagnostic_session_control/utest/diagnosticSessionControlTest.out
 
-$(UDS_DIR)/diagnostic_session_control/utest/diagnosticSessionControlTest.out: $(OBJ_DIR) $(OBJS_DIAGNOSTICSESSIONCONTROL_TEST) $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControl_test.o
-	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/diagnostic_session_control/utest/diagnosticSessionControlTest.out $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControl_test.o $(OBJS_DIAGNOSTICSESSIONCONTROL_TEST) $(CFLAGSTST2) $(LDFLAGS)
+$(UDS_DIR)/diagnostic_session_control/utest/diagnosticSessionControlTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControl_test.o
+	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/diagnostic_session_control/utest/diagnosticSessionControlTest.out $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControl_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
 
 $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControl_test.o: $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControlTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControlTest.cpp -o $(UDS_DIR)/diagnostic_session_control/utest/DiagnosticSessionControl_test.o $(CFLAGSTST2) $(LDFLAGS)
@@ -512,8 +538,8 @@ $(OTA_DIR)/request_transfer_exit/utest/RequestTransferExit_test.o: $(OTA_DIR)/re
 # ReadDTC Unit tests
 readDtcTest: $(OBJ_DIR) $(UDS_DIR)/read_dtc_information/utest/readDtcTest.out
 
-$(UDS_DIR)/read_dtc_information/utest/readDtcTest.out: $(OBJ_DIR) $(OBJS_READDTC_TEST) $(UDS_DIR)/read_dtc_information/utest/ReadDtcInformation_test.o
-	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/read_dtc_information/utest/readDtcTest.out $(UDS_DIR)/read_dtc_information/utest/ReadDtcInformation_test.o $(OBJS_READDTC_TEST) $(CFLAGSTST2) $(LDFLAGS)
+$(UDS_DIR)/read_dtc_information/utest/readDtcTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UDS_DIR)/read_dtc_information/utest/ReadDtcInformation_test.o
+	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/read_dtc_information/utest/readDtcTest.out $(UDS_DIR)/read_dtc_information/utest/ReadDtcInformation_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
 
 $(UDS_DIR)/read_dtc_information/utest/ReadDtcInformation_test.o: $(UDS_DIR)/read_dtc_information/utest/ReadDtcInformationTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/read_dtc_information/utest/ReadDtcInformationTest.cpp -o $(UDS_DIR)/read_dtc_information/utest/ReadDtcInformation_test.o $(CFLAGSTST2) $(LDFLAGS)
@@ -523,8 +549,8 @@ $(UDS_DIR)/read_dtc_information/utest/ReadDtcInformation_test.o: $(UDS_DIR)/read
 # ClearDTC Unit tests
 clearDtcTest: $(OBJ_DIR) $(UDS_DIR)/clear_dtc/utest/clearDtcTest.out
 
-$(UDS_DIR)/clear_dtc/utest/clearDtcTest.out: $(OBJ_DIR) $(OBJS_CLEARDTC_TEST) $(UDS_DIR)/clear_dtc/utest/ClearDtc_test.o
-	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/clear_dtc/utest/clearDtcTest.out $(UDS_DIR)/clear_dtc/utest/ClearDtc_test.o $(OBJS_CLEARDTC_TEST) $(CFLAGSTST2) $(LDFLAGS)
+$(UDS_DIR)/clear_dtc/utest/clearDtcTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UDS_DIR)/clear_dtc/utest/ClearDtc_test.o
+	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/clear_dtc/utest/clearDtcTest.out $(UDS_DIR)/clear_dtc/utest/ClearDtc_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
 
 $(UDS_DIR)/clear_dtc/utest/ClearDtc_test.o: $(UDS_DIR)/clear_dtc/utest/ClearDtcTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/clear_dtc/utest/ClearDtcTest.cpp -o $(UDS_DIR)/clear_dtc/utest/ClearDtc_test.o $(CFLAGSTST2) $(LDFLAGS)
@@ -556,8 +582,8 @@ $(UDS_DIR)/authentication/utest/SecurityAccess_test.o: $(UDS_DIR)/authentication
 # TesterPresent Unit tests
 testerPresentTest: $(OBJ_DIR) $(UDS_DIR)/tester_present/utest/testerPresentTest.out
 
-$(UDS_DIR)/tester_present/utest/testerPresentTest.out: $(OBJ_DIR) $(OBJS_TESTERPRESENT_TEST) $(UDS_DIR)/tester_present/utest/TesterPresent_test.o
-	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/tester_present/utest/testerPresentTest.out $(UDS_DIR)/tester_present/utest/TesterPresent_test.o $(OBJS_TESTERPRESENT_TEST) $(CFLAGSTST2) $(LDFLAGS)
+$(UDS_DIR)/tester_present/utest/testerPresentTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UDS_DIR)/tester_present/utest/TesterPresent_test.o
+	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/tester_present/utest/testerPresentTest.out $(UDS_DIR)/tester_present/utest/TesterPresent_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
 
 $(UDS_DIR)/tester_present/utest/TesterPresent_test.o: $(UDS_DIR)/tester_present/utest/TesterPresentTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/tester_present/utest/TesterPresentTest.cpp -o $(UDS_DIR)/tester_present/utest/TesterPresent_test.o $(CFLAGSTST2) $(LDFLAGS)
@@ -611,8 +637,8 @@ $(OTA_DIR)/transfer_data/utest/TransferData_test.o: $(OTA_DIR)/transfer_data/ute
 # AccessTimingParameter Unit tests
 accessTimingParameterTest: $(OBJ_DIR) $(UDS_DIR)/access_timing_parameters/utest/accessTimingParameterTest.out
 
-$(UDS_DIR)/access_timing_parameters/utest/accessTimingParameterTest.out: $(UDS_DIR) $(OBJS_ACCESSTIMINGPARAMETER_TEST) $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o
-	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/access_timing_parameters/utest/accessTimingParameterTest.out $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o $(OBJS_ACCESSTIMINGPARAMETER_TEST) $(CFLAGSTST2) $(LDFLAGS)
+$(UDS_DIR)/access_timing_parameters/utest/accessTimingParameterTest.out: $(UDS_DIR) $(OBJS_TEST) $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o
+	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/access_timing_parameters/utest/accessTimingParameterTest.out $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
 
 $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o: $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameterTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameterTest.cpp -o $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o $(CFLAGSTST2) $(LDFLAGS)

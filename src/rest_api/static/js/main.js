@@ -139,12 +139,11 @@ function readInfoDoors() {
 
 function writeInfoDoors() {
     const data = {
-        door: prompt('Enter Door Parameter:') || null,
-        serial_number: prompt('Enter Serial Number:') || null,
-        lighter_voltage: prompt('Enter Cigarette Lighter Voltage:') || null,
-        light_state: prompt('Enter Light State:') || null,
-        belt: prompt('Enter Belt Card State:') || null,
-        windows_closed: prompt('Enter Window Status:') || null,
+        door: prompt('Enter Door Status (0: closed, 1: open):') || null,
+        passenger: prompt('Enter Passenger Door Status (0: closed, 1: open):') || null,
+        passenger_lock: prompt('Enter Passenger Lock Status (0: locked, 1: unlocked):') || null,
+        driver: prompt('Enter Driver Door Status (0: closed, 1: open):') || null,
+        ajar: prompt('Enter Ajar Warning Status (0: no warning, 1: warning):') || null
     };
     performApiRequest('/api/write_info_doors', 'POST', data);
 }
@@ -163,6 +162,35 @@ function writeInfoBattery() {
         // device_consumption: prompt('Enter Device Consumption:') || null
     };
     performApiRequest('/api/write_info_battery', 'POST', data);
+}
+
+function writeInfoEngine() {
+    const data = {
+        engine_rpm: prompt('Enter Engine RPM:') || null,
+        coolant_temperature: prompt('Enter Coolant Temperature:') || null,
+        throttle_position: prompt('Enter Throttle Position:') || null,
+        vehicle_speed: prompt('Enter Vehicle Speed:') || null,
+        engine_load: prompt('Enter Engine Load:') || null,
+        fuel_level: prompt('Enter Fuel Level:') || null,
+        oil_temperature: prompt('Enter Oil Temperature:') || null,
+        fuel_pressure: prompt('Enter Fuel Pressure:') || null,
+        intake_air_temperature: prompt('Enter Intake Air Temperature:') || null
+    };
+
+    performApiRequest('/api/write_info_engine', 'POST', data);
+}
+
+function writeInfoHVAC() {
+    const data = {
+        mass_air_flow: prompt('Enter Mass Air Flow:') || null,
+        ambient_air_temperature: prompt('Enter Ambient Air Temperature:') || null,
+        cabin_temperature: prompt('Enter Cabin Temperature:') || null,
+        cabin_temperature_driver_set: prompt('Enter Cabin Temperature Driver Set:') || null,
+        fan_speed: prompt('Enter Fan Speed:') || null,
+        hvac_modes: prompt('Enter HVAC Modes:') || null,
+    };
+
+    performApiRequest('/api/write_info_hvac', 'POST', data);
 }
 
 function changeSession() {

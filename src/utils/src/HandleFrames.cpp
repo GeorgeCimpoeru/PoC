@@ -128,7 +128,7 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
     auto now_testerpresent = std::chrono::steady_clock::now();
     if (now_testerpresent >= TesterPresent::getEndTimeProgrammingSession())
     {
-        mcuDiagnosticSessionControl.sessionControl(can_socket, 0x01);
+        mcuDiagnosticSessionControl.sessionControl(frame_id, 0x01, true);
         LOG_INFO(_logger.GET_LOGGER(), "Session changed to DEFAULT_SESSION by TesterPresent");
         TesterPresent::setEndTimeProgrammingSession(false);
     }
@@ -161,7 +161,8 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
         case 0x27:
         {
             /* This service can be called in PROGRAMMING_SESSION */
-            if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
+            if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION" ||
+                DiagnosticSessionControl::getCurrentSessionToString() == "EXTENDED_DIAGNOSTIC_SESSION")
             {
                 LOG_INFO(_logger.GET_LOGGER(), "SecurityAccess called.");
                 SecurityAccess security_access(can_socket,_logger);
@@ -361,7 +362,8 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
         case 0x34:
         {
             /* This service can be called in PROGRAMMING_SESSION */
-            if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
+            if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION" ||
+                DiagnosticSessionControl::getCurrentSessionToString() == "EXTENDED_DIAGNOSTIC_SESSION")
             {
                 RequestDownloadService requestDownload(can_socket, _logger);
                 ReadDataByIdentifier software_version(can_socket, _logger);
@@ -385,7 +387,8 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
             else 
             {
                 /* This service can be called in PROGRAMMING_SESSION */
-                if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
+                if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION" ||
+                    DiagnosticSessionControl::getCurrentSessionToString() == "EXTENDED_DIAGNOSTIC_SESSION")
                 {
                     TransferData transfer_data(can_socket, _logger);
                     transfer_data.transferData(frame_id, frame_data);
@@ -404,7 +407,8 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
         {
             /* RequestTransferExit(sid, frame_data[2]); */
             /* This service can be called in PROGRAMMING_SESSION */
-            if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
+            if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION" ||
+                DiagnosticSessionControl::getCurrentSessionToString() == "EXTENDED_DIAGNOSTIC_SESSION")
             {
                 LOG_INFO(_logger.GET_LOGGER(), "Request Transfer Exit Service 0x37 called");
                 RequestTransferExit request_transfer_exit(can_socket, _logger);
@@ -422,7 +426,8 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
         {
             /* RequestUpdateStatus(); */
             /* This service can be called in PROGRAMMING_SESSION */
-            if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION")
+            if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION" ||
+                DiagnosticSessionControl::getCurrentSessionToString() == "EXTENDED_DIAGNOSTIC_SESSION")
             {
                 LOG_INFO(_logger.GET_LOGGER(), "RequestUpdateStatus called.");
                 RequestUpdateStatus RUS(can_socket, _logger);

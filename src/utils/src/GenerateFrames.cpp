@@ -171,15 +171,17 @@ void GenerateFrames::securityAccessSendKey(int id, const std::vector<uint8_t> &k
     return;
 }
 
-void GenerateFrames::routineControl(int id, uint8_t sub_function, uint16_t routin_identifier, bool response)
+void GenerateFrames::routineControl(int id, uint8_t sub_function, uint16_t routine_identifier, std::vector<uint8_t>& routine_result, bool response)
 {
+    uint8_t default_pci = 0x04;
     if (!response)
     {
-        std::vector<uint8_t> data = {0x4, 0x31, sub_function, (uint8_t)(routin_identifier / 0x100), (uint8_t)(routin_identifier % 0x100)};
+        std::vector<uint8_t> data = {default_pci, 0x31, sub_function, (uint8_t)(routine_identifier / 0x100), (uint8_t)(routine_identifier % 0x100)};
         this->sendFrame(id, data);
         return;
     }
-    std::vector<uint8_t> data = {0x04,0x71, sub_function, (uint8_t)(routin_identifier / 0x100), (uint8_t)(routin_identifier % 0x100)};
+    std::vector<uint8_t> data = {static_cast<uint8_t>(default_pci + routine_result.size()), 0x71, sub_function, (uint8_t)(routine_identifier / 0x100), (uint8_t)(routine_identifier % 0x100)};
+    data.insert(data.end(), routine_result.begin(), routine_result.end());
     this->sendFrame(id, data);
     return;
 }
@@ -491,7 +493,7 @@ void GenerateFrames::accessTimingParameters(int id, uint8_t sub_function, std::v
     }
     else if(!data_parameter.size())
     {
-        std::vector<uint8_t> data = {0x02, 0x3c, sub_function};
+        std::vector<uint8_t> data = {0x02, 0xc3, sub_function};
         this->sendFrame(id, data);
         return;
     }
@@ -546,9 +548,23 @@ void GenerateFrames::requestDownloadLong(int id, uint8_t data_format_identifier,
 void GenerateFrames::requestDownloadResponse(int id, int max_number_block)
 {
     /* Response frame */
-    uint8_t length_max_number_block = (countDigits(max_number_block) + 1) / 2;
-    std::vector<uint8_t> data = {(uint8_t)(length_max_number_block + 2), 0x74, (uint8_t)(length_max_number_block * 0x10)};
-    insertBytes(data, max_number_block, length_max_number_block);
+    std::vector<uint8_t> max_number_block_bytes;
+    bool first_byte_found = false;
+    for(char i = 3, byte; i >=0; --i)
+    {
+        byte = (max_number_block >> (i * 8)) & 0xFF;
+        if(byte != 0 || first_byte_found == true)
+        {
+            max_number_block_bytes.push_back(byte);
+            first_byte_found = true;
+        }
+    }
+    uint8_t length_max_number_block = max_number_block_bytes.size();
+    std::vector<uint8_t> data = {(uint8_t)(length_max_number_block + 2), 0x74, static_cast<uint8_t>(length_max_number_block * 0x10)};
+    data.insert(data.end(), max_number_block_bytes.begin(), max_number_block_bytes.end());
+    LOG_INFO(logger.GET_LOGGER(), "max number block length 0x{:x}", length_max_number_block);
+    LOG_INFO(logger.GET_LOGGER(), "max number block 0x{:x}", max_number_block);
+
     this->sendFrame(id, data);
     return;
 }

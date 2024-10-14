@@ -83,7 +83,8 @@
 #include "Logger.h"
 
 #define DEV_LOOP "/dev/loop16"
-
+#define DEV_LOOP_PARTITION_1_ADDRESS 2048
+#define DEV_LOOP_PARTITION_2_ADDRESS 206848
 class MemoryManager
 {
     private:

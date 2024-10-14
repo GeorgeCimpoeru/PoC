@@ -20,6 +20,9 @@ DRIVE_BASE_FILE = {
     "name": "SW_VERSIONS",
     "id": '1LtP9TKMDLFv2Hbf-d51DaXDCBE59vZer',
 }
+DRIVE_ECU_HVAC_SW_VERSIONS_FILE = '1sTZIRTOHBPoxyiWxF2m2pUQSwu1E9_wH'
+DRIVE_ECU_DOORS_SW_VERSIONS_FILE = '1xeZCYZ0akwIjmFhJkCkfDg63h-JVGhIC'
+DRIVE_ECU_ENGINE_SW_VERSIONS_FILE = '16e1Hp9QYl1oEjZ0XK927XiwF9h5ySmVn'
 DRIVE_ECU_BATTERY_SW_VERSIONS_FILE = '1QkgBWPEaKg5bnOU0eXjPOEcz6lqNCG-N'
 DRIVE_MCU_SW_VERSIONS_FILE = '1aGo68MWCYBxMVSPd0-jZ4cBGICGdMRxp'
 # TO BE CHANGED WITH THE DESIRED PATH FOR DOWNLOADS
@@ -31,7 +34,10 @@ FILE_MIMETYPE_QUERY = "mimeType = 'application/vnd.google-apps.file'"
 
 ecu_map = {
     0x10: "mcu",
-    0x11: "battery"
+    0x11: "battery",
+    0x12: "engine",
+    0x13: "doors",
+    0x14: "hvac"
 }
 
 
@@ -66,18 +72,20 @@ class GDriveAPI:
             self.__drive_service = build('drive', 'v3', credentials=self.__creds)
             GDriveAPI.__instance = self
 
-    def uploadFile(self, file_name, file_path, parent_folder_id=DRIVE_BASE_FILE['id']):
+    def uploadFile(self, file_name, file_path, size_uncompressed, parent_folder_id=DRIVE_BASE_FILE['id']):
         file_metadata = {
             'name': file_name,
-            'parents': [parent_folder_id]  # ID of the folder where you want to upload
+            'parents': [parent_folder_id],  # ID of the folder where you want to upload
+            'appProperties' : {
+                'size_uncompressed': str(size_uncompressed)
+            }
         }
-
         media = MediaFileUpload(file_path, mimetype='text/plain')
-
+        print(file_metadata)
         try:
             print(f"{GREEN}Uploading {file_name} to Google Drive..{RESET}")
             file = self.__drive_service.files().create(
-                body=file_metadata, media_body=media, fields='id').execute()
+                body=file_metadata, media_body=media, fields='id, appProperties').execute()
             if 'id' in file:
                 print(f"{GREEN}File uploaded successfully. File ID:{RESET}", file['id'])
             else:
@@ -88,18 +96,17 @@ class GDriveAPI:
     def downloadFile(self, ecu_id, sw_version_byte, path_to_download=DRIVE_DOWNLOAD_PATH):
         try:
             # pylint: disable=maybe-no-member
-            self.getDriveData()
-            sw_version = self.__convertByteToSwVersion(hex(sw_version_byte))
-            print(f"{GREEN}Searching for version {RESET}" +
-                  ecu_map[ecu_id] + ' ' + sw_version)
-            file_to_download = [
-                data for data in self.__drive_data_array if data['type'] == ecu_map[ecu_id] and data['sw_version'] == str(sw_version)]
-            if not file_to_download:
-                print(
-                    f"{RED}No file found with type:{ecu_map[ecu_id]} and version {sw_version}{RESET}")
-                return
-            print(f"{GREEN}Version found, downloading..{RESET}")
-            file_to_download = file_to_download[0]  # Access the first element
+
+            file_to_download = self.searchVersion(ecu_id, sw_version_byte, True)
+            if file_to_download == -1:
+                return -1
+
+            for file_name in os.listdir(DRIVE_DOWNLOAD_PATH):
+                if file_to_download['name'] in file_name:
+                    print(f"{GREEN}{file_name} already downloaded.{RESET}")
+                    return int(file_to_download['size_uncompressed'])
+            
+            print(f"{GREEN}Downloading..{RESET}")
             request = self.__drive_service.files().get_media(
                 fileId=file_to_download['id'])
             downloaded_file = io.BytesIO()
@@ -112,12 +119,33 @@ class GDriveAPI:
 
         except HttpError as error:
             print(f"{RED}An error occurred: {error}{RESET}")
-            return
+            return -1
 
         downloaded_file.seek(0)
         with open(f"{path_to_download}/{file_to_download['name']}", 'wb') as f:
             f.write(downloaded_file.read())
             print(f"{GREEN}File downloaded and saved to {path_to_download}{RESET}")
+
+        return int(file_to_download['size_uncompressed'])
+
+    def searchVersion(self, ecu_id, sw_version_byte, return_file=False):
+        sw_version = self.__convertByteToSwVersion(hex(sw_version_byte))
+        print(f"{GREEN}Searching in Google Drive for version" +
+              ecu_map[ecu_id] + ' ' + sw_version + f"{RESET}")
+
+        self.getDriveData()
+        
+        file_to_download = [
+            data for data in self.__drive_data_array if data['type'] == ecu_map[ecu_id] and data['sw_version'] == str(sw_version)]
+
+        file_to_download = file_to_download[0] if file_to_download else None
+        if file_to_download is None:
+            print(
+                f"{RED}No file found with type:{ecu_map[ecu_id]} and version {sw_version}{RESET}")
+            return -1
+
+        print(f"{GREEN}Version found on Google Drive{RESET}")
+        return file_to_download
 
     # PRIVATE METHODS
     def __convertByteToSwVersion(self, software_version_byte):
@@ -133,15 +161,21 @@ class GDriveAPI:
         return software_version
 
     def __getFilesFromFolder(self, folder_name):
-        return self.__drive_service.files().list(q="'" + folder_name + "' in parents", pageSize=10, fields="nextPageToken, files(id, name, size)").execute()
+        return self.__drive_service.files().list(q="'" + folder_name + "' in parents", pageSize=10, fields="nextPageToken, files(*)").execute()
 
     def __getFileType(self, file):
         type = "folder"
         if '.' in file["name"]:
             if 'MCU' in file["name"]:
                 type = "mcu"
-            if 'BATTERY' in file["name"]:
+            elif 'BATTERY' in file["name"]:
                 type = "battery"
+            elif 'ENGINE' in file["name"]:
+                type = "engine"
+            elif 'DOORS' in file["name"]:
+                type = "doors"
+            elif 'HVAC' in file["name"]:
+                type = "hvac"
         return type
 
     def __getSoftwareVersion(self, file_name):
@@ -160,6 +194,8 @@ class GDriveAPI:
         if (json_file['type'] != "folder"):
             json_file['sw_version'] = self.__getSoftwareVersion(file['name'])
             json_file['size'] = file.get('size', 'N/A')
+            json_file['size_uncompressed'] = file.get(
+                'appProperties', {}).get('size_uncompressed', 0)
         self.__drive_data_array.append(json_file)
         if json_file['type'] == "folder":
             json_file['children'].extend(self.getDriveData(file)

@@ -200,7 +200,7 @@ bool MemoryManager::writeToFile(std::vector<uint8_t> &data, std::string path_fil
 std::vector<uint8_t> MemoryManager::readBinary(std::string path_to_binary, Logger& logger)
 {
     std::fstream sd_card;
-    sd_card.open(path_to_binary, std::fstream::in | std::fstream::out | std::fstream::binary);
+    sd_card.open(path_to_binary, std::fstream::in | std::fstream::binary);
     if (!sd_card.is_open())
     {
         LOG_ERROR(logger.GET_LOGGER(), "Error opening SD card device: {} ", path_to_binary);
@@ -208,7 +208,7 @@ std::vector<uint8_t> MemoryManager::readBinary(std::string path_to_binary, Logge
     }
     sd_card.seekg(0, std::ios::end);
     if (sd_card.fail())
-    {
+    {   
         LOG_ERROR(logger.GET_LOGGER(), "Error: Could not seek the address");
         sd_card.close();
         return {};

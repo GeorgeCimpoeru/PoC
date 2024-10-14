@@ -192,7 +192,7 @@ class GenerateFrames
          * @param routine_identifier Identifier of the routine to be run
          * @param response variable for request or response frame
         Response&Request */
-        void routineControl(int id, uint8_t sub_function, uint16_t routine_identifier, bool response=false);
+        void routineControl(int id, uint8_t sub_function, uint16_t routine_identifier, std::vector<uint8_t>& routine_result, bool response=false);
         /**
          * @brief Frame for Tester Present Service
          * 

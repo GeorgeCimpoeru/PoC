@@ -19,7 +19,7 @@
 #include <fstream>
 #include <iomanip>
 #include <string>
-
+#include "Logger.h"
 class FileManager
 {
 public:
@@ -54,8 +54,30 @@ public:
      */
     static bool containsStringInFile(const std::string& filePath, const std::string& searchString);
 
+    /**
+     * @brief 
+     * 
+     * @param did_values 
+     * @param filePath 
+     * @param did 
+     * @param min_value 
+     * @param max_value 
+     * @param DTCToWrite 
+     */
     static void writeDTC(std::unordered_map<uint16_t, std::vector<uint8_t>>& did_values, const std::string& filePath, const uint16_t& did, int min_value, int max_value, const std::string& DTCToWrite);
-
+    
+    /**
+     * @brief Method used to get an ecu path(.zip, _new)
+     * 
+     * @param ecu_id 
+     * @param ecu_path 
+     * @param param 
+     * @param rc_logger 
+     * @param version 
+     * @return true 
+     * @return false 
+     */
+    static bool getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t param, Logger& rc_logger, const std::string& version = "");
 };
 
 #endif
