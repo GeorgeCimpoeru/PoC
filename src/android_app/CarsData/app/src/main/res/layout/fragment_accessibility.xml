@@ -1,0 +1,760 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:fillViewport="false"
+    tools:context=".fragments.AccessibilityFragment">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+        <LinearLayout
+            android:id="@+id/linearLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="0dp">
+                <LinearLayout
+                    android:id="@+id/layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="370dp"
+                        android:layout_marginTop="200dp"
+                        tools:ignore="UselessParent">
+
+                    <ImageView
+                        android:id="@+id/vin_image"
+                        android:layout_width="match_parent"
+                        android:layout_height="310dp"
+                        android:layout_marginTop="50dp"
+                        android:contentDescription="@string/vin"
+                        android:cropToPadding="false"
+                        android:scaleType="fitXY"
+                        android:alpha="0.5"
+                        android:src="@drawable/vin" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:id="@+id/combined_info_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="20dp"
+                        android:visibility="gone"
+                        android:textSize="14sp"
+                        android:textColor="#000000" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="70dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    app:layout_constraintTop_toBottomOf="@+id/layout"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent">
+
+                    <Button
+                        android:id="@+id/info_button"
+                        android:layout_width="150dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="18dp"
+                        android:layout_marginStart="20dp"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:drawableStart="@drawable/info"
+                        android:text="@string/more_info"
+                        android:textColor="#716868"
+                        android:textIsSelectable="false"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:visibility="visible" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="250dp"
+                            android:contentDescription="@string/smooth_edges"
+                            android:src="@drawable/smooth_edge"
+                            android:scaleType="fitXY" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toTopOf="@id/vin_image"
+                    tools:ignore="NotSibling">
+
+                    <TextView
+                        android:id="@+id/Vin_head"
+                        style="@android:style/TextAppearance.Material.Widget.TextView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="19dp"
+                        android:layout_marginTop="20dp"
+                        android:alpha="1"
+                        android:singleLine="false"
+                        android:soundEffectsEnabled="true"
+                        android:text="@string/your_car_details"
+                        android:textAllCaps="false"
+                        android:textColor="@color/black"
+                        android:textColorHighlight="#000000"
+                        android:textColorHint="#040202"
+                        android:textColorLink="#000000"
+                        android:textIsSelectable="false"
+                        android:textSize="35sp"
+                        android:textStyle="bold"
+                        android:visibility="visible" />
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        app:layout_constraintTop_toTopOf="parent">
+                        <TextView
+                            android:id="@+id/plantCountryText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="15dp"
+                            android:layout_marginBottom="15dp"
+                            android:text="@string/country_of_nmanufacturer"
+                            android:paddingBottom="10dp"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constrainedHeight="true"
+                            app:layout_constraintEnd_toStartOf="@id/vehicleTypeText"/>
+                        <TextView
+                            android:id="@+id/vehicleTypeText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="15dp"
+                            android:layout_marginBottom="15dp"
+                            android:text="@string/vehicle_type_n_or_division"
+                            android:paddingBottom="10dp"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintStart_toEndOf="@id/plantCountryText"
+                            app:layout_constrainedHeight="true"
+                            app:layout_constraintEnd_toStartOf="@id/ErrorTextText"/>
+                        <TextView
+                            android:id="@+id/ErrorTextText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="15dp"
+                            android:layout_marginBottom="15dp"
+                            android:text="@string/security_ncheck_digit"
+                            android:paddingBottom="10dp"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintStart_toEndOf="@id/vehicleTypeText"
+                            app:layout_constrainedHeight="true"
+                            app:layout_constraintEnd_toStartOf="@id/plantCityText"/>
+                        <TextView
+                            android:id="@+id/plantCityText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="15dp"
+                            android:layout_marginBottom="15dp"
+                            android:text="@string/assembly_n_plant"
+                            android:paddingBottom="10dp"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintStart_toEndOf="@id/ErrorTextText"
+                            app:layout_constrainedHeight="true"
+                            app:layout_constraintEnd_toEndOf="parent"/>
+
+
+                        <TextView
+                            android:id="@+id/plantCountryLabel"
+                            android:layout_width="85dp"
+                            android:layout_height="wrap_content"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:background="@drawable/textview_border"
+                            android:maxLines="2"
+                            android:ellipsize="none"
+                            android:singleLine="false"
+                            android:backgroundTint="@color/green"
+                            android:text="@string/country_of_nmanufacturer"
+                            app:layout_constraintStart_toStartOf="@id/plantCountryText"
+                            app:layout_constraintTop_toBottomOf="@id/plantCountryText"/>
+
+                        <View
+                            android:id="@+id/line1"
+                            android:layout_width="2dp"
+                            android:layout_height="35dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="@color/green"
+                            android:layout_marginStart="58dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@id/plantCountryLabel" />
+
+                        <View
+                            android:id="@+id/line9"
+                            android:layout_width="10dp"
+                            android:layout_height="2dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="@color/green"
+                            android:layout_marginStart="54dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/line1" />
+
+                        <TextView
+                            android:id="@+id/vehicleTypeLabel"
+                            android:layout_width="85dp"
+                            android:layout_height="wrap_content"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:background="@drawable/textview_border"
+                            android:backgroundTint="#FF4349"
+                            android:text="@string/vehicle_type_n_or_division"
+                            app:layout_constraintStart_toStartOf="@id/vehicleTypeText"
+                            app:layout_constraintTop_toBottomOf="@id/vehicleTypeText"/>
+
+                        <View
+                            android:id="@+id/line2"
+                            android:layout_width="2dp"
+                            android:layout_height="25dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="#FF4349"
+                            android:layout_marginStart="180dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@id/vehicleTypeLabel" />
+
+                        <View
+                            android:id="@+id/line10"
+                            android:layout_width="87dp"
+                            android:layout_height="2dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="#FF4349"
+                            android:layout_marginStart="95dp"
+                            android:layout_marginBottom="5dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/line2" />
+
+                        <View
+                            android:id="@+id/line11"
+                            android:layout_width="2dp"
+                            android:layout_height="8dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="#FF4349"
+                            android:layout_marginStart="95dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/line10" />
+
+                        <View
+                            android:id="@+id/line12"
+                            android:layout_width="8dp"
+                            android:layout_height="2dp"
+                            android:layout_marginStart="92dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="#FF4349"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/line11" />
+
+                        <TextView
+                            android:id="@+id/ErrorTextLabel"
+                            android:layout_width="68dp"
+                            android:layout_height="wrap_content"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:background="@drawable/textview_border"
+                            android:backgroundTint="#FFDE21"
+                            android:text="@string/security_ncheck_digit"
+                            app:layout_constraintStart_toStartOf="@id/ErrorTextText"
+                            app:layout_constraintTop_toBottomOf="@id/ErrorTextText"/>
+
+                        <View
+                            android:id="@+id/line3"
+                            android:layout_width="2dp"
+                            android:layout_height="22dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="#FFDE21"
+                            android:layout_marginStart="268dp"
+                            android:layout_marginTop="38dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@id/ErrorTextText" />
+
+                        <View
+                            android:id="@+id/line15"
+                            android:layout_width="65dp"
+                            android:layout_height="2dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="#FFDE21"
+                            android:layout_marginStart="205dp"
+                            android:layout_marginBottom="5dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/line3" />
+
+                        <View
+                            android:id="@+id/line16"
+                            android:layout_width="2dp"
+                            android:layout_height="11dp"
+                            android:layout_marginStart="205dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="#FFDE21"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/line15" />
+
+                        <View
+                            android:id="@+id/line17"
+                            android:layout_width="8dp"
+                            android:layout_height="2dp"
+                            android:layout_marginStart="202dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="#FFDE21"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/line16" />
+
+                        <TextView
+                            android:id="@+id/plantCityLabel"
+                            android:layout_width="78dp"
+                            android:layout_height="wrap_content"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:background="@drawable/textview_border"
+                            android:backgroundTint="#FE036A"
+                            android:text="@string/assembly_n_plant"
+                            app:layout_constraintStart_toStartOf="@id/plantCityText"
+                            app:layout_constraintTop_toBottomOf="@id/plantCityText"/>
+
+                        <View
+                            android:id="@+id/line21"
+                            android:layout_width="115dp"
+                            android:layout_height="2dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="#FE036A"
+                            android:layout_marginStart="243dp"
+                            android:layout_marginBottom="5dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/line4" />
+
+                        <View
+                            android:id="@+id/line22"
+                            android:layout_width="2dp"
+                            android:layout_height="3dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="#FE036A"
+                            android:layout_marginStart="243dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/line21" />
+
+                        <View
+                            android:id="@+id/line23"
+                            android:layout_width="8dp"
+                            android:layout_height="2dp"
+                            android:layout_marginStart="240dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="#FE036A"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/line22" />
+
+                        <View
+                            android:id="@+id/line4"
+                            android:layout_width="2dp"
+                            android:layout_height="30dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="#FE036A"
+                            android:layout_marginStart="356dp"
+                            android:layout_marginTop="38dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@id/plantCityText" />
+
+                        <!-- Add more TextViews based on the parts of the VIN -->
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- VIN number display -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/vin"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:textSize="30sp"
+                            android:textStyle="bold"
+                            android:fontFamily="serif-monospace"
+                            android:text="@string/vin" />
+
+                        <!-- Add more TextViews for each VIN character -->
+                    </LinearLayout>
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        app:layout_constraintBottom_toBottomOf="parent">
+                        <View
+                            android:id="@+id/line5"
+                            android:layout_width="2dp"
+                            android:layout_height="30dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="#DC6601"
+                            android:layout_marginStart="76dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintBottom_toTopOf="@id/manufacturerText" />
+
+                        <View
+                            android:id="@+id/line13"
+                            android:layout_width="10dp"
+                            android:layout_height="2dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="#DC6601"
+                            android:layout_marginStart="72dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/line1" />
+
+                        <TextView
+                            android:id="@+id/manufacturerText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="30dp"
+                            android:layout_marginBottom="15dp"
+                            android:text="@string/vehicle_nmanufacturer"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constrainedHeight="true"
+                            app:layout_constraintEnd_toStartOf="@id/bodyClass_engineHP_engineModel_model_Text"/>
+
+                        <View
+                            android:id="@+id/line6"
+                            android:layout_width="2dp"
+                            android:layout_height="30dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="#2B3BFF"
+                            android:layout_marginStart="170dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintBottom_toTopOf="@id/bodyClass_engineHP_engineModel_model_Text" />
+
+                        <View
+                            android:id="@+id/line14"
+                            android:layout_width="90dp"
+                            android:layout_height="2dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="#2B3BFF"
+                            android:layout_marginStart="106dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintBottom_toTopOf="@+id/line2" />
+
+                        <TextView
+                            android:id="@+id/bodyClass_engineHP_engineModel_model_Text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="30dp"
+                            android:layout_marginBottom="15dp"
+                            android:text="@string/vehicle_brand_n_model_series"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintStart_toEndOf="@id/manufacturerText"
+                            app:layout_constrainedHeight="true"
+                            app:layout_constraintEnd_toStartOf="@id/modelYearText"/>
+
+                        <View
+                            android:id="@+id/line7"
+                            android:layout_width="2dp"
+                            android:layout_height="21dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="#D1AFFF"
+                            android:layout_marginStart="255dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintBottom_toTopOf="@id/modelYearText" />
+
+                        <View
+                            android:id="@+id/line18"
+                            android:layout_width="34dp"
+                            android:layout_height="2dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="#D1AFFF"
+                            android:layout_marginStart="223dp"
+                            android:layout_marginTop="6dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintBottom_toTopOf="@+id/line7" />
+
+                        <View
+                            android:id="@+id/line19"
+                            android:layout_width="2dp"
+                            android:layout_height="7dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="#D1AFFF"
+                            android:layout_marginStart="223dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/line10" />
+
+                        <View
+                            android:id="@+id/line20"
+                            android:layout_width="10dp"
+                            android:layout_height="2dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="#D1AFFF"
+                            android:layout_marginStart="219dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/line1" />
+
+                        <TextView
+                            android:id="@+id/modelYearText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="30dp"
+                            android:layout_marginBottom="15dp"
+                            android:text="@string/model_n_year"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintStart_toEndOf="@id/bodyClass_engineHP_engineModel_model_Text"
+                            app:layout_constrainedHeight="true"
+                            app:layout_constraintEnd_toStartOf="@id/serialNoText"/>
+
+                        <View
+                            android:id="@+id/line8"
+                            android:layout_width="2dp"
+                            android:layout_height="30dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="#006400"
+                            android:layout_marginStart="335dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintBottom_toTopOf="@id/serialNoText" />
+
+                        <View
+                            android:id="@+id/line24"
+                            android:layout_width="109dp"
+                            android:layout_height="2dp"
+                            android:background="@drawable/line"
+                            android:backgroundTint="#006400"
+                            android:layout_marginStart="254dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintBottom_toTopOf="@+id/line2" />
+
+                        <TextView
+                            android:id="@+id/serialNoText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="30dp"
+                            android:layout_marginBottom="15dp"
+                            android:text="@string/vehicle_nproduction_no"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintStart_toEndOf="@id/modelYearText"
+                            app:layout_constrainedHeight="true"
+                            app:layout_constraintEnd_toEndOf="parent"/>
+
+                        <TextView
+                            android:id="@+id/manufacturerLabel"
+                            android:layout_width="90dp"
+                            android:layout_height="wrap_content"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            android:background="@drawable/textview_border"
+                            android:backgroundTint="#DC6601"
+                            android:text="@string/vehicle_nmanufacturer"
+                            app:layout_constraintStart_toStartOf="@id/manufacturerText"
+                            app:layout_constraintTop_toBottomOf="@id/manufacturerText"/>
+
+                        <TextView
+                            android:id="@+id/bodyClass_engineHP_engineModel_model_Label"
+                            android:layout_width="90dp"
+                            android:layout_height="wrap_content"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            android:background="@drawable/textview_border"
+                            android:backgroundTint="#2B3BFF"
+                            android:text="@string/vehicle_brand_n_model_series"
+                            app:layout_constraintStart_toStartOf="@id/bodyClass_engineHP_engineModel_model_Text"
+                            app:layout_constraintTop_toBottomOf="@id/bodyClass_engineHP_engineModel_model_Text"/>
+                        <TextView
+                            android:id="@+id/modelYearLabel"
+                            android:layout_width="50dp"
+                            android:layout_height="wrap_content"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            android:background="@drawable/textview_border"
+                            android:backgroundTint="#D1AFFF"
+                            android:text="@string/model_n_year"
+                            app:layout_constraintStart_toStartOf="@id/modelYearText"
+                            app:layout_constraintTop_toBottomOf="@id/modelYearText"/>
+                        <TextView
+                            android:id="@+id/serialNoLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            android:background="@drawable/textview_border"
+                            android:backgroundTint="#006400"
+                            android:text="@string/vehicle_nproduction_no"
+                            app:layout_constraintStart_toStartOf="@id/serialNoText"
+                            app:layout_constraintTop_toBottomOf="@id/serialNoText"/>
+
+                        <!-- Add more TextViews for each description -->
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- Custom lines to connect the VIN characters with their descriptions -->
+                    <!-- Use a custom view here or drawable lines -->
+
+                </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="16dp">
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:id="@+id/UDS_example_image"
+                        android:layout_width="match_parent"
+                        android:layout_height="412dp"
+                        android:contentDescription="@string/uds_car"
+                        android:cropToPadding="false"
+                        android:scaleType="centerCrop"
+                        android:alpha="0.5"
+                        android:src="@drawable/uds" />
+
+                    <ImageView
+                        android:id="@+id/OTA_example_image"
+                        android:layout_width="match_parent"
+                        android:layout_height="412dp"
+                        android:contentDescription="@string/ota_car"
+                        android:cropToPadding="false"
+                        android:scaleType="centerCrop"
+                        android:alpha="0.5"
+                        android:src="@drawable/ota1" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/UDS_header_text"
+                        style="@android:style/TextAppearance.Material.Widget.TextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="36dp"
+                        android:layout_marginTop="40dp"
+                        android:alpha="1"
+                        android:singleLine="false"
+                        android:soundEffectsEnabled="true"
+                        android:text="@string/unified_diagnostic_services"
+                        android:textAllCaps="false"
+                        android:textColor="@color/black"
+                        android:textColorHighlight="#000000"
+                        android:textColorHint="#040202"
+                        android:textColorLink="#000000"
+                        android:textIsSelectable="false"
+                        android:textSize="35sp"
+                        android:textStyle="bold"
+                        android:visibility="visible" />
+
+                    <Button
+                        android:id="@+id/UDS_action_button"
+                        android:layout_width="138dp"
+                        android:layout_height="48dp"
+                        android:layout_marginStart="36dp"
+                        android:layout_marginTop="150dp"
+                        android:background="@drawable/rounded_button"
+                        android:drawableStart="@drawable/gear"
+                        android:drawablePadding="8dp"
+                        android:text="@string/uds"
+                        android:textSize="25sp"
+                        android:visibility="visible" />
+
+                    <TextView
+                        android:id="@+id/OTA_header_text"
+                        style="@android:style/TextAppearance.Material.Widget.TextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="36dp"
+                        android:layout_marginTop="135dp"
+                        android:alpha="1"
+                        android:singleLine="false"
+                        android:soundEffectsEnabled="true"
+                        android:text="@string/over_the_air_updates"
+                        android:textAllCaps="false"
+                        android:textColor="@color/black"
+                        android:textColorHighlight="#000000"
+                        android:textColorHint="#040202"
+                        android:textColorLink="#000000"
+                        android:textIsSelectable="false"
+                        android:textSize="35sp"
+                        android:textStyle="bold"
+                        android:visibility="visible" />
+
+                    <Button
+                        android:id="@+id/OTA_action_button"
+                        android:layout_width="138dp"
+                        android:layout_height="48dp"
+                        android:layout_marginStart="36dp"
+                        android:layout_marginTop="210dp"
+                        android:background="@drawable/rounded_button"
+                        android:drawableStart="@drawable/gear"
+                        android:drawablePadding="8dp"
+                        android:text="@string/ota"
+                        android:textSize="25sp"
+                        android:visibility="visible" />
+
+                    <TextView
+                        android:id="@+id/poc_claimer"
+                        style="@android:style/TextAppearance.Material.Widget.TextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginTop="60dp"
+                        android:alpha="1"
+                        android:singleLine="false"
+                        android:soundEffectsEnabled="true"
+                        android:text="@string/PoC_2024"
+                        android:textAllCaps="false"
+                        android:textColor="#D3D3D3"
+                        android:textColorHighlight="#000000"
+                        android:textColorHint="#040202"
+                        android:textColorLink="#000000"
+                        android:textIsSelectable="false"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:visibility="visible" />
+                </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
