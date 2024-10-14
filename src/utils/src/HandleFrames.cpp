@@ -128,7 +128,7 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
     auto now_testerpresent = std::chrono::steady_clock::now();
     if (now_testerpresent >= TesterPresent::getEndTimeProgrammingSession())
     {
-        mcuDiagnosticSessionControl.sessionControl(frame_id, 0x01);
+        mcuDiagnosticSessionControl.sessionControl(frame_id, 0x01, true);
         LOG_INFO(_logger.GET_LOGGER(), "Session changed to DEFAULT_SESSION by TesterPresent");
         TesterPresent::setEndTimeProgrammingSession(false);
     }

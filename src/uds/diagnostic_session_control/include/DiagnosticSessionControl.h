@@ -32,7 +32,8 @@ enum DiagnosticSession
 {
     DEFAULT_SESSION = 0x01,
     PROGRAMMING_SESSION,
-    EXTENDED_DIAGNOSTIC_SESSION
+    EXTENDED_DIAGNOSTIC_SESSION,
+    UNKNOWN_SESSION
     /* Other sessions can be defined here */
 };
 
@@ -59,8 +60,10 @@ public:
      * 
      * @param id An unique identifier for the CAN frame.
      * @param sub_function A 1 byte value that specifies a particular diagnostic service.
+     * @param is_tp Parameter true when the method is called by tester present, for not 
+     * send the response
      */
-    void sessionControl(canid_t frame_id, uint8_t sub_function);
+    void sessionControl(canid_t frame_id, uint8_t sub_function, bool is_tp = false);
 
     /**
      * @brief Get the Current Session of object
@@ -87,8 +90,10 @@ private:
      * 
      * @param frame_id The id of the received frame.
      * @param session New session
+     * @param is_tp Parameter true when the method is called by tester present, for not 
+     * send the response
      */
-    void switchSession(canid_t frame_id, DiagnosticSession session);
+    void switchSession(canid_t frame_id, DiagnosticSession session, bool is_tp = false);
 };
 
 #endif
