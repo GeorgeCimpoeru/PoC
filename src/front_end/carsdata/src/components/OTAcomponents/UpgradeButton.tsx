@@ -76,7 +76,7 @@ const UpgradeButton = (props: any) => {
                 open={isVersionPopupVisible}
                 onCancel={() => setIsVersionPopupVisible(false)}
                 footer={props.softVersions.map((version: any, index: any) => (
-                    <Button className="m-1" key={version} onClick={() => updateToVersion(index)}>
+                    <Button className="m-1" key={'{version}-${index}'} onClick={() => updateToVersion(index)}>
                         {`Version ${version}`}
                     </Button>
                 ))}>
