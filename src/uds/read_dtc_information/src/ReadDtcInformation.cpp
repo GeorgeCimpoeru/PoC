@@ -205,43 +205,43 @@ int ReadDTC::dtc_to_hex(std::string dtc)
     return hex;
 }
 
-bool ReadDTC::receive_flow_control(int id_module)
-{
-    /* Define a pollfd structure to monitor the socket */ 
-    struct pollfd pfd;
-    /* Set the socket file descriptor */ 
-    pfd.fd = this->socket; 
-    /* We are interested in read events -use POLLING */ 
-    pfd.events = POLLIN;
+// bool ReadDTC::receive_flow_control(int id_module)
+// {
+//     /* Define a pollfd structure to monitor the socket */ 
+//     struct pollfd pfd;
+//     /* Set the socket file descriptor */ 
+//     pfd.fd = this->socket; 
+//     /* We are interested in read events -use POLLING */ 
+//     pfd.events = POLLIN;
 
-    auto start = std::chrono::system_clock::now();
-    auto end = std::chrono::system_clock::now();
-    LOG_INFO(logger.GET_LOGGER(), "Waiting 6 sec until recive flow control frame...");
-    while (true)
-    {
-        /* Use poll to wait for data to be available with a timeout of 1000ms (1 second) */ 
-        int poll_result = poll(&pfd, 1, 1000);
+//     auto start = std::chrono::system_clock::now();
+//     auto end = std::chrono::system_clock::now();
+//     LOG_INFO(logger.GET_LOGGER(), "Waiting 6 sec until recive flow control frame...");
+//     while (true)
+//     {
+//         /* Use poll to wait for data to be available with a timeout of 1000ms (1 second) */ 
+//         int poll_result = poll(&pfd, 1, 1000);
 
-        if (poll_result > 0 && pfd.revents & POLLIN) 
-        {
-            struct can_frame frame ;
-            int nbytes = read(this->socket, &frame, sizeof(frame));
+//         if (poll_result > 0 && pfd.revents & POLLIN) 
+//         {
+//             struct can_frame frame ;
+//             int nbytes = read(this->socket, &frame, sizeof(frame));
 
-            if (nbytes > 0) 
-            {
-                if ((int)frame.can_id % 0x100 == id_module && frame.data[0] == 0x30)
-                {
-                    LOG_INFO(logger.GET_LOGGER(), "Flow controll frame recived...");
-                    return true;
-                }    
-            }
-        }
-        end = std::chrono::system_clock::now();
-        if((std::chrono::duration_cast<std::chrono::seconds>(end - start).count() > 6)) 
-            break;
-    }
-    return false;
-}
+//             if (nbytes > 0) 
+//             {
+//                 if ((int)frame.can_id % 0x100 == id_module && frame.data[0] == 0x30)
+//                 {
+//                     LOG_INFO(logger.GET_LOGGER(), "Flow controll frame recived...");
+//                     return true;
+//                 }    
+//             }
+//         }
+//         end = std::chrono::system_clock::now();
+//         if((std::chrono::duration_cast<std::chrono::seconds>(end - start).count() > 6)) 
+//             break;
+//     }
+//     return false;
+// }
 
 int ReadDTC::to_int(char c)
 {

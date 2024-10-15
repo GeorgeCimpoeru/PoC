@@ -22,7 +22,7 @@ class Tester(Action):
 
             id_mcu = self.id_ecu[MCU]
             id = self.my_id * 0x100 + id_mcu
-            self.generate.tester_present(id)
+            self.tester_present(id)
             response = self._passive_response(TESTER_PRESENT, "Error for tester present")
 
             if response.data[1] == 0x7F:

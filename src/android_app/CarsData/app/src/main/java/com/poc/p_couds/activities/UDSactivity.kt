@@ -1,10 +1,11 @@
-package com.poc.p_couds
+package com.poc.p_couds.activities
 
 import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -50,21 +51,24 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.rememberNavController
+import com.poc.p_couds.EcusInfoViewModel
+import com.poc.p_couds.R
 import com.poc.p_couds.ui.theme.CarsDataTheme
 
 class UDSactivity : ComponentActivity() {
+    private val ecusInfoViewModel: EcusInfoViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         setContent {
             CarsDataTheme {
-                ActivityLayout()
+                ActivityLayout(ecusInfoViewModel, onBackPressed = { onBackPressed() })
             }
         }
     }
@@ -72,7 +76,7 @@ class UDSactivity : ComponentActivity() {
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun ActivityLayout() {
+fun ActivityLayout(ecusInfoViewModel: EcusInfoViewModel, onBackPressed: () -> Unit) {
     var selectedIndex = remember { mutableIntStateOf(0) }
 
     Scaffold(
@@ -87,27 +91,42 @@ fun ActivityLayout() {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            TopBarNavigation()
+            TopBarNavigation(onBackPressed)
 
             ThreeColumnLayout(
-                modifier = Modifier
-                    .weight(1f),
-                selectedIndex = selectedIndex.value
+                modifier = Modifier.weight(1f),
+                selectedIndex = selectedIndex.value,
+                ecusInfoViewModel
             )
         }
     }
 }
 
 @Composable
-fun ThreeColumnLayout(modifier: Modifier = Modifier, selectedIndex: Int) {
+fun ThreeColumnLayout(modifier: Modifier = Modifier, selectedIndex: Int, ecusInfoViewModel: EcusInfoViewModel) {
     val screenWidth = LocalConfiguration.current.screenWidthDp
     val columnWidth: Dp = (screenWidth * 0.27).dp
-    var vectImg = ImageVector.vectorResource(id = R.drawable.car)
+    var vectImg: ImageVector = ImageVector.vectorResource(id = R.drawable.car)
     when (selectedIndex) {
-        1 -> vectImg = ImageVector.vectorResource(id = R.drawable.battery)
-        2 -> vectImg = ImageVector.vectorResource(id = R.drawable.engine)
-        3 -> vectImg = ImageVector.vectorResource(id = R.drawable.door)
-        4 -> vectImg = ImageVector.vectorResource(id = R.drawable.hvac)
+        0 -> {
+            vectImg = ImageVector.vectorResource(id = R.drawable.car)
+        }
+        1 -> {
+            vectImg = ImageVector.vectorResource(id = R.drawable.battery)
+            ecusInfoViewModel.fetchBatteryInfo()
+        }
+        2 -> {
+            vectImg = ImageVector.vectorResource(id = R.drawable.engine)
+            ecusInfoViewModel.fetchEngineInfo()
+        }
+        3 -> {
+            vectImg = ImageVector.vectorResource(id = R.drawable.door)
+            ecusInfoViewModel.fetchDoorsInfo()
+        }
+        4 -> {
+            vectImg = ImageVector.vectorResource(id = R.drawable.hvac)
+            ecusInfoViewModel.fetchHvacInfo()
+        }
     }
     Box(
         modifier = modifier
@@ -127,11 +146,37 @@ fun ThreeColumnLayout(modifier: Modifier = Modifier, selectedIndex: Int) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"Val1", "Param1")
-                ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"Val2", "Param2")
-                ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"Val3", "Param3")
-                ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"Val4", "Param4")
-                ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"Val5", "Param5")
+                when (selectedIndex) {
+                    0 -> {
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"Val1", "Param1")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"Val2", "Param2")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"Val3", "Param3")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"Val4", "Param4")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"Val5", "Param5")
+                    }
+                    1 -> {
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.batteryInfo?.battery_level}", "Battery level")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.batteryInfo?.battery_state_of_charge}", "State of charge")
+                    }
+                    2 -> {
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.engineInfo?.coolant_temperature}", "Coolant temp")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.engineInfo?.engine_load}", "Load")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.engineInfo?.engine_rpm}", "Rpm")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.engineInfo?.fuel_level}", "Fuel")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.engineInfo?.fuel_pressure}", "Fuel pressure")
+                    }
+                    3 -> {
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.doorsInfo?.ajar}", "Ajar")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.doorsInfo?.door}", "Door")
+                    }
+                    4 -> {
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.hvacInfo?.ambient_air_temperature}", "Ambient temp")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.hvacInfo?.cabin_temperature}", "Cabin temp")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.hvacInfo?.cabin_temperature_driver_set}", "Driver set temp")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.hvacInfo?.fan_speed}", "Fan speed")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.AC_Status}", "AC status")
+                    }
+                }
             }
             Column(
                 modifier = Modifier
@@ -155,11 +200,36 @@ fun ThreeColumnLayout(modifier: Modifier = Modifier, selectedIndex: Int) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"Val6", "Param6")
-                ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"Val7", "Param7")
-                ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"Val8", "Param8")
-                ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"Val9", "Param9")
-                ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"Val10", "Param10")
+                when (selectedIndex) {
+                    0 -> {
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"Val6", "Param6")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"Val7", "Param7")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"Val8", "Param8")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"Val9", "Param9")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"Val10", "Param10")
+                    }
+                    1 -> {
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.batteryInfo?.percentage}", "Percentage")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.batteryInfo?.voltage}", "Voltage")
+                    }
+                    2 -> {
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.engineInfo?.intake_air_temperature}", "Intake air temp")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.engineInfo?.oil_temperature}", "Oil temp")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.engineInfo?.throttle_position}", "Throttle position")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.engineInfo?.vehicle_speed}", "Speed")
+                    }
+                    3 -> {
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.doorsInfo?.passenger}", "Passanger")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.doorsInfo?.passenger_lock}", "Passanger lock")
+                    }
+                    4 -> {
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.Air_Recirculation}", "Air recirc")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.Defrost}", "Defrost")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.Front}", "Front")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.Legs}", "Legs")
+                        ParamsButton(onClick = { /*TODO*/ }, Color.Blue,"${ecusInfoViewModel.hvacInfo?.mass_air_flow}", "Mass air flow")
+                    }
+                }
             }
         }
     }
@@ -220,7 +290,7 @@ fun handleMenuItemClick() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBarNavigation() {
+fun TopBarNavigation(onBackPressed: () -> Unit) {
     var showMenu by remember { mutableStateOf(false) }
     val navController = rememberNavController()
 
@@ -233,7 +303,7 @@ fun TopBarNavigation() {
             )
         },
         navigationIcon = {
-            IconButton(onClick = {navController.popBackStack()}) {
+            IconButton(onClick = { onBackPressed() }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Localized description"
@@ -315,14 +385,5 @@ fun CustomButtonForBottomAppBar(isSelected: Boolean, onClick: () -> Unit, ecuNam
                 modifier = Modifier.padding(top = 0.dp)
             )
         }
-    }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun ActivPreview() {
-    CarsDataTheme {
-        ActivityLayout()
     }
 }

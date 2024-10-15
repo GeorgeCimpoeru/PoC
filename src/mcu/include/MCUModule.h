@@ -33,7 +33,12 @@ namespace MCU
         /* Variable to store mcu data */
         std::unordered_map<uint16_t, std::vector<uint8_t>> default_DID_MCU = 
         {
-            {0x01E0, {IDLE}}
+            {0x01E0, {IDLE}},
+#ifdef SOFTWARE_VERSION
+            {0xF1A2, {static_cast<uint8_t>(SOFTWARE_VERSION)}}
+#else
+            {0xF1A2, {0x00}}
+#endif
         };
         static const std::vector<uint16_t> VALID_DID_MCU;
 

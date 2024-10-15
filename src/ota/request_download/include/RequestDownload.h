@@ -34,6 +34,11 @@
 #include "../../uds/read_data_by_identifier/include/ReadDataByIdentifier.h"
 #include "../../utils/include/MemoryManager.h"
 #include <pybind11/embed.h>
+
+/* ECU permitted transfer data requests */
+#define MAX_TRANSFER_DATA_REQUESTS 5
+#define MAXIMUM_ALLOWED_DOWNLOAD_SIZE  50000000
+
 class RequestDownloadService
 {
 public:
@@ -72,11 +77,17 @@ public:
      */
     void requestDownloadResponse(canid_t id, int memory_address, int max_number_block);
 
+    /**
+     * @brief Method used in Transfer Data to get the max_number_block from Request Download
+     */
+    static size_t getMaxNumberBlock();
 private:
     int socket = -1;
     Logger& RDSlogger;
 
     GenerateFrames generate_frames;
+    /* Variable used in Transfer Data as maximum 1 transfer data size */
+    static size_t max_number_block;
     /**
      * @brief Method for validation of the provided memory address and size, ensuring they are within acceptable bounds and logical ranges.
      *

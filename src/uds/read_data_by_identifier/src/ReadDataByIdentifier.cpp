@@ -73,26 +73,26 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
 
     /* Extract the data identifier from the request */
     uint16_t data_identifier = (request[2] << 8) | request[3];
-    std::string file_name;
-
+    std::string file_name = std::string(PROJECT_PATH);
     if (lowerbits == 0x10)
     {
-        file_name = "mcu_data.txt";
-    } else if (lowerbits == 0x11)
+        file_name += "/src/mcu/mcu_data.txt";
+    }
+    else if (lowerbits == 0x11)
     {
-        file_name = "battery_data.txt";
+        file_name += "/src/ecu_simulation/BatteryModule/battery_data.txt";
     }
     else if (lowerbits == 0x12)
     {
-        file_name = "engine_data.txt";
+        file_name += "/src/ecu_simulation/EngineModule/engine_data.txt";
     }
     else if (lowerbits == 0x13)
     {
-        file_name = "doors_data.txt";
+        file_name += "/src/ecu_simulation/DoorsModule/doors_data.txt";
     }
     else if (lowerbits == 0x14)
     {
-        file_name = "hvac_data.txt";
+        file_name += "/src/ecu_simulation/HVACModule/hvac_data.txt";
     }
     else
     {
@@ -152,23 +152,12 @@ std::vector<uint8_t> ReadDataByIdentifier::readDataByIdentifier(canid_t frame_id
     // Log the data
     LOG_INFO(rdbi_logger.GET_LOGGER(), "Data for DID 0x{:04X} from {}: {}", data_identifier, file_name, oss.str());
 
-
     if (use_send_frame)
     {
-        if (response.size() > 7)
-        {
-            /* Send response frame */
-            generate_frames.readDataByIdentifierLongResponse(can_id, data_identifier, response, true);
-            LOG_INFO(rdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x22);
-            AccessTimingParameter::stopTimingFlag(lowerbits, 0x22);
-        } 
-        else
-        {
-            /* Send response frame */
-            generate_frames.readDataByIdentifier(can_id, data_identifier, response);
-            LOG_INFO(rdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x22);
-            AccessTimingParameter::stopTimingFlag(lowerbits, 0x22);
-        }
+        /* Send response frame */
+        generate_frames.readDataByIdentifier(can_id, data_identifier, response);
+        LOG_INFO(rdbi_logger.GET_LOGGER(), "Service with SID {:x} successfully sent the response frame.", 0x22);
+        AccessTimingParameter::stopTimingFlag(lowerbits, 0x22);
     }
     return response;
 }

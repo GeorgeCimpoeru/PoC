@@ -1,12 +1,14 @@
-package com.poc.p_couds
+package com.poc.p_couds.fragments
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -42,45 +44,56 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.poc.p_couds.R
+import androidx.fragment.app.FragmentActivity
 import com.poc.p_couds.ui.theme.CarsDataTheme
 
 
 class HomeFragment : Fragment() {
+    private lateinit var sharedPreferences: SharedPreferences
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Inflate the layout for this fragment
-        // Use Jetpack Compose for the UI
+        sharedPreferences = requireActivity().getSharedPreferences("Preferences", Context.MODE_PRIVATE)
+
         return ComposeView(requireContext()).apply {
             setContent {
-                FragmentContent()
-                Log.d("aici", "am ajuns")
+                CarsDataTheme {
+                          val isLoggedIn = sharedPreferences.getBoolean("isLoggedIn",false)
+                          HomeScreen(onVinSubmitted = { vinText ->
+                              val accessibilityFragment = AccessibilityFragment()
+                              val bundle = Bundle()
+                              bundle.putString("VIN", vinText)
+                              accessibilityFragment.arguments = bundle
+                              navigateToAccessibilityFragment(activity, accessibilityFragment)
+                          }, isLoggedIn = isLoggedIn)
+                }
             }
         }
     }
 
     @Composable
-    fun FragmentContent() {
-        CarsDataTheme {
-            HomeScreen()
-        }
-    }
-
-    @Composable
-    fun HomeScreen() {
+    fun HomeScreen(onVinSubmitted: (String) -> Unit, isLoggedIn: Boolean) {
         // State for the dialog
         var showDialog by remember { mutableStateOf(false) }
         var vinText by remember { mutableStateOf("") }
+        val context = LocalContext.current
 
-        ScrollableContent(onShowDialog = { showDialog = true })
-
+        ScrollableContent(onShowDialog = {
+            if (isLoggedIn) {
+                showDialog = true
+            } else {
+                navigateToLogInFragment(context)
+            }
+        })
 
         // Show dialog when `showDialog` is true
         VinDialog(
@@ -88,10 +101,30 @@ class HomeFragment : Fragment() {
             onDismiss = { showDialog = false },
             onSend = { vin ->
                 vinText = vin
-                // Handle VIN text (e.g., send it to a server)
+                onVinSubmitted(vin) // Trigger fragment navigation
                 showDialog = false
             }
         )
+    }
+
+    private fun navigateToAccessibilityFragment(activity: FragmentActivity?, accessibilityFragment: AccessibilityFragment) {
+
+        val fragmentManager = activity?.supportFragmentManager
+        fragmentManager?.beginTransaction()
+            ?.replace(R.id.fragment_container_view, accessibilityFragment)
+            ?.addToBackStack(null)
+            ?.commit()
+    }
+
+    private fun navigateToLogInFragment(context: Context) {
+        val activity = context as? AppCompatActivity
+        val fragment = LogInFragment()
+
+        val fragmentManager = activity?.supportFragmentManager
+        fragmentManager?.beginTransaction()
+            ?.replace(R.id.fragment_container_view, fragment)
+            ?.addToBackStack(null)
+            ?.commit()
     }
 
     @Composable

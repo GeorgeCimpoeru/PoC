@@ -64,6 +64,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.gridlayout)
+    implementation(libs.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -78,4 +79,10 @@ dependencies {
     implementation (libs.androidx.fragment.ktx)
     implementation (libs.ui)
     implementation (libs.androidx.appcompat.v160)
+    implementation(libs.logging.interceptor)
+    implementation(libs.okhttps)
+    implementation (libs.gson)
+    implementation (libs.converter.gson)
+    implementation (libs.retrofit)
+
 }
