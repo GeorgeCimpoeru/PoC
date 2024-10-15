@@ -56,6 +56,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     {
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
         AccessTimingParameter::stopTimingFlag(lowerbits, 0x31);
+        return;
     }
     /* when our identifiers will be defined, this range should be smaller */
     if (routine_identifier < 0x0100 || routine_identifier > 0x0601)
