@@ -39,12 +39,6 @@ public:
      * @param logger The logger
      */
     EcuReset(uint32_t can_id, uint8_t sub_function, int socket, Logger &logger);
-
-    /**
-     * @brief Destroy the Ecu Reset object
-     * 
-     */
-    ~EcuReset();
     /**
      * @brief Method that checks the subfunction and calls either hardReset() or keyOffReset().
      * data A vector containing the data bytes to be processed.

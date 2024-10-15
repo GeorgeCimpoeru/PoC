@@ -2,11 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Modal } from 'antd';
 import {displayLoadingCircle, displayErrorPopup, removeLoadingCicle} from '../sharedComponents/LoadingCircle';
-import logger from '@/src/utils/Logger';
 
 const UpgradeButton = (props: any) => {
-    logger.init();
-    
     const [isVersionPopupVisible, setIsVersionPopupVisible] = useState(false);
 
     const showVersionPopup = () => setIsVersionPopupVisible(true);
@@ -79,7 +76,7 @@ const UpgradeButton = (props: any) => {
                 open={isVersionPopupVisible}
                 onCancel={() => setIsVersionPopupVisible(false)}
                 footer={props.softVersions.map((version: any, index: any) => (
-                    <Button className="m-1" key={'{version}-${index}'} onClick={() => updateToVersion(index)}>
+                    <Button className="m-1" key={version} onClick={() => updateToVersion(index)}>
                         {`Version ${version}`}
                     </Button>
                 ))}>

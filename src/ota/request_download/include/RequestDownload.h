@@ -24,6 +24,7 @@
 #include <sys/ioctl.h>
 #include <linux/can.h>
 #include <net/if.h>
+#include <zip.h>
 #include "../../../utils/include/CreateInterface.h"
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../utils/include/Logger.h"
@@ -34,33 +35,14 @@
 #include "../../utils/include/MemoryManager.h"
 #include <pybind11/embed.h>
 
-/* ECU permitted transfer data bytes in a request. Set to 5 because we use only 8 bytes for requests (1 pci, 1 sid, 1 blc_indx => remaining 5 bytes)*/
-#define MAX_TRANSER_DATA_BYTES 5
+/* ECU permitted transfer data requests */
+#define MAX_TRANSFER_DATA_REQUESTS 5
 #define MAXIMUM_ALLOWED_DOWNLOAD_SIZE  50000000
-
-/* Structure that contains information about the download. The values are set in the Request Download service.
-    This informations are shared with Transfer Data & Routine Control in order to do the actions that are needed.
-    Data format is used for handling compression and encryption
-    Address, size & max_number_block for Transfer Data to write in that memory
-*/
-struct RDSData
-{
-    uint8_t data_format;
-    int address;
-    int size;
-    int max_number_block;
-};
 
 class RequestDownloadService
 {
 public:
-/***********************************************************************/
-/************************* PUBLIC VARIABLES ****************************/
-/***********************************************************************/
     static constexpr uint8_t RDS_SID = 0x34;
-/*********************************************************************/
-/************************* PUBLIC METHODS ****************************/
-/*********************************************************************/
     /**
      * @brief Construct a new Request Download Service object
      * 
@@ -96,23 +78,16 @@ public:
     void requestDownloadResponse(canid_t id, int memory_address, int max_number_block);
 
     /**
-     * @brief Method used to get the informations about the download request.
-     * 
-     * @return RDSData 
+     * @brief Method used in Transfer Data to get the max_number_block from Request Download
      */
-    static RDSData getRdsData();
+    static size_t getMaxNumberBlock();
 private:
-/*********************************************************************/
-/************************* PRIVATE VARIABLES *************************/
-/*********************************************************************/
     int socket = -1;
     Logger& RDSlogger;
-    GenerateFrames generate_frames;
-    static RDSData rds_data;
 
-/*********************************************************************/
-/************************* PRIVATE METHODS ***************************/
-/*********************************************************************/
+    GenerateFrames generate_frames;
+    /* Variable used in Transfer Data as maximum 1 transfer data size */
+    static size_t max_number_block;
     /**
      * @brief Method for validation of the provided memory address and size, ensuring they are within acceptable bounds and logical ranges.
      *
@@ -184,6 +159,15 @@ private:
      * @param sw_version The software version.
      */
     void downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_version);
+
+    /**
+     * @brief Method to extract the zipped file.
+     * 
+     * @param target_id Targeted ecu for file unzipping.
+     * @param zipFilePath Path to zip file.
+     * @param outputDir Path for the extracted file.
+     */
+    bool extractZipFile(uint8_t target_id, const std::string &zipFilePath, const std::string &outputDir);
 };
 
 #endif /* REQUEST_DOWNLOAD_SERVICE_H */

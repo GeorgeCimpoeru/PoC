@@ -131,15 +131,19 @@ class ReadInfo(Action):
                 "time_stamp": datetime.datetime.now().isoformat()
             }
 
+            self.bus.shutdown()
             log_info_message(logger, "Sending JSON response")
             return response_json
 
         except CustomError:
+            self.bus.shutdown()
             nrc_msg = self.last_msg.data[3] if self.last_msg and len(self.last_msg.data) > 3 else 0x00
             sid_msg = self.last_msg.data[2] if self.last_msg and len(self.last_msg.data) > 2 else 0x00
             negative_response = self.handle_negative_response(nrc_msg, sid_msg)
+            self.bus.shutdown()
             return {
-                "message": "ssue encountered during Read by ID",
+                "status": "error",
+                "message": "Error during Read by ID",
                 "negative_response": negative_response
             }
 
@@ -206,15 +210,19 @@ class ReadInfo(Action):
                     "time_stamp": datetime.datetime.now().isoformat()
                 }
 
+                self.bus.shutdown()
                 log_info_message(logger, "Sending JSON response")
                 return response_json
 
         except CustomError:
+            self.bus.shutdown()
             nrc_msg = self.last_msg.data[3] if self.last_msg and len(self.last_msg.data) > 3 else 0x00
             sid_msg = self.last_msg.data[2] if self.last_msg and len(self.last_msg.data) > 2 else 0x00
             negative_response = self.handle_negative_response(nrc_msg, sid_msg)
+            self.bus.shutdown()
             return {
-                "message": "ssue encountered during Read by ID",
+                "status": "error",
+                "message": "Error during Read by ID",
                 "negative_response": negative_response
             }
         except Exception as e:
@@ -254,6 +262,7 @@ class ReadInfo(Action):
                         "time_stamp": datetime.datetime.now().isoformat()
                     }
 
+                    self.bus.shutdown()
                     log_info_message(logger, "Sending JSON response")
                     return response_json
                 else:
@@ -268,15 +277,19 @@ class ReadInfo(Action):
                     "time_stamp": datetime.datetime.now().isoformat()
                 }
 
+                self.bus.shutdown()
                 log_info_message(logger, "Sending JSON response")
                 return response_json
 
         except CustomError:
+            self.bus.shutdown()
             nrc_msg = self.last_msg.data[3] if self.last_msg and len(self.last_msg.data) > 3 else 0x00
             sid_msg = self.last_msg.data[2] if self.last_msg and len(self.last_msg.data) > 2 else 0x00
             negative_response = self.handle_negative_response(nrc_msg, sid_msg)
+            self.bus.shutdown()
             return {
-                "message": "ssue encountered during Read by ID",
+                "status": "error",
+                "message": "Error during Read by ID",
                 "negative_response": negative_response
             }
 
@@ -314,6 +327,7 @@ class ReadInfo(Action):
                         item: interpreted_value,
                         "time_stamp": datetime.datetime.now().isoformat()
                     }
+                    self.bus.shutdown()
                     log_info_message(logger, "Sending JSON response")
                     return response_json
                 else:
@@ -331,14 +345,18 @@ class ReadInfo(Action):
                     **results,
                     "time_stamp": datetime.datetime.now().isoformat()
                     }
+                self.bus.shutdown()
                 log_info_message(logger, "Sending JSON response")
                 return response_json
 
         except CustomError:
+            self.bus.shutdown()
             nrc_msg = self.last_msg.data[3] if self.last_msg and len(self.last_msg.data) > 3 else 0x00
             sid_msg = self.last_msg.data[2] if self.last_msg and len(self.last_msg.data) > 2 else 0x00
             negative_response = self.handle_negative_response(nrc_msg, sid_msg)
+            self.bus.shutdown()
             return {
-                "message": "Issue encountered during Read by ID",
+                "status": "error",
+                "message": "Error during Read by ID",
                 "negative_response": negative_response
             }

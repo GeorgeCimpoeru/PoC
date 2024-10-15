@@ -13,7 +13,7 @@ app = Flask(__name__)
 limiter = Limiter(
     get_remote_address,
     app=app,
-    default_limits=["5 per 10 seconds"]
+    default_limits=["1 per 10 seconds"]
 )
 
 app.config.from_object(Config)

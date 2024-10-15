@@ -3,11 +3,8 @@ import React, { useEffect, useState } from 'react';
 import UpgradeButton from './UpgradeButton';
 import DowngradeButton from './DowngradeButton';
 import {removeLoadingCicle} from '../sharedComponents/LoadingCircle';
-import logger from '@/src/utils/Logger';
 
 const TableVersionControl = (props: any) => {
-    logger.init();
-    
     const [newSoftVersions, setNewSoftVersions] = useState<string[]>([]);
 
     const getNewSoftVersions = () => {

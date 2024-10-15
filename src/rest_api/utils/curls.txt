@@ -13,19 +13,19 @@ curl -X POST http://localhost:5000/api/update_to_version \
 }'
 3. /read_info_battery - GET Request
 
-curl -X GET "http://127.0.0.1:5000/api/read_info_battery?is_manual_flow=false" -H "Content-Type: application/json"
+curl -X GET "http://localhost:5000/api/read_info_battery?item=battery_status"
 
 4. /read_info_engine - GET Request
 
-curl -X GET "http://127.0.0.1:5000/api/read_info_engine?is_manual_flow=false" -H "Content-Type: application/json"
+curl -X GET "http://localhost:5000/api/read_info_engine?item=engine_temperature"
 
 5. /read_info_doors - GET Request
 
-curl -X GET "http://127.0.0.1:5000/api/read_info_doors?is_manual_flow=false" -H "Content-Type: application/json"
+curl -X GET "http://localhost:5000/api/read_info_doors?item=door_status"
 
 6. /read_info_hvac - GET Request
 
-curl -X GET "http://127.0.0.1:5000/api/read_info_hvac?is_manual_flow=false" -H "Content-Type: application/json"
+curl -X GET "http://localhost:5000/api/read_info_hvac?item=hvac_mode"
 
 7. /send_frame - POST Request
 
@@ -36,26 +36,42 @@ curl -X POST http://localhost:5000/api/send_frame \
     "can_data": "01 02 03 04"
 }'
 
-8. /write_info_engine - POST Request
+8. /write_info_doors - POST Request
 
-curl -X POST http://127.0.0.1:5000/api/write_info_engine -H "Content-Type: application/json" -d '{"is_manual_flow": false, "engine_rpm": 23, "coolant_temperature": 43,
-        "throttle_position": 8, "vehicle_speed": 33, "engine_load": 32, "fuel_level": 67, "oil_temperature": 90, "fuel_pressure": 33, "intake_air_temperature": 33}'
+curl -X POST http://localhost:5000/api/write_info_doors \
+-H "Content-Type: application/json" \
+-d '{
+    "parameter": "lock_state",
+    "value": "locked"
+}'
 
 9. /write_info_battery - POST Request
 
-curl -X POST http://127.0.0.1:5000/api/write_info_battery -H "Content-Type: application/json" -d '{"is_manual_flow": false, "battery_level": 75, "voltage": 10, "battery_state_of_charge": 2, "percentage": 10}'
+curl -X POST http://localhost:5000/api/write_info_battery \
+-H "Content-Type: application/json" \
+-d '{
+    "parameter": "charge_level",
+    "value": "75%"
+}'
 
+10. /write_info_engine - POST Request
 
-10. /write_info_doors - POST Request
-
-curl -X POST http://127.0.0.1:5000/api/write_info_doors -H "Content-Type: application/json" -d '{"is_manual_flow": false, "door": 1, "passenger": 0, "passenger_lock": 1, "driver": 1, "ajar": 0}'
-
+curl -X POST http://localhost:5000/api/write_info_engine \
+-H "Content-Type: application/json" \
+-d '{
+    "parameter": "rpm",
+    "value": "3000"
+}'
 
 11. /write_info_hvac - POST Request
 
 
-curl -X POST http://127.0.0.1:5000/api/write_info_hvac -H "Content-Type: application/json" -d '{"is_manual_flow": false, "mass_air_flow": 21, "ambient_air_temperature": 44,
-        "cabin_temperature": 18, "cabin_temperature_driver_set": 25, "fan_speed": 45, "hvac_modes":0}'
+curl -X POST http://localhost:5000/api/write_info_hvac \
+-H "Content-Type: application/json" \
+-d '{
+    "parameter": "temperature",
+    "value": "22C"
+}'
 
 12. /logs - GET Request
 

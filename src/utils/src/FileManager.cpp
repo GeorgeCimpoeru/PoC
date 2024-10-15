@@ -1,6 +1,5 @@
 #include "../include/FileManager.h"
 #include <unistd.h>
-#include <zip.h>
 
 void FileManager::writeMapToFile(const std::string& file_name, const std::unordered_map<uint16_t, std::vector<uint8_t>>& data_map)
 {
@@ -122,19 +121,11 @@ void FileManager::writeDTC(std::unordered_map<uint16_t, std::vector<uint8_t>>& d
 
 bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t param, Logger& logger, const std::string& version)
 {
-    static std::string zip_ecu_path;
-    if(param > 3)
+    if(param > 2)
     {
-        /* Only 0, 1, 2 and 3 valid values */
+        /* Only 0, 1 and 2 valid values */
         return 0;
     }
-
-    if(param == 3 && access((zip_ecu_path).c_str(), F_OK) != -1)
-    {
-        ecu_path = zip_ecu_path;
-        return 1;
-    }
-
     switch(ecu_id)
     {
         case 0x10:
@@ -142,11 +133,10 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
             if(param == 0)
             {
                 ecu_path = std::string(PROJECT_PATH) + "/MCU_SW_VERSION_" + version + ".zip";
-                zip_ecu_path = ecu_path;
             }
             else
             {
-                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_mcu_new.zip" : "/src/mcu/");
+                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_mcu_new" : "/src/mcu/main_mcu_new");
             }
             break;
         }
@@ -155,11 +145,10 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
             if(param == 0)
             {
                 ecu_path = std::string(PROJECT_PATH) + "/ECU_BATTERY_SW_VERSION_" + version + ".zip";
-                zip_ecu_path = ecu_path;
             }
             else
             {
-                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_battery_new.zip" : "/src/ecu_simulation/BatteryModule/");
+                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_battery_new" : "/src/ecu_simulation/BatteryModule/main_battery_new");
             }        
             break;
         }
@@ -168,11 +157,10 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
             if(param == 0)
             {
                 ecu_path = std::string(PROJECT_PATH) + "/ECU_ENGINE_SW_VERSION_" + version + ".zip";
-                zip_ecu_path = ecu_path;
             }
             else
             {
-                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_engine_new.zip" : "/src/ecu_simulation/EngineModule/");
+                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_engine_new" : "/src/ecu_simulation/EngineModule/main_engine_new");
             }        
             break;
         }
@@ -181,11 +169,10 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
             if(param == 0)
             {
                 ecu_path = std::string(PROJECT_PATH) + "/ECU_DOORS_SW_VERSION_" + version + ".zip";
-                zip_ecu_path = ecu_path;
             }
             else
             {
-                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_doors_new.zip" : "/src/ecu_simulation/DoorsModule/");
+                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_doors_new" : "/src/ecu_simulation/DoorsModule/main_doors_new");
             }        
             break;
         }
@@ -194,11 +181,10 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
             if(param == 0)
             {
                 ecu_path = std::string(PROJECT_PATH) + "/ECU_HVAC_SW_VERSION_" + version + ".zip";
-                zip_ecu_path = ecu_path;
             }
             else
             {
-                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_hvac_new.zip" : "/src/ecu_simulation/HVACModule/");
+                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_hvac_new" : "/src/ecu_simulation/HVACModule/main_hvac_new");
             }        
             break;
         }
@@ -207,100 +193,9 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
             return 0;
         break;
     }
-    /* Checks for valid path here */
-    // if(param == 1 && access((ecu_path).c_str(), F_OK) == -1)
-    // {
-    //     return 0;
-    // }
-    
-    return 1;
-}
-
-bool FileManager::validateData(std::vector<uint8_t>& data, FileType file_type)
-{   
-    uint32_t file_signature = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
-
-    switch(file_type)
+    if(param == 1 && access((ecu_path).c_str(), F_OK) == -1)
     {
-        case FileType::ELF_FILE:
-        {
-            if((file_signature ^ ELF_SIGNATURE) != 0)
-            {
-                return 0;
-            }
-            break;
-        }
-        case FileType::ZIP_FILE:
-        {
-            if((file_signature ^ ZIP_SIGNATURE) != 0)
-            {
-                return 0;
-            }
-            break;
-        }
-        default:
-        {
-            return 0;
-        }
+        return 0;
     }
     return 1;
-}
-
-bool FileManager::extractZipFile(uint8_t target_id, const std::string &zipFilePath, const std::string &outputDir, Logger& logger) {
-    int err = 0;
-    zip *archive = zip_open(zipFilePath.c_str(), 0, &err);
-
-    if (archive == nullptr) {
-        LOG_ERROR(logger.GET_LOGGER(), "Error opening ZIP file:" + zipFilePath);
-        return false;
-    }
-
-    zip_uint64_t numFiles = zip_get_num_entries(archive, 0);
-    for (zip_uint64_t i = 0; i < numFiles; ++i) {
-        const char *name = zip_get_name(archive, i, 0);
-        if (name == nullptr) {
-            LOG_ERROR(logger.GET_LOGGER(), "Error getting name of file #" + std::to_string(i) + " in ZIP archive.");
-            zip_close(archive);
-            return false;
-        }
-
-        struct zip_stat st;
-        zip_stat_init(&st);
-        zip_stat(archive, name, 0, &st);
-
-        zip_file *zf = zip_fopen(archive, name, 0);
-        if (!zf) {
-            LOG_ERROR(logger.GET_LOGGER(), "Error opening file inside ZIP: " + std::string(name));
-            zip_close(archive);
-            return false;
-        }
-
-        std::string outputFilePath = outputDir + "/" + name + "_new";
-
-        std::ofstream outFile(outputFilePath, std::ios::binary);
-        if (!outFile.is_open()) {
-            LOG_ERROR(logger.GET_LOGGER(), "Error creating output file: " + outputFilePath);
-            zip_fclose(zf);
-            zip_close(archive);
-            return false;
-        }
-
-        char buffer[8192];
-        zip_int64_t bytesRead;
-        while ((bytesRead = zip_fread(zf, buffer, sizeof(buffer))) > 0) {
-            outFile.write(buffer, bytesRead);
-        }
-
-        outFile.close();
-        zip_fclose(zf);
-
-        if (bytesRead < 0) {
-            LOG_ERROR(logger.GET_LOGGER(), "Error reading from ZIP file: " + std::string(name));
-            zip_close(archive);
-            return false;
-        }
-    }
-
-    zip_close(archive);
-    return true;
 }

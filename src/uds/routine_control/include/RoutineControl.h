@@ -27,15 +27,9 @@
 
 class RoutineControl
 {
-public:
-/*********************************************************************/
-/************************* PUBLIC VARIABLES **************************/
-/*********************************************************************/
+    public:
     /* Define the service identifier for Routine Control */
     static constexpr uint8_t ROUTINE_CONTROL_SID = 0x31;
-/*********************************************************************/
-/************************* PUBLIC METHODS ****************************/
-/*********************************************************************/
     /**
     * @brief Default constructor
     * 
@@ -59,16 +53,6 @@ public:
     */
     void routineControlResponse(canid_t can_id, uint8_t sub_function, const uint16_t& routine_identifier, std::vector<uint8_t>& routine_result);
     
-private:
-/*********************************************************************/
-/************************* PRIVATE VARIABLES *************************/
-/*********************************************************************/
-    GenerateFrames generate_frames;
-    int socket = -1;
-    Logger& rc_logger;
-/*********************************************************************/
-/************************* PRIVATE METHODS ***************************/
-/*********************************************************************/
     /**
      * @brief 
      * 
@@ -78,9 +62,7 @@ private:
     bool initialiseOta(uint8_t target_ecu, const std::vector<uint8_t>& request, std::vector<uint8_t>& routine_result);
 
     /**
-     * @brief Method used for activating a new software that was downloaded.
-     *          Before activating, it saves the current software to PARTITION 2.
-     *          If activation fails, the software is rolled back to the previous version.
+     * @brief 
      * 
      * @return true 
      * @return false 
@@ -88,16 +70,12 @@ private:
     bool activateSoftware();
 
     /**
-     * @brief Method used for checking data before using it. 
-     * This method checks for 2 data signatures: ELF or ZIP and
-     * compares the sent checksum calculated when transferring data with the new one calculated after the transfer is completed.
-     * 
-     * If the software is intended for MCU, only 
+     * @brief 
      * 
      * @return true 
      * @return false 
      */
-    bool verifySoftware(uint8_t receiver_id);
+    bool verifySoftware();
     
     /**
      * @brief Get the Current Process Informations
@@ -109,37 +87,15 @@ private:
      */
     bool getCurrentProcessInfo(pid_t& pid, std::string& pname, std::string& ppath);
 
-    /**
-     * 
-     */
     bool rollbackSoftware();
 
-    /**
-     * 
-     */
     bool saveCurrentSoftware();
 
-    /**
-     * 
-     */
-    bool handleDataCompressionEncryption(uint8_t receiver_id);
+    private:
+    GenerateFrames generate_frames;
+    int socket = -1;
+    Logger& rc_logger;
 
-    /**
-     * @brief Method used to erase memory at a certain address.
-     * 
-     *      This has 2 parts:
-     *      The first call is for routine 0101 and is used to set the address from where to delete memory.
-     *      example: cansend vcan1 0000fa10#06310101010800 => address 2048
-     * 
-     *      The second call sets the size and deletes data.
-     *      example: cansend vcan1 0000fa10#053101010205 => deletes 5 bytes
-     * 
-     * @param address_or_size_parameter 
-     * @param routine_id 
-     * @return true 
-     * @return false 
-     */
-    bool eraseMemory(size_t address_or_size_parameter, uint16_t routine_id);
 };
 
 #endif
