@@ -20,7 +20,8 @@ let intervalID: number | NodeJS.Timeout | null = null;
 
 const SendRequests = () => {
     const [logs, setLogs] = useState<string[]>([]);
-    const [data23, setData23] = useState<{ ecu_ids: [], mcu_id: any, status: string, time_stamp: string } | string[] | string | null>();
+    const [data23, setData23] = useState<{ ecu_ids: [], mcu_id: any, status: string, time_stamp: string } | string[] | string | null | 
+    { name: string; version: string; }[] >();
     const [batteryData, setBatteryData] = useState<batteryData | null>();
     const [canId, setCanId] = useState("");
     const [canData, setCanData] = useState("");
@@ -30,6 +31,7 @@ const SendRequests = () => {
     const [disableInfoBatteryBtns, setDisableInfoBatteryBtns] = useState<boolean>(false);
     const [disableInfoEngineBtns, setDisableInfoEngineBtns] = useState<boolean>(false);
     const [disableInfoDoorsBtns, setDisableInfoDoorsBtns] = useState<boolean>(false);
+    const [disableInfoHvacBtns, setDisableInfoHvacsBtns] = useState<boolean>(false);
     const [disableConvertBtn, setDisableConvertBtn] = useState<boolean>(true);
     const [session, setSession] = useState<string>("default");
     const [testerPres, setTesterPres] = useState<string>("disabled");
@@ -270,12 +272,12 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
-    const readInfoBattery = async (initialRequest: boolean, identifier: string) => {
+    const readInfoBattery = async (initialRequest: boolean, item: string) => {
         displayLoadingCircle();
         console.log("Reading info battery...");
-        console.log(identifier);
+        console.log(item);
         try {
-            await fetch(`http://127.0.0.1:5000/api/read_info_battery?identifier=${identifier}`, {
+            await fetch(`http://127.0.0.1:5000/api/read_info_battery?item=${item}`, {
                 method: 'GET',
                 // mode: 'no-cors',
             }).then(response => response.json())
@@ -293,11 +295,54 @@ const SendRequests = () => {
             console.log(error);
             removeLoadingCicle();
         }
-        // removeLoadingCicle();
-    }
+    };
 
-    const readInfoEngine = async () => { }
-    const writeInfoEngine = async () => { }
+    const writeInfoEngine = async () => {
+        displayLoadingCircle();
+        const engine_rpm = prompt('Enter Engine rpm:');
+        const coolant_temperature = prompt('Enter coolant temperature:');
+        const throttle_position = prompt('Enter throttle position:');
+        const vehicle_speed = prompt('Enter vehicle speed:');
+        const engine_load = prompt('Enter engine load:');
+        const fuel_level = prompt('Enter fuel level:');
+        const oil_temperature = prompt('Enter oil temperature:');
+        const fuel_pressure = prompt('Enter fuel pressure:');
+        const intake_air_temperature = prompt('Enter intake air temperature:');
+        // "is_manual_flow": true or false only   // to be done  after merging a PR from the API with this change
+
+        const data = {
+            engine_rpm: engine_rpm || null,
+            coolant_temperature: coolant_temperature || null,
+            throttle_position: throttle_position || null,
+            vehicle_speed: vehicle_speed || null,
+            engine_load: engine_load || null,
+            fuel_level: fuel_level || null,
+            oil_temperature: oil_temperature || null,
+            fuel_pressure: fuel_pressure || null,
+            intake_air_temperature: intake_air_temperature || null,
+
+        };
+        console.log("Writing info engine...");
+        console.log(data);
+        try {
+            await fetch(`http://127.0.0.1:5000/api/write_info_engine`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            }).then(response => response.json())
+                .then(data => {
+                    setData23(data);
+                    console.log(data);
+                    fetchLogs();
+                });
+        } catch (error) {
+            console.log(error);
+            removeLoadingCicle();
+        }
+        removeLoadingCicle();
+    }
 
     const readInfoDoors = async () => {
         displayLoadingCircle();
@@ -316,50 +361,119 @@ const SendRequests = () => {
             removeLoadingCicle();
         }
         removeLoadingCicle();
-    }
+    };
 
-    const getNewSoftVersions = async () => {
+    const getNewSoftVersions = async (): Promise<{ message: string; versions: { name: string; version: string }[] }> => {
         displayLoadingCircle();
-        console.log("Geting new soft versions...");
+        const responseContainer = document.getElementById('response-data');
+
+        if (responseContainer) {
+            responseContainer.innerHTML = "<p>Getting new soft versions...</p>";
+        }
+
+        let versionsArray: { name: string; version: string }[] = [];
+
         try {
-            await fetch(`http://127.0.0.1:5000/api/drive_update_data`, {
+            const response = await fetch(`http://127.0.0.1:5000/api/drive_update_data`, {
                 method: 'GET',
-            }).then(response => response.json())
-                .then(data => {
-                    console.log(data);
-                    const versionsArray: string[] = [];
-                    for (let i = 0; i < data.children[4].children.length; ++i) {
-                        versionsArray.push(data.children[4].children[i].name)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log("Response data:", data);
+
+            if (data && data.children && data.children.length > 0) {
+
+                for (const folder of data.children) {
+                    console.log("Processing folder:", folder.name);
+
+                    for (const child of folder.children) {
+                        const fullName: string = child.name;
+                        const version: string = getVersion(fullName);
+                        console.log(`Found file: ${fullName}, version: ${version}`);
+                        const nameWithoutId: string = fullName.split('.zip')[0];
+                        versionsArray.push({ name: nameWithoutId, version });
                     }
-                    for (let i = 0; i < data.children[5].children.length; ++i) {
-                        versionsArray.push(data.children[5].children[i].name)
-                    }
-                    setData23(versionsArray);
-                    fetchLogs();
-                });
+                };
+
+                console.log("Versions array:", versionsArray);
+
+
+                const searchTerms = ["HVAC", "battery", "engine", "doors"];
+                const filteredVersions = getElementByName(versionsArray, searchTerms);
+                console.log("Filtered ECU Versions:", filteredVersions);
+
+                setData23(versionsArray);
+
+                return {
+                    message: "Versions retrieved successfully",
+                    versions: filteredVersions
+                };
+            } else {
+                return { message: "No versions available", versions: [] };
+            }
+
         } catch (error) {
-            console.log(error);
+            console.error("Error:", error);
+            const errorMessage = (error instanceof Error) ? error.message : "Unknown error occurred";
+
+            if (responseContainer) {
+                responseContainer.innerHTML += `<h3>Error:</h3><p>${errorMessage}</p>`;
+            }
+
+            return {
+                message: "Failed to retrieve versions",
+                versions: []
+            };
+        } finally {
             removeLoadingCicle();
         }
-        removeLoadingCicle();
-    }
+    };
+
+    const getVersion = (fullName: string): string => {
+        const versionMatch = fullName.match(/_(\d+\.\d+)\.zip/);
+        console.log(`Extracting version from: ${fullName}`);
+        return versionMatch ? versionMatch[1] : "unknown";
+    };  // to be removed 
+
+    const getElementByName = (versionsArray: { name: string; version: string }[], searchTerms: string[]) => {
+        const filteredVersions = versionsArray.filter(version =>
+            searchTerms.some(term => version.name.toLowerCase().includes(term.toLowerCase()))
+        );
+        return filteredVersions;
+    };
+
+    const checkInput = (message: any) => {
+        let value;
+        do {
+            value = prompt(message);
+            if (value !== '0' && value !== '1') {
+                alert('Accepted value: 0/1');
+            }
+        } while (value !== '0' && value !== '1'); 
+        return value;
+    };
+
 
     const writeInfoDoors = async () => {
         displayLoadingCircle();
-        const door = prompt('Enter Door Parameter:');
-        const serial_number = prompt('Enter Serial Number:');
-        const lighter_voltage = prompt('Enter Cigarette Lighter Voltage:');
-        const light_state = prompt('Enter Light State:');
-        const belt = prompt('Enter Belt Card State:');
-        const windows_closed = prompt('Enter Window Status:');
+        const door = checkInput('Enter Door Parameter:');
+        const passenger = checkInput('Enter Passenger:');
+        const passenger_lock = checkInput('Enter Passenger Lock:');
+        const driver = checkInput('Enter Driver:');
+        const ajar = checkInput('Enter Ajar:');
+        // const windows_closed = prompt('Enter Window Status:');
 
         const data = {
             door: door || null,
-            serial_number: serial_number || null,
-            lighter_voltage: lighter_voltage || null,
-            light_state: light_state || null,
-            belt: belt || null,
-            windows_closed: windows_closed || null,
+            passenger: passenger || null,
+            passenger_lock: passenger_lock || null,
+            driver: driver || null,
+            ajar: ajar || null,
+            // windows_closed: windows_closed || null,
         };
         console.log("Writing info doors...");
         console.log(data);
@@ -383,9 +497,48 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
-    const writeInfoBattery = async (identifier: string) => {
+    const writeInfoHvac = async () => {
+        displayLoadingCircle();
+        const mass_air_flow = prompt('Enter Mass Air Flow:');
+        const ambient_air_temperature = prompt('Enter Ambient Air Temperature:');
+        const cabin_temperature = prompt('Enter Cabin Temperature:');
+        const cabin_temperature_driver_set = prompt('Enter Cabin Temperature Driver Set:');
+        const fan_speed = prompt('Enter Fan Speed:');
+        const hvac_modes = checkInput('Enter Hvac Modes:');
+
+        const data = {
+            mass_air_flow: mass_air_flow || null,
+            ambient_air_temperature: ambient_air_temperature || null,
+            cabin_temperature: cabin_temperature || null,
+            cabin_temperature_driver_set: cabin_temperature_driver_set || null,
+            fan_speed: fan_speed || null,
+            hvac_modes: hvac_modes || null,
+        };
+        console.log("Writing info hvac...");
+        console.log(data);
+        try {
+            await fetch(`http://127.0.0.1:5000/api/write_info_hvac`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            }).then(response => response.json())
+                .then(data => {
+                    setData23(data);
+                    console.log(data);
+                    fetchLogs();
+                });
+        } catch (error) {
+            console.log(error);
+            removeLoadingCicle();
+        }
+        removeLoadingCicle();
+    }
+
+    const writeInfoBattery = async (item: string) => {
         let data2 = {}
-        if (identifier === "battery_level") {
+        if (item === "battery_level") {
             let batteryLevel = prompt('Enter Battery Level: ');
             if (batteryLevel === null) {
                 return;
@@ -393,7 +546,7 @@ const SendRequests = () => {
             data2 = {
                 battery_level: parseInt(batteryLevel)
             };
-        } else if (identifier === "state_of_charge") {
+        } else if (item === "state_of_charge") {
             let stateOfCharge = prompt('Enter Battery State of Charge: ');
             if (stateOfCharge === null) {
                 return;
@@ -401,7 +554,7 @@ const SendRequests = () => {
             data2 = {
                 state_of_charge: parseInt(stateOfCharge)
             };
-        } else if (identifier === "percentage") {
+        } else if (item === "percentage") {
             let percentage = prompt('Enter Battery Percentage: ');
             if (percentage === null) {
                 return;
@@ -409,7 +562,7 @@ const SendRequests = () => {
             data2 = {
                 percentage: parseInt(percentage)
             };
-        } else if (identifier === "voltage") {
+        } else if (item === "voltage") {
             let voltage = prompt('Enter Battery Voltage: ');
             if (voltage === null) {
                 return;
@@ -423,7 +576,7 @@ const SendRequests = () => {
         console.log(data2);
         displayLoadingCircle();
         try {
-            await fetch(`http://127.0.0.1:5000/api/write_info_battery?identifier=${identifier}`, {
+            await fetch(`http://127.0.0.1:5000/api/write_info_battery?item=${item}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -553,10 +706,10 @@ const SendRequests = () => {
             p2_max: parseInt(prompt("Enter p2_max value:") || "0", 10),
             p2_star_max: parseInt(prompt("Enter p2_star_max value:") || "0", 10)
         };
-    
+
         console.log("Writing timing data...", timingData);
         displayLoadingCircle();
-    
+
         try {
             const response = await fetch(`http://127.0.0.1:5000/api/write_timing`, {
                 method: 'POST',
@@ -565,34 +718,34 @@ const SendRequests = () => {
                 },
                 body: JSON.stringify(timingData),
             });
-    
+
             const data = await response.json();
             console.log("Response data:", data);
-    
+
             if (data.status === "success") {
-                setData23(data) 
+                setData23(data)
                 console.log(data)
-                
+
                 const writtenValues = data.written_values;
                 const message = `Timing parameters written successfully.\n` +
-                                `New P2 Max Time: ${writtenValues["New P2 Max Time"]}\n` +
-                                `New P2 Star Max: ${writtenValues["New P2 Star Max"]}`;
-                
+                    `New P2 Max Time: ${writtenValues["New P2 Max Time"]}\n` +
+                    `New P2 Star Max: ${writtenValues["New P2 Star Max"]}`;
+
                 displayMessagePopup(message);
             } else {
                 displayMessagePopup(`Error: ${data.message}`);
             }
-    
+
             fetchLogs();
-    
+
         } catch (error) {
             console.error("Error:", error);
             displayMessagePopup("Failed to write timing values");
         }
-    
+
         removeLoadingCicle();
     };
-    
+
     const getIdentifiers = async () => {
         console.log("Reading all data identifiers...");
         displayLoadingCircle();
@@ -773,7 +926,7 @@ const SendRequests = () => {
                 <div>
                     <button className="btn btn-success w-fit mt-2 text-white" onClick={readDTC} disabled={disableFrameAndDtcBtns}>Read DTC</button>
                     {/* <button className="btn btn-success w-fit ml-5 mt-2 text-white" onClick={hexToAscii} disabled={disableConvertBtn}>Convert response to ASCII</button> */}
-                    <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getNewSoftVersions} disabled={disableFrameAndDtcBtns}>Check new soft versions</button>
+                    <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getNewSoftVersions}>Check new soft versions</button>
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={authenticate} disabled={disableFrameAndDtcBtns}>Authenticate</button>
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getIdentifiers} disabled={disableFrameAndDtcBtns}>Read identifiers</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => requestIds(false)} disabled={disableRequestIdsBtn}>Request IDs</button>
@@ -828,6 +981,8 @@ const SendRequests = () => {
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoEngine} disabled={disableInfoEngineBtns}>Write Info Engine</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoDoors} disabled={disableInfoDoorsBtns}>Read Info Doors</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoDoors} disabled={disableInfoDoorsBtns}>Write Doors Info</button>
+                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoHvac} disabled={disableInfoHvacBtns}>Read Info Hvac</button>
+                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoHvac} disabled={disableInfoHvacBtns}>Write Info Hvac</button>
                 </div>
 
                 <h1 className="text-2xl mt-2">Response</h1>

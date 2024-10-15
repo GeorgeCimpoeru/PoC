@@ -18,8 +18,8 @@
         android:title="Door"
         android:icon="@drawable/baseline_sensor_door_24"/>
     <item
-        android:id="@+id/hvc"
-        android:title="HVC"
+        android:id="@+id/hvac"
+        android:title="HVAC"
         android:icon="@drawable/baseline_battery_4_bar_24"/>
 <!--    <item-->
 <!--        android:id="@+id/request"-->
