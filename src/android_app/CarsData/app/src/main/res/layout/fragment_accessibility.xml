@@ -31,16 +31,16 @@
                         android:layout_marginTop="200dp"
                         tools:ignore="UselessParent">
 
-                    <ImageView
-                        android:id="@+id/vin_image"
-                        android:layout_width="match_parent"
-                        android:layout_height="310dp"
-                        android:layout_marginTop="50dp"
-                        android:contentDescription="@string/vin"
-                        android:cropToPadding="false"
-                        android:scaleType="fitXY"
-                        android:alpha="0.5"
-                        android:src="@drawable/vin" />
+                        <ImageView
+                            android:id="@+id/vin_image"
+                            android:layout_width="match_parent"
+                            android:layout_height="310dp"
+                            android:layout_marginTop="50dp"
+                            android:contentDescription="@string/vinIm"
+                            android:cropToPadding="false"
+                            android:scaleType="fitXY"
+                            android:alpha="0.5"
+                            android:src="@drawable/vin" />
                     </FrameLayout>
 
                     <TextView
@@ -84,12 +84,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:orientation="vertical">
-                        <ImageView
-                            android:layout_width="match_parent"
-                            android:layout_height="250dp"
-                            android:contentDescription="@string/smooth_edges"
-                            android:src="@drawable/smooth_edge"
-                            android:scaleType="fitXY" />
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="250dp"
+                        android:contentDescription="@string/smooth_edges"
+                        android:src="@drawable/smooth_edge"
+                        android:scaleType="fitXY" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -203,12 +203,13 @@
                         <View
                             android:id="@+id/line1"
                             android:layout_width="2dp"
-                            android:layout_height="35dp"
+                            android:layout_height="0dp"
                             android:background="@drawable/line"
                             android:backgroundTint="@color/green"
                             android:layout_marginStart="58dp"
                             app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@id/plantCountryLabel" />
+                            app:layout_constraintTop_toBottomOf="@id/plantCountryLabel"
+                            app:layout_constraintBottom_toTopOf="@+id/line9"/>
 
                         <View
                             android:id="@+id/line9"
@@ -218,7 +219,8 @@
                             android:backgroundTint="@color/green"
                             android:layout_marginStart="54dp"
                             app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@+id/line1" />
+                            app:layout_constraintTop_toBottomOf="@+id/line1"
+                            app:layout_constraintBottom_toTopOf="@id/vin1"/>
 
                         <TextView
                             android:id="@+id/vehicleTypeLabel"
@@ -256,7 +258,7 @@
                         <View
                             android:id="@+id/line11"
                             android:layout_width="2dp"
-                            android:layout_height="8dp"
+                            android:layout_height="0dp"
                             android:background="@drawable/line"
                             android:backgroundTint="#FF4349"
                             android:layout_marginStart="95dp"
@@ -271,7 +273,8 @@
                             android:background="@drawable/line"
                             android:backgroundTint="#FF4349"
                             app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@+id/line11" />
+                            app:layout_constraintTop_toBottomOf="@+id/line11"
+                            app:layout_constraintBottom_toTopOf="@+id/vin3"/>
 
                         <TextView
                             android:id="@+id/ErrorTextLabel"
@@ -310,12 +313,13 @@
                         <View
                             android:id="@+id/line16"
                             android:layout_width="2dp"
-                            android:layout_height="11dp"
+                            android:layout_height="0dp"
                             android:layout_marginStart="205dp"
                             android:background="@drawable/line"
                             android:backgroundTint="#FFDE21"
                             app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@+id/line15" />
+                            app:layout_constraintTop_toBottomOf="@+id/line15"
+                            app:layout_constraintBottom_toTopOf="@+id/line17"/>
 
                         <View
                             android:id="@+id/line17"
@@ -325,7 +329,8 @@
                             android:background="@drawable/line"
                             android:backgroundTint="#FFDE21"
                             app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@+id/line16" />
+                            app:layout_constraintTop_toBottomOf="@+id/line16"
+                            app:layout_constraintBottom_toTopOf="@+id/vin5"/>
 
                         <TextView
                             android:id="@+id/plantCityLabel"
@@ -353,12 +358,13 @@
                         <View
                             android:id="@+id/line22"
                             android:layout_width="2dp"
-                            android:layout_height="3dp"
+                            android:layout_height="0dp"
                             android:background="@drawable/line"
                             android:backgroundTint="#FE036A"
                             android:layout_marginStart="243dp"
                             app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@+id/line21" />
+                            app:layout_constraintTop_toBottomOf="@+id/line21"
+                            app:layout_constraintBottom_toTopOf="@+id/line23"/>
 
                         <View
                             android:id="@+id/line23"
@@ -368,7 +374,8 @@
                             android:background="@drawable/line"
                             android:backgroundTint="#FE036A"
                             app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@+id/line22" />
+                            app:layout_constraintTop_toBottomOf="@+id/line22"
+                            app:layout_constraintBottom_toTopOf="@+id/vin7"/>
 
                         <View
                             android:id="@+id/line4"
@@ -391,13 +398,76 @@
                         android:orientation="horizontal">
 
                         <TextView
-                            android:id="@+id/vin"
-                            android:layout_width="match_parent"
+                            android:id="@+id/vin1"
+                            android:layout_width="18dp"
                             android:layout_height="match_parent"
                             android:textSize="30sp"
                             android:textStyle="bold"
                             android:fontFamily="serif-monospace"
-                            android:text="@string/vin" />
+                            android:text="@string/vin1" />
+
+                        <TextView
+                            android:id="@+id/vin2"
+                            android:layout_width="18dp"
+                            android:layout_height="match_parent"
+                            android:textSize="30sp"
+                            android:textStyle="bold"
+                            android:fontFamily="serif-monospace"
+                            android:text="@string/vin2" />
+
+                        <TextView
+                            android:id="@+id/vin3"
+                            android:layout_width="18dp"
+                            android:layout_height="match_parent"
+                            android:textSize="30sp"
+                            android:textStyle="bold"
+                            android:fontFamily="serif-monospace"
+                            android:text="@string/vin3" />
+
+                        <TextView
+                            android:id="@+id/vin4"
+                            android:layout_width="92dp"
+                            android:layout_height="match_parent"
+                            android:textSize="30sp"
+                            android:textStyle="bold"
+                            android:fontFamily="serif-monospace"
+                            android:text="@string/vin4" />
+
+                        <TextView
+                            android:id="@+id/vin5"
+                            android:layout_width="18dp"
+                            android:layout_height="match_parent"
+                            android:textSize="30sp"
+                            android:textStyle="bold"
+                            android:fontFamily="serif-monospace"
+                            android:text="@string/vin5" />
+
+                        <TextView
+                            android:id="@+id/vin6"
+                            android:layout_width="18dp"
+                            android:layout_height="match_parent"
+                            android:textSize="30sp"
+                            android:textStyle="bold"
+                            android:fontFamily="serif-monospace"
+                            android:text="@string/vin6" />
+
+                        <TextView
+                            android:id="@+id/vin7"
+                            android:layout_width="18dp"
+                            android:layout_height="match_parent"
+                            android:textSize="30sp"
+                            android:textStyle="bold"
+                            android:fontFamily="serif-monospace"
+                            android:text="@string/vin7" />
+
+                        <TextView
+                            android:id="@+id/vin8"
+                            android:layout_width="110dp"
+                            android:layout_height="match_parent"
+                            android:textSize="30sp"
+                            android:textStyle="bold"
+                            android:fontFamily="serif-monospace"
+                            android:text="@string/vin8" />
 
                         <!-- Add more TextViews for each VIN character -->
                     </LinearLayout>
@@ -425,7 +495,7 @@
                             android:backgroundTint="#DC6601"
                             android:layout_marginStart="72dp"
                             app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@+id/line1" />
+                            app:layout_constraintTop_toBottomOf="@+id/vin2" />
 
                         <TextView
                             android:id="@+id/manufacturerText"
@@ -459,7 +529,7 @@
                             android:backgroundTint="#2B3BFF"
                             android:layout_marginStart="106dp"
                             app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintBottom_toTopOf="@+id/line2" />
+                            app:layout_constraintBottom_toTopOf="@+id/vin4" />
 
                         <TextView
                             android:id="@+id/bodyClass_engineHP_engineModel_model_Text"
@@ -514,7 +584,7 @@
                             android:backgroundTint="#D1AFFF"
                             android:layout_marginStart="219dp"
                             app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@+id/line1" />
+                            app:layout_constraintTop_toBottomOf="@+id/vin6" />
 
                         <TextView
                             android:id="@+id/modelYearText"
@@ -548,7 +618,7 @@
                             android:backgroundTint="#006400"
                             android:layout_marginStart="254dp"
                             app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintBottom_toTopOf="@+id/line2" />
+                            app:layout_constraintBottom_toTopOf="@+id/vin8" />
 
                         <TextView
                             android:id="@+id/serialNoText"
