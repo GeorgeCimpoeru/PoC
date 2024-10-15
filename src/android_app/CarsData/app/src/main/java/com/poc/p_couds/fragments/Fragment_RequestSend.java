@@ -14,7 +14,7 @@ import android.widget.CompoundButton;
 import android.widget.Switch;
 
 import com.poc.p_couds.APIClient;
-import com.poc.p_couds.IApiService;
+import com.poc.p_couds.models.IApiService;
 import com.poc.p_couds.R;
 import com.poc.p_couds.pojo.Authenticate;
 import com.poc.p_couds.pojo.ChangeStatus;
