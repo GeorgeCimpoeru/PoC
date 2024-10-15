@@ -26,11 +26,14 @@
 const uint8_t SID_DIAGNOSTIC_SESSION_CONTROL = 0x10;
 const uint8_t SUB_FUNCTION_DEFAULT_SESSION = 1;
 const uint8_t SUB_FUNCTION_PROGRAMMING_SESSION = 2;
+const uint8_t SUB_FUNCTION_EXTENDED_DIAGNOSTIC_SESSION = 3;
 
 enum DiagnosticSession
 {
-    DEFAULT_SESSION,
-    PROGRAMMING_SESSION
+    DEFAULT_SESSION = 0x01,
+    PROGRAMMING_SESSION,
+    EXTENDED_DIAGNOSTIC_SESSION,
+    UNKNOWN_SESSION
     /* Other sessions can be defined here */
 };
 
@@ -45,16 +48,6 @@ public:
      * @param socket The socket descriptor used for communication over the CAN bus.
      */
     DiagnosticSessionControl(Logger& logger, int socket);
-    /**
-     * @brief Construct a new Diagnostic Session Control object
-     * with a parameter given for 'module_id'. For example, battery
-     * will currently use 0x11 as 'module_id'.
-     * 
-     * @param module_id Custom module identifier.
-     * @param logger A logger instance used to record information and errors during the execution.
-     * @param socket The socket descriptor used for communication over the CAN bus.
-     */
-    DiagnosticSessionControl(int module_id, Logger& logger, int socket);
 
     /**
      * @brief Destroy the Diagnostic Session Control object
@@ -67,8 +60,10 @@ public:
      * 
      * @param id An unique identifier for the CAN frame.
      * @param sub_function A 1 byte value that specifies a particular diagnostic service.
+     * @param is_tp Parameter true when the method is called by tester present, for not 
+     * send the response
      */
-    void sessionControl(canid_t frame_id, uint8_t sub_function);
+    void sessionControl(canid_t frame_id, uint8_t sub_function, bool is_tp = false);
 
     /**
      * @brief Get the Current Session of object
@@ -87,23 +82,18 @@ public:
     static DiagnosticSession current_session;
 
 private:
-    int module_id;
     Logger& dsc_logger;
     int socket = -1;
 
     /**
-     * @brief Method to switch the current session to Default session
+     * @brief Method to switch the current session
      * 
      * @param frame_id The id of the received frame.
+     * @param session New session
+     * @param is_tp Parameter true when the method is called by tester present, for not 
+     * send the response
      */
-    void switchToDefaultSession(canid_t frame_id);
-
-    /**
-     * @brief Method to switch the current session to Programming session
-     * 
-     * @param frame_id The id of the received frame.
-     */
-    void switchToProgrammingSession(canid_t frame_id);
+    void switchSession(canid_t frame_id, DiagnosticSession session, bool is_tp = false);
 };
 
 #endif

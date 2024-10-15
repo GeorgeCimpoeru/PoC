@@ -16,7 +16,7 @@ class DiagnosticTroubleCode(Action):
             id = (self.id_ecu[ECU_BATTERY] << 16) + (self.my_id << 8) + self.id_ecu[MCU]
 
             log_info_message(logger, "Requesting read DTC information")
-            self.generate.request_read_dtc_information(id, sub_funct=0x01, dtc_status_mask=0xFF)
+            self.request_read_dtc_information(id, sub_funct=0x01, dtc_status_mask=0xFF)
             frame_response = self._passive_response(READ_DTC, "Error requesting session control")
 
             if frame_response.data[1] == 0x7F:
@@ -36,7 +36,7 @@ class DiagnosticTroubleCode(Action):
             sts_ava_mask = 0xE4  # Status availability mask
             dtc_format = 0x01  # DTC format identifier (ISO_14229-1_DTCFormat)
             dtc_count = 3  # Number of DTCs found
-            self.generate.response_read_dtc_information(id, sts_ava_mask, dtc_format, dtc_count)
+            self.response_read_dtc_information(id, sts_ava_mask, dtc_format, dtc_count)
 
             return json_response
 
@@ -50,7 +50,7 @@ class DiagnosticTroubleCode(Action):
 
         try:
             log_info_message(logger, "Clearing all DTCs information with positive response")
-            self.generate.clear_diagnostic_information(id, 0xFFFFFF, False)
+            self.clear_diagnostic_information(id, 0xFFFFFF, False)
             frame_response = self._passive_response(CLEAR_DTC, "Error clearing DTCs")
 
             if frame_response.data[1] == 0x54:

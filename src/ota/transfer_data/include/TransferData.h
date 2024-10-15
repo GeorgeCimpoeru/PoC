@@ -17,7 +17,7 @@
 class TransferData 
 {
     public:
-    static constexpr uint8_t TD_SID = 0x34;
+    static constexpr uint8_t TD_SID = 0x36;
     /**
      * @brief Constructor for transfer data object
      * 
@@ -32,21 +32,34 @@ class TransferData
      * @param transfer_request data to be transferred
      */
     void transferData(canid_t can_id, std::vector<uint8_t>& transfer_request);
+    /**
+     * @brief Static method to get checksums for validation in transfer exit
+     *    
+     */
+    static const std::vector<uint8_t>& getChecksums();
     private:
     Logger transfer_data_logger;
     GenerateFrames generate_frames;
     int socket = -1;
-    static uint8_t expected_block_sequence_number;
-    bool is_first_transfer;
     size_t total_size;
     size_t bytes_sent;
-
+    static uint8_t expected_block_sequence_number;
+    static bool is_first_transfer;
+    /* This represents 1 transfer data size, calculated in Request Download representing the  max_number_block */
+    static size_t chunk_size;
+    /* Used to check if all transfers are done, this is set in Request Download*/
+    static uint8_t expected_transfer_data_requests;
+    /* Static vector used in Request Transfer Exit thta contains the checksums for each chunk data transfer */
+    static std::vector<uint8_t>checksums;
+    /**
+     * @brief method used to compute a simple checksum for a block of data transferred
+     * 
+     * @param data pointer to the data block
+     * @param block_size te size of the data block
+     * @return 1 byte checksum
+     */
+    uint8_t computeChecksum(const uint8_t* data, size_t block_size);
 
 };
-
-
-
-
-
 
 #endif

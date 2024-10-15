@@ -72,50 +72,57 @@ void RequestTransferExit::requestTRansferExitRequest(canid_t can_id, const std::
     }
     else    
     {
-        std::ifstream file("mcu_data.txt");
-        std::string line;
-        uint8_t value;
-        bool did_found = false;
-        
-        while (std::getline(file, line))
-        {
-            std::istringstream iss(line);
-            std::string key_str;
-            uint16_t key;
-            
-            if (iss >> std::hex >> key && key == 0x01E0)
-            {
-                /* Read the first byte associated with the DID */
-                iss >> std::hex >> value;
-                did_found = true;
-                break;
-            }
-        }
         /* Retrieve transfer_status based on the OTA_UPDATE_STATUS_DID if it exists */
-        if (did_found != 01)
+        auto value = MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0];
+        /* Check if the transfer data has been completed */
+        if (value == PROCESSING_TRANSFER_COMPLETE)        
         {
-            /* Check if the transfer data has been completed */
-            if (value == 0x31)        
-                {
+            /* Get the store checksums from transfer data */
+            const std::vector<uint8_t>& stored_checksums = TransferData::getChecksums();
+
+            /* Prepare positive response if the checksums match */
+            if (stored_checksums.size() == MAX_TRANSFER_DATA_REQUESTS && checkValidChecksums(stored_checksums))
+            {    
                 /* prepare positive response */
                 response.push_back(0x02); /* PCI */
                 response.push_back(0x77); /* Service ID */
                 response.push_back(request_transfer_exit_data[2]);
                 /* Send the postive response frame */ 
-                generate_frames.sendFrame(can_id, response);	
-                }
-                else
-                {                                
-                /* Request sequence error - prepare a negative response */
-                /* Send the negative response frame */ 
-                nrc.sendNRC(can_id, RTES_SERVICE_ID, NegativeResponse::RSE);
+                generate_frames.sendFrame(can_id, response);
+                /* Since the response is positive, update the DID to the verification status */
+                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {READY});
+            }
+            else
+            {
+                /* Update the DID to the Error status if the checksums were not computed */
+                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ERROR});
+                /* Send the negative response frame */        
+                nrc.sendNRC(can_id, RTES_SERVICE_ID, NegativeResponse::IMLOIF);
                 return;
-                }       
+            }
         }
         else
+        {                                
+            /* Request sequence error - prepare a negative response */
+            /* Send the negative response frame */ 
+            nrc.sendNRC(can_id, RTES_SERVICE_ID, NegativeResponse::RSE);
+            /* Since the response is negative, update the DID to the verification status */
+            MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {IDLE});
+            return;
+        }       
+    }
+}
+
+/* Method to check if all the checksums computed for each chunk transferred have data */
+bool RequestTransferExit::checkValidChecksums(const std::vector<uint8_t>&stored_checksums)
+{
+    for (const auto& checksum :stored_checksums)
+    {
+        if (checksum == 0)
         {
-           /*  OTA_UPDATE_STATUS_DID not found */
-            LOG_ERROR(RTESLogger.GET_LOGGER(),"OTA_UPDATE_STATUS_DID 01E0 not found "); 
+            return false;
         }
     }
+    /* if all checksums are different than 0, return true */
+    return true;
 }

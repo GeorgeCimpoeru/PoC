@@ -1,20 +1,43 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import ModalUDS from './ModalUDS';
 import './style.css';
 
-const DivCenter = (props: any) => {
-    const [jsonResp, setJsonResp] = useState('');
+interface doorsData {
+    ajar: any, // verifica daca e usa deschisa/ inchisa cum trebuie 
+    door: any,
+    passenger: any,
+    passenger_lock: any,
+}
 
-    const callApi = async () => {
-        const res = await fetch(
-            'https://api.agify.io/?name=meelad',
-            { cache: 'no-store' }
-        );
-        const jsonData = await res.json();
-        setJsonResp(jsonData);
-    }
+
+const DivCenterDoors = (props: any) => {
+    const [data, setData] = useState<doorsData | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const readInfoEngine = async () => {
+            await fetch(`http://127.0.0.1:5000/api/read_info_doors`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    setData(data);
+
+                })
+                .catch(error => {
+                    setError(error);
+
+                });
+        };
+        readInfoEngine();
+    }, []);
+
 
     return (
         <div className="w-[65%] flex h-screen bg-indigo-950 math-paper">
@@ -23,36 +46,32 @@ const DivCenter = (props: any) => {
                 {/* <button className="btn" onClick={callApi}>Button{jsonResp.age}</button> */}
                 <div className="w-full h-full flex flex-col items-center justify-center">
 
-
                     <div className="w-[30%] m-7 text-white grid justify-items-end">
                         <label htmlFor="my_modal_1"
                             className="inline-flex items-center justify-center p-2 bg-blue-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-blue-700">
-                            75%
+                            {data?.ajar}
                         </label>
-                        <ModalUDS id="my_modal_1" cardTitle={'Parameter X'} />
-                        <p>Parameter X</p>
+                        <ModalUDS id="my_modal_1" cardTitle={'Door status - Ajar'} />
+                        <p>Ajar</p>
                     </div>
-
 
                     <div className="w-[30%] m-7 text-white grid justify-center">
                         <label htmlFor="my_modal_2"
                             className="inline-flex items-center justify-center p-2 bg-red-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-red-700">
-                            50km/h
+                            {data?.door}
                         </label>
-                        <ModalUDS id="my_modal_2" cardTitle={'Parameter X'} />
-                        <p>Parameter X</p>
+                        <ModalUDS id="my_modal_2" cardTitle={'Door'} />
+                        <p>Door</p>
                     </div>
-
 
                     <div className="w-[30%] m-7 text-white grid justify-items-end">
                         <label htmlFor="my_modal_3"
                             className="inline-flex items-center justify-center p-2 bg-green-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-green-700">
-                            fwefe
+                            {data?.passenger}
                         </label>
-                        <ModalUDS id="my_modal_3" cardTitle={'Parameter X'} />
-                        <p>Parameter X</p>
+                        <ModalUDS id="my_modal_3" cardTitle={'Passenger'} />
+                        <p>Passenger</p>
                     </div>
-
 
                 </div>
             </div>
@@ -62,50 +81,18 @@ const DivCenter = (props: any) => {
 
             <div className="w-[35%] flex flex-col items-center justify-center">
 
-
                 <div className="w-[30%] m-7 text-white">
                     <label htmlFor="my_modal_4"
                         className="inline-flex items-center justify-center p-2 bg-blue-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-blue-700">
-                        efwf
+                        {data?.passenger_lock}
                     </label>
-                    <ModalUDS id="my_modal_4" cardTitle={'Parameter X'} />
-                    <p>Parameter X</p>
+                    <ModalUDS id="my_modal_4" cardTitle={'Passenger lock'} />
+                    <p>Passenger lock</p>
                 </div>
-
-
-                <div className="w-[30%] m-7 text-white grid justify-items-end">
-                    <label htmlFor="my_modal_5"
-                        className="inline-flex items-center justify-center p-2 bg-red-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-red-700">
-                        efdwe
-                    </label>
-                    <ModalUDS id="my_modal_5" cardTitle={'Parameter X'} />
-                    <p>Parameter X</p>
-                </div>
-
-
-                <div className="w-[30%] m-7 text-white grid justify-items-end">
-                    <label htmlFor="my_modal_6"
-                        className="inline-flex items-center justify-center p-2 bg-green-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-green-700">
-                        wefcwec
-                    </label>
-                    <ModalUDS id="my_modal_6" cardTitle={'Parameter X'} />
-                    <p>Parameter X</p>
-                </div>
-
-
-                <div className="w-[30%] m-7 text-white">
-                    <label htmlFor="my_modal_7"
-                        className="inline-flex items-center justify-center p-2 bg-purple-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-purple-700">
-                        cwefew
-                    </label>
-                    <ModalUDS id="my_modal_7" cardTitle={'Parameter X'} />
-                    <p>Parameter X</p>
-                </div>
-
-
             </div>
         </div>
     )
 }
 
-export default DivCenter
+export default DivCenterDoors
+

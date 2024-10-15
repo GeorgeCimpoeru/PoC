@@ -22,9 +22,9 @@ class SessionManager(Action):
             session_type = "DEFAULT" if sub_funct == 1 else "PROGRAMMING" if sub_funct == 2 else "unknown"
 
             if session_type == "DEFAULT":
-                self.generate.session_control(id, 0x01)
+                self.session_control(id, 0x01)
             else:
-                self.generate.session_control(id, 0x02)
+                self.session_control(id, 0x02)
 
             frame_response = self._passive_response(SESSION_CONTROL, "Error changing session control")
 

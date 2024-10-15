@@ -21,7 +21,12 @@ std::unordered_map<uint16_t, std::vector<uint8_t>> EngineModule::default_DID_eng
         /* Fuel Pressure */
         {0x012C, {0}},
         /* Intake Air Temperature */
-        {0x0130, {0}}
+        {0x0130, {0}},
+#ifdef SOFTWARE_VERSION
+        {0xF1A2, {static_cast<uint8_t>(SOFTWARE_VERSION)}}
+#else
+        {0xF1A2, {0x00}}
+#endif
     };
 
 /** Constructor - initializes the EngineModule with default values,
@@ -159,7 +164,8 @@ void EngineModule::writeDataToFile()
 void EngineModule::checkDTC()
 {      
     /* Check if dtcs.txt exists */
-    std::string dtc_file_path = "dtcs.txt";
+    std::string dtc_file_path = std::string(PROJECT_PATH) + "/src/ecu_simulation/EngineModule/dtcs.txt";
+    std::string engine_file_path = std::string(PROJECT_PATH) + "/src/ecu_simulation/EngineModule/engine_data.txt";
     std::ifstream infile(dtc_file_path);
 
     if (!infile.is_open())
@@ -181,7 +187,7 @@ void EngineModule::checkDTC()
         infile.close();
     }
     /* Read the map with DIDs from the file */
-    std::unordered_map<uint16_t, std::vector<uint8_t>> current_DID_value = FileManager::readMapFromFile("engine_data.txt");
+    std::unordered_map<uint16_t, std::vector<uint8_t>> current_DID_value = FileManager::readMapFromFile(engine_file_path);
 
     /* Fuel Pressure DTC*/
     FileManager::writeDTC(current_DID_value, dtc_file_path, 0x012C, 30, 50, "P0190 24");

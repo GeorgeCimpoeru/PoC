@@ -21,6 +21,7 @@ ROUTINE_CONTROL = 0X31
 WRITE_BY_IDENTIFIER = 0X2E
 READ_DTC = 0X19
 CLEAR_DTC = 0X14
+REQUEST_UPDATE_STATUS = 0x32
 REQUEST_DOWNLOAD = 0X34
 TRANSFER_DATA = 0X36
 REQUEST_TRANSFER_EXIT = 0X37
@@ -64,7 +65,7 @@ class CustomError(Exception):
         super().__init__(self.message)
 
 
-class Action:
+class Action(GF):
     """
     Base class for actions involving CAN bus communication.
 
@@ -75,11 +76,10 @@ class Action:
     """
 
     def __init__(self, my_id, id_ecu: list = []):
-        self.bus = can.interface.Bus(channel=Config.CAN_CHANNEL, interface='socketcan')
         self.my_id = my_id
         self.id_ecu = id_ecu
-        self.generate = GF(self.bus)
         self.last_msg = None
+        super().__init__()
 
     def __collect_response(self, sid: int):
         """
@@ -93,36 +93,52 @@ class Action:
         """
         flag = False
         msg_ext = None
-        msg = self.bus.recv(35)
+        msg = self.bus.recv(Config.BUS_RECEIVE_TIMEOUT)
         self.last_msg = msg
-        while msg is not None:
 
+        log_info_message(logger, f"[Collect Response] Initial message received: {msg}")
+
+        while msg is not None:
             if msg.data[1] == 0x7F and msg.data[3] == 0x78:
-                log_info_message(logger, f"Response pending for SID {msg.data[2]:02X}. Waiting for the actual response...")
+                log_info_message(logger, f"[Collect Response] Response pending for SID {msg.data[2]:02X}. Waiting for actual response...")
                 msg = self.bus.recv(Config.BUS_RECEIVE_TIMEOUT)
                 self.last_msg = msg
                 continue
+
             # First Frame
             if msg.data[0] == 0x10:
                 flag = True
                 msg_ext = msg[1:]
+                log_info_message(logger, f"[Collect Response] First frame received: {msg_ext}")
+
             # Consecutive frame
             elif flag and 0x20 < msg.data[0] < 0x30:
                 msg_ext.data += msg.data[1:]
-            # Simple Frame
+                log_info_message(logger, f"[Collect Response] Consecutive frame received. Updated data: {msg_ext}")
+
+            # Simple frame or other types
             else:
+                log_info_message(logger, f"[Collect Response] Simple frame or other frame received: {msg}")
                 break
+
             msg = self.bus.recv(Config.BUS_RECEIVE_TIMEOUT)
             self.last_msg = msg
+
+        log_info_message(logger, f"[Collect Response] Final message after processing: {msg}")
+
         if flag:
             msg = msg_ext
+
         if msg is not None and self.__verify_frame(msg, sid):
+            log_info_message(logger, f"[Collect Response] Valid message collected for SID {sid:02X}: {msg}")
+            self.response_collected = True
             return msg
+
+        log_error_message(logger, f"[Collect Response] Invalid or no message collected for SID {sid:02X}")
         return None
 
     def __verify_frame(self, msg: can.Message, sid: int):
-
-        log_info_message(logger, f"Verifying frame with SID: {sid:02X}, message data: {[hex(byte) for byte in msg.data]}")
+        log_info_message(logger, f"[Verify Frame] Verifying frame with SID: {sid:02X}, message data: {[hex(byte) for byte in msg.data]}")
 
         if msg.arbitration_id % 0x100 != self.my_id:
             return False
@@ -153,8 +169,13 @@ class Action:
         Raises:
         - CustomError: If the response is invalid.
         """
-        log_info_message(logger, "Collecting the response")
+        log_info_message(logger, "[Passive Reponse] Collecting the response")
         response = self.__collect_response(sid)
+
+        if response:
+            log_info_message(logger, f"[Passive Reponse] Collected response: {response}")
+        else:
+            log_error_message(logger, error_str)
 
         if response is None:
             log_error_message(logger, error_str)
@@ -192,11 +213,11 @@ class Action:
         Returns:
         - Data as a string.
         """
-        log_info_message(logger, f"Read from identifier {identifier}")
-        self.generate.read_data_by_identifier(id, identifier)
+        log_info_message(logger, f"[Read by Identifier] Read from identifier {identifier}")
+        self.read_data_by_identifier(id, identifier)
         frame_response = self._passive_response(READ_BY_IDENTIFIER,
-                                                f"Error reading data from identifier {identifier}")
-        log_info_message(logger, f"Frame response: {frame_response}")
+                                                f"[Read by Identifier] Error reading data from identifier {identifier}")
+        log_info_message(logger, f"[Read by Identifier] Frame response: {frame_response}")
         data = self._data_from_frame(frame_response)
         data_str = self._list_to_number(data)
         return data_str
@@ -213,16 +234,16 @@ class Action:
         Returns:
         - True if the operation is triggered.
         """
-        log_info_message(logger, f"Write by identifier {identifier}")
+        log_info_message(logger, f"[Write by Identifier] Write by identifier {identifier}")
 
         value_list = self._number_to_list(value)
 
         if isinstance(value_list, list) and len(value_list) > 4:
-            self.generate.write_data_by_identifier_long(id, identifier, value_list)
+            self.write_data_by_identifier_long(id, identifier, value_list)
         else:
-            self.generate.write_data_by_identifier(id, identifier, value_list)
+            self.write_data_by_identifier(id, identifier, value_list)
 
-        self._passive_response(WRITE_BY_IDENTIFIER, f"Operation complete for identifier {identifier}")
+        self._passive_response(WRITE_BY_IDENTIFIER, f"[Write by Identifier] Operation complete for identifier {identifier}")
 
         return True
 
@@ -231,7 +252,6 @@ class Action:
         Method to generate a key based on the seed.
         """
         return [(~num + 1) & 0xFF for num in seed]
-        # return [(~num - 1) & 0xFF for num in seed] # Test case 0x35 Invalid Key
 
     def _authentication(self, id):
         """
@@ -239,12 +259,11 @@ class Action:
         Returns a JSON response with detailed information about the authentication process.
         """
         log_info_message(logger, "Authenticating")
-
         # Send the request for authentication seed
-        self.generate.authentication_seed(id,
-                                          sid_send=AUTHENTICATION_SEND,
-                                          sid_recv=AUTHENTICATION_RECV,
-                                          subf=AUTHENTICATION_SUBF_REQ_SEED)
+        self.authentication_seed(id,
+                                 sid_send=AUTHENTICATION_SEND,
+                                 sid_recv=AUTHENTICATION_RECV,
+                                 subf=AUTHENTICATION_SUBF_REQ_SEED)
         frame_response = self._passive_response(AUTHENTICATION_SEND,
                                                 "Error requesting seed")
 
@@ -271,11 +290,11 @@ class Action:
             log_info_message(logger, f"Key: {key}")
 
             # Send the key for authentication
-            self.generate.authentication_key(id,
-                                             key=key,
-                                             sid_send=AUTHENTICATION_RECV,
-                                             sid_recv=AUTHENTICATION_SEND,
-                                             subf=AUTHENTICATION_SUBF_SEND_KEY)
+            self.authentication_key(id,
+                                    key=key,
+                                    sid_send=AUTHENTICATION_RECV,
+                                    sid_recv=AUTHENTICATION_SEND,
+                                    subf=AUTHENTICATION_SUBF_SEND_KEY)
             frame_response = self._passive_response(AUTHENTICATION_SEND,
                                                     "Error sending key")
 
