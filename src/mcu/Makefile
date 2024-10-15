@@ -593,8 +593,8 @@ $(UDS_DIR)/tester_present/utest/TesterPresent_test.o: $(UDS_DIR)/tester_present/
 # RoutineControl Unit tests
 routineControlTest: $(OBJ_DIR) $(UDS_DIR)/routine_control/utest/routineControlTest.out
 
-$(UDS_DIR)/routine_control/utest/routineControlTest.out: $(OBJ_DIR) $(OBJS_ROUTINECONTROL_TEST) $(UDS_DIR)/routine_control/utest/RoutineControl_test.o
-	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/routine_control/utest/routineControlTest.out $(UDS_DIR)/routine_control/utest/RoutineControl_test.o $(OBJS_ROUTINECONTROL_TEST) $(CFLAGSTST2) $(LDFLAGS)
+$(UDS_DIR)/routine_control/utest/routineControlTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UDS_DIR)/routine_control/utest/RoutineControl_test.o
+	$(CXX) $(CFLAGSTST) -o $(UDS_DIR)/routine_control/utest/routineControlTest.out $(UDS_DIR)/routine_control/utest/RoutineControl_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
 
 $(UDS_DIR)/routine_control/utest/RoutineControl_test.o: $(UDS_DIR)/routine_control/utest/RoutineControlTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/routine_control/utest/RoutineControlTest.cpp -o $(UDS_DIR)/routine_control/utest/RoutineControl_test.o $(CFLAGSTST2) $(LDFLAGS)
