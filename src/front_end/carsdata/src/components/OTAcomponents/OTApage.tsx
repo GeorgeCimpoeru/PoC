@@ -30,8 +30,8 @@ const getAvailable = async () => {
         .catch(error => {
             console.log(error);
             displayErrorPopup();
-            removeLoadingCicle();
         });
+    removeLoadingCicle();
 };
 getAvailable();
 

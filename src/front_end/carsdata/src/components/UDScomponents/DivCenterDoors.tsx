@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import ModalUDS from './ModalUDS';
 import './style.css';
+import { displayLoadingCircle , displayErrorPopup , removeLoadingCicle } from '../sharedComponents/LoadingCircle';
 
 interface doorsData {
     ajar: any, // verifica daca e usa deschisa/ inchisa cum trebuie 
@@ -19,6 +20,8 @@ const DivCenterDoors = (props: any) => {
 
     useEffect(() => {
         const readInfoEngine = async () => {
+            displayLoadingCircle();
+            console.log("Reading engine info...");
             await fetch(`http://127.0.0.1:5000/api/read_info_doors`)
                 .then(response => {
                     if (!response.ok) {
@@ -28,13 +31,14 @@ const DivCenterDoors = (props: any) => {
                 })
                 .then(data => {
                     setData(data);
-
                 })
                 .catch(error => {
                     setError(error);
-
+                    displayErrorPopup("Connection failed");
                 });
+            removeLoadingCicle();
         };
+        
         readInfoEngine();
     }, []);
 

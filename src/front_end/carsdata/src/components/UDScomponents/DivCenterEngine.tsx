@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import ModalUDS from './ModalUDS';
 import './style.css';
+import { displayLoadingCircle , displayErrorPopup , removeLoadingCicle } from '../sharedComponents/LoadingCircle';
 
 interface engineData {
     coolant_temperature: any,
@@ -26,6 +27,8 @@ const DivCenterEngine = (props: any) => {
     }, []);
 
     const readInfoEngine = async () => {
+        displayLoadingCircle();
+        console.log("Reading engine info...");
         console.log("First test")
         await fetch(`http://127.0.0.1:5000/api/read_info_engine`,
             { method: "GET" } 
@@ -46,7 +49,9 @@ const DivCenterEngine = (props: any) => {
             .catch(error => {
                 setError(error);
                 setLoading(false);
+                displayErrorPopup("Connection failed");
             });
+            removeLoadingCicle();
     };
 
     const writeInfoEngine = async (variable: string, newValue: string) => {
