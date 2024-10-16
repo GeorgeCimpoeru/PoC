@@ -121,12 +121,14 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
         /* Incorrect message length or invalid format - prepare a negative response */
         nrc.sendNRC(can_id, TD_SID, NegativeResponse::IMLOIF);
         MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_FAILED});
+        AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
         return;
     }
     else if (expected_block_sequence_number != block_sequence_counter)
     {
         /* Wrong block sequence counter - prepare a negative response */
         nrc.sendNRC(can_id, TD_SID, NegativeResponse::WBSC);
+        AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
         return;
     }
     else
@@ -151,6 +153,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
         {
             LOG_WARN(transfer_data_logger.GET_LOGGER(), "Data transfer is not initialized. Use Request Download in order to initialize a data transfer. Current OTA state:{}", ota_state);
             nrc.sendNRC(can_id, TD_SID, NegativeResponse::CNC);
+            AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
             return;
         }
 
@@ -171,6 +174,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
                     {
                         nrc.sendNRC(can_id, TD_SID, NegativeResponse::TDS);
                         MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_FAILED});
+                        AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
                         return;
                     }
                     else
@@ -191,6 +195,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
 
                 /* Send the postive response frame */
                 generate_frames.sendFrame(can_id, response);
+                AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
             }
 
             /* Check if all data has been sent */

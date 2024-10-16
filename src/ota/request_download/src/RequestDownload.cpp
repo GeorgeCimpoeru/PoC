@@ -43,6 +43,7 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     {
         /* Authentication failed */
         nrc.sendNRC(id, RDS_SID, NegativeResponse::SAD);
+        AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
         return;
     }
 
@@ -52,6 +53,7 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     {
         /* Authentication failed */
         nrc.sendNRC(id, RDS_SID, NegativeResponse::SAD);
+        AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
         return;
     }
 
@@ -59,6 +61,7 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     {
         /* Incorrect message length or invalid format - prepare a negative response */
         nrc.sendNRC(id, RDS_SID, NegativeResponse::IMLOIF);
+        AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
         return;
     }
 
@@ -66,6 +69,7 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     {
         LOG_WARN(RDSlogger.GET_LOGGER(), "Service 0x34 RequestDownload can be used only from an INIT or IDLE state, current OTA state is {:x}", ota_status);
         nrc.sendNRC(id, RDS_SID, NegativeResponse::CNC);
+        AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
         return;
     }
     /** data format identifier is 0x00 when no compression or encryption method is used 
@@ -79,6 +83,7 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     {
         /* Request out of range - prepare a negative response */
         nrc.sendNRC(id, RDS_SID, NegativeResponse::ROOR);
+        AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
         return;
     }
 
@@ -106,6 +111,7 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
         /* Request out of range */
         nrc.sendNRC(id, RDS_SID, NegativeResponse::ROOR);
         MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
+        AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
         return;
     }
     /* Extract and Log the data_format_identifier information */
@@ -121,6 +127,7 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     {
         LOG_INFO(RDSlogger.GET_LOGGER(), "Software is not at the latest version");
         MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
+        AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
         return;
     }
     /* Check for compression */ 
@@ -152,6 +159,7 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
                 LOG_ERROR(RDSlogger.GET_LOGGER(), "No valid zip file file found in PROJECT_PATH.");
                 MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
                 nrc.sendNRC(id, RDS_SID, NegativeResponse::UDNA);
+                AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
                 return;
             }            
 
@@ -164,6 +172,7 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
                 LOG_ERROR(RDSlogger.GET_LOGGER(), "Failed to extract files from ZIP archive.");
                 MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
                 nrc.sendNRC(id, RDS_SID, NegativeResponse::UDNA);
+                AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
                 return;
             }
         }
@@ -192,6 +201,7 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
 
     int max_number_block = calculate_max_number_block(memory_size);
     requestDownloadResponse(id, memory_address, max_number_block);
+    AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
 
     return;
 }
