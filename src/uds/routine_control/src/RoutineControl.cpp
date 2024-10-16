@@ -59,7 +59,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
         return;
     }
     /* when our identifiers will be defined, this range should be smaller */
-    if (routine_identifier < 0x0100 || routine_identifier > 0x0601)
+    if (routine_identifier < 0x0100 || routine_identifier > 0x0701)
     {
         /* Request Out of Range - prepare a negative response */
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::ROOR);
@@ -193,6 +193,11 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_COMPLETE});
                 routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
             }
+            break;
+        }
+        case 0x0701:
+        {
+            startDataTransfer(can_id);
             break;
         }
         default:
@@ -414,4 +419,24 @@ bool RoutineControl::saveCurrentSoftware()
         return 0;
     }
     return 1;
+}
+
+void RoutineControl::startDataTransfer(canid_t can_id)
+{   
+    static std::vector<uint8_t> data;
+    static uint8_t block_idx = 1;
+    static canid_t new_can_id = 0x0011fa11;
+    static OtaUpdateStatesEnum ota_status;
+    do
+    {   
+        data = {0x02, 0x36, block_idx};
+        generate_frames.sendFrame(new_can_id, data, MCU::mcu->getMcuApiSocket(), DATA_FRAME);
+        ++block_idx;
+        if(block_idx == 0)
+        {
+            block_idx = 1;
+        }
+        ota_status = static_cast<OtaUpdateStatesEnum>(MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0]);
+    } while (ota_status == PROCESSING);
+    
 }

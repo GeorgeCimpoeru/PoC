@@ -91,6 +91,7 @@ class RoutineControl
 
     bool saveCurrentSoftware();
 
+    void startDataTransfer(canid_t can_id);
     private:
     GenerateFrames generate_frames;
     int socket = -1;
