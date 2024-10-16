@@ -10,6 +10,14 @@ bridge = CanBridge()
 
 
 def manual_send_frame(can_id, can_data):
+    """ curl -X POST http://127.0.0.1:5000/api/send_frame \
+    -H "Content-Type: application/json" \
+    -d '{
+        "can_id": "0x10",
+        "can_data": "01,02,03,04"
+    }'
+    """
+
     log_info_message(logger, "Starting manual_send_frame function")
     data = request.get_json()
     error_text = None
@@ -84,6 +92,3 @@ def manual_send_frame(can_id, can_data):
     except Exception as e:
         log_error_message(logger, f"Unexpected error occurred: {str(e)}")
         return {'status': 'Error', 'message': str(e)}, 500
-    finally:
-        log_info_message(logger, "Shutting down CAN bus connection")
-        bus.shutdown()

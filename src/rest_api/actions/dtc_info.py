@@ -9,6 +9,7 @@ ECU_DOORS = 3
 
 class DiagnosticTroubleCode(Action):
     def read_dtc_info(self):
+        """ curl -X GET http://127.0.0.1:5000/api/read_dtc_info """
         id_mcu = self.id_ecu[MCU]
         id = self.my_id * 0x100 + id_mcu
         try:
@@ -41,10 +42,10 @@ class DiagnosticTroubleCode(Action):
             return json_response
 
         except CustomError as e:
-            self.bus.shutdown()
             return e.message
 
     def clear_dtc_info(self):
+        """ curl -X GET http://127.0.0.1:5000/api/clear_dtc_info """
         id_mcu = self.id_ecu[MCU]
         id = self.my_id * 0x100 + id_mcu
 
@@ -70,7 +71,6 @@ class DiagnosticTroubleCode(Action):
                 }
 
         except CustomError as e:
-            self.bus.shutdown()
             return e.message
 
     def construct_json_response(self, data, can_id):

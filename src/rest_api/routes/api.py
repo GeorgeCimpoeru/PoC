@@ -26,7 +26,7 @@ api_bp = Blueprint('api', __name__)
 
 @api_bp.route('/request_ids', methods=['GET'])
 def request_ids():
-    requester = RequestIdAction(my_id=0xFA99)
+    requester = RequestIdAction()
     response = requester.read_ids()
     return jsonify(response)
 
@@ -38,7 +38,7 @@ def update_to_version():
     sw_file_type = data.get('update_file_type')
     sw_file_version = data.get('update_file_version')
     ecu_id = data.get('ecu_id')
-    updater = Updates(my_id=0xFA, id_ecu=[0x10, 0x11, 0x12, 0x13])
+    updater = Updates()
     response = updater.update_to(type=sw_file_type,
                                  version=sw_file_version,
                                  id=ecu_id)
@@ -48,7 +48,7 @@ def update_to_version():
 @api_bp.route('/read_info_battery', methods=['GET'])
 @requires_auth
 def read_info_bat():
-    reader = ReadInfo(0xFA, [0x10, 0x11, 0x12])
+    reader = ReadInfo()
     item = request.args.get('item', default=None, type=str)
     response = reader.read_from_battery(item)
     return jsonify(response)
@@ -57,7 +57,7 @@ def read_info_bat():
 @api_bp.route('/read_info_engine', methods=['GET'])
 @requires_auth
 def read_info_eng():
-    reader = ReadInfo(API_ID, [0x10, 0x11, 0x12])
+    reader = ReadInfo()
     item = request.args.get('item', default=None, type=str)
     response = reader.read_from_engine(item)
     return jsonify(response)
@@ -66,7 +66,7 @@ def read_info_eng():
 @api_bp.route('/read_info_doors', methods=['GET'])
 @requires_auth
 def read_info_doors():
-    reader = ReadInfo(API_ID, [0x10, 0x11, 0x12, 0x13])
+    reader = ReadInfo()
     item = request.args.get('item', default=None, type=str)
     response = reader.read_from_doors(item)
     return jsonify(response)
@@ -75,7 +75,7 @@ def read_info_doors():
 @api_bp.route('/read_info_hvac', methods=['GET'])
 @requires_auth
 def read_info_hvac():
-    reader = ReadInfo(API_ID, [0x10, 0x11, 0x12, 0x13, 0x14])
+    reader = ReadInfo()
     item = request.args.get('item', default=None, type=str)
     response = reader.read_from_hvac(item)
     return jsonify(response)
@@ -86,14 +86,15 @@ def send_frame():
     data = request.get_json()
     can_id = data.get('can_id')
     can_data = data.get('can_data')
-    return jsonify(manual_send_frame(can_id, can_data))
+    response = manual_send_frame(can_id, can_data)
+    return jsonify(response)
 
 
 @api_bp.route('/write_info_doors', methods=['POST'])
 @requires_auth
 def write_info_doors():
     data = request.get_json()
-    writer = WriteInfo(API_ID, [0x10, 0x11, 0x12, 0x13, 0x14], data)
+    writer = WriteInfo(data)
     response = writer.write_to_doors(data)
     return jsonify(response)
 
@@ -102,7 +103,7 @@ def write_info_doors():
 @requires_auth
 def write_info_battery():
     data = request.get_json()
-    writer = WriteInfo(API_ID, [0x10, 0x11, 0x12], data)
+    writer = WriteInfo(data)
     response = writer.write_to_battery(data)
     return jsonify(response)
 
@@ -111,7 +112,7 @@ def write_info_battery():
 @requires_auth
 def write_info_engine():
     data = request.get_json()
-    writer = WriteInfo(API_ID, [0x10, 0x11, 0x12, 0x13, 0x14], data)
+    writer = WriteInfo(data)
     response = writer.write_to_engine(data)
     return jsonify(response)
 
@@ -120,19 +121,21 @@ def write_info_engine():
 @requires_auth
 def write_info_hvac():
     data = request.get_json()
-    writer = WriteInfo(API_ID, [0x10, 0x11, 0x12, 0x13, 0x14], data)
+    writer = WriteInfo(data)
     response = writer.write_to_hvac(data)
     return jsonify(response)
 
 
 @api_bp.route('/logs')
 def get_logs():
-    return jsonify({'logs': log_memory})
+    """ curl -X GET http://127.0.0.1:5000/api/logs """
+    response = log_memory
+    return jsonify({'logs': response})
 
 
-# Google Drive API Endpoints
 @api_bp.route('/drive_update_data', methods=['GET'])
 def update_drive_data():
+    """ curl -X GET http://127.0.0.1:5000/api/drive_update_data """
     drive_data_json = gDrive.getDriveData()
     return jsonify(drive_data_json)
 
@@ -140,7 +143,7 @@ def update_drive_data():
 @api_bp.route('/authenticate', methods=['GET'])
 def authenticate():
     try:
-        auth = Auth(API_ID, [0x10, 0x11, 0x12])
+        auth = Auth()
         response_json = auth._auth_to()
         return jsonify(response_json), 200
 
@@ -154,7 +157,7 @@ def authenticate():
 @api_bp.route('/read_dtc_info', methods=['GET'])
 def read_dtc_info():
     try:
-        reader = DiagnosticTroubleCode(API_ID, [0x10, 0x11, 0x12])
+        reader = DiagnosticTroubleCode()
         response_json = reader.read_dtc_info()
         return jsonify(response_json), 200
 
@@ -168,7 +171,7 @@ def read_dtc_info():
 @api_bp.route('/clear_dtc_info', methods=['GET'])
 def clear_dtc_info():
     try:
-        clearer = DiagnosticTroubleCode(API_ID, [0x10, 0x11, 0x12])
+        clearer = DiagnosticTroubleCode()
         response_json = clearer.clear_dtc_info()
         return jsonify(response_json), 200
 
@@ -183,7 +186,7 @@ def clear_dtc_info():
 def change_session():
     data = request.get_json()
     sub_funct = data.get('sub_funct')
-    session = SessionManager(API_ID)
+    session = SessionManager()
     response = session._change_session(id, sub_funct)
     return jsonify(response)
 
@@ -191,7 +194,7 @@ def change_session():
 @api_bp.route('/tester_present', methods=['GET'])
 def get_tester_present():
     try:
-        tester = Tester(API_ID, [0x10, 0x11, 0x12])
+        tester = Tester()
         response = tester.is_present()
         return jsonify(response), 200
 
@@ -218,7 +221,7 @@ def access_timing():
     sub_funct = data.get('sub_funct')
     if sub_funct is None:
         return jsonify({"status": "error", "message": "Missing 'sub_funct' parameter"}), 400
-    requester = ReadAccessTiming(API_ID, [0x10, 0x11, 0x12])
+    requester = ReadAccessTiming()
     response = requester._read_timing_info(id, sub_funct)
     return jsonify(response)
 
@@ -228,7 +231,7 @@ def reset_module():
     data = request.get_json()
     type_reset = data.get('type_reset')
     wh_id = data.get('ecu_id')
-    reseter = Reset(API_ID, [0x10, 0x11, 0x12])
+    reseter = Reset()
     response = reseter.reset_ecu(wh_id, type_reset)
     return jsonify(response)
 
@@ -248,7 +251,7 @@ def write_timing():
         "p2_star_max": p2_star_max
     }
 
-    writer = WriteAccessTiming(API_ID, [0x10, 0x11, 0x12])
+    writer = WriteAccessTiming()
     result = writer._write_timing_info(id, timing_values)
 
     return jsonify(result)

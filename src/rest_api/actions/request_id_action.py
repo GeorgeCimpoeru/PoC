@@ -2,7 +2,7 @@ from actions.base_actions import *
 import time
 from config import Config
 import datetime
-
+from .secure_auth import Auth
 
 class IDsToJson():
     def _to_json(self, data):
@@ -10,7 +10,8 @@ class IDsToJson():
             "status": data.get("status"),
             "mcu_id": data.get("mcu_id"),
             "ecu_ids": data.get("ecu_ids", []),
-            "time_stamp": datetime.datetime.now().isoformat()
+            "time_stamp": datetime.datetime.now().isoformat(),
+            "versions": data.get("versions, {}")
         }
         if "reason" in data:
             response["reason"] = data["reason"]
@@ -18,27 +19,24 @@ class IDsToJson():
 
 
 class RequestIdAction(Action):
-    def __init__(self, my_id, id_ecu=None):
-        if id_ecu is None:
-            id_ecu = []
-        super().__init__(my_id, id_ecu)
+    def __init__(self):
+        super().__init__()
 
     def read_ids(self):
-        self.id = self.my_id
+        """ curl -X GET http://127.0.0.1:5000/api/request_ids """
+        self.arb_id = (0x00 << 16) + (self.my_id << 8) + 0x99
         try:
             self._send_request_frame()
             response_data = self._read_response_frames()
             response_json = IDsToJson()._to_json(response_data)
-            self.bus.shutdown()
             return response_json
 
         except CustomError as e:
-            self.bus.shutdown()
             return {"status": "Error", "message": str(e)}
 
     def _send_request_frame(self):
         log_info_message(logger, "Sending request frame for ECU IDs")
-        self.send(self.id, [0x01, 0x99])
+        self.send(self.arb_id, [0x01, 0x99])
         log_info_message(logger, "Request frame sent")
 
     def _read_response_frames(self, timeout=10):
@@ -71,3 +69,20 @@ class RequestIdAction(Action):
                     }
                 return data_dict
         return {"status": "No response received within timeout"}
+
+    def _verify_version(self):
+        """
+        Private method to verify if the current software version matches the desired version.
+
+        Args:
+        - version: Desired version of the software.
+
+        Raises:
+        - CustomError: If the current software version matches the desired version,
+          indicating that the latest version is already installed.
+        """
+        auth = Auth()
+        auth._auth_to()
+        log_info_message(logger, "Reading current version")
+        current_version = self._read_by_identifier(self.id, IDENTIFIER_SYSTEM_SUPPLIER_ECU_SOFTWARE_VERSION_NUMBER)
+        return current_version

@@ -75,9 +75,9 @@ class Action(GF):
     - g: Instance of GenerateFrame for generating CAN bus frames.
     """
 
-    def __init__(self, my_id, id_ecu: list = []):
-        self.my_id = my_id
-        self.id_ecu = id_ecu
+    def __init__(self):
+        self.my_id = API_ID
+        self.id_ecu = [0x10, 0x11, 0x12, 0x13]
         self.last_msg = None
         super().__init__()
 
@@ -388,7 +388,7 @@ class Action(GF):
 
     def _to_json_error(self, error, no_errors):
         response_to_frontend = {
-            "ERROR": error,
+            "Error": error,
             "No of errors": no_errors,
             "time_stamp": datetime.datetime.now().isoformat()
         }
