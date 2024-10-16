@@ -16,9 +16,20 @@ def requires_auth(func):
 
         if is_manual_flow is None:
             return jsonify({"error": "Missing 'is_manual_flow' flag."}), 400
+        elif isinstance(is_manual_flow, str) and is_manual_flow.strip() == '':
+            return jsonify({"error": "'is_manual_flow' flag cannot be empty."}), 400
 
+        if isinstance(is_manual_flow, str):
+            is_manual_flow = is_manual_flow.lower()
+            if is_manual_flow not in ['true', 'false']:
+                return jsonify({"error": "'is_manual_flow' flag must be 'true' or 'false'."}), 400
+        elif isinstance(is_manual_flow, bool):
+            pass  
+        else:
+            return jsonify({"error": "'is_manual_flow' flag must be 'true' or 'false'."}), 400
+        
         is_manual_flow = is_manual_flow.lower() == 'true' if isinstance(is_manual_flow, str) else bool(is_manual_flow)
-
+        
         if is_manual_flow:
             return func(*args, **kwargs)
         try:
