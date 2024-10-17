@@ -54,16 +54,6 @@ class GenerateFrames
          */
         int getSocket();
         /**
-         * @brief method to send response back to API
-         * 
-         * @param api_id identifier for the API that will send the frame.
-         * @param sid service id.
-         * @param battery_id id of the battery component.
-         * @param doors_id id of the doors component.
-         * @param engine_id id of the engine component.
-        */ 
-        void apiResponse(uint32_t api_id, uint8_t sid, uint8_t battery_id, uint8_t doors_id, uint8_t engine_id);
-        /**
          * @brief Method for creation of custom frames
          * 
          * @param id id of the frame
