@@ -244,6 +244,10 @@ bool ReceiveFrames::receiveFramesFromAPI()
                 {
                     std::vector<uint8_t> data(frame.data, frame.data + frame.can_dlc);
                     LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Received frame for ECU to execute service with SID: 0x{:x}", frame.data[1]));
+                    if(frame.data[1] == TRANSFER_DATA_SID)
+                    {
+                        TransferData::processBinaryDataForTransfer(receiver_id, data, *MCULogger);
+                    }
                     generate_frames.sendFrame(frame.can_id, data);
                     LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Frame with ID: 0x{:x} sent on CANBus socket", frame.can_id));
                 }

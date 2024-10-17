@@ -121,11 +121,19 @@ void FileManager::writeDTC(std::unordered_map<uint16_t, std::vector<uint8_t>>& d
 
 bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t param, Logger& logger, const std::string& version)
 {
-    if(param > 2)
+    static std::string zip_ecu_path;
+    if(param > 3)
     {
-        /* Only 0, 1 and 2 valid values */
+        /* Only 0, 1, 2 and 3 valid values */
         return 0;
     }
+
+    if(param == 3 && access((zip_ecu_path).c_str(), F_OK) != -1)
+    {
+        ecu_path = zip_ecu_path;
+        return 1;
+    }
+
     switch(ecu_id)
     {
         case 0x10:
@@ -133,6 +141,7 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
             if(param == 0)
             {
                 ecu_path = std::string(PROJECT_PATH) + "/MCU_SW_VERSION_" + version + ".zip";
+                zip_ecu_path = ecu_path;
             }
             else
             {
@@ -145,6 +154,7 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
             if(param == 0)
             {
                 ecu_path = std::string(PROJECT_PATH) + "/ECU_BATTERY_SW_VERSION_" + version + ".zip";
+                zip_ecu_path = ecu_path;
             }
             else
             {
@@ -157,6 +167,7 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
             if(param == 0)
             {
                 ecu_path = std::string(PROJECT_PATH) + "/ECU_ENGINE_SW_VERSION_" + version + ".zip";
+                zip_ecu_path = ecu_path;
             }
             else
             {
@@ -169,6 +180,7 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
             if(param == 0)
             {
                 ecu_path = std::string(PROJECT_PATH) + "/ECU_DOORS_SW_VERSION_" + version + ".zip";
+                zip_ecu_path = ecu_path;
             }
             else
             {
@@ -181,6 +193,7 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
             if(param == 0)
             {
                 ecu_path = std::string(PROJECT_PATH) + "/ECU_HVAC_SW_VERSION_" + version + ".zip";
+                zip_ecu_path = ecu_path;
             }
             else
             {
@@ -197,5 +210,6 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
     {
         return 0;
     }
+    
     return 1;
 }

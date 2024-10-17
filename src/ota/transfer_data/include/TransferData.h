@@ -39,18 +39,23 @@ class TransferData
      *    
      */
     static const std::vector<uint8_t>& getChecksums();
+
+    static void processBinaryDataForTransfer(uint8_t receiver_id, std::vector<uint8_t>& current_data, Logger& logger);
+
+    static bool is_first_transfer;
+    static uint8_t expected_block_sequence_number;
+    /* This represents 1 transfer data size, calculated in Request Download representing the  max_number_block */
+    static size_t chunk_size;
+    /* Used to check if all transfers are done, this is set in Request Download*/
+    static uint8_t expected_transfer_data_requests;
+    static MemoryManager* memory_manager;
+
     private:
     Logger transfer_data_logger;
     GenerateFrames generate_frames;
     int socket = -1;
     size_t total_size;
     size_t bytes_sent;
-    static uint8_t expected_block_sequence_number;
-    static bool is_first_transfer;
-    /* This represents 1 transfer data size, calculated in Request Download representing the  max_number_block */
-    static size_t chunk_size;
-    /* Used to check if all transfers are done, this is set in Request Download*/
-    static uint8_t expected_transfer_data_requests;
     /* Static vector used in Request Transfer Exit thta contains the checksums for each chunk data transfer */
     static std::vector<uint8_t>checksums;
     /**
