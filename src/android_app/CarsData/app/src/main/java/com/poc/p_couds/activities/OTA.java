@@ -46,6 +46,16 @@ public class OTA extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ota);
 
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("OTA");
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
+
         getListOfECUs();
     }
 
@@ -91,28 +101,8 @@ public class OTA extends AppCompatActivity {
                     }
                 });
         bottomNavigationView.setSelectedItemId(R.id.mcu);
-
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle("OTA");
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Fragment fr = new Fragment_Update();
-
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.content_frame,fr)
-                        .commit();
-            }
-        });
-        toolbar.setNavigationOnClickListener(v -> {
-            if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-                getSupportFragmentManager().popBackStack();
-            } else {
-                finish();
-            }
-        });
     }
+
     private void openFragment(Fragment fr, String title, String idEcu, String fileName)
     {
         if (!title.isEmpty())
