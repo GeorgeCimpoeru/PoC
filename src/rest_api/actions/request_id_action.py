@@ -28,6 +28,8 @@ class RequestIdAction(Action):
         try:
             self._send_request_frame()
             response_data = self._read_response_frames()
+            versions = self._verify_version(response_data["ecu_ids"])
+            response_data["versions"] = versions
             response_json = IDsToJson()._to_json(response_data)
             return response_json
 
@@ -70,19 +72,50 @@ class RequestIdAction(Action):
                 return data_dict
         return {"status": "No response received within timeout"}
 
-    def _verify_version(self):
+    def _verify_version(self, ecu_ids):
         """
-        Private method to verify if the current software version matches the desired version.
-
-        Args:
-        - version: Desired version of the software.
-
-        Raises:
-        - CustomError: If the current software version matches the desired version,
-          indicating that the latest version is already installed.
+        Verify the software versions for each ECU ID.
+        Returns a dictionary with ECU IDs and their respective versions.
         """
-        auth = Auth()
-        auth._auth_to()
-        log_info_message(logger, "Reading current version")
-        current_version = self._read_by_identifier(self.id, IDENTIFIER_SYSTEM_SUPPLIER_ECU_SOFTWARE_VERSION_NUMBER)
-        return current_version
+
+        # ses_id = (0x00 << 16) + (self.my_id << 8) + 0x10
+        # self.session_control(ses_id, 0x02)
+        # auth = Auth()
+        # auth._auth_to()
+        # frame_response = self._passive_response(SESSION_CONTROL, "Error changing session control")
+
+        # if frame_response.data[1] == 0x50:
+            # log_info_message(logger, "Verifying versions for each ECU ID")
+
+        versions = {}
+        for ecu_id in ecu_ids:
+            if ecu_id == "00":
+                versions[ecu_id] = "no version read"
+                continue
+
+            formatted_ecu_id = f"0x{ecu_id}"
+            version = self._read_version(formatted_ecu_id)
+            if version:
+                versions[ecu_id] = version
+            else:
+                versions[ecu_id] = "no version read"
+
+        return versions
+
+    def _read_version(self, ecu_id):
+        """
+        Read the software version for a given ECU ID.
+        """
+        try:
+            id_ecu_int = int(ecu_id, 16)
+            ID_ECU = (0x00 << 16) + (self.my_id << 8) + id_ecu_int
+            log_info_message(logger, f"Reading IDss: {ID_ECU}")
+            version = self._read_by_identifier(ID_ECU, IDENTIFIER_SYSTEM_SUPPLIER_ECU_SOFTWARE_VERSION_NUMBER)
+
+            if version:
+                log_info_message(logger, f"Version found for ECU ID {hex(id_ecu_int)}: {version}")
+                return version
+
+        except CustomError as e:
+            log_error_message(logger, f"Error reading version for ECU ID {id_ecu_int}: {str(e)}")
+            return None
