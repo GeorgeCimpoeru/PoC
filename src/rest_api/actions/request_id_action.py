@@ -6,13 +6,20 @@ from .secure_auth import Auth
 
 class IDsToJson():
     def _to_json(self, data):
+        ecus = []
+        for ecu_id in data.get("ecu_ids", []):
+            if ecu_id != "00":
+                ecus.append({
+                    "ecu_id": ecu_id,
+                    "version": data.get("versions", {}).get(ecu_id, "no version read")
+                })
         response = {
             "status": data.get("status"),
             "mcu_id": data.get("mcu_id"),
-            "ecu_ids": data.get("ecu_ids", []),
-            "time_stamp": datetime.datetime.now().isoformat(),
-            "versions": data.get("versions, {}")
+            "ecus": ecus,
+            "time_stamp": datetime.datetime.now().isoformat()
         }
+
         if "reason" in data:
             response["reason"] = data["reason"]
         return response
@@ -90,13 +97,14 @@ class RequestIdAction(Action):
         versions = {}
         for ecu_id in ecu_ids:
             if ecu_id == "00":
-                versions[ecu_id] = "no version read"
+                # versions[ecu_id] = "no version read"
                 continue
 
             formatted_ecu_id = f"0x{ecu_id}"
             version = self._read_version(formatted_ecu_id)
             if version:
-                versions[ecu_id] = version
+                formatted_version = ".".join(version)
+                versions[ecu_id] = formatted_version
             else:
                 versions[ecu_id] = "no version read"
 
