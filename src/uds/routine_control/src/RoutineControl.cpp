@@ -218,6 +218,8 @@ void RoutineControl::routineControlResponse(canid_t can_id, const uint8_t sub_fu
 bool RoutineControl::initialiseOta(uint8_t target_ecu, const std::vector<uint8_t>& request, std::vector<uint8_t>& routine_result)
 {
     /* More checks here */
+    uint8_t sw_version = request[5];
+#if PYTHON_ENABLED == 1
 
     namespace py = pybind11;
     py::scoped_interpreter guard{}; // start the interpreter and keep it alive
@@ -225,7 +227,6 @@ bool RoutineControl::initialiseOta(uint8_t target_ecu, const std::vector<uint8_t
     /* PROJECT_PATH defined in makefile to be the root folder path (POC)*/
     std::string project_path = PROJECT_PATH;
     std::string path_to_drive_api = project_path + "/src/ota/google_drive_api";
-    uint8_t sw_version = request[5];
     short version_size = -1;
     try
     {
@@ -256,8 +257,23 @@ bool RoutineControl::initialiseOta(uint8_t target_ecu, const std::vector<uint8_t
         /* Send response */
         routine_result[0] = version_size;
     }
+#elif PYTHON_ENABLED == 0
+    routine_result[0] = 0;
+#endif
+    /* Map 0-15 to 1-16 */
+    uint8_t highNibble = ((sw_version >> 4) & 0x0F) + 1;
+    /* Map 0-15 to 1-16 */
+    uint8_t lowNibble = (sw_version & 0x0F);
+    char buffer[5];
+    /* Format the string as "X.Y" */
+    std::sprintf(buffer, "%x.%x", highNibble, lowNibble);
+    std::string zip_path;
+    if(FileManager::getEcuPath(target_ecu, zip_path, 0, rc_logger, buffer) == 0)
+    {
+        LOG_WARN(rc_logger.GET_LOGGER(), "Failed setting path to software version zip.");
+        return false;
+    }
     return true;
-    
 }
 
 bool RoutineControl::activateSoftware()
