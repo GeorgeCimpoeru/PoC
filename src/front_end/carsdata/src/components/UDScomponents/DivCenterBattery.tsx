@@ -112,7 +112,7 @@ const DivCenterBattery = (props: any) => {
         displayLoadingCircle();
         console.log("Reading battery info...");
         try {
-            await fetch(`http://127.0.0.1:5000/api/read_info_battery`, {
+            await fetch(`http://127.0.0.1:5000/api/read_info_battery?is_manual_flow=false`, {
                 method: 'GET',
             }).then(response => response.json())
                 .then(data => {

@@ -226,7 +226,7 @@ const SendRequests = () => {
                         if (data.ecu_ids[0] == '00') {
                             setDisableInfoBatteryBtns(true);
                         } else {
-                            readInfoBattery(true, "");
+                            readInfoBattery();
                         }
                         if (data.ecu_ids[1] == '00') {
                             setDisableInfoEngineBtns(true);
@@ -272,29 +272,61 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
-    const readInfoBattery = async (initialRequest: boolean, item: string) => {
+    const readInfoBattery = async () => {
         displayLoadingCircle();
         console.log("Reading info battery...");
-        console.log(item);
         try {
-            await fetch(`http://127.0.0.1:5000/api/read_info_battery?item=${item}`, {
+            await fetch(`http://127.0.0.1:5000/api/read_info_battery?is_manual_flow=true`, {
                 method: 'GET',
-                // mode: 'no-cors',
             }).then(response => response.json())
                 .then(data => {
+                    setData23(data);
                     console.log(data);
-                    if (!initialRequest) {
-                        setData23(data);
-                        fetchLogs();
-                    } else {
-                        setBatteryData(data);
-                    }
-                    removeLoadingCicle();
+                    fetchLogs();
                 });
         } catch (error) {
             console.log(error);
             removeLoadingCicle();
         }
+        removeLoadingCicle();
+    };
+
+    const readInfoEngine = async () => {
+        displayLoadingCircle();
+        console.log("Reading info engine...");
+        try {
+            await fetch(`http://127.0.0.1:5000/api/read_info_engine?is_manual_flow=true`, {
+                method: 'GET',
+            }).then(response => response.json())
+                .then(data => {
+                    setData23(data);
+                    console.log(data);
+                    fetchLogs();
+                });
+        } catch (error) {
+            console.log(error);
+            removeLoadingCicle();
+        }
+        removeLoadingCicle();
+    };
+
+    const readInfoHvac = async () => {
+        displayLoadingCircle();
+        console.log("Reading info hvac...");
+        try {
+            await fetch(`http://127.0.0.1:5000/api/read_info_hvac?is_manual_flow=true`, {
+                method: 'GET',
+            }).then(response => response.json())
+                .then(data => {
+                    setData23(data);
+                    console.log(data);
+                    fetchLogs();
+                });
+        } catch (error) {
+            console.log(error);
+            removeLoadingCicle();
+        }
+        removeLoadingCicle();
     };
 
     const writeInfoEngine = async () => {
@@ -308,6 +340,8 @@ const SendRequests = () => {
         const oil_temperature = prompt('Enter oil temperature:');
         const fuel_pressure = prompt('Enter fuel pressure:');
         const intake_air_temperature = prompt('Enter intake air temperature:');
+        const is_manual_flow = true;
+
         // "is_manual_flow": true or false only   // to be done  after merging a PR from the API with this change
 
         const data = {
@@ -320,6 +354,7 @@ const SendRequests = () => {
             oil_temperature: oil_temperature || null,
             fuel_pressure: fuel_pressure || null,
             intake_air_temperature: intake_air_temperature || null,
+            is_manual_flow: is_manual_flow || null
 
         };
         console.log("Writing info engine...");
@@ -348,7 +383,7 @@ const SendRequests = () => {
         displayLoadingCircle();
         console.log("Reading info doors...");
         try {
-            await fetch(`http://127.0.0.1:5000/api/read_info_doors`, {
+            await fetch(`http://127.0.0.1:5000/api/read_info_doors?is_manual_flow=true`, {
                 method: 'GET',
             }).then(response => response.json())
                 .then(data => {
@@ -465,6 +500,7 @@ const SendRequests = () => {
         const passenger_lock = checkInput('Enter Passenger Lock:');
         const driver = checkInput('Enter Driver:');
         const ajar = checkInput('Enter Ajar:');
+        const is_manual_flow = true;
         // const windows_closed = prompt('Enter Window Status:');
 
         const data = {
@@ -473,6 +509,7 @@ const SendRequests = () => {
             passenger_lock: passenger_lock || null,
             driver: driver || null,
             ajar: ajar || null,
+            is_manual_flow: is_manual_flow || null,
             // windows_closed: windows_closed || null,
         };
         console.log("Writing info doors...");
@@ -505,6 +542,7 @@ const SendRequests = () => {
         const cabin_temperature_driver_set = prompt('Enter Cabin Temperature Driver Set:');
         const fan_speed = prompt('Enter Fan Speed:');
         const hvac_modes = checkInput('Enter Hvac Modes:');
+        const is_manual_flow = true;
 
         const data = {
             mass_air_flow: mass_air_flow || null,
@@ -513,6 +551,7 @@ const SendRequests = () => {
             cabin_temperature_driver_set: cabin_temperature_driver_set || null,
             fan_speed: fan_speed || null,
             hvac_modes: hvac_modes || null,
+            is_manual_flow: is_manual_flow || null
         };
         console.log("Writing info hvac...");
         console.log(data);
@@ -536,54 +575,32 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
-    const writeInfoBattery = async (item: string) => {
-        let data2 = {}
-        if (item === "battery_level") {
-            let batteryLevel = prompt('Enter Battery Level: ');
-            if (batteryLevel === null) {
-                return;
-            }
-            data2 = {
-                battery_level: parseInt(batteryLevel)
-            };
-        } else if (item === "state_of_charge") {
-            let stateOfCharge = prompt('Enter Battery State of Charge: ');
-            if (stateOfCharge === null) {
-                return;
-            }
-            data2 = {
-                state_of_charge: parseInt(stateOfCharge)
-            };
-        } else if (item === "percentage") {
-            let percentage = prompt('Enter Battery Percentage: ');
-            if (percentage === null) {
-                return;
-            }
-            data2 = {
-                percentage: parseInt(percentage)
-            };
-        } else if (item === "voltage") {
-            let voltage = prompt('Enter Battery Voltage: ');
-            if (voltage === null) {
-                return;
-            }
-            data2 = {
-                voltage: parseInt(voltage)
-            };
-        }
+    const writeInfoBattery = async () => {
+        displayLoadingCircle();
+        const battery_level = prompt('Enter Battery Level:');
+        const state_of_charge = prompt('Enter State Of Charge:');
+        const percentage = prompt('Enter Percentage:');
+        const voltage = prompt('Enter Voltage:');
+        const is_manual_flow = true;
+
+        const data = {
+            battery_level: battery_level || null,
+            state_of_charge: state_of_charge || null,
+            percentage: percentage || null,
+            voltage: voltage || null,
+            is_manual_flow: is_manual_flow || null
+        };
 
         console.log("Writing info battery...");
-        console.log(data2);
-        displayLoadingCircle();
+        console.log(data);
         try {
-            await fetch(`http://127.0.0.1:5000/api/write_info_battery?item=${item}`, {
+            await fetch(`http://127.0.0.1:5000/api/write_info_battery`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(data2),
-            })
-                .then(response => response.json())
+                body: JSON.stringify(data),
+            }).then(response => response.json())
                 .then(data => {
                     setData23(data);
                     console.log(data);
@@ -946,7 +963,7 @@ const SendRequests = () => {
                                 priority
                             />
                         </button>
-                        {isDropdownOpen && (
+                        {/* {isDropdownOpen && ( 
                             <ul tabIndex={2} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
                                 <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(false, "") }}>All params</a></li>
                                 <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(false, "battery_level") }}>Battery level</a></li>
@@ -954,7 +971,7 @@ const SendRequests = () => {
                                 <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(false, "percentage") }}>Percentage</a></li>
                                 <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(false, "voltage") }}>Voltage</a></li>
                             </ul>
-                        )}
+                        )} */}
                     </div>
                     <div className="dropdown">
                         <button tabIndex={3} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpen(!isDropdownOpen)} disabled={disableInfoBatteryBtns}>
@@ -968,19 +985,21 @@ const SendRequests = () => {
                                 priority
                             />
                         </button>
-                        {isDropdownOpen && (
-                            <ul tabIndex={3} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                                <li><a onClick={() => { setIsDropdownOpen(false); writeInfoBattery("battery_level") }}>Battery level</a></li>
-                                <li><a onClick={() => { setIsDropdownOpen(false); writeInfoBattery("state_of_charge") }}>State of charge</a></li>
-                                <li><a onClick={() => { setIsDropdownOpen(false); writeInfoBattery("percentage") }}>Percentage</a></li>
-                                <li><a onClick={() => { setIsDropdownOpen(false); writeInfoBattery("voltage") }}>Voltage</a></li>
-                            </ul>
-                        )}
+                        {/* {isDropdownOpen && ( */}
+                            {/* // <ul tabIndex={3} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+                            //     <li><a onClick={() => { setIsDropdownOpen(false); writeInfoBattery("battery_level") }}>Battery level</a></li>
+                            //     <li><a onClick={() => { setIsDropdownOpen(false); writeInfoBattery("state_of_charge") }}>State of charge</a></li>
+                            //     <li><a onClick={() => { setIsDropdownOpen(false); writeInfoBattery("percentage") }}>Percentage</a></li>
+                            //     <li><a onClick={() => { setIsDropdownOpen(false); writeInfoBattery("voltage") }}>Voltage</a></li>
+                            // </ul> */}
+                        {/* )} */}
                     </div>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoEngine} disabled={disableInfoEngineBtns}>Read Info Engine</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoEngine} disabled={disableInfoEngineBtns}>Write Info Engine</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoDoors} disabled={disableInfoDoorsBtns}>Read Info Doors</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoDoors} disabled={disableInfoDoorsBtns}>Write Doors Info</button>
+                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoBattery} disabled={disableInfoBatteryBtns}>Read Info Battery</button>
+                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoBattery} disabled={disableInfoBatteryBtns}>Write Battery Info</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoHvac} disabled={disableInfoHvacBtns}>Read Info Hvac</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoHvac} disabled={disableInfoHvacBtns}>Write Info Hvac</button>
                 </div>
