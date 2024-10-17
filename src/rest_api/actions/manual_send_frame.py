@@ -67,7 +67,7 @@ def manual_send_frame(can_id, can_data):
             elif received_frame.data[1] == 0x7F:
                 nrc = received_frame.data[3]
                 service_id = received_frame.data[2]
-                error_handler = Action(can_id, [0x10, 0x11, 0x12, 0x13])
+                error_handler = Action()
                 error_text = error_handler.handle_negative_response(nrc, service_id)
 
                 if nrc == 0x37:

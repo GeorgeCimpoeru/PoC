@@ -207,6 +207,7 @@ def get_tester_present():
 
 @api_bp.route('/get_identifiers', methods=['GET'])
 def get_data_identifiers():
+    """ curl -X GET http://127.0.0.1:5000/api/request_ids """
     try:
         return jsonify(data_identifiers)
     except CustomError as e:
