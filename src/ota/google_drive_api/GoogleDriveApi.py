@@ -105,7 +105,7 @@ class GDriveAPI:
                 if file_to_download['name'] in file_name:
                     print(f"{GREEN}{file_name} already downloaded.{RESET}")
                     return int(file_to_download['size_uncompressed'])
-            
+
             print(f"{GREEN}Downloading..{RESET}")
             request = self.__drive_service.files().get_media(
                 fileId=file_to_download['id'])
@@ -134,7 +134,6 @@ class GDriveAPI:
               ecu_map[ecu_id] + ' ' + sw_version + f"{RESET}")
 
         self.getDriveData()
-        
         file_to_download = [
             data for data in self.__drive_data_array if data['type'] == ecu_map[ecu_id] and data['sw_version'] == str(sw_version)]
 

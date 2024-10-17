@@ -29,7 +29,8 @@ def setup_logger():
     log_file = os.path.join(LOG_DIRECTORY, 'api.log')
     log_handler = logging.FileHandler(log_file)
     log_handler.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+                                  '[in %(filename)s:%(lineno)d (%(funcName)s)]')
     log_handler.setFormatter(formatter)
 
     def decorator(app):
@@ -70,7 +71,8 @@ class SingletonLogger:
         if not self._logger.hasHandlers():
             log_handler = logging.FileHandler(log_path)
             log_handler.setLevel(logging.DEBUG)
-            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'
+                                          '[in %(filename)s:%(lineno)d (%(funcName)s)]')
             log_handler.setFormatter(formatter)
             self._logger.addHandler(log_handler)
 
