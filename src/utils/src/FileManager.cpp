@@ -213,3 +213,33 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
     
     return 1;
 }
+
+bool FileManager::validateData(std::vector<uint8_t>& data, FileType file_type)
+{   
+    uint32_t file_signature = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
+
+    switch(file_type)
+    {
+        case FileType::ELF_FILE:
+        {
+            if((file_signature ^ ELF_SIGNATURE) != 0)
+            {
+                return 0;
+            }
+            break;
+        }
+        case FileType::ZIP_FILE:
+        {
+            if((file_signature ^ ZIP_SIGNATURE) != 0)
+            {
+                return 0;
+            }
+            break;
+        }
+        default:
+        {
+            return 0;
+        }
+    }
+    return 1;
+}

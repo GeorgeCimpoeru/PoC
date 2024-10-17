@@ -20,6 +20,16 @@
 #include <iomanip>
 #include <string>
 #include "Logger.h"
+
+#define ELF_SIGNATURE 0x7F454C46
+#define ZIP_SIGNATURE 0x504B0304   
+
+enum class FileType
+{
+    ELF_FILE = 0,
+    ZIP_FILE,
+    UNKNOWN
+};
 class FileManager
 {
 public:
@@ -78,6 +88,8 @@ public:
      * @return false 
      */
     static bool getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t param, Logger& rc_logger, const std::string& version = "");
+
+    static bool validateData(std::vector<uint8_t>& file_data, FileType file_type);
 };
 
 #endif
