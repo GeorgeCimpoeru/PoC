@@ -39,6 +39,13 @@
 #define MAX_TRANSFER_DATA_REQUESTS 5
 #define MAXIMUM_ALLOWED_DOWNLOAD_SIZE  50000000
 
+struct RDSData
+{
+    uint8_t data_format;
+    uint32_t address;
+    uint32_t size;
+};
+
 class RequestDownloadService
 {
 public:
@@ -81,6 +88,8 @@ public:
      * @brief Method used in Transfer Data to get the max_number_block from Request Download
      */
     static size_t getMaxNumberBlock();
+
+    static RDSData getRdsData();
 private:
     int socket = -1;
     Logger& RDSlogger;
@@ -88,6 +97,8 @@ private:
     GenerateFrames generate_frames;
     /* Variable used in Transfer Data as maximum 1 transfer data size */
     static size_t max_number_block;
+
+    static RDSData rds_data;
     /**
      * @brief Method for validation of the provided memory address and size, ensuring they are within acceptable bounds and logical ranges.
      *

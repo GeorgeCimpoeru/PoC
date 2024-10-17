@@ -104,6 +104,7 @@ class RoutineControl
     */
     uint8_t computeChecksum(const uint8_t* data, size_t block_size);
 
+    bool handleDataCompressionEncryption();
 };
 
 #endif
