@@ -26,8 +26,4 @@ while true; do
 
     # Convert the decimal value back to a uint8 hex number
     idx=$(printf "%02X" $dec_value)
-
-
-    # Delay needed - frames overflow
-    sleep 0.05
 done

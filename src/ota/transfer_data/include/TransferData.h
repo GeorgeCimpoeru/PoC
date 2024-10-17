@@ -14,6 +14,8 @@
 #include "../../utils/include/MemoryManager.h"
 #include "../../../utils/include/NegativeResponse.h"
 #include "../../request_transfer_exit/include/RequestTransferExit.h"
+
+#define TRANSFER_DATA_SID 0x36
 class TransferData 
 {
     public:
