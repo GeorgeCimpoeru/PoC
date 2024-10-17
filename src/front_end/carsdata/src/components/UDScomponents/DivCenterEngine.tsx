@@ -27,7 +27,7 @@ const DivCenterEngine = (props: any) => {
 
     const readInfoEngine = async () => {
         console.log("First test")
-        await fetch(`http://127.0.0.1:5000/api/read_info_engine`,
+        await fetch(`http://127.0.0.1:5000/api/read_info_engine?is_manual_flow=false`,
             { method: "GET" } 
         )
             .then(response => {
