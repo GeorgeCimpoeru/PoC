@@ -41,7 +41,7 @@ class TransferData
      */
     static const std::vector<uint8_t>& getChecksums();
 
-    static std::vector<uint8_t>& processBinaryDataForTransfer(uint8_t receiver_id, std::vector<uint8_t>& current_data, Logger& logger);
+    static void processBinaryDataForTransfer(uint8_t receiver_id, std::vector<uint8_t>& current_data, Logger& logger);
 
     static bool is_first_transfer;
     static uint8_t expected_block_sequence_number;
