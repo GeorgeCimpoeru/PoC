@@ -114,15 +114,6 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
             /* call writeToFile routine*/
             LOG_INFO(rc_logger.GET_LOGGER(), "writeToFile routine called.");
             std::string ecu_path;
-            if(FileManager::getEcuPath(lowerbits, ecu_path, 1, rc_logger) == 0)
-            {
-                LOG_ERROR(rc_logger.GET_LOGGER(), "Invalid ecu path for reading binary:\n{}", ecu_path);
-                nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
-                return;
-            }
-            binary_data = MemoryManager::readBinary(ecu_path, rc_logger);
-            memory_manager = MemoryManager::getInstance(rc_logger); 
-            adress_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), binary_data.size(), rc_logger);
 
             if(FileManager::getEcuPath(lowerbits, ecu_path, 2, rc_logger) == 0)
             {
@@ -130,7 +121,20 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
                 return;
             }
-            MemoryManager::writeToFile(adress_data, ecu_path, rc_logger);
+
+            uint8_t binary_size_format = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), 1, rc_logger)[0];
+            auto binary_size_bytes = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress() + 1, binary_size_format, rc_logger);   
+            uint8_t binary_offset = sizeof(binary_size_format) + binary_size_format;
+    
+            size_t binary_size = 0;
+            for(uint8_t i = 0; i < binary_size_format; i++)
+            {
+                binary_size |= (binary_size_bytes[i] << ((binary_size_format - i - 1) * 8));
+            }   
+
+            /* Read the binary data from memory */            
+            auto binary_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress() + binary_offset, binary_size, rc_logger);
+            MemoryManager::writeToFile(binary_data, ecu_path, rc_logger);
             routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
             break;
         }
@@ -277,6 +281,82 @@ bool RoutineControl::activateSoftware()
 }
 bool RoutineControl::verifySoftware()
 {
+    MemoryManager* memory_manager = MemoryManager::getInstance(0x0801, DEV_LOOP, rc_logger); 
+    uint8_t binary_size_format = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), 1, rc_logger)[0];
+    auto binary_size_bytes = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress() + 1, binary_size_format, rc_logger);    
+    uint8_t binary_offset = sizeof(binary_size_format) + binary_size_format;
+        
+    size_t binary_size = 0;
+    for(uint8_t i = 0; i < binary_size_format; i++)
+    {
+        binary_size |= (binary_size_bytes[i] << ((binary_size_format - i - 1) * 8));
+    }
+
+    /* Read the binary data from memory */    
+    auto binary_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress() + binary_offset, binary_size, rc_logger);
+
+    /* Check if the binary data is in ELF format */
+    if (binary_data.size() >= 4)
+    {
+        /* Check if the first 4 bytes correspond to the ELF magic number */
+        if (binary_data[0] == 0x7F && binary_data[1] == 'E' && binary_data[2] == 'L' && binary_data[3] == 'F')
+        {
+            LOG_INFO(rc_logger.GET_LOGGER(), "The data read from memory is an ELF file");
+        }
+        else
+        {
+            LOG_ERROR(rc_logger.GET_LOGGER(), "The data read from memory is not an ELF file");
+            /* Return false if the binary is not an ELF file */
+            return false;
+        }
+    }
+    else
+    {
+        LOG_ERROR(rc_logger.GET_LOGGER(), "The data read from memory is too small to be an ELF file");
+        /* Return false if the file is too small */
+        return false;
+    }
+
+    size_t bytes_processed = 0;
+    /* Get chunk_size from request download */
+    /* size_t chunk_size = static_cast<size_t>(RequestDownloadService::getMaxNumberBlock()); */
+    size_t chunk_size = 4200000;
+    /* Offset computation based on the size, size bytes and binary data written in memory */
+    size_t checksum_offset = memory_manager->getAddress() + binary_offset + binary_size;    
+    size_t checksum_index = 0;
+
+    /* Iterate over each chunk while there are still bytes left to process */
+    while (bytes_processed < binary_data.size())
+    {
+        /* Compute the current chunk size */        
+        size_t current_chunk_size = std::min(chunk_size, binary_data.size() - bytes_processed);
+
+        /* Extract the current chunk from the binary data */
+        std::vector<uint8_t> chunk_data(binary_data.begin() + bytes_processed, binary_data.begin() + bytes_processed + current_chunk_size);
+        
+        /* Recompute and store checksum for this chunk */
+        uint8_t recomputed_checksum = computeChecksum(chunk_data.data(), chunk_data.size());
+
+        /* Read the corresponding checksum for this chunk from memory */
+        auto stored_checksum = MemoryManager::readFromAddress(DEV_LOOP, checksum_offset + checksum_index, 1, rc_logger)[0];
+
+        /* Compare the recomputed checksum with the stored checksum */
+        if (recomputed_checksum != stored_checksum)
+        {
+            LOG_ERROR(rc_logger.GET_LOGGER(), "Checksum mismatch in chunk {}: expected 0x{:X} but got 0x{:X}", checksum_index + 1, static_cast<int>(stored_checksum), static_cast<int>(recomputed_checksum));
+            /* Stop further checks if checksums don't match */
+            break;
+        }
+        else
+        {
+            LOG_INFO(rc_logger.GET_LOGGER(), "Checksum match in chunk {}: expected 0x{:X} and  got 0x{:X}", checksum_index + 1, static_cast<int>(stored_checksum), static_cast<int>(recomputed_checksum));
+        }
+
+        /* Update the offset to move to the next chunk */
+        bytes_processed += current_chunk_size;
+        checksum_index++;
+    }
+
     return true;
 }
 
@@ -414,4 +494,16 @@ bool RoutineControl::saveCurrentSoftware()
         return 0;
     }
     return 1;
+}
+
+/* Method to compute a simple XOR checksum for a block of data */
+uint8_t RoutineControl::computeChecksum(const uint8_t* data, size_t block_size)
+{
+    uint8_t checksum = 0;
+    for (size_t i = 0; i < block_size; ++i)
+    {
+        checksum ^= data[i];
+    }
+    /* Return the checksum */
+    return checksum;
 }
