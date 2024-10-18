@@ -2,7 +2,6 @@ from actions.base_actions import *
 import time
 from config import Config
 import datetime
-from .secure_auth import Auth
 
 
 class IDsToJson():
@@ -86,15 +85,6 @@ class RequestIdAction(Action):
         Verify the software versions for each ECU ID.
         Returns a dictionary with ECU IDs and their respective versions.
         """
-
-        # ses_id = (0x00 << 16) + (self.my_id << 8) + 0x10
-        # self.session_control(ses_id, 0x02)
-        # auth = Auth()
-        # auth._auth_to()
-        # frame_response = self._passive_response(SESSION_CONTROL, "Error changing session control")
-
-        # if frame_response.data[1] == 0x50:
-            # log_info_message(logger, "Verifying versions for each ECU ID")
 
         versions = {}
         for ecu_id in ecu_ids:
