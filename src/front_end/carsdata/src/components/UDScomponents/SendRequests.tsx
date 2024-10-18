@@ -57,6 +57,7 @@ const SendRequests = () => {
             .catch(error => {
                 console.error('Error fetching logs:', error);
                 displayErrorPopup("Connection failed");
+                removeLoadingCicle();
             });
         removeLoadingCicle();
     }
@@ -117,6 +118,7 @@ const SendRequests = () => {
                     fetchLogs();
                 });
         } catch (error) {
+            removeLoadingCicle();
             displayErrorPopup("can't read DTC ");
         }
         removeLoadingCicle();
@@ -161,6 +163,8 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
+            displayErrorPopup("Connection failed");
+            removeLoadingCicle();
         }
         removeLoadingCicle();
     }
@@ -186,6 +190,8 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
+            displayErrorPopup("Connection failed");
+            removeLoadingCicle();
         }
         removeLoadingCicle();
     }
@@ -211,6 +217,8 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
+            displayErrorPopup("Connection failed");
+            removeLoadingCicle();
         }
         removeLoadingCicle();
     };
@@ -257,6 +265,7 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
+            removeLoadingCicle();
             displayErrorPopup("Error to write info");
         }
         removeLoadingCicle();
@@ -276,6 +285,7 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
+            removeLoadingCicle();
         }
         removeLoadingCicle();
     };
@@ -409,6 +419,8 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
+            displayErrorPopup("Error to write info");
+            removeLoadingCicle();
         }
         removeLoadingCicle();
     }
@@ -548,6 +560,8 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
+            displayErrorPopup("Connection failed");
+            removeLoadingCicle()
         }
         removeLoadingCicle();
     }
@@ -566,6 +580,7 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
+            displayErrorPopup("Connection failed");
             removeLoadingCicle();
         }
         removeLoadingCicle();
@@ -609,6 +624,7 @@ const SendRequests = () => {
                 })
         } catch (error) {
             console.log(error);
+            removeLoadingCicle();
             displayErrorPopup("Failed to read access timing");
         }
         removeLoadingCicle();
@@ -655,6 +671,7 @@ const SendRequests = () => {
         } catch (error) {
             console.error("Error:", error);
             displayErrorPopup("Failed to write timing values");
+            removeLoadingCicle();
         }
 
         removeLoadingCicle();
@@ -674,6 +691,7 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
+            removeLoadingCicle();
         }
         removeLoadingCicle();
     }
@@ -750,6 +768,7 @@ const SendRequests = () => {
         } catch (error) {
             console.log(error);
             displayErrorPopup("Connection failed");
+            removeLoadingCicle();
         }
         removeLoadingCicle();
     }
@@ -889,11 +908,11 @@ const SendRequests = () => {
                             </ul>
                         )}
                     </div>
-                    {/*<button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoEngine} disabled={disableInfoEngineBtns}>Read Info Engine</button>*/}
+                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoEngine} disabled={disableInfoEngineBtns}>Read Info Engine</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoEngine} disabled={disableInfoEngineBtns}>Write Info Engine</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoDoors} disabled={disableInfoDoorsBtns}>Read Info Doors</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoDoors} disabled={disableInfoDoorsBtns}>Write Doors Info</button>
-                    {/*<button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoHvac} disabled={disableInfoHvacBtns}>Read Info Hvac</button>*/}
+                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoHvac} disabled={disableInfoHvacBtns}>Read Info Hvac</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoHvac} disabled={disableInfoHvacBtns}>Write Info Hvac</button>
                 </div>
 

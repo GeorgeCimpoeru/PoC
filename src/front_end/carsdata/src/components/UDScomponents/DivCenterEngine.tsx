@@ -50,6 +50,7 @@ const DivCenterEngine = (props: any) => {
                 setError(error);
                 setLoading(false);
                 displayErrorPopup("Connection failed");
+                removeLoadingCicle();
             });
             removeLoadingCicle();
     };

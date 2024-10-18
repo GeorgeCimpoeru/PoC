@@ -36,10 +36,12 @@ const DivCenterBattery = (props: any) => {
                     console.log(data);
                     setData(data);
                     if (data?.ERROR === "interrupted") {
+                        displayErrorPopup("Connection failed");
                     }
                 });
         } catch (error) {
             console.log(error);
+            removeLoadingCicle();
             displayErrorPopup("Connection failed");
         }
         removeLoadingCicle();
@@ -48,7 +50,6 @@ const DivCenterBattery = (props: any) => {
     useEffect(() => {
         readInfoBattery();
     }, []);
-
 
     const writeInfoBattery = async (variable: string, newValue: string) => {
         console.log("Writing battery info...");
@@ -89,12 +90,14 @@ const DivCenterBattery = (props: any) => {
             .then(response => response.json())
             .then(data => {
                 console.log(data);
+                removeLoadingCicle();
             })
             .catch(error => {
                 console.error(error);
                 displayErrorPopup("Connection failed");
+                removeLoadingCicle();
             });
-        removeLoadingCicle();
+            removeLoadingCicle();
         readInfoBattery();
     }
 

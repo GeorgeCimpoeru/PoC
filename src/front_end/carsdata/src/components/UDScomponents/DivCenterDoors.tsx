@@ -35,10 +35,10 @@ const DivCenterDoors = (props: any) => {
                 .catch(error => {
                     setError(error);
                     displayErrorPopup("Connection failed");
+                    removeLoadingCicle();
                 });
             removeLoadingCicle();
         };
-        
         readInfoEngine();
     }, []);
 
