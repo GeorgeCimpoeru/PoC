@@ -19,7 +19,7 @@ public class APIClient {
     private static Retrofit retrofit = null;
 
     public static Retrofit getClient() {
-        String Base_url = "http://10.189.0.122:5000/";
+        String Base_url = "http://10.0.2.2:5000/";
         // String Base_url = "http://10.0.2.2:2202"; // From real api
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
         interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
