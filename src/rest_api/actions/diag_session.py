@@ -9,7 +9,7 @@ class SessionManager(Action):
         "sub_funct": 0x03
     }'
     """
-    def _change_session(self, id, sub_funct=1):
+    def _change_session(self, sub_funct=1):
         """
         Changes the session control based on a given sub-function.
 

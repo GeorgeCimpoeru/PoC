@@ -4,6 +4,7 @@ from config import Config
 import datetime
 from .secure_auth import Auth
 
+
 class IDsToJson():
     def _to_json(self, data):
         ecus = []
@@ -26,11 +27,12 @@ class IDsToJson():
 
 
 class RequestIdAction(Action):
+    """ curl -X GET http://127.0.0.1:5000/api/request_ids """
     def __init__(self):
         super().__init__()
 
     def read_ids(self):
-        """ curl -X GET http://127.0.0.1:5000/api/request_ids """
+
         self.arb_id = (0x00 << 16) + (self.my_id << 8) + 0x99
         try:
             self._send_request_frame()

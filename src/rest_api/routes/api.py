@@ -26,8 +26,23 @@ api_bp = Blueprint('api', __name__)
 
 @api_bp.route('/request_ids', methods=['GET'])
 def request_ids():
-    requester = RequestIdAction()
-    response = requester.read_ids()
+
+    man_flow = request.args.get('is_manual_flow', default='false').lower() == 'false'
+    if man_flow is None:
+        return jsonify({"status": "error", "message": "'is_manual_flow' query parameter is required"}), 400
+
+    if man_flow == 'false':
+        session = SessionManager()
+        session._change_session(2)
+
+        auth = Auth()
+        auth._auth_to()
+
+        requester = RequestIdAction()
+        response = requester.read_ids()
+    else:
+        requester = RequestIdAction()
+        response = requester.read_ids()
     return jsonify(response)
 
 
@@ -187,7 +202,7 @@ def change_session():
     data = request.get_json()
     sub_funct = data.get('sub_funct')
     session = SessionManager()
-    response = session._change_session(id, sub_funct)
+    response = session._change_session(sub_funct)
     return jsonify(response)
 
 
@@ -207,7 +222,7 @@ def get_tester_present():
 
 @api_bp.route('/get_identifiers', methods=['GET'])
 def get_data_identifiers():
-    """ curl -X GET http://127.0.0.1:5000/api/request_ids """
+    """ curl -X GET http://127.0.0.1:5000/api/get_identifiers """
     try:
         return jsonify(data_identifiers)
     except CustomError as e:
