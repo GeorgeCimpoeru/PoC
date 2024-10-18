@@ -1,38 +1,11 @@
 #include <gtest/gtest.h>
 #include "../include/BatteryModule.h"
 
-
-
-/* Helper function to create a socket for sending CAN frames */
-int createSocket()
+std::string hexToString(uint8_t hexValue)
 {
-    /* Create socket */
-    std::string nameInterface = "vcan0";
-    struct sockaddr_can addr;
-    struct ifreq ifr;
-    int s = socket(PF_CAN, SOCK_RAW, CAN_RAW);
-    if (s < 0)
-    {
-        std::cout << "Error trying to create the socket\n";
-        return 1;
-    }
-
-    /* Giving name and index to the interface created */
-    strcpy(ifr.ifr_name, nameInterface.c_str());
-    ioctl(s, SIOCGIFINDEX, &ifr);
-
-    /* Set addr structure with info */
-    addr.can_family = AF_CAN;
-    addr.can_ifindex = ifr.ifr_ifindex;
-
-    /* Bind the socket to the CAN interface */
-    if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-    {
-        std::cout << "Error binding\n";
-        return 1;
-    }
-
-    return s;
+    std::stringstream ss;
+    ss << std::hex << hexValue;
+    return ss.str();
 }
 
 struct BatteryModuleTest : testing::Test
@@ -48,20 +21,60 @@ struct BatteryModuleTest : testing::Test
     }
 };
 
-class BatteryModulePopenFailMock : public BatteryModule
+TEST_F(BatteryModuleTest, ExecFunctionThrow)
 {
-public:
-    /* Override the exec function to simulate popen failure */
-    std::string exec(const char *cmd) override
-    {
-        throw std::runtime_error("popen() failed!");
-    }
-};
+    EXPECT_THROW(battery->exec("ls","wrongmode"), std::runtime_error);
+}
 
-TEST_F(BatteryModuleTest, DefaultMCUStateTest)
+TEST_F(BatteryModuleTest, ParseBatteryInfo)
 {
-    char s[20] = "kefkef";
-    battery->exec(s);
+    auto data_map = FileManager::readMapFromFile("battery_data.txt");
+
+        for (const auto& [key, value] : data_map) {
+        // Print the key
+        std::cout << "Key: " << std::hex << std::setw(4) << std::setfill('0') << key << " | Values: ";
+        
+        // Print the vector values
+        for (const auto& byte : value) {
+            std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
+        }
+        
+        std::cout << std::endl; // Move to the next line
+    }
+    std::vector<uint8_t> response = data_map[0x01A0];
+
+    std::ostringstream oss;
+    for (uint8_t byte : response)
+    {
+        oss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte);
+    }
+    std::string result = oss.str();
+    std::string energy_fetch = std::to_string(static_cast<uint8_t>(battery->getEnergy()));
+    EXPECT_EQ(result, energy_fetch);
+
+    oss.str("");
+    oss.clear();
+    response = data_map[0x01B0];
+    for (uint8_t byte : response)
+    {
+        oss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte);
+    }
+    result = oss.str();
+    std::string voltage_fetch = std::to_string(static_cast<uint8_t>(battery->getVoltage()));
+    EXPECT_EQ(result, voltage_fetch);
+
+
+    oss.str("");
+    oss.clear();
+    response = data_map[0x01C0];
+    for (uint8_t byte : response)
+    {
+        oss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte);
+    }
+    std::cerr << response.size() << "PULA" << response[0];
+    result = oss.str();
+    std::string percentage_fetch = std::to_string(static_cast<uint8_t>(battery->getPercentage()));
+    /* EXPECT_EQ(result, percentage_fetch); */
 }
 
 /* Main function to run all tests */
