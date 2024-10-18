@@ -40,7 +40,15 @@ class TransferData
      */
     static const std::vector<uint8_t>& getChecksums();
 
-    static void processBinaryDataForTransfer(uint8_t receiver_id, std::vector<uint8_t>& current_data, Logger& logger);
+    static void processDataForTransfer(uint8_t receiver_id, std::vector<uint8_t>& current_data, Logger& logger);
+    /**
+     * @brief method used to compute a simple checksum for a block of data transferred
+     * 
+     * @param data pointer to the data block
+     * @param block_size te size of the data block
+     * @return 1 byte checksum
+     */
+    static uint8_t computeChecksum(const uint8_t* data, size_t block_size);
 
     static bool is_first_transfer;
     static uint8_t expected_block_sequence_number;
@@ -58,15 +66,6 @@ class TransferData
     size_t bytes_sent;
     /* Static vector used in Request Transfer Exit thta contains the checksums for each chunk data transfer */
     static std::vector<uint8_t>checksums;
-    /**
-     * @brief method used to compute a simple checksum for a block of data transferred
-     * 
-     * @param data pointer to the data block
-     * @param block_size te size of the data block
-     * @return 1 byte checksum
-     */
-    uint8_t computeChecksum(const uint8_t* data, size_t block_size);
-
 };
 
 #endif

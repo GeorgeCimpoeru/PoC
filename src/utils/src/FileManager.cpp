@@ -1,5 +1,6 @@
 #include "../include/FileManager.h"
 #include <unistd.h>
+#include <zip.h>
 
 void FileManager::writeMapToFile(const std::string& file_name, const std::unordered_map<uint16_t, std::vector<uint8_t>>& data_map)
 {
@@ -145,7 +146,7 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
             }
             else
             {
-                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_mcu_new" : "/src/mcu/main_mcu_new");
+                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_mcu_new.zip" : "/src/mcu/main_mcu_new");
             }
             break;
         }
@@ -158,7 +159,7 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
             }
             else
             {
-                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_battery_new" : "/src/ecu_simulation/BatteryModule/main_battery_new");
+                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_battery_new.zip" : "/src/ecu_simulation/BatteryModule/main_battery_new");
             }        
             break;
         }
@@ -171,7 +172,7 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
             }
             else
             {
-                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_engine_new" : "/src/ecu_simulation/EngineModule/main_engine_new");
+                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_engine_new.zip" : "/src/ecu_simulation/EngineModule/main_engine_new");
             }        
             break;
         }
@@ -184,7 +185,7 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
             }
             else
             {
-                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_doors_new" : "/src/ecu_simulation/DoorsModule/main_doors_new");
+                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_doors_new.zip" : "/src/ecu_simulation/DoorsModule/main_doors_new");
             }        
             break;
         }
@@ -197,7 +198,7 @@ bool FileManager::getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t para
             }
             else
             {
-                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_hvac_new" : "/src/ecu_simulation/HVACModule/main_hvac_new");
+                ecu_path = std::string(PROJECT_PATH) + ((param == 1) ? "/main_hvac_new.zip" : "/src/ecu_simulation/HVACModule/main_hvac_new");
             }        
             break;
         }
@@ -242,4 +243,63 @@ bool FileManager::validateData(std::vector<uint8_t>& data, FileType file_type)
         }
     }
     return 1;
+}
+
+bool FileManager::extractZipFile(uint8_t target_id, const std::string &zipFilePath, const std::string &outputDir, Logger& logger) {
+    int err = 0;
+    zip *archive = zip_open(zipFilePath.c_str(), 0, &err);
+
+    if (archive == nullptr) {
+        LOG_ERROR(logger.GET_LOGGER(), "Error opening ZIP file:" + zipFilePath);
+        return false;
+    }
+
+    zip_uint64_t numFiles = zip_get_num_entries(archive, 0);
+    for (zip_uint64_t i = 0; i < numFiles; ++i) {
+        const char *name = zip_get_name(archive, i, 0);
+        if (name == nullptr) {
+            LOG_ERROR(logger.GET_LOGGER(), "Error getting name of file #" + std::to_string(i) + " in ZIP archive.");
+            zip_close(archive);
+            return false;
+        }
+
+        struct zip_stat st;
+        zip_stat_init(&st);
+        zip_stat(archive, name, 0, &st);
+
+        zip_file *zf = zip_fopen(archive, name, 0);
+        if (!zf) {
+            LOG_ERROR(logger.GET_LOGGER(), "Error opening file inside ZIP: " + std::string(name));
+            zip_close(archive);
+            return false;
+        }
+
+        std::string outputFilePath = outputDir + "/" + name + "_new";
+
+        std::ofstream outFile(outputFilePath, std::ios::binary);
+        if (!outFile.is_open()) {
+            LOG_ERROR(logger.GET_LOGGER(), "Error creating output file: " + outputFilePath);
+            zip_fclose(zf);
+            zip_close(archive);
+            return false;
+        }
+
+        char buffer[8192];
+        zip_int64_t bytesRead;
+        while ((bytesRead = zip_fread(zf, buffer, sizeof(buffer))) > 0) {
+            outFile.write(buffer, bytesRead);
+        }
+
+        outFile.close();
+        zip_fclose(zf);
+
+        if (bytesRead < 0) {
+            LOG_ERROR(logger.GET_LOGGER(), "Error reading from ZIP file: " + std::string(name));
+            zip_close(archive);
+            return false;
+        }
+    }
+
+    zip_close(archive);
+    return true;
 }

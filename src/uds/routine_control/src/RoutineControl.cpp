@@ -115,25 +115,26 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
             LOG_INFO(rc_logger.GET_LOGGER(), "writeToFile routine called.");
             std::string ecu_path;
 
-            if(FileManager::getEcuPath(lowerbits, ecu_path, 2, rc_logger) == 0)
+
+            uint8_t file_size_format = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), 1, rc_logger)[0];
+            auto file_size_bytes = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress() + 1, file_size_format, rc_logger);   
+            uint8_t binary_offset = sizeof(file_size_format) + file_size_format;
+    
+            size_t file_size = 0;
+            for(uint8_t i = 0; i < file_size_format; i++)
+            {
+                file_size |= (file_size_bytes[i] << ((file_size_format - i - 1) * 8));
+            }   
+
+            /* Read the binary data from memory */            
+            auto binary_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress() + binary_offset, file_size, rc_logger);
+
+            if(FileManager::getEcuPath(lowerbits, ecu_path, 1, rc_logger) == 0)
             {
                 LOG_ERROR(rc_logger.GET_LOGGER(), "Invalid ecu path for writting to file:\n{}", ecu_path);
                 nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
                 return;
             }
-
-            uint8_t binary_size_format = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), 1, rc_logger)[0];
-            auto binary_size_bytes = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress() + 1, binary_size_format, rc_logger);   
-            uint8_t binary_offset = sizeof(binary_size_format) + binary_size_format;
-    
-            size_t binary_size = 0;
-            for(uint8_t i = 0; i < binary_size_format; i++)
-            {
-                binary_size |= (binary_size_bytes[i] << ((binary_size_format - i - 1) * 8));
-            }   
-
-            /* Read the binary data from memory */            
-            auto binary_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress() + binary_offset, binary_size, rc_logger);
             MemoryManager::writeToFile(binary_data, ecu_path, rc_logger);
             routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
             break;
@@ -311,32 +312,41 @@ bool RoutineControl::verifySoftware()
     /* Read the binary data from memory */    
     auto binary_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress() + binary_offset, binary_size, rc_logger);
 
+    auto rds_data = RequestDownloadService::getRdsData();
     /* Check if the binary data is in ELF format */
     if (binary_data.size() >= 4)
     {
-        /* Check if the first 4 bytes correspond to the ELF magic number */
-        if (binary_data[0] == 0x7F && binary_data[1] == 'E' && binary_data[2] == 'L' && binary_data[3] == 'F')
+        /* Get compression type of the data */
+        uint8_t data_format = rds_data.data_format & 0xF0;
+        bool check_signature = 0;
+        switch(data_format)
         {
-            LOG_INFO(rc_logger.GET_LOGGER(), "The data read from memory is an ELF file");
+            case 0x00:
+            {
+                check_signature = FileManager::validateData(binary_data, FileType::ELF_FILE);
+                break;
+            }
+            case 0x10:
+            {
+                check_signature = FileManager::validateData(binary_data, FileType::ZIP_FILE);
+                break;
+            }
+            default:
+            {
+
+            }
         }
-        else
+        if(check_signature == 0)
         {
-            LOG_ERROR(rc_logger.GET_LOGGER(), "The data read from memory is not an ELF file");
-            /* Return false if the binary is not an ELF file */
-            return false;
+            LOG_ERROR(rc_logger.GET_LOGGER(), "Data signature is nod valid.");
+            return 0;
         }
-    }
-    else
-    {
-        LOG_ERROR(rc_logger.GET_LOGGER(), "The data read from memory is too small to be an ELF file");
-        /* Return false if the file is too small */
-        return false;
     }
 
     size_t bytes_processed = 0;
     /* Get chunk_size from request download */
     /* size_t chunk_size = static_cast<size_t>(RequestDownloadService::getMaxNumberBlock()); */
-    size_t chunk_size = 4200000;
+    size_t chunk_size = rds_data.max_number_block;
     /* Offset computation based on the size, size bytes and binary data written in memory */
     size_t checksum_offset = memory_manager->getAddress() + binary_offset + binary_size;    
     size_t checksum_index = 0;
@@ -524,81 +534,52 @@ uint8_t RoutineControl::computeChecksum(const uint8_t* data, size_t block_size)
     return checksum;
 }
 
-bool RoutineControl::handleDataCompressionEncryption()
+bool RoutineControl::handleDataCompressionEncryption(uint8_t receiver_id)
 {
     auto rds_data = RequestDownloadService::getRdsData();
     uint8_t data_format = rds_data.data_format;
-    if(data_format == 0x10)
+    uint8_t compression = (data_format & 0xF0) >> 4;
+    uint8_t encryption = (data_format & 0x0F);
+
+    if(compression == 0)
     {
-        
+        LOG_INFO(rc_logger.GET_LOGGER(), "No compression used.");
     }
-    /* Check for compression */ 
-    // if (compression_type == 0x0) 
-    // {
-    //     LOG_INFO(RDSlogger.GET_LOGGER(), "No compression method used");
-    // } 
-    // else 
-    // {
-    //     if(ota_initialised)
-    //     {
-    //         /* Calculate the position for software version*/ 
-    //         size_t position_software_version = 4 + length_memory_address + length_memory_size;
-    //         uint8_t software_version = stored_data[position_software_version];
-    //         /* 0x12 => 0001 0010* => v2.2, offset 1 */
-    //         /* 2 digits + '.' + 2 digits + null terminator */
-    //         char buffer[5];
-    //         /* Map 0-15 to 1-16 */
-    //         uint8_t highNibble = ((software_version >> 4) & 0x0F) + 1;
-    //         /* Map 0-15 to 1-16 */
-    //         uint8_t lowNibble = (software_version & 0x0F);
+    else
+    {
+        std::string zipFilePath;
 
-    //         /* Format the string as "X.Y" */
-    //         std::sprintf(buffer, "%x.%x", highNibble, lowNibble);
-    //         std::string zipFilePath;
+        if(FileManager::getEcuPath(receiver_id, zipFilePath, 1, rc_logger) == 0)
+        {
+            LOG_ERROR(rc_logger.GET_LOGGER(), "No valid zip file file found in PROJECT_PATH.");
+            MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
+            // nrc.sendNRC(id, RDS_SID, NegativeResponse::UDNA);
+            // AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
+            return 0;
+        }            
 
-    //         if(FileManager::getEcuPath(target_id, zipFilePath, 0, RDSlogger, std::string(buffer)) == 0)
-    //         {
-    //             LOG_ERROR(RDSlogger.GET_LOGGER(), "No valid zip file file found in PROJECT_PATH.");
-    //             MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
-    //             nrc.sendNRC(id, RDS_SID, NegativeResponse::UDNA);
-    //             AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
-    //             return;
-    //         }            
+        if (FileManager::extractZipFile(receiver_id, zipFilePath, std::string(PROJECT_PATH), rc_logger))
+        {
+            LOG_INFO(rc_logger.GET_LOGGER(), "Files extracted successfully");
+        } 
+        else
+        {
+            LOG_ERROR(rc_logger.GET_LOGGER(), "Failed to extract files from ZIP archive.");
+            MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
+            // nrc.sendNRC(id, RDS_SID, NegativeResponse::UDNA);
+            // AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
+            return 0;
+        }
+    }
 
-    //         if (extractZipFile(target_id, zipFilePath, std::string(PROJECT_PATH)))
-    //         {
-    //             LOG_INFO(RDSlogger.GET_LOGGER(), "Files extracted successfully");
-    //         } 
-    //         else
-    //         {
-    //             LOG_ERROR(RDSlogger.GET_LOGGER(), "Failed to extract files from ZIP archive.");
-    //             MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
-    //             nrc.sendNRC(id, RDS_SID, NegativeResponse::UDNA);
-    //             AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
-    //             return;
-    //         }
-    //     }
-    //     else
-    //     {
-    //         /* Handle compression for normal request download */
-    //     }
-    // }
-    // /* Check for encryption */
-    // if (encryption_type == 0x0)
-    // {
-    //     LOG_INFO(RDSlogger.GET_LOGGER(), "No encryption method used");
-    // }
-    // else
-    // {
-    //     if(ota_initialised)
-    //     {
-    //         /* Handle encryption for OTA request download */
-    //     }
-    //     else
-    //     {
-    //         /* Handle encrypthion for normal request download */
-    //     }
-    //     /* check if encryption is needed */
-    // }
+    if(encryption == 0)
+    {
+        LOG_INFO(rc_logger.GET_LOGGER(), "No encryption used.");
+    }
+    else
+    {
+        /* TODO */
+    }
+
     return 1;
 }

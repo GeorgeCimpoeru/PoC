@@ -90,6 +90,15 @@ public:
     static bool getEcuPath(uint8_t ecu_id, std::string& ecu_path, uint8_t param, Logger& rc_logger, const std::string& version = "");
 
     static bool validateData(std::vector<uint8_t>& file_data, FileType file_type);
+    
+    /**
+     * @brief Method to extract the zipped file.
+     * 
+     * @param target_id Targeted ecu for file unzipping.
+     * @param zipFilePath Path to zip file.
+     * @param outputDir Path for the extracted file.
+     */
+    static bool extractZipFile(uint8_t target_id, const std::string &zipFilePath, const std::string &outputDir, Logger& logger);
 };
 
 #endif

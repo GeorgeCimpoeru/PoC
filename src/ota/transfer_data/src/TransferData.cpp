@@ -24,7 +24,7 @@ uint8_t TransferData::computeChecksum(const uint8_t* data, size_t block_size)
     uint8_t checksum = 0;
     for (size_t i = 0; i < block_size; ++i)
     {
-        checksum ^= data[i];
+        checksum ^= *(data + i);
     }
     /* Return the checksum */
     return checksum;
@@ -36,9 +36,9 @@ const std::vector<uint8_t>&TransferData::getChecksums()
     return checksums;
 }
 
-void TransferData::processBinaryDataForTransfer(uint8_t receiver_id, std::vector<uint8_t>& current_data, Logger& logger)
+void TransferData::processDataForTransfer(uint8_t receiver_id, std::vector<uint8_t>& current_data, Logger& logger)
 {
-    static std::vector<uint8_t> data = {};
+    static std::vector<uint8_t> data = {};  
     /* Total size of data */
     static size_t total_size = 0;
     /* Total bytes sent */
@@ -97,13 +97,19 @@ void TransferData::processBinaryDataForTransfer(uint8_t receiver_id, std::vector
     }
 
     size_t current_chunk_size = std::min(static_cast<size_t>(chunk_size), total_size - bytes_sent);
-    current_data.insert(current_data.end(), data.begin() + bytes_sent, data.begin() + bytes_sent + current_chunk_size);
-    current_data[0] = static_cast<uint8_t>(current_data.size() - 1);
-    bytes_sent += current_chunk_size;
 
     if (bytes_sent >= total_size)
-    {
+    {   
+        current_data.emplace_back(TransferData::computeChecksum(TransferData::checksums.data(), TransferData::checksums.size() - 1));
         MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_COMPLETE});
+    }
+    else
+    {
+        current_data.insert(current_data.end(), data.begin() + bytes_sent, data.begin() + bytes_sent + current_chunk_size);
+        current_data[0] = static_cast<uint8_t>(current_data.size() - 1);
+
+        TransferData::checksums.emplace_back(TransferData::computeChecksum(data.data() + bytes_sent, current_chunk_size));
+        bytes_sent += current_chunk_size;
     }
     /* Display progress, speed, and remaining time */
     std::cout << "\rProgress: " << static_cast<int>((static_cast<double>(bytes_sent) / total_size) * 100) << "% "
@@ -115,6 +121,7 @@ void TransferData::processBinaryDataForTransfer(uint8_t receiver_id, std::vector
 /* frame format = {PCI_L, SID(0x36), block_sequence_counter, transfer_request_parameter_record}*/
 void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_request)
 {
+    std::cout << "Transfer data entered\n";
     /* Declaration of data as static in order to retain its value between calls */
     static std::vector<uint8_t> data;
     NegativeResponse nrc(socket, transfer_data_logger);
@@ -169,7 +176,9 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
 
     /* Write the chunk to the vector */
     data.insert(data.end(), transfer_request.begin() + 3, transfer_request.end());
-    
+    /* Display progress, speed, and remaining time */
+    std::cout << "\rData received: " << data.size()
+                << std::flush;
     if(ota_state == PROCESSING_TRANSFER_COMPLETE)
     {
         bool write_success = memory_manager->writeToAddress(data);
@@ -182,12 +191,6 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
         else
         {   
             /* Status remains PROCESSING_TRANSFER_COMPLETE */
-            
-            /* Compute and store checksum for this chunk */
-            uint8_t checksum = computeChecksum(data.data(), data.size());
-
-            /* Store the checksum in a static vector */
-            checksums.push_back(checksum);
             response.clear();
             /* prepare positive response */
             response.push_back(0x02); /* PCI */
@@ -204,6 +207,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
     }
     /* Increment expected_block_sequence_number only if it matches the current block_sequence_counter */
     expected_block_sequence_number++;
+    AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
 
     /* reset it to 0x01 after it reaches 0xFF and resets to 0*/
     if (expected_block_sequence_number == 0x00)

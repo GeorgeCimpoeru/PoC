@@ -24,7 +24,6 @@
 #include <sys/ioctl.h>
 #include <linux/can.h>
 #include <net/if.h>
-#include <zip.h>
 #include "../../../utils/include/CreateInterface.h"
 #include "../../../utils/include/GenerateFrames.h"
 #include "../../utils/include/Logger.h"
@@ -42,8 +41,9 @@
 struct RDSData
 {
     uint8_t data_format;
-    uint32_t address;
-    uint32_t size;
+    int address;
+    int size;
+    int max_number_block;
 };
 
 class RequestDownloadService
@@ -170,15 +170,6 @@ private:
      * @param sw_version The software version.
      */
     void downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_version);
-
-    /**
-     * @brief Method to extract the zipped file.
-     * 
-     * @param target_id Targeted ecu for file unzipping.
-     * @param zipFilePath Path to zip file.
-     * @param outputDir Path for the extracted file.
-     */
-    bool extractZipFile(uint8_t target_id, const std::string &zipFilePath, const std::string &outputDir);
 };
 
 #endif /* REQUEST_DOWNLOAD_SERVICE_H */
