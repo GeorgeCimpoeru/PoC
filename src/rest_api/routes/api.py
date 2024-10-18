@@ -27,22 +27,18 @@ api_bp = Blueprint('api', __name__)
 @api_bp.route('/request_ids', methods=['GET'])
 def request_ids():
 
-    man_flow = request.args.get('is_manual_flow', default='false').lower() == 'false'
-    if man_flow is None:
-        return jsonify({"status": "error", "message": "'is_manual_flow' query parameter is required"}), 400
+    man_flow = request.args.get('is_manual_flow', default='true').lower() == 'false'
 
-    if man_flow == 'false':
+    if man_flow:
         session = SessionManager()
         session._change_session(2)
 
         auth = Auth()
         auth._auth_to()
 
-        requester = RequestIdAction()
-        response = requester.read_ids()
-    else:
-        requester = RequestIdAction()
-        response = requester.read_ids()
+    requester = RequestIdAction()
+    response = requester.read_ids()
+
     return jsonify(response)
 
 
