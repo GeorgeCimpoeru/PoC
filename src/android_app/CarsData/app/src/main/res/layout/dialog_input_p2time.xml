@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/editTextP2MaxTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter P2 Max Time"
+        android:inputType="text"
+        android:paddingTop="20dp"/>
+
+    <EditText
+        android:id="@+id/editTextP2StarMaxTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter P2 Star Max Time"
+        android:inputType="text"
+        android:paddingTop="20dp"/>
+</LinearLayout>

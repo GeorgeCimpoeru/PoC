@@ -23,6 +23,8 @@ import com.poc.p_couds.pojo.WriteBatteryResponseDataClass
 import com.poc.p_couds.pojo.WriteDoorsResponseDataClass
 import com.poc.p_couds.pojo.WriteEngineResponseDataClass
 import com.poc.p_couds.pojo.WriteHvacResponseDataClass
+import com.poc.p_couds.pojo.WriteTiming
+import com.poc.p_couds.pojo.WriteTimingPost
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Body
@@ -103,4 +105,7 @@ interface IApiService {
 
     @GET("/api/get_identifiers")
     fun requestGetIdentifiers(): Call<GetIdentifiers>
+
+    @POST("/api/write_timing")
+    fun requestWriteTiming(@Body writeTimingPost: WriteTimingPost): Call<WriteTiming>
 }
