@@ -1,5 +1,6 @@
 package com.poc.p_couds.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -132,8 +133,9 @@ public class OTA extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if(item.getItemId() == R.id.sendRe_btn)
         {
-            Fragment fr = new ManualFragment();
-            openFragment(fr,"","","");
+            Intent intent = new Intent(this, RequestActivity.class);
+            startActivity(intent);
+            return true;
         } else if(item.getItemId() == R.id.updates_btn)
         {
             Fragment fr = new Fragment_Update();
