@@ -1,11 +1,6 @@
 from actions.base_actions import *
 from configs.data_identifiers import *
 
-MCU = 0
-ECU_BATTERY = 1
-ECU_ENGINE = 2
-ECU_DOORS = 3
-
 
 class Reset(Action):
     def reset_ecu(self, ecu_id, type_reset):
@@ -28,7 +23,7 @@ class Reset(Action):
         else:
             log_error_message(logger, f"Invalid ECU ID: {ecu_id}")
             self.bus.shutdown()
-            return {"status": "error", "message": f"Invalid ECU ID: {ecu_id}"}
+            return {"message": f"The ECU ID '{ecu_id}' provided is not valid. Please use a correct ID."}
 
         try:
             if type_reset == "hard":
@@ -38,13 +33,12 @@ class Reset(Action):
             else:
                 log_error_message(logger, f"Invalid reset type: {type_reset}")
                 self.bus.shutdown()
-                return {"status": "error", "message": f"Invalid reset type: {type_reset}"}
+                return {"message": f"The reset type '{type_reset}' is not valid. Please specify 'hard' or 'soft'."}
 
             frame_response = self._passive_response(RESET_ECU, f"Error resetting device {hex(id)}")
 
             if frame_response.data[1] == 0x51 and frame_response.data[2] == 0x02:
                 response_json = {
-                    "status": "success",
                     "message": "ECU reset successful",
                     "can_id": f"0x{id:03X}",
                 }
@@ -53,13 +47,12 @@ class Reset(Action):
             return response_json
 
         except CustomError as e:
-            log_error_message(logger, f"Error during ECU reset: {e.message}")
+            log_error_message(logger, f"Encountered an issue during ECU reset: {e.message}")
             nrc_msg = self.last_msg.data[3] if self.last_msg and len(self.last_msg.data) > 3 else 0x00
             sid_msg = self.last_msg.data[2] if self.last_msg and len(self.last_msg.data) > 2 else 0x00
             negative_response = self.handle_negative_response(nrc_msg, sid_msg)
             self.bus.shutdown()
             return {
-                "status": "error",
-                "message": "Error during ECU reset",
+                "message": "An issue was encountered while attempting to reset the ECU.",
                 "negative_response": negative_response
             }

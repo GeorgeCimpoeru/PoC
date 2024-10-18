@@ -142,8 +142,7 @@ class ReadInfo(Action):
             negative_response = self.handle_negative_response(nrc_msg, sid_msg)
             self.bus.shutdown()
             return {
-                "status": "error",
-                "message": "Error during Read by ID",
+                "message": "ssue encountered during Read by ID",
                 "negative_response": negative_response
             }
 
@@ -221,8 +220,7 @@ class ReadInfo(Action):
             negative_response = self.handle_negative_response(nrc_msg, sid_msg)
             self.bus.shutdown()
             return {
-                "status": "error",
-                "message": "Error during Read by ID",
+                "message": "ssue encountered during Read by ID",
                 "negative_response": negative_response
             }
         except Exception as e:
@@ -288,8 +286,7 @@ class ReadInfo(Action):
             negative_response = self.handle_negative_response(nrc_msg, sid_msg)
             self.bus.shutdown()
             return {
-                "status": "error",
-                "message": "Error during Read by ID",
+                "message": "ssue encountered during Read by ID",
                 "negative_response": negative_response
             }
 
@@ -356,7 +353,6 @@ class ReadInfo(Action):
             negative_response = self.handle_negative_response(nrc_msg, sid_msg)
             self.bus.shutdown()
             return {
-                "status": "error",
-                "message": "Error during Read by ID",
+                "message": "Issue encountered during Read by ID",
                 "negative_response": negative_response
             }

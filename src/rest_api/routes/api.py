@@ -217,7 +217,7 @@ def access_timing():
     data = request.get_json()
     sub_funct = data.get('sub_funct')
     if sub_funct is None:
-        return jsonify({"status": "error", "message": "Missing 'sub_funct' parameter"}), 400
+        return jsonify({"message": "Missing 'sub_funct' parameter"}), 400
     requester = ReadAccessTiming(API_ID, [0x10, 0x11, 0x12])
     response = requester._read_timing_info(id, sub_funct)
     return jsonify(response)
@@ -238,7 +238,7 @@ def write_timing():
     data = request.get_json()
 
     if not data or 'p2_max' not in data or 'p2_star_max' not in data:
-        return jsonify({"status": "error", "message": "Missing required parameters"}), 400
+        return jsonify({"message": "Missing required parameters"}), 400
 
     p2_max = data.get('p2_max')
     p2_star_max = data.get('p2_star_max')
