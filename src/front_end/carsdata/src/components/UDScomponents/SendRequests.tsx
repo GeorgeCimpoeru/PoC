@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
+import { displayLoadingCircle , displayErrorPopup , removeLoadingCicle } from '../sharedComponents/LoadingCircle';
 
 interface batteryData {
     battery_level: any,
@@ -43,91 +44,8 @@ const SendRequests = () => {
     let popupStyleElement: HTMLStyleElement | null = null;
     let overlayElement: HTMLDivElement | null = null;
 
-    const displayLoadingCircle = () => {
-        if (popupElement || popupStyleElement || overlayElement) {
-            return;
-        }
-
-        overlayElement = document.createElement('div');
-        overlayElement.style.position = 'fixed';
-        overlayElement.style.top = '0';
-        overlayElement.style.left = '0';
-        overlayElement.style.width = '100vw';
-        overlayElement.style.height = '100vh';
-        overlayElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-        overlayElement.style.zIndex = '999';
-        overlayElement.style.pointerEvents = 'all';
-        overlayElement.style.cursor = 'not-allowed';
-
-        document.body.appendChild(overlayElement);
-
-        popupElement = document.createElement('div');
-        popupElement.style.position = 'fixed';
-        popupElement.style.top = '50%';
-        popupElement.style.left = '50%';
-        popupElement.style.transform = 'translate(-50%, -50%)';
-        popupElement.style.padding = '20px';
-        popupElement.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-        popupElement.style.borderRadius = '10px';
-        popupElement.style.zIndex = '1000';
-        popupElement.style.textAlign = 'center';
-
-        const loadingCircle = document.createElement('div');
-        loadingCircle.style.width = '40px';
-        loadingCircle.style.height = '40px';
-        loadingCircle.style.border = '5px solid white';
-        loadingCircle.style.borderTop = '5px solid transparent';
-        loadingCircle.style.borderRadius = '50%';
-        loadingCircle.style.animation = 'spin 1s linear infinite';
-
-        popupElement.appendChild(loadingCircle);
-
-        document.body.appendChild(popupElement);
-
-        popupStyleElement = document.createElement('style');
-        popupStyleElement.type = 'text/css';
-        popupStyleElement.innerText = `
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }`;
-        document.head.appendChild(popupStyleElement);
-    };
-
-    const displayMessagePopup = (text: string) => {
-        const popup = document.createElement('div');
-        popup.innerText = text;
-        popup.style.position = 'fixed';
-        popup.style.top = '50%';
-        popup.style.left = '50%';
-        popup.style.transform = 'translate(-50%, -50%)';
-        popup.style.padding = '20px';
-        popup.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-        popup.style.color = 'white';
-        popup.style.borderRadius = '10px';
-        popup.style.zIndex = '1000';
-        popup.style.textAlign = 'center';
-
-        document.body.appendChild(popup);
-
-        setTimeout(() => {
-            document.body.removeChild(popup);
-        }, 2000);
-    };
-
-    const removeLoadingCicle = () => {
-        if (popupElement && popupStyleElement && overlayElement) {
-            document.body.removeChild(popupElement);
-            document.head.removeChild(popupStyleElement);
-            document.body.removeChild(overlayElement);
-
-            popupElement = null;
-            popupStyleElement = null;
-            overlayElement = null;
-        }
-    };
-
     const fetchLogs = async () => {
+        displayLoadingCircle();
         console.log("Fetching logs...");
         await fetch(`http://127.0.0.1:5000/api/logs`, {
             method: 'GET',
@@ -138,7 +56,10 @@ const SendRequests = () => {
             })
             .catch(error => {
                 console.error('Error fetching logs:', error);
+                displayErrorPopup("Connection failed");
+                removeLoadingCicle();
             });
+        removeLoadingCicle();
     }
 
     const hexToAscii = () => {
@@ -198,6 +119,7 @@ const SendRequests = () => {
                 });
         } catch (error) {
             removeLoadingCicle();
+            displayErrorPopup("can't read DTC ");
         }
         removeLoadingCicle();
     }
@@ -241,6 +163,7 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
+            displayErrorPopup("Connection failed");
             removeLoadingCicle();
         }
         removeLoadingCicle();
@@ -267,6 +190,7 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
+            displayErrorPopup("Connection failed");
             removeLoadingCicle();
         }
         removeLoadingCicle();
@@ -293,8 +217,10 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
+            displayErrorPopup("Connection failed");
             removeLoadingCicle();
         }
+        removeLoadingCicle();
     };
 
     const writeInfoEngine = async () => {
@@ -340,6 +266,7 @@ const SendRequests = () => {
         } catch (error) {
             console.log(error);
             removeLoadingCicle();
+            displayErrorPopup("Error to write info");
         }
         removeLoadingCicle();
     }
@@ -492,6 +419,7 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
+            displayErrorPopup("Error to write info");
             removeLoadingCicle();
         }
         removeLoadingCicle();
@@ -632,7 +560,8 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
-            removeLoadingCicle();
+            displayErrorPopup("Connection failed");
+            removeLoadingCicle()
         }
         removeLoadingCicle();
     }
@@ -651,6 +580,7 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
+            displayErrorPopup("Connection failed");
             removeLoadingCicle();
         }
         removeLoadingCicle();
@@ -686,16 +616,16 @@ const SendRequests = () => {
                     fetchLogs();
                     if (data.status === "success" && accessTiming === "current") {
                         setAccessTiming("default");
-                        displayMessagePopup("Current access timing")
+                        displayErrorPopup("Current access timing")
                     } else if (data.status === "success") {
                         setAccessTiming("current");
-                        displayMessagePopup("Default access timing")
+                        displayErrorPopup("Default access timing")
                     }
                 })
         } catch (error) {
             console.log(error);
-            displayMessagePopup("Connection failed");
             removeLoadingCicle();
+            displayErrorPopup("Failed to read access timing");
         }
         removeLoadingCicle();
     }
@@ -731,16 +661,17 @@ const SendRequests = () => {
                     `New P2 Max Time: ${writtenValues["New P2 Max Time"]}\n` +
                     `New P2 Star Max: ${writtenValues["New P2 Star Max"]}`;
 
-                displayMessagePopup(message);
+                displayErrorPopup(message);
             } else {
-                displayMessagePopup(`Error: ${data.message}`);
+                displayErrorPopup(`Error: ${data.message}`);
             }
 
             fetchLogs();
 
         } catch (error) {
             console.error("Error:", error);
-            displayMessagePopup("Failed to write timing values");
+            displayErrorPopup("Failed to write timing values");
+            removeLoadingCicle();
         }
 
         removeLoadingCicle();
@@ -806,7 +737,7 @@ const SendRequests = () => {
 
     const ecuReset = async (resetType: string) => {
         if (selectedECUid === "") {
-            displayMessagePopup("Select ECU");
+            displayErrorPopup("Select ECU");
             return;
         }
         console.log("Reseting ECU...");
@@ -832,11 +763,11 @@ const SendRequests = () => {
                     setData23(data);
                     console.log(data);
                     fetchLogs();
-                    displayMessagePopup(selectedECUid + " reseted");
+                    displayErrorPopup(selectedECUid + " reseted");
                 })
         } catch (error) {
             console.log(error);
-            displayMessagePopup("Connection failed");
+            displayErrorPopup("Connection failed");
             removeLoadingCicle();
         }
         removeLoadingCicle();

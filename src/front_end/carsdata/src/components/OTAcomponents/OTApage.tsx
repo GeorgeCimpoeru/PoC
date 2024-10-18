@@ -14,13 +14,13 @@ let Doors_versions : string = '';
 let HVAC_versions : string = '';
 
 const getAvailable = async () => {
-    displayLoadingCircle();
     console.log("Fetching available versions from database...");
-
+    displayLoadingCircle();
     await fetch(`/api/getAvailableVersions`, {
         method: 'GET',
     }).then(response => response.json())
         .then(data => {
+            console.log(data);
             MCU_versions = data.versions[0].versions;
             Battery_versions = data.versions[1].versions;
             Engine_versions = data.versions[2].versions;
@@ -34,7 +34,6 @@ const getAvailable = async () => {
         });
 };
 getAvailable();
-
 
 const OTApage = () => {
     let history1: { id: number, artifact: string, status: string, startTime: string, size: string, uploadedBy: string }[] = [
