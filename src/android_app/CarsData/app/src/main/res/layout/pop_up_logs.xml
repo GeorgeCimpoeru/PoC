@@ -20,11 +20,11 @@
             android:textSize="20dp"
             android:textStyle="bold" />
         <TextView
+            android:id="@+id/statusDwTxt"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dip"
-            android:textSize="20dp"
-            android:text="Succeeded" />
+            android:textSize="20dp" />
         <ImageButton
             android:layout_marginTop="10dp"
             android:layout_width="100dp"

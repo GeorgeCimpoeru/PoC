@@ -41,22 +41,23 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="20sp"
+                        android:maxWidth="90dp"
                         android:textColor="@color/black"
                         android:layout_marginHorizontal="10dp"
                         android:text="v 0.0"/>
 
                     <EditText
                         android:id="@+id/search_txt"
-                        android:layout_width="150dp"
+                        android:layout_width="140dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="20dp"
+                        android:layout_marginStart="5dp"
                         android:hint="Search version"
                         android:layout_gravity="center"/>
 
                     <!-- Search Button -->
                     <ImageButton
                         android:id="@+id/search_btn"
-                        android:layout_width="70dp"
+                        android:layout_width="60dp"
                         android:layout_height="wrap_content"
                         android:background="#00FFFFFF"
                         android:contentDescription="button to search"
@@ -196,55 +197,26 @@
                             android:layout_weight="1"
                             android:text="Size" />
                     </TableRow>
-<!--                    <TableRow android:background="#F0F7F7" android:padding="5dp">-->
-<!--                        <TextView-->
-<!--                            android:layout_width="wrap_content"-->
-<!--                            android:layout_height="wrap_content"-->
-<!--                            android:layout_weight="1"-->
-<!--                            android:text="Software update 1" />-->
-<!--                        <TextView-->
-<!--                            android:layout_width="wrap_content"-->
-<!--                            android:layout_height="wrap_content"-->
-<!--                            android:layout_weight="1"-->
-<!--                            android:textColor="#F44336"-->
-<!--                            android:text="Failed" />-->
-<!--                        <TextView-->
-<!--                            android:layout_width="wrap_content"-->
-<!--                            android:layout_height="wrap_content"-->
-<!--                            android:layout_weight="1"-->
-<!--                            android:text="1 Sept 2024" />-->
-<!--                        <TextView-->
-<!--                            android:layout_width="wrap_content"-->
-<!--                            android:layout_height="wrap_content"-->
-<!--                            android:layout_weight="1"-->
-<!--                            android:text="1Mb" />-->
-
-<!--                    </TableRow>-->
-<!--                    <TableRow android:background="#F0F7F7" android:padding="5dp">-->
-<!--                        <TextView-->
-<!--                            android:layout_width="wrap_content"-->
-<!--                            android:layout_height="wrap_content"-->
-<!--                            android:layout_weight="1"-->
-<!--                            android:text="Software update 2" />-->
-<!--                        <TextView-->
-<!--                            android:layout_width="wrap_content"-->
-<!--                            android:layout_height="wrap_content"-->
-<!--                            android:layout_weight="1"-->
-<!--                            android:textColor="#4CAF50"-->
-<!--                            android:text="Succeded" />-->
-<!--                        <TextView-->
-<!--                            android:layout_width="wrap_content"-->
-<!--                            android:layout_height="wrap_content"-->
-<!--                            android:layout_weight="1"-->
-<!--                            android:text="18 jul 2024" />-->
-<!--                        <TextView-->
-<!--                            android:layout_width="wrap_content"-->
-<!--                            android:layout_height="wrap_content"-->
-<!--                            android:layout_weight="1"-->
-<!--                            android:text="203kb" />-->
-
-<!--                    </TableRow>-->
                 </TableLayout>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_gravity="center">
+                    <Button
+                        android:id="@+id/previousPageButton"
+                        android:text="1"
+                        android:layout_width="50dp"
+                        android:layout_height="wrap_content"
+                        />
+                    <Button
+                        android:id="@+id/nextPageButton"
+                        android:text=">"
+                        android:layout_width="50dp"
+                        android:layout_height="wrap_content"
+                        />
+                </LinearLayout>
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
