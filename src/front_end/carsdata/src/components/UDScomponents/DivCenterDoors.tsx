@@ -18,8 +18,8 @@ const DivCenterDoors = (props: any) => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const readInfoEngine = async () => {
-            await fetch(`http://127.0.0.1:5000/api/read_info_doors`)
+        const readInfoDoors = async () => {
+            await fetch(`http://127.0.0.1:5000/api/read_info_doors?is_manual_flow=false`)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -35,7 +35,7 @@ const DivCenterDoors = (props: any) => {
 
                 });
         };
-        readInfoEngine();
+        readInfoDoors();
     }, []);
 
 
