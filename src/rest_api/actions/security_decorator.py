@@ -27,7 +27,7 @@ def requires_auth(func):
             session = SessionManager(API_ID)
             session._change_session(id, 2)
 
-            auth = Auth(API_ID, [0x10, 0x11, 0x12, 0x13, 0x14])
+            auth = Auth()
             auth_response = auth._auth_to()
 
             if "error" in auth_response:

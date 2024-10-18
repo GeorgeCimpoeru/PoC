@@ -3,7 +3,13 @@ from configs.data_identifiers import *
 
 
 class SessionManager(Action):
-    def _change_session(self, id, sub_funct=1):
+    """ curl -X POST http://127.0.0.1:5000/api/change_session \
+    -H "Content-Type: application/json" \
+    -d '{
+        "sub_funct": 0x03
+    }'
+    """
+    def _change_session(self, sub_funct=1):
         """
         Changes the session control based on a given sub-function.
 

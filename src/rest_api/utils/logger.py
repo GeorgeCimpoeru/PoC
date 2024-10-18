@@ -29,7 +29,8 @@ def setup_logger():
     log_file = os.path.join(LOG_DIRECTORY, 'api.log')
     log_handler = logging.FileHandler(log_file)
     log_handler.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+                                  '[Stack debug: %(filename)s:%(lineno)d (%(funcName)s)]')
     log_handler.setFormatter(formatter)
 
     def decorator(app):
@@ -70,7 +71,8 @@ class SingletonLogger:
         if not self._logger.hasHandlers():
             log_handler = logging.FileHandler(log_path)
             log_handler.setLevel(logging.DEBUG)
-            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'
+                                          '[Stack debug: %(filename)s:%(lineno)d (%(funcName)s)]')
             log_handler.setFormatter(formatter)
             self._logger.addHandler(log_handler)
 
@@ -123,20 +125,20 @@ def log_method_calls(method, logger):
 
 
 def log_debug_message(logger, msg="Debug message"):
-    logger.debug(msg)
+    logger.debug(msg, stacklevel=3)
 
 
 def log_info_message(logger, msg="Info message"):
-    logger.info(msg)
+    logger.info(msg, stacklevel=3)
 
 
 def log_warning_message(logger, msg="Warning message"):
-    logger.warning(msg)
+    logger.warning(msg, stacklevel=3)
 
 
 def log_error_message(logger, msg="Error message"):
-    logger.error(msg)
+    logger.error(msg, stacklevel=3)
 
 
 def log_critical_message(logger, msg="Critical message"):
-    logger.critical(msg)
+    logger.critical(msg, stacklevel=3)

@@ -79,7 +79,6 @@ class Updates(Action):
             current_version = self._verify_version()
             if current_version == version:
                 response_json = ToJSON()._to_json(f"Version {version} already installed", 0)
-                self.bus.shutdown()
                 return response_json
 
             log_info_message(logger, "Downloading... Please wait")
@@ -103,15 +102,10 @@ class Updates(Action):
             # Generate a JSON response indicating the success of the update
             response_json = ToJSON()._to_json("downloaded", no_errors)
 
-            # Shutdown the CAN bus interface
-            self.bus.shutdown()
-
             log_info_message(logger, "Sending JSON")
             return response_json
 
         except CustomError as e:
-            # Handle custom errors, shutdown the CAN bus, and return the error message
-            self.bus.shutdown()
             return e.message
 
     def _download_data(self, type, version, id):
