@@ -29,7 +29,6 @@ class Tester(Action):
                 negative_response = self.handle_negative_response(response.data[3],
                                                                   response.data[2])
                 return {
-                    "status": "error",
                     "message": "Negative response received while tester present",
                     "negative_response": negative_response
                 }
@@ -40,7 +39,7 @@ class Tester(Action):
                     "can_id": f"0x{id:03X}",
                 }
             else:
-                response_json = self._to_json_error("invalid response", 2)
+                response_json = self._to_json_error("The response was invalid", 2)
                 raise CustomError(response_json)
 
             log_info_message(logger, "Tester is present.")
@@ -53,7 +52,6 @@ class Tester(Action):
             negative_response = self.handle_negative_response(nrc_msg, sid_msg)
             self.bus.shutdown()
             return {
-                "status": "error",
                 "message": "Error during authentication",
                 "negative_response": negative_response
             }

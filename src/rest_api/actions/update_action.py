@@ -1,10 +1,6 @@
 from actions.base_actions import *
+from configs.data_identifiers import *
 import time
-
-MCU = 0
-ECU_BATTERY = 1
-ECU_ENGINE = 2
-ECU_DOORS = 3
 
 OTA_UPDATE_STATES = {
     0x00: "IDLE",

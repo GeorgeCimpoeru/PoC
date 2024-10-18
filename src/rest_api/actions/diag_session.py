@@ -30,15 +30,14 @@ class SessionManager(Action):
 
             if frame_response.data[1] == 0x50:
                 log_info_message(logger, f"Session changed to {session_type}")
-                return {"status": "success", "message": f"Session changed to {session_type} successfully"}
+                return {"message": f"Session changed to {session_type} successfully"}
 
             if frame_response.data[1] == 0x7F:
                 negative_response = self.handle_negative_response(frame_response.data[3], frame_response.data[2])
                 return {
-                    "status": "error",
                     "message": "Negative response received while changing session control",
                     "negative_response": negative_response
                 }
 
         except CustomError as e:
-            return {"status": "error", "message": str(e)}
+            return {"message": f"An issue occurred while changing the session: {str(e)}. Please check the ECU status and connection."}
