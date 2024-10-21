@@ -39,16 +39,18 @@ BatteryModule::~BatteryModule()
 }
 
 /* Helper function to execute shell commands and fetch output */
-std::string BatteryModule::exec(char *cmd)
+std::string BatteryModule::exec(const char *cmd, const char *mode)
 {
     std::array<char, 128> buffer;
     std::string result;
-    std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
+    FILE* raw_pipe = popen(cmd, mode);
 
-    if (!pipe)
+    if (!raw_pipe)
     {
         throw std::runtime_error("popen() failed!");
     }
+
+    std::shared_ptr<FILE> pipe(raw_pipe, pclose);
 
     while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
     {
@@ -180,13 +182,13 @@ void BatteryModule::parseBatteryInfo(const std::string &data, float &energy, flo
 }
 
 /* Function to fetch data from system about battery */
-void BatteryModule::fetchBatteryData()
+void BatteryModule::fetchBatteryData(const char *mode)
 {
     try
     {
         /* Execute the shell command to read System Info about Battery */
         char* path = strdup("upower -i /org/freedesktop/UPower/devices/battery_BAT0");
-        std::string data = exec(path);
+        std::string data = exec(path,mode);
         /* Call the function in order to parse the datas */
         parseBatteryInfo(data, energy, voltage, percentage, state);
 
@@ -276,7 +278,7 @@ void BatteryModule::writeDataToFile()
             outfile << "\n";
         }
         outfile.close();
-        fetchBatteryData();
+        fetchBatteryData("r");
     }
 }
 
