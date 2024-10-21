@@ -65,7 +65,7 @@ def manual_send_frame(can_id, can_data):
                 if nrc == 0x37:
                     time_delay_ms = int.from_bytes(received_frame.data[4:8], byteorder='big')
                     time_delay_s = time_delay_ms / 1000
-                    log_info_message(logger, f"Retries exceeded. Try again in: {time_delay_s} s")
+                    log_warning_message(logger, f"Retries exceeded. Try again in: {time_delay_s} s")
                     received_data['retry_timeout_ms'] = time_delay_ms
                 else:
                     received_data['auth_status'] = 'failed'
@@ -80,10 +80,10 @@ def manual_send_frame(can_id, can_data):
 
     except ValueError as e:
         log_error_message(logger, f"ValueError occurred: {str(e)}")
-        return {'status': 'Error', 'message': str(e)}, 400
+        return {'message': str(e)}, 400
     except Exception as e:
         log_error_message(logger, f"Unexpected error occurred: {str(e)}")
-        return {'status': 'Error', 'message': str(e)}, 500
+        return {'message': str(e)}, 500
     finally:
         log_info_message(logger, "Shutting down CAN bus connection")
         bus.shutdown()
