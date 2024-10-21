@@ -89,10 +89,10 @@ void TransferData::processDataForTransfer(uint8_t receiver_id, std::vector<uint8
             PCI_1 + SID_1 + BL_IDX_1 + SIZE_FORMAT_1 + SIZE_1 + SIZE_2 + SIZE_3 + fill_bytes (0)
          */
         current_data.insert(current_data.end(), binary_data_size_bytes.begin(), binary_data_size_bytes.end());
-        while((current_data.size() - 3) < chunk_size)
-        {
-            current_data.emplace_back(0x00);
-        }
+        // while((current_data.size() - 3) < chunk_size)
+        // {
+        //     current_data.emplace_back(0x00);
+        // }
         return;
     }
 
@@ -100,7 +100,7 @@ void TransferData::processDataForTransfer(uint8_t receiver_id, std::vector<uint8
 
     if (bytes_sent >= total_size)
     {   
-        current_data.emplace_back(TransferData::computeChecksum(TransferData::checksums.data(), TransferData::checksums.size() - 1));
+        current_data.emplace_back(TransferData::computeChecksum(TransferData::checksums.data(), TransferData::checksums.size()));
         MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_COMPLETE});
     }
     else
@@ -181,6 +181,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
                 << std::flush;
     if(ota_state == PROCESSING_TRANSFER_COMPLETE)
     {
+        memory_manager->setAddress(DEV_LOOP_PARTITION_1_ADDRESS);
         bool write_success = memory_manager->writeToAddress(data);
         if(write_success == false)
         {
@@ -205,9 +206,21 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
         }
         return;
     }
+    // /* Status remains PROCESSING_TRANSFER_COMPLETE */
+            response.clear();
+            /* prepare positive response */
+            response.push_back(0x02); /* PCI */
+            response.push_back(0x76); /* Service ID */
+            response.push_back(block_sequence_counter); /* block_sequence_counter */
+            /* TODO : this can be replaced with meaniningfull informations about the overall transfer*/
+            // response.insert(response.end(), transfer_request.begin() + 3, transfer_request.end()); /* transfer parameter record */
+            response.emplace_back(static_cast<uint8_t>(ota_state));
+            /* Send the postive response frame */
+            generate_frames.sendFrame(can_id, response);
+            AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
     /* Increment expected_block_sequence_number only if it matches the current block_sequence_counter */
     expected_block_sequence_number++;
-    AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
+    // AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
 
     /* reset it to 0x01 after it reaches 0xFF and resets to 0*/
     if (expected_block_sequence_number == 0x00)

@@ -24,6 +24,8 @@
 #define ELF_SIGNATURE 0x7F454C46
 #define ZIP_SIGNATURE 0x504B0304   
 
+#define DATA_SIGNATURE_SIZE 0x04
+
 enum class FileType
 {
     ELF_FILE = 0,
