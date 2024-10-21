@@ -1,28 +1,18 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
+import { batteryData, readInfoBattery } from './DivCenterBattery';
+import { writeInfoBattery } from './DivCenterBattery';
+import ModalUDS from './ModalUDS';
 
-interface batteryData {
-    battery_level: any,
-    voltage: any,
-    battery_state_of_charge: any,
-    percentage: any,
-    life_cycle: any,
-    fully_charged: any,
-    serial_number: any,
-    range_battery: any,
-    charging_time: any,
-    device_consumption: any,
-    time_stamp: any,
-}
 
 let intervalID: number | NodeJS.Timeout | null = null;
 
 const SendRequests = () => {
     const [logs, setLogs] = useState<string[]>([]);
-    const [data23, setData23] = useState<{ ecu_ids: [], mcu_id: any, status: string, time_stamp: string } | string[] | string | null | 
-    { name: string; version: string; }[] >();
-    const [batteryData, setBatteryData] = useState<batteryData | null>();
+    const [data23, setData23] = useState<{ ecu_ids: [], mcu_id: any, status: string, time_stamp: string } | string[] | string | null |
+        { name: string; version: string; }[]>();
+    const [varBatteryData, setVarBatteryData] = useState<batteryData | null>();
     const [canId, setCanId] = useState("");
     const [canData, setCanData] = useState("");
     const [disableFrameAndDtcBtns, setDisableFrameAndDtcBtns] = useState<boolean>(false);
@@ -226,7 +216,7 @@ const SendRequests = () => {
                         if (data.ecu_ids[0] == '00') {
                             setDisableInfoBatteryBtns(true);
                         } else {
-                            readInfoBattery(true, "");
+                            readInfoBattery(true, setData23);
                         }
                         if (data.ecu_ids[1] == '00') {
                             setDisableInfoEngineBtns(true);
@@ -272,30 +262,6 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
-    const readInfoBattery = async (initialRequest: boolean, item: string) => {
-        displayLoadingCircle();
-        console.log("Reading info battery...");
-        console.log(item);
-        try {
-            await fetch(`http://127.0.0.1:5000/api/read_info_battery?item=${item}`, {
-                method: 'GET',
-                // mode: 'no-cors',
-            }).then(response => response.json())
-                .then(data => {
-                    console.log(data);
-                    if (!initialRequest) {
-                        setData23(data);
-                        fetchLogs();
-                    } else {
-                        setBatteryData(data);
-                    }
-                    removeLoadingCicle();
-                });
-        } catch (error) {
-            console.log(error);
-            removeLoadingCicle();
-        }
-    };
 
     const writeInfoEngine = async () => {
         displayLoadingCircle();
@@ -308,7 +274,7 @@ const SendRequests = () => {
         const oil_temperature = prompt('Enter oil temperature:');
         const fuel_pressure = prompt('Enter fuel pressure:');
         const intake_air_temperature = prompt('Enter intake air temperature:');
-        // "is_manual_flow": true or false only   // to be done  after merging a PR from the API with this change
+
 
         const data = {
             engine_rpm: engine_rpm || null,
@@ -453,7 +419,7 @@ const SendRequests = () => {
             if (value !== '0' && value !== '1') {
                 alert('Accepted value: 0/1');
             }
-        } while (value !== '0' && value !== '1'); 
+        } while (value !== '0' && value !== '1');
         return value;
     };
 
@@ -536,65 +502,65 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
-    const writeInfoBattery = async (item: string) => {
-        let data2 = {}
-        if (item === "battery_level") {
-            let batteryLevel = prompt('Enter Battery Level: ');
-            if (batteryLevel === null) {
-                return;
-            }
-            data2 = {
-                battery_level: parseInt(batteryLevel)
-            };
-        } else if (item === "state_of_charge") {
-            let stateOfCharge = prompt('Enter Battery State of Charge: ');
-            if (stateOfCharge === null) {
-                return;
-            }
-            data2 = {
-                state_of_charge: parseInt(stateOfCharge)
-            };
-        } else if (item === "percentage") {
-            let percentage = prompt('Enter Battery Percentage: ');
-            if (percentage === null) {
-                return;
-            }
-            data2 = {
-                percentage: parseInt(percentage)
-            };
-        } else if (item === "voltage") {
-            let voltage = prompt('Enter Battery Voltage: ');
-            if (voltage === null) {
-                return;
-            }
-            data2 = {
-                voltage: parseInt(voltage)
-            };
-        }
+    // const writeInfoBattery = async (item: string) => {
+    //     let data2 = {}
+    //     if (item === "battery_level") {
+    //         let batteryLevel = prompt('Enter Battery Level: ');
+    //         if (batteryLevel === null) {
+    //             return;
+    //         }
+    //         data2 = {
+    //             battery_level: parseInt(batteryLevel)
+    //         };
+    //     } else if (item === "state_of_charge") {
+    //         let stateOfCharge = prompt('Enter Battery State of Charge: ');
+    //         if (stateOfCharge === null) {
+    //             return;
+    //         }
+    //         data2 = {
+    //             state_of_charge: parseInt(stateOfCharge)
+    //         };
+    //     } else if (item === "percentage") {
+    //         let percentage = prompt('Enter Battery Percentage: ');
+    //         if (percentage === null) {
+    //             return;
+    //         }
+    //         data2 = {
+    //             percentage: parseInt(percentage)
+    //         };
+    //     } else if (item === "voltage") {
+    //         let voltage = prompt('Enter Battery Voltage: ');
+    //         if (voltage === null) {
+    //             return;
+    //         }
+    //         data2 = {
+    //             voltage: parseInt(voltage)
+    //         };
+    //     }
 
-        console.log("Writing info battery...");
-        console.log(data2);
-        displayLoadingCircle();
-        try {
-            await fetch(`http://127.0.0.1:5000/api/write_info_battery?item=${item}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data2),
-            })
-                .then(response => response.json())
-                .then(data => {
-                    setData23(data);
-                    console.log(data);
-                    fetchLogs();
-                });
-        } catch (error) {
-            console.log(error);
-            removeLoadingCicle();
-        }
-        removeLoadingCicle();
-    }
+    //     console.log("Writing info battery...");
+    //     console.log(data2);
+    //     displayLoadingCircle();
+    //     try {
+    //         await fetch(`http://127.0.0.1:5000/api/write_info_battery?item=${item}`, {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //             },
+    //             body: JSON.stringify(data2),
+    //         })
+    //             .then(response => response.json())
+    //             .then(data => {
+    //                 setData23(data);
+    //                 console.log(data);
+    //                 fetchLogs();
+    //             });
+    //     } catch (error) {
+    //         console.log(error);
+    //         removeLoadingCicle();
+    //     }
+    //     removeLoadingCicle();
+    // }
 
     const changeSession = async () => {
         let sessiontype: any;
@@ -948,11 +914,11 @@ const SendRequests = () => {
                         </button>
                         {isDropdownOpen && (
                             <ul tabIndex={2} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                                <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(false, "") }}>All params</a></li>
-                                <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(false, "battery_level") }}>Battery level</a></li>
-                                <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(false, "state_of_charge") }}>State of charge</a></li>
-                                <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(false, "percentage") }}>Percentage</a></li>
-                                <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(false, "voltage") }}>Voltage</a></li>
+                                <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>All params</a></li>
+                                <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>Battery level</a></li>
+                                <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>State of charge</a></li>
+                                <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>Percentage</a></li>
+                                <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>Voltage</a></li>
                             </ul>
                         )}
                     </div>
@@ -969,19 +935,39 @@ const SendRequests = () => {
                             />
                         </button>
                         {isDropdownOpen && (
-                            <ul tabIndex={3} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                                <li><a onClick={() => { setIsDropdownOpen(false); writeInfoBattery("battery_level") }}>Battery level</a></li>
-                                <li><a onClick={() => { setIsDropdownOpen(false); writeInfoBattery("state_of_charge") }}>State of charge</a></li>
-                                <li><a onClick={() => { setIsDropdownOpen(false); writeInfoBattery("percentage") }}>Percentage</a></li>
-                                <li><a onClick={() => { setIsDropdownOpen(false); writeInfoBattery("voltage") }}>Voltage</a></li>
-                            </ul>
+                            <div>
+                                <ul tabIndex={3} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+                                    <li>
+                                        <label htmlFor="my_modal_1">
+                                            <a onClick={() => { setIsDropdownOpen(false) }} >Battery level</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_1">
+                                            <a onClick={() => { setIsDropdownOpen(false) }} >State of charge</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_1">
+                                            <a onClick={() => { setIsDropdownOpen(false) }} >Percentage</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_1">
+                                            <a onClick={() => { setIsDropdownOpen(false) }} >Voltage</a>
+                                        </label>
+                                    </li>
+                                </ul>
+                                <ModalUDS id="my_modal_1" cardTitle={'Battery level'} writeInfo={writeInfoBattery} param="battery_level" setter={setData23} />
+                            </div>
                         )}
+
                     </div>
-                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoEngine} disabled={disableInfoEngineBtns}>Read Info Engine</button>
+                    {/* <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoEngine} disabled={disableInfoEngineBtns}>Read Info Engine</button> */}
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoEngine} disabled={disableInfoEngineBtns}>Write Info Engine</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoDoors} disabled={disableInfoDoorsBtns}>Read Info Doors</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoDoors} disabled={disableInfoDoorsBtns}>Write Doors Info</button>
-                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoHvac} disabled={disableInfoHvacBtns}>Read Info Hvac</button>
+                    {/* <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoHvac} disabled={disableInfoHvacBtns}>Read Info Hvac</button> */}
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoHvac} disabled={disableInfoHvacBtns}>Write Info Hvac</button>
                 </div>
 
