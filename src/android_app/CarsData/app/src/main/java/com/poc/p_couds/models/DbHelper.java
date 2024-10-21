@@ -38,6 +38,10 @@ public class DbHelper extends SQLiteOpenHelper {
                 + ARTIFACT_COL + " TEXT PRIMARY KEY UNIQUE, "
                 + STATUS_COL + " TEXT, "
                 + START_TIME_COL + " TEXT, "
+<<<<<<< HEAD
+=======
+                + START_TIME_COL + " TEXT, "
+>>>>>>> Database of history updates (#486)
                 + SIZE_COL + " TEXT)";
         sqLiteDatabase.execSQL(query);
     }
