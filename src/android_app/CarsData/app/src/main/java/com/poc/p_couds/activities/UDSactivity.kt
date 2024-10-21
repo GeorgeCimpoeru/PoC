@@ -59,8 +59,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.poc.p_couds.R
 import com.poc.p_couds.models.EcusInfoViewModel
+import com.poc.p_couds.R
 import com.poc.p_couds.ui.theme.CarsDataTheme
 
 class UDSactivity : ComponentActivity() {
@@ -72,394 +72,395 @@ class UDSactivity : ComponentActivity() {
 
         setContent {
             CarsDataTheme {
-                ActivityLayout(onBackPressed = { onBackPressed() })
+                ActivityLayout(ecusInfoViewModel, onBackPressed = { onBackPressed() })
             }
         }
     }
+}
 
-    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-    @Composable
-    fun ActivityLayout(onBackPressed: () -> Unit) {
-        val selectedIndex = remember { mutableIntStateOf(0) }
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@Composable
+fun ActivityLayout(ecusInfoViewModel: EcusInfoViewModel, onBackPressed: () -> Unit) {
+    val selectedIndex = remember { mutableIntStateOf(0) }
 
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            bottomBar = {
-                BottomAppBar(
-                    selectedIndex = selectedIndex.value,
-                    onButtonSelected = { index -> selectedIndex.value = index }
-                )
-            },
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        bottomBar = {
+            BottomAppBar(
+                selectedIndex = selectedIndex.value,
+                onButtonSelected = { index -> selectedIndex.value = index }
+            )
+        },
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize()
+            TopBarNavigation(onBackPressed)
+
+            ThreeColumnLayout(
+                modifier = Modifier.weight(1f),
+                selectedIndex = selectedIndex.value,
+                ecusInfoViewModel
+            )
+        }
+    }
+}
+
+@Composable
+fun BottomAppBar(selectedIndex: Int, onButtonSelected: (Int) -> Unit) {
+    androidx.compose.material3.BottomAppBar(
+        containerColor = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.primary,
+    ) {
+        val buttonLabels = listOf("MCU", "Battery", "Engine", "Doors", "HVAC")
+
+        buttonLabels.forEachIndexed { index, label ->
+            CustomButtonForBottomAppBar(
+                isSelected = selectedIndex == index,
+                onClick = {
+                    onButtonSelected(index)
+                },
+                ecuName = label
+            )
+        }
+    }
+}
+
+@Composable
+fun CustomButtonForBottomAppBar(isSelected: Boolean, onClick: () -> Unit, ecuName: String) {
+    val buttonColor = if (isSelected) Color.Gray else Color.Transparent
+
+    Box(
+        modifier = Modifier
+            .padding(start = 2.dp)
+            .clickable(onClick = onClick)
+            .background(buttonColor, shape = RoundedCornerShape(12.dp))
+            .size(79.dp)
+    ) {
+        Column(
+            verticalArrangement = Arrangement.Bottom,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Icon(
+                imageVector = ImageVector.vectorResource(id = R.drawable.ecu),
+                contentDescription = "Custom Icon",
+                modifier = Modifier
+                    .size(57.dp)
+                    .padding(0.dp)
+            )
+            Text(
+                text = ecuName,
+                style = TextStyle(fontSize = 12.sp),
+                modifier = Modifier.padding(top = 0.dp)
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TopBarNavigation(onBackPressed: () -> Unit) {
+    var showMenu by remember { mutableStateOf(false) }
+
+    TopAppBar(
+        title = {
+            Text(
+                "UDS",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Start
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = { onBackPressed() }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Localized description"
+                )
+            }
+        },
+        actions = {
+            IconButton(onClick = { showMenu = true }) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert, // 3 dots icon
+                    contentDescription = "More options"
+                )
+            }
+            DropdownMenu(
+                expanded = showMenu,
+                onDismissRequest = { showMenu = false }
             ) {
-                TopBarNavigation(onBackPressed)
-
-                ThreeColumnLayout(
-                    modifier = Modifier.weight(1f),
-                    selectedIndex = selectedIndex.value
-                )
-            }
-        }
-    }
-
-    @Composable
-    fun BottomAppBar(selectedIndex: Int, onButtonSelected: (Int) -> Unit) {
-        androidx.compose.material3.BottomAppBar(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.primary,
-        ) {
-            val buttonLabels = listOf("MCU", "Battery", "Engine", "Doors", "HVAC")
-
-            buttonLabels.forEachIndexed { index, label ->
-                CustomButtonForBottomAppBar(
-                    isSelected = selectedIndex == index,
+                DropdownMenuItem(
+                    text = { Text(text = "Send requests") },
                     onClick = {
-                        onButtonSelected(index)
-                    },
-                    ecuName = label
+                        val intent = Intent(this@UDSactivity, RequestActivity::class.java)
+                        startActivity(intent)
+                    }
                 )
             }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.LightGray
+        )
+    )
+}
+
+fun handleMenuItemClick() {
+    /*TODO OPEN NEW SEND REQUESTS FRAGMENT*/
+}
+
+@Composable
+fun ThreeColumnLayout(modifier: Modifier = Modifier, selectedIndex: Int, ecusInfoViewModel: EcusInfoViewModel) {
+    val screenWidth = LocalConfiguration.current.screenWidthDp
+    val columnWidth: Dp = (screenWidth * 0.27).dp
+    var vectImg: ImageVector = ImageVector.vectorResource(id = R.drawable.car)
+    when (selectedIndex) {
+        0 -> {
+            vectImg = ImageVector.vectorResource(id = R.drawable.car)
+        }
+        1 -> {
+            vectImg = ImageVector.vectorResource(id = R.drawable.battery)
+            ecusInfoViewModel.fetchBatteryInfo()
+        }
+        2 -> {
+            vectImg = ImageVector.vectorResource(id = R.drawable.engine)
+            ecusInfoViewModel.fetchEngineInfo()
+        }
+        3 -> {
+            vectImg = ImageVector.vectorResource(id = R.drawable.door)
+            ecusInfoViewModel.fetchDoorsInfo()
+        }
+        4 -> {
+            vectImg = ImageVector.vectorResource(id = R.drawable.hvac)
+            ecusInfoViewModel.fetchHvacInfo()
         }
     }
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color.Transparent)
+    ) {
+        GridBackground()
 
-    @Composable
-    fun CustomButtonForBottomAppBar(isSelected: Boolean, onClick: () -> Unit, ecuName: String) {
-        val buttonColor = if (isSelected) Color.Gray else Color.Transparent
-
-        Box(
+        Row(
             modifier = Modifier
-                .padding(start = 2.dp)
-                .clickable(onClick = onClick)
-                .background(buttonColor, shape = RoundedCornerShape(12.dp))
-                .size(79.dp)
+                .fillMaxSize()
         ) {
             Column(
-                verticalArrangement = Arrangement.Bottom,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .width(columnWidth)
+                    .fillMaxHeight()
+                    .padding(bottom = 120.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                when (selectedIndex) {
+                    0 -> {
+                        ParamsButton(Color.Blue,"Val1", "Param1", ecusInfoViewModel, "MCU")
+                        ParamsButton(Color.Blue,"Val2", "Param2", ecusInfoViewModel, "MCU")
+                        ParamsButton(Color.Blue,"Val3", "Param3", ecusInfoViewModel, "MCU")
+                        ParamsButton(Color.Blue,"Val4", "Param4", ecusInfoViewModel, "MCU")
+                        ParamsButton(Color.Blue,"Val5", "Param5", ecusInfoViewModel, "MCU")
+                    }
+                    1 -> {
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.batteryInfo?.battery_level}", "Battery level", ecusInfoViewModel, "Battery")
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.batteryInfo?.battery_state_of_charge}", "State of charge", ecusInfoViewModel, "Battery")
+                    }
+                    2 -> {
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.coolant_temperature}", "Coolant temp", ecusInfoViewModel, "Engine")
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.engine_load}", "Load", ecusInfoViewModel, "Engine")
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.engine_rpm}", "Rpm", ecusInfoViewModel, "Engine")
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.fuel_level}", "Fuel", ecusInfoViewModel, "Engine")
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.fuel_pressure}", "Fuel pressure", ecusInfoViewModel, "Engine")
+                    }
+                    3 -> {
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.doorsInfo?.ajar}", "Ajar", ecusInfoViewModel, "Doors")
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.doorsInfo?.door}", "Door", ecusInfoViewModel, "Doors")
+                    }
+                    4 -> {
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.ambient_air_temperature}", "Ambient temp", ecusInfoViewModel, "HVAC")
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.cabin_temperature}", "Cabin temp", ecusInfoViewModel, "HVAC")
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.cabin_temperature_driver_set}", "Driver set temp", ecusInfoViewModel, "HVAC")
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.fan_speed}", "Fan speed", ecusInfoViewModel, "HVAC")
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.AC_Status}", "AC status", ecusInfoViewModel, "HVAC")
+                    }
+                }
+            }
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(top = 140.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
-                    imageVector = ImageVector.vectorResource(id = R.drawable.ecu),
-                    contentDescription = "Custom Icon",
-                    modifier = Modifier
-                        .size(57.dp)
-                        .padding(0.dp)
+                    imageVector = vectImg,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(350.dp)
                 )
-                Text(
-                    text = ecuName,
-                    style = TextStyle(fontSize = 12.sp),
-                    modifier = Modifier.padding(top = 0.dp)
-                )
+            }
+
+            Column(
+                modifier = Modifier
+                    .width(columnWidth)
+                    .fillMaxHeight()
+                    .padding(bottom = 120.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                when (selectedIndex) {
+                    0 -> {
+                        ParamsButton(Color.Blue,"Val6", "Param6", ecusInfoViewModel, "MCU")
+                        ParamsButton(Color.Blue,"Val7", "Param7", ecusInfoViewModel, "MCU")
+                        ParamsButton(Color.Blue,"Val8", "Param8", ecusInfoViewModel, "MCU")
+                        ParamsButton(Color.Blue,"Val9", "Param9", ecusInfoViewModel, "MCU")
+                        ParamsButton(Color.Blue,"Val10", "Param10", ecusInfoViewModel, "MCU")
+                    }
+                    1 -> {
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.batteryInfo?.percentage}", "Percentage", ecusInfoViewModel, "Battery")
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.batteryInfo?.voltage}", "Voltage", ecusInfoViewModel, "Battery")
+                    }
+                    2 -> {
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.intake_air_temperature}", "Intake air temp", ecusInfoViewModel, "Engine")
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.oil_temperature}", "Oil temp", ecusInfoViewModel, "Engine")
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.throttle_position}", "Throttle position", ecusInfoViewModel, "Engine")
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.vehicle_speed}", "Speed", ecusInfoViewModel, "Engine")
+                    }
+                    3 -> {
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.doorsInfo?.passenger}", "Passanger", ecusInfoViewModel, "Doors")
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.doorsInfo?.passenger_lock}", "Passanger lock", ecusInfoViewModel, "Doors")
+                    }
+                    4 -> {
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.Air_Recirculation}", "Air recirc", ecusInfoViewModel, "HVAC")
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.Defrost}", "Defrost", ecusInfoViewModel, "HVAC")
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.Front}", "Front", ecusInfoViewModel, "HVAC")
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.Legs}", "Legs", ecusInfoViewModel, "HVAC")
+                        ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.mass_air_flow}", "Mass air flow", ecusInfoViewModel, "HVAC")
+                    }
+                }
             }
         }
     }
+}
 
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    fun TopBarNavigation(onBackPressed: () -> Unit) {
-        var showMenu by remember { mutableStateOf(false) }
+@Composable
+fun GridBackground(
+    modifier: Modifier = Modifier,
+    color: Color = Color(0xFF0A0B45),
+    lineColor: Color = Color(0xFF2B2D62),
+    gridSize: Dp = 32.dp
+) {
+    Canvas(modifier = modifier.fillMaxSize()) {
+        drawRect(color = color)
 
-        TopAppBar(
-            title = {
-                Text(
-                    "UDS",
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Start
-                )
-            },
-            navigationIcon = {
-                IconButton(onClick = { onBackPressed() }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Localized description"
-                    )
-                }
-            },
-            actions = {
-                IconButton(onClick = { showMenu = true }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert, // 3 dots icon
-                        contentDescription = "More options"
-                    )
-                }
-                DropdownMenu(
-                    expanded = showMenu,
-                    onDismissRequest = { showMenu = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(text = "Send requests") },
-                        onClick = {
-                            val intent = Intent(this@UDSactivity, RequestActivity::class.java)
-                            startActivity(intent)
-                        }
-                    )
-                }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.LightGray
+        val columns = (size.width / gridSize.toPx()).toInt()
+        val rows = (size.height / gridSize.toPx()).toInt()
+
+        for (i in 0..columns) {
+            val x = i * gridSize.toPx()
+            drawLine(
+                color = lineColor,
+                start = Offset(x, 0f),
+                end = Offset(x, size.height),
+                strokeWidth = 1.dp.toPx()
             )
+        }
+
+        for (i in 0..rows) {
+            val y = i * gridSize.toPx()
+            drawLine(
+                color = lineColor,
+                start = Offset(0f, y),
+                end = Offset(size.width, y),
+                strokeWidth = 1.dp.toPx()
+            )
+        }
+    }
+}
+
+
+
+@Composable
+fun ParamsButton(buttonColor: Color, txtBtn: String, paramName: String, ecusInfoViewModel: EcusInfoViewModel, selectedEcu: String) {
+    var showDialog by remember { mutableStateOf(false) }
+    var inputText by remember { mutableStateOf(txtBtn) }
+    Button(
+        onClick = { showDialog = true },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = buttonColor
+        ),
+        modifier = Modifier.padding(top = 10.dp)
+    ) {
+        Text(txtBtn, color = Color.White)
+    }
+    Text(paramName, color = Color.White)
+
+    if (showDialog) {
+        MyDialog(
+            title = paramName,
+            onDismiss = { showDialog = false },
+            inputText = inputText,
+            onInputChange = { inputText = it },
+            ecusInfoViewModel,
+            selectedEcu
         )
     }
+}
 
-    fun handleMenuItemClick() {
-        /*TODO OPEN NEW SEND REQUESTS FRAGMENT*/
-    }
-
-    @Composable
-    fun ThreeColumnLayout(modifier: Modifier = Modifier, selectedIndex: Int) {
-        val screenWidth = LocalConfiguration.current.screenWidthDp
-        val columnWidth: Dp = (screenWidth * 0.27).dp
-        var vectImg: ImageVector = ImageVector.vectorResource(id = R.drawable.car)
-        when (selectedIndex) {
-            0 -> {
-                vectImg = ImageVector.vectorResource(id = R.drawable.car)
-            }
-            1 -> {
-                vectImg = ImageVector.vectorResource(id = R.drawable.battery)
-                ecusInfoViewModel.fetchBatteryInfo()
-            }
-            2 -> {
-                vectImg = ImageVector.vectorResource(id = R.drawable.engine)
-                ecusInfoViewModel.fetchEngineInfo()
-            }
-            3 -> {
-                vectImg = ImageVector.vectorResource(id = R.drawable.door)
-                ecusInfoViewModel.fetchDoorsInfo()
-            }
-            4 -> {
-                vectImg = ImageVector.vectorResource(id = R.drawable.hvac)
-                ecusInfoViewModel.fetchHvacInfo()
-            }
-        }
-        Box(
-            modifier = modifier
-                .fillMaxSize()
-                .background(Color.Transparent)
+@Composable
+fun MyDialog(
+    title: String,
+    onDismiss: () -> Unit,
+    inputText: String,
+    onInputChange: (String) -> Unit,
+    ecusInfoViewModel: EcusInfoViewModel,
+    selectedEcu: String
+) {
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties()) {
+        Surface(
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.background
         ) {
-            GridBackground()
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(text = title, style = MaterialTheme.typography.headlineSmall)
 
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-            ) {
-                Column(
+                Spacer(modifier = Modifier.padding(8.dp))
+
+                BasicTextField(
+                    value = inputText,
+                    onValueChange = onInputChange,
                     modifier = Modifier
-                        .width(columnWidth)
-                        .fillMaxHeight()
-                        .padding(bottom = 120.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    when (selectedIndex) {
-                        0 -> {
-                            ParamsButton(Color.Blue,"Val1", "Param1", ecusInfoViewModel, "MCU")
-                            ParamsButton(Color.Blue,"Val2", "Param2", ecusInfoViewModel, "MCU")
-                            ParamsButton(Color.Blue,"Val3", "Param3", ecusInfoViewModel, "MCU")
-                            ParamsButton(Color.Blue,"Val4", "Param4", ecusInfoViewModel, "MCU")
-                            ParamsButton(Color.Blue,"Val5", "Param5", ecusInfoViewModel, "MCU")
-                        }
-                        1 -> {
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.batteryInfo?.battery_level}", "Battery level", ecusInfoViewModel, "Battery")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.batteryInfo?.battery_state_of_charge}", "State of charge", ecusInfoViewModel, "Battery")
-                        }
-                        2 -> {
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.coolant_temperature}", "Coolant temp", ecusInfoViewModel, "Engine")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.engine_load}", "Load", ecusInfoViewModel, "Engine")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.engine_rpm}", "Rpm", ecusInfoViewModel, "Engine")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.fuel_level}", "Fuel", ecusInfoViewModel, "Engine")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.fuel_pressure}", "Fuel pressure", ecusInfoViewModel, "Engine")
-                        }
-                        3 -> {
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.doorsInfo?.ajar}", "Ajar", ecusInfoViewModel, "Doors")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.doorsInfo?.door}", "Door", ecusInfoViewModel, "Doors")
-                        }
-                        4 -> {
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.ambient_air_temperature}", "Ambient temp", ecusInfoViewModel, "HVAC")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.cabin_temperature}", "Cabin temp", ecusInfoViewModel, "HVAC")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.cabin_temperature_driver_set}", "Driver set temp", ecusInfoViewModel, "HVAC")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.fan_speed}", "Fan speed", ecusInfoViewModel, "HVAC")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.AC_Status}", "AC status", ecusInfoViewModel, "HVAC")
-                        }
-                    }
-                }
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(top = 140.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        imageVector = vectImg,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(350.dp)
-                    )
-                }
-
-                Column(
-                    modifier = Modifier
-                        .width(columnWidth)
-                        .fillMaxHeight()
-                        .padding(bottom = 120.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    when (selectedIndex) {
-                        0 -> {
-                            ParamsButton(Color.Blue,"Val6", "Param6", ecusInfoViewModel, "MCU")
-                            ParamsButton(Color.Blue,"Val7", "Param7", ecusInfoViewModel, "MCU")
-                            ParamsButton(Color.Blue,"Val8", "Param8", ecusInfoViewModel, "MCU")
-                            ParamsButton(Color.Blue,"Val9", "Param9", ecusInfoViewModel, "MCU")
-                            ParamsButton(Color.Blue,"Val10", "Param10", ecusInfoViewModel, "MCU")
-                        }
-                        1 -> {
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.batteryInfo?.percentage}", "Percentage", ecusInfoViewModel, "Battery")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.batteryInfo?.voltage}", "Voltage", ecusInfoViewModel, "Battery")
-                        }
-                        2 -> {
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.intake_air_temperature}", "Intake air temp", ecusInfoViewModel, "Engine")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.oil_temperature}", "Oil temp", ecusInfoViewModel, "Engine")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.throttle_position}", "Throttle position", ecusInfoViewModel, "Engine")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.vehicle_speed}", "Speed", ecusInfoViewModel, "Engine")
-                        }
-                        3 -> {
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.doorsInfo?.passenger}", "Passanger", ecusInfoViewModel, "Doors")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.doorsInfo?.passenger_lock}", "Passanger lock", ecusInfoViewModel, "Doors")
-                        }
-                        4 -> {
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.Air_Recirculation}", "Air recirc", ecusInfoViewModel, "HVAC")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.Defrost}", "Defrost", ecusInfoViewModel, "HVAC")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.Front}", "Front", ecusInfoViewModel, "HVAC")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.Legs}", "Legs", ecusInfoViewModel, "HVAC")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.mass_air_flow}", "Mass air flow", ecusInfoViewModel, "HVAC")
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    @Composable
-    fun GridBackground(
-        modifier: Modifier = Modifier,
-        color: Color = Color(0xFF0A0B45),
-        lineColor: Color = Color(0xFF2B2D62),
-        gridSize: Dp = 32.dp
-    ) {
-        Canvas(modifier = modifier.fillMaxSize()) {
-            drawRect(color = color)
-
-            val columns = (size.width / gridSize.toPx()).toInt()
-            val rows = (size.height / gridSize.toPx()).toInt()
-
-            for (i in 0..columns) {
-                val x = i * gridSize.toPx()
-                drawLine(
-                    color = lineColor,
-                    start = Offset(x, 0f),
-                    end = Offset(x, size.height),
-                    strokeWidth = 1.dp.toPx()
+                        .padding(8.dp)
                 )
-            }
 
-            for (i in 0..rows) {
-                val y = i * gridSize.toPx()
-                drawLine(
-                    color = lineColor,
-                    start = Offset(0f, y),
-                    end = Offset(size.width, y),
-                    strokeWidth = 1.dp.toPx()
-                )
-            }
-        }
-    }
+                Spacer(modifier = Modifier.padding(8.dp))
 
-
-
-    @Composable
-    fun ParamsButton(buttonColor: Color, txtBtn: String, paramName: String, ecusInfoViewModel: EcusInfoViewModel, selectedEcu: String) {
-        var showDialog by remember { mutableStateOf(false) }
-        var inputText by remember { mutableStateOf(txtBtn) }
-        Button(
-            onClick = { showDialog = true },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = buttonColor
-            ),
-            modifier = Modifier.padding(top = 10.dp)
-        ) {
-            Text(txtBtn, color = Color.White)
-        }
-        Text(paramName, color = Color.White)
-
-        if (showDialog) {
-            MyDialog(
-                title = paramName,
-                onDismiss = { showDialog = false },
-                inputText = inputText,
-                onInputChange = { inputText = it },
-                ecusInfoViewModel,
-                selectedEcu
-            )
-        }
-    }
-
-    @Composable
-    fun MyDialog(
-        title: String,
-        onDismiss: () -> Unit,
-        inputText: String,
-        onInputChange: (String) -> Unit,
-        ecusInfoViewModel: EcusInfoViewModel,
-        selectedEcu: String
-    ) {
-        Dialog(onDismissRequest = onDismiss, properties = DialogProperties()) {
-            Surface(
-                shape = MaterialTheme.shapes.medium,
-                color = MaterialTheme.colorScheme.background
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = title, style = MaterialTheme.typography.headlineSmall)
-
+                Row {
+                    Button(onClick = onDismiss) {
+                        Text("Cancel")
+                    }
                     Spacer(modifier = Modifier.padding(8.dp))
-
-                    BasicTextField(
-                        value = inputText,
-                        onValueChange = onInputChange,
-                        modifier = Modifier
-                            .padding(8.dp)
-                    )
-
-                    Spacer(modifier = Modifier.padding(8.dp))
-
-                    Row {
-                        Button(onClick = onDismiss) {
-                            Text("Cancel")
-                        }
-                        Spacer(modifier = Modifier.padding(8.dp))
-                        Button(onClick = {
-                            when (selectedEcu) {
-                                "MCU" -> {
-                                    /*TODO*/
-                                }
-                                "Battery" -> {
-                                    ecusInfoViewModel.writeBatteryInfo(inputText, title)
-                                }
-                                "Engine" -> {
-                                    ecusInfoViewModel.writeEngineInfo(inputText, title)
-                                }
-                                "Doors" -> {
-                                    ecusInfoViewModel.writeDoorsInfo(inputText, title)
-                                }
-                                "HVAC" -> {
-                                    ecusInfoViewModel.writeHVACInfo(inputText, title)
-                                }
+                    Button(onClick = {
+                        when (selectedEcu) {
+                            "MCU" -> {
+                                /*TODO*/
                             }
-                            onDismiss()
-                        }) {
-                            Text(text = "Save")
+                            "Battery" -> {
+                                ecusInfoViewModel.writeBatteryInfo(inputText, title)
+                            }
+                            "Engine" -> {
+                                ecusInfoViewModel.writeEngineInfo(inputText, title)
+                            }
+                            "Doors" -> {
+                                ecusInfoViewModel.writeDoorsInfo(inputText, title)
+                            }
+                            "HVAC" -> {
+                                ecusInfoViewModel.writeHVACInfo(inputText, title)
+                            }
                         }
+                        onDismiss()
+                    }) {
+                        Text(text = "Save")
                     }
                 }
             }
