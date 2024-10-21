@@ -6,39 +6,47 @@ import datetime
 
 class IDsToJson():
     def _to_json(self, data):
+        ecus = []
+        for ecu_id in data.get("ecu_ids", []):
+            if ecu_id != "00":
+                ecus.append({
+                    "ecu_id": ecu_id,
+                    "version": data.get("versions", {}).get(ecu_id, "no version read")
+                })
         response = {
             "status": data.get("status"),
             "mcu_id": data.get("mcu_id"),
-            "ecu_ids": data.get("ecu_ids", []),
+            "ecus": ecus,
             "time_stamp": datetime.datetime.now().isoformat()
         }
+
         if "reason" in data:
             response["reason"] = data["reason"]
         return response
 
 
 class RequestIdAction(Action):
-    def __init__(self, my_id, id_ecu=None):
-        if id_ecu is None:
-            id_ecu = []
-        super().__init__(my_id, id_ecu)
+    """ curl -X GET http://127.0.0.1:5000/api/request_ids """
+    def __init__(self):
+        super().__init__()
 
     def read_ids(self):
-        self.id = self.my_id
+
+        self.arb_id = (0x00 << 16) + (self.my_id << 8) + 0x99
         try:
             self._send_request_frame()
             response_data = self._read_response_frames()
+            versions = self._verify_version(response_data["ecu_ids"])
+            response_data["versions"] = versions
             response_json = IDsToJson()._to_json(response_data)
-            self.bus.shutdown()
             return response_json
 
         except CustomError as e:
-            self.bus.shutdown()
             return {"status": "Error", "message": str(e)}
 
     def _send_request_frame(self):
         log_info_message(logger, "Sending request frame for ECU IDs")
-        self.send(self.id, [0x01, 0x99])
+        self.send(self.arb_id, [0x01, 0x99])
         log_info_message(logger, "Request frame sent")
 
     def _read_response_frames(self, timeout=10):
@@ -70,3 +78,43 @@ class RequestIdAction(Action):
                     }
                 return data_dict
         return {"status": "No response received within timeout"}
+
+    def _verify_version(self, ecu_ids):
+        """
+        Verify the software versions for each ECU ID.
+        Returns a dictionary with ECU IDs and their respective versions.
+        """
+
+        versions = {}
+        for ecu_id in ecu_ids:
+            if ecu_id == "00":
+                # versions[ecu_id] = "no version read"
+                continue
+
+            formatted_ecu_id = f"0x{ecu_id}"
+            version = self._read_version(formatted_ecu_id)
+            if version:
+                formatted_version = ".".join(version)
+                versions[ecu_id] = formatted_version
+            else:
+                versions[ecu_id] = "no version read"
+
+        return versions
+
+    def _read_version(self, ecu_id):
+        """
+        Read the software version for a given ECU ID.
+        """
+        try:
+            id_ecu_int = int(ecu_id, 16)
+            ID_ECU = (0x00 << 16) + (self.my_id << 8) + id_ecu_int
+            log_info_message(logger, f"Reading IDss: {ID_ECU}")
+            version = self._read_by_identifier(ID_ECU, IDENTIFIER_SYSTEM_SUPPLIER_ECU_SOFTWARE_VERSION_NUMBER)
+
+            if version:
+                log_info_message(logger, f"Version found for ECU ID {hex(id_ecu_int)}: {version}")
+                return version
+
+        except CustomError as e:
+            log_error_message(logger, f"Error reading version for ECU ID {id_ecu_int}: {str(e)}")
+            return None

@@ -64,8 +64,13 @@ class Updates(Action):
         try:
             self.id = (int(id, 16) << 16) + (self.my_id << 8) + self.id_ecu[0]
 
-            log_info_message(logger, "Changing session to extended diagonstic mode")
-            self.generate.session_control(self.id, sub_funct=0x03)
+            log_info_message(logger, "Changing MCU to session to extended diagonstic mode")
+            self.session_control(self.id, sub_funct=0x03)
+            self._passive_response(SESSION_CONTROL, "Error changing session control")
+
+            log_info_message(logger, f"Changing ECU {int} to session to extended diagonstic mode")
+            ses_id = (0x00 << 16) + (self.my_id << 8) + int(id, 16)
+            self.session_control(ses_id, sub_funct=0x03)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
 
             log_info_message(logger, "Authenticating...")
@@ -75,7 +80,6 @@ class Updates(Action):
             current_version = self._verify_version()
             if current_version == version:
                 response_json = ToJSON()._to_json(f"Version {version} already installed", 0)
-                self.bus.shutdown()
                 return response_json
 
             log_info_message(logger, "Downloading... Please wait")
@@ -99,15 +103,10 @@ class Updates(Action):
             # Generate a JSON response indicating the success of the update
             response_json = ToJSON()._to_json("downloaded", no_errors)
 
-            # Shutdown the CAN bus interface
-            self.bus.shutdown()
-
             log_info_message(logger, "Sending JSON")
             return response_json
 
         except CustomError as e:
-            # Handle custom errors, shutdown the CAN bus, and return the error message
-            self.bus.shutdown()
             return e.message
 
     def _download_data(self, type, version, id):
@@ -154,7 +153,8 @@ class Updates(Action):
 
         mem_size = frame_response.data[5]
 
-        self.request_download(self.id,
+        req_id = (int(id, 16) << 16) + (self.my_id << 8) + int(id, 16)
+        self.request_download(req_id,
                               data_format_identifier=type,
                               memory_address=0x0801,
                               memory_size=mem_size,
@@ -165,7 +165,6 @@ class Updates(Action):
         while True:
             self.transfer_data(self.id, transfer_data_counter)
             self._passive_response(TRANSFER_DATA, "Error transfering data")
-            time.sleep(2)
             self.request_update_status(REQUEST_UPDATE_STATUS)
             frame_response = self._passive_response(REQUEST_UPDATE_STATUS, "Error requesting update status")
 

@@ -78,11 +78,9 @@ class WriteInfo(Action):
             return response_json
 
         except CustomError:
-            self.bus.shutdown()
             nrc_msg = self.last_msg.data[3] if self.last_msg and len(self.last_msg.data) > 3 else 0x00
             sid_msg = self.last_msg.data[2] if self.last_msg and len(self.last_msg.data) > 2 else 0x00
             negative_response = self.handle_negative_response(nrc_msg, sid_msg)
-            self.bus.shutdown()
             return {
                 "message": "Issue encountered during Write by ID",
                 "negative_response": negative_response
@@ -147,11 +145,9 @@ class WriteInfo(Action):
             return response_json
 
         except CustomError:
-            self.bus.shutdown()
             nrc_msg = self.last_msg.data[3] if self.last_msg and len(self.last_msg.data) > 3 else 0x00
             sid_msg = self.last_msg.data[2] if self.last_msg and len(self.last_msg.data) > 2 else 0x00
             negative_response = self.handle_negative_response(nrc_msg, sid_msg)
-            self.bus.shutdown()
             return {
                 "message": "Issue encountered during Write by ID",
                 "negative_response": negative_response
@@ -222,11 +218,9 @@ class WriteInfo(Action):
             return response_json
 
         except CustomError:
-            self.bus.shutdown()
             nrc_msg = self.last_msg.data[3] if self.last_msg and len(self.last_msg.data) > 3 else 0x00
             sid_msg = self.last_msg.data[2] if self.last_msg and len(self.last_msg.data) > 2 else 0x00
             negative_response = self.handle_negative_response(nrc_msg, sid_msg)
-            self.bus.shutdown()
             return {
                 "message": "Issue encountered during Write by ID",
                 "negative_response": negative_response
@@ -293,11 +287,9 @@ class WriteInfo(Action):
             return response_json
 
         except CustomError:
-            self.bus.shutdown()
             nrc_msg = self.last_msg.data[3] if self.last_msg and len(self.last_msg.data) > 3 else 0x00
             sid_msg = self.last_msg.data[2] if self.last_msg and len(self.last_msg.data) > 2 else 0x00
             negative_response = self.handle_negative_response(nrc_msg, sid_msg)
-            self.bus.shutdown()
             return {
                 "message": "Issue encountered during Write by ID",
                 "negative_response": negative_response

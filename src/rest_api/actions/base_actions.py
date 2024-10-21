@@ -75,9 +75,9 @@ class Action(GF):
     - g: Instance of GenerateFrame for generating CAN bus frames.
     """
 
-    def __init__(self, my_id, id_ecu: list = []):
-        self.my_id = my_id
-        self.id_ecu = id_ecu
+    def __init__(self):
+        self.my_id = API_ID
+        self.id_ecu = [0x10, 0x11, 0x12, 0x13]
         self.last_msg = None
         super().__init__()
 
@@ -134,11 +134,11 @@ class Action(GF):
             self.response_collected = True
             return msg
 
-        log_error_message(logger, f"[Collect Response] Invalid or no message collected for SID {sid:02X}")
+        log_error_message(logger, f"[Collect Response] Invalid or no message collected for SID {hex(sid)}")
         return None
 
     def __verify_frame(self, msg: can.Message, sid: int):
-        log_info_message(logger, f"[Verify Frame] Verifying frame with SID: {sid:02X}, message data: {[hex(byte) for byte in msg.data]}")
+        log_info_message(logger, f"[Verify Frame] Verifying frame with SID: {hex(sid)}, message data: {[hex(byte) for byte in msg.data]}")
 
         if msg.arbitration_id % 0x100 != self.my_id:
             return False
@@ -357,6 +357,7 @@ class Action(GF):
             0x73: "Wrong Block Sequence Counter",
             0x92: "Voltage Too High",
             0x93: "Voltage Too Low",
+            0x94: "Unable to read DTCs",
             0x78: "Request Correctly Received-Response Pending",
             0x7E: "SubFunction Not Supported In Active Session",
             0x7F: "Function Not Supported In Active Session"
@@ -386,8 +387,8 @@ class Action(GF):
 
     def _to_json_error(self, message, issue_count):
         response_to_frontend = {
-            "message": message,
-            "issue_count": issue_count,
+            "Error": error,
+            "No of errors": no_errors,
             "time_stamp": datetime.datetime.now().isoformat()
         }
         return response_to_frontend

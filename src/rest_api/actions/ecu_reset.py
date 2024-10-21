@@ -3,6 +3,13 @@ from configs.data_identifiers import *
 
 
 class Reset(Action):
+    """ curl -X POST http://127.0.0.1:5000/api/reset_ecu \
+    -H "Content-Type: application/json" \
+    -d '{
+        "type_reset": "hard_reset",
+        "ecu_id": "0x10"
+    }'
+    """
     def reset_ecu(self, ecu_id, type_reset):
         """
         Resets the ECU based on the provided ECU ID and reset type.
@@ -22,8 +29,7 @@ class Reset(Action):
             id = self.my_id * 0x100 + self.id_ecu[1]
         else:
             log_error_message(logger, f"Invalid ECU ID: {ecu_id}")
-            self.bus.shutdown()
-            return {"message": f"The ECU ID '{ecu_id}' provided is not valid. Please use a correct ID."}
+            return {"status": "error", "message": f"Invalid ECU ID: {ecu_id}"}
 
         try:
             if type_reset == "hard":
@@ -32,8 +38,7 @@ class Reset(Action):
                 self.ecu_reset(id, 0x02, False)
             else:
                 log_error_message(logger, f"Invalid reset type: {type_reset}")
-                self.bus.shutdown()
-                return {"message": f"The reset type '{type_reset}' is not valid. Please specify 'hard' or 'soft'."}
+                return {"status": "error", "message": f"Invalid reset type: {type_reset}"}
 
             frame_response = self._passive_response(RESET_ECU, f"Error resetting device {hex(id)}")
 
@@ -51,7 +56,6 @@ class Reset(Action):
             nrc_msg = self.last_msg.data[3] if self.last_msg and len(self.last_msg.data) > 3 else 0x00
             sid_msg = self.last_msg.data[2] if self.last_msg and len(self.last_msg.data) > 2 else 0x00
             negative_response = self.handle_negative_response(nrc_msg, sid_msg)
-            self.bus.shutdown()
             return {
                 "message": "An issue was encountered while attempting to reset the ECU.",
                 "negative_response": negative_response

@@ -3,6 +3,12 @@ from configs.data_identifiers import *
 
 
 class ReadAccessTiming(Action):
+    """ curl -X POST http://127.0.0.1:5000/api/read_access_timing \
+    -H "Content-Type: application/json" \
+    -d '{
+        "sub_funct": "timing"
+    }'
+    """
     def _read_timing_info(self, id, sub_funct=1):
         """
         Reads timing parameters of the ECU.
@@ -80,6 +86,13 @@ class ReadAccessTiming(Action):
 
 
 class WriteAccessTiming(Action):
+    """ curl -X POST http://127.0.0.1:5000/api/write_timing \
+    -H "Content-Type: application/json" \
+    -d '{
+        "p2_max": "50",
+        "p2_star_max": "100"
+    }'
+    """
     def _write_timing_info(self, id, timing_values):
         """
         Writes timing parameters to the ECU.
