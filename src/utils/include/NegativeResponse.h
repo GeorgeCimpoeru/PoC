@@ -67,6 +67,8 @@ class NegativeResponse
         static constexpr uint8_t VTH = 0x92;
         /* Voltage Too Low */
         static constexpr uint8_t VTL = 0x93;
+        /* Unable to read DTCs */
+        static constexpr uint8_t URDTC = 0x94;
 
         /**
         * @brief Default constructor for Negative Response object.
