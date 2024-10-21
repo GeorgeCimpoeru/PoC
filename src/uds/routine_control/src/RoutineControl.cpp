@@ -566,14 +566,12 @@ bool RoutineControl::handleDataCompressionEncryption(uint8_t receiver_id)
             // AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
             return 0;
         }            
-
         std::string extractedZipOutputPath;
-        if(FileManager::getEcuPath(receiver_id, zipFilePath, 2, rc_logger) == 0)
+        if(FileManager::getEcuPath(receiver_id, extractedZipOutputPath, 2, rc_logger) == 0)
         {
             LOG_ERROR(rc_logger.GET_LOGGER(), "No valid ecu path for extracted zip.");
             return 0;
         }
-        
         if (FileManager::extractZipFile(receiver_id, zipFilePath, extractedZipOutputPath, rc_logger))
         {
             LOG_INFO(rc_logger.GET_LOGGER(), "Files extracted successfully");
