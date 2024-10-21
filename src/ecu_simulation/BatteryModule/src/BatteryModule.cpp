@@ -182,13 +182,13 @@ void BatteryModule::parseBatteryInfo(const std::string &data, float &energy, flo
 }
 
 /* Function to fetch data from system about battery */
-void BatteryModule::fetchBatteryData()
+void BatteryModule::fetchBatteryData(const char *mode)
 {
     try
     {
         /* Execute the shell command to read System Info about Battery */
         char* path = strdup("upower -i /org/freedesktop/UPower/devices/battery_BAT0");
-        std::string data = exec(path,"r");
+        std::string data = exec(path,mode);
         /* Call the function in order to parse the datas */
         parseBatteryInfo(data, energy, voltage, percentage, state);
 
@@ -278,7 +278,7 @@ void BatteryModule::writeDataToFile()
             outfile << "\n";
         }
         outfile.close();
-        fetchBatteryData();
+        fetchBatteryData("r");
     }
 }
 

@@ -62,7 +62,7 @@ public:
      * This method is currently 'virtual' in order to be overridden in Test.
      * 
      * @param cmd Shell command to be executed.
-     * @param mode A string that specifies I/O mode:
+     * @param mode A string that specifies I/O mode.
      * @return Output returned by the shell command. 
      */
     virtual std::string exec(const char *cmd, const char *mode);
@@ -81,8 +81,10 @@ public:
 
     /**
      * @brief Function to fetch data from system about battery.
+     * 
+     * @param mode A string that specifies I/O mode for command.
      */
-    void fetchBatteryData();
+    void fetchBatteryData(const char *mode);
 
     /* Member Accessors */
     /**
