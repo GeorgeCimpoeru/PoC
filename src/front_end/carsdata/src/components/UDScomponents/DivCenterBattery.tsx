@@ -3,8 +3,11 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import ModalUDS from './ModalUDS';
 import './style.css';
+import { displayLoadingCircle } from '../sharedComponents/LoadingCircle';
+import { displayErrorPopup } from '../sharedComponents/LoadingCircle';
+import { removeLoadingCicle } from '../sharedComponents/LoadingCircle';
 
-interface batteryData {
+export interface batteryData {
     battery_level: any,
     voltage: any,
     battery_state_of_charge: any,
@@ -16,6 +19,80 @@ interface batteryData {
     charging_time: any,
     device_consumption: any,
     time_stamp: any,
+}
+
+export const readInfoBattery = async (isManualFlow:boolean, setData:any) => {
+    displayLoadingCircle();
+    console.log("Reading battery info...");
+    try {
+        await fetch(`http://127.0.0.1:5000/api/read_info_battery?is_manual_flow=${isManualFlow}`, {
+            method: 'GET',
+        }).then(response => response.json())
+            .then(data => {
+                console.log(data);
+                setData(data);
+                if (data?.ERROR === "interrupted") {
+                    displayErrorPopup("Connection failed");
+                }
+            });
+    } catch (error) {
+        console.log(error);
+        removeLoadingCicle();
+        displayErrorPopup("Connection failed");
+    }
+    removeLoadingCicle();
+};
+
+export const writeInfoBattery = async (variable: string, newValue: string, setData:any) => {
+    console.log("Writing battery info...");
+    let item: string = "";
+    let data2;
+    if (variable === "battery_level") {
+        data2 = {
+            battery_level: parseInt(newValue),
+            is_manual_flow: true
+        };
+        item = "battery_level";
+    } else if (variable === "battery_state_of_charge") {
+        data2 = {
+            state_of_charge: parseInt(newValue),
+            is_manual_flow: true
+        };
+        item = "state_of_charge";
+    } else if (variable === "percentage") {
+        data2 = {
+            percentage: parseInt(newValue),
+            is_manual_flow: true
+        };
+        item = "percentage";
+    } else if (variable === "voltage") {
+        data2 = {
+            voltage: parseInt(newValue),
+            is_manual_flow: true
+        };
+        item = "voltage";
+    }
+
+    console.log(data2);
+    displayLoadingCircle();
+    await fetch(`http://127.0.0.1:5000/api/write_info_battery`, {
+        method: 'POST',
+        // mode: 'no-cors',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data2),
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            removeLoadingCicle();
+        })
+        .catch(error => {
+            console.error(error);
+            removeLoadingCicle();
+        });
+    readInfoBattery(true, setData);
 }
 
 const DivCenterBattery = (props: any) => {
@@ -108,80 +185,12 @@ const DivCenterBattery = (props: any) => {
         }
     };
 
-    const readInfoBattery = async () => {
-        displayLoadingCircle();
-        console.log("Reading battery info...");
-        try {
-            await fetch(`http://127.0.0.1:5000/api/read_info_battery`, {
-                method: 'GET',
-            }).then(response => response.json())
-                .then(data => {
-                    console.log(data);
-                    setData(data);
-                    if (data?.ERROR === "interrupted") {
-                        displayErrorPopup("Connection failed");
-                    }
-                });
-        } catch (error) {
-            console.log(error);
-            removeLoadingCicle();
-            displayErrorPopup("Connection failed");
-        }
-        removeLoadingCicle();
-    };
 
     useEffect(() => {
-        readInfoBattery();
+        readInfoBattery(false, setData);
     }, []);
 
 
-    const writeInfoBattery = async (variable: string, newValue: string) => {
-        console.log("Writing battery info...");
-        let item: string = "";
-        let data2;
-        if (variable === "battery_level") {
-            data2 = {
-                energy_level: parseInt(newValue)
-            };
-            item = "battery_level";
-        } else if (variable === "battery_state_of_charge") {
-            data2 = {
-                state_of_charge: parseInt(newValue)
-            };
-            item = "state_of_charge";
-        } else if (variable === "percentage") {
-            data2 = {
-                percentage: parseInt(newValue)
-            };
-            item = "percentage";
-        } else if (variable === "voltage") {
-            data2 = {
-                voltage: parseInt(newValue)
-            };
-            item = "voltage";
-        }
-
-        console.log(data2);
-        displayLoadingCircle();
-        await fetch(`http://127.0.0.1:5000/api/write_info_battery?item=${item}`, {
-            method: 'POST',
-            // mode: 'no-cors',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data2),
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-                removeLoadingCicle();
-            })
-            .catch(error => {
-                console.error(error);
-                removeLoadingCicle();
-            });
-        readInfoBattery();
-    }
 
     return (
         <div className="w-[65%] flex h-screen bg-indigo-950 math-paper" >
@@ -194,7 +203,7 @@ const DivCenterBattery = (props: any) => {
                             className="inline-flex item-center justify-center p-2 bg-blue-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-blue-700">
                             {data?.battery_level}%
                         </label>
-                        <ModalUDS id="my_modal_1" cardTitle={'Battery level'} writeInfo={writeInfoBattery} param="battery_level" />
+                        <ModalUDS id="my_modal_1" cardTitle={'Battery level'} writeInfo={writeInfoBattery} param="battery_level" setter={setData}/>
                         <p>Battery level</p>
                     </div>
 
@@ -205,12 +214,12 @@ const DivCenterBattery = (props: any) => {
                                 {data?.battery_state_of_charge}
                             </div>
                             <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "1")}>Charging</a></li>
-                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "2")}>Discharging</a></li>
-                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "3")}>Empty</a></li>
-                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "4")}>Fully charged</a></li>
-                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "5")}>Pending charge</a></li>
-                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "6")}>Pending discharge</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "1", setData)}>Charging</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "2", setData)}>Discharging</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "3", setData)}>Empty</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "4", setData)}>Fully charged</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "5", setData)}>Pending charge</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "6", setData)}>Pending discharge</a></li>
                             </ul>
                         </div>
                         <p className="text-white">State of charge</p>
@@ -280,7 +289,7 @@ const DivCenterBattery = (props: any) => {
                         className="inline-flex item-center justify-center p-2 bg-green-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-green-700">
                         {data?.percentage}%
                     </label>
-                    <ModalUDS id="my_modal_8" cardTitle={'Battery percentage'} writeInfoBattery={writeInfoBattery} param="percentage" />
+                    <ModalUDS id="my_modal_8" cardTitle={'Battery percentage'} writeInfo={writeInfoBattery} param="percentage" />
                     <p>Battery percentage</p>
                 </div>
 
@@ -299,7 +308,7 @@ const DivCenterBattery = (props: any) => {
                         className="inline-flex item-center justify-center p-2 bg-purple-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-purple-700">
                         {data?.voltage}V
                     </label>
-                    <ModalUDS id="my_modal_10" cardTitle={'Voltage'} writeInfoBattery={writeInfoBattery} param="voltage" />
+                    <ModalUDS id="my_modal_10" cardTitle={'Voltage'} writeInfo={writeInfoBattery} param="voltage" />
                     <p>Voltage</p>
                 </div>
 
