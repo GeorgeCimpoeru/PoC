@@ -12,7 +12,7 @@ const ModalUDS = (props: any) => {
     }
 
     const handleClickSaveBtn = () => {
-        props.writeInfo(props.param, input);
+        props.writeInfo(props.param, input, props.setter);
     }
 
     return (
