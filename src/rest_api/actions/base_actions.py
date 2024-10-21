@@ -179,7 +179,7 @@ class Action(GF):
 
         if response is None:
             log_error_message(logger, error_str)
-            response_json = self._to_json_error("interrupted", 1)
+            response_json = self._to_json_error("Response was interrupted", 1)
             raise CustomError(response_json)
         return response
 
@@ -272,7 +272,6 @@ class Action(GF):
             sid_msg = frame_response.data[2]
             negative_response = self.handle_negative_response(nrc_msg, sid_msg)
             return {
-                "status": "error",
                 "message": "Negative response received while requesting seed",
                 "negative_response": negative_response
             }
@@ -303,7 +302,6 @@ class Action(GF):
                 sid_msg = frame_response.data[2]
                 negative_response = self.handle_negative_response(nrc_msg, sid_msg)
                 return {
-                    "status": "error",
                     "message": "Negative response received while sending key",
                     "negative_response": negative_response
                 }
@@ -314,7 +312,7 @@ class Action(GF):
                     "message": "Authentication successful",
                 }
             else:
-                log_info_message(logger, "Authentication failed")
+                log_error_message(logger, "Authentication failed")
                 return {
                     "message": "Authentication failed",
                 }
@@ -379,15 +377,15 @@ class Action(GF):
 
         return response
 
-    def _to_json(self, status, no_errors):
+    def _to_json(self, ecu_type, written_values):
         response_to_frontend = {
-            "status": status,
-            "No of errors": no_errors,
+            "message": f"Successfully written values to {ecu_type} ECU.",
+            "written_values": written_values,
             "time_stamp": datetime.datetime.now().isoformat()
         }
         return response_to_frontend
 
-    def _to_json_error(self, error, no_errors):
+    def _to_json_error(self, message, issue_count):
         response_to_frontend = {
             "Error": error,
             "No of errors": no_errors,

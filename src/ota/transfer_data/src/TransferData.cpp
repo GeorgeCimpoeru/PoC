@@ -162,6 +162,8 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
         }
         else
         {
+            /* Binary data info vector */
+            std::vector<uint8_t>binary_data_info;
             /* Load data if this is the first transfer */
             if (is_first_transfer)
             {
@@ -179,7 +181,31 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
                 
                 /* Set the total size of the binary data */
                 total_size = data.size();
+                bool first_byte_found = false;
 
+                /* Determine how many bytes are needed to represent the size */
+                std::vector<uint8_t>binary_data_size_bytes;                
+                uint8_t byte;
+
+                for(int i = sizeof(total_size) - 1; i >=0; --i)
+                {
+                    byte = (total_size >> (i * 8)) & 0xFF;
+                    if(byte != 0 || first_byte_found == true)
+                    {
+                        binary_data_size_bytes.push_back(byte);
+                        first_byte_found = true;
+                    }
+                }
+
+                /* Write the size of the size field as the first byte(number of bytes to represent the size) */
+                binary_data_info.push_back(binary_data_size_bytes.size());
+
+                /* Add the actual size bytes */
+                binary_data_info.insert(binary_data_info.end(), binary_data_size_bytes.begin(), binary_data_size_bytes.end());
+
+                MemoryManager* memory_manager = MemoryManager::getInstance(transfer_data_logger);  
+                /* Write the size information to memory */
+                memory_manager->writeToAddress(binary_data_info);
                 /* Initialize the bytes sent for the first transfer */
                 bytes_sent = 0;
                 /* Set the flag as false after the first transfer */
@@ -235,6 +261,9 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
             /* Check if all data has been sent */
             if (bytes_sent >= total_size)
             {
+                /* Write the checksums to memory after the binary data */
+                MemoryManager* memory_manager = MemoryManager::getInstance(transfer_data_logger); 
+                memory_manager->writeToAddress(checksums);
                 MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_COMPLETE});
                 /* Reset the flag for the next transfer */
                 is_first_transfer = true;

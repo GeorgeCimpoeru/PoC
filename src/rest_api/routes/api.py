@@ -253,7 +253,7 @@ def write_timing():
     data = request.get_json()
 
     if not data or 'p2_max' not in data or 'p2_star_max' not in data:
-        return jsonify({"status": "error", "message": "Missing required parameters"}), 400
+        return jsonify({"message": "Missing required parameters"}), 400
 
     p2_max = data.get('p2_max')
     p2_star_max = data.get('p2_star_max')

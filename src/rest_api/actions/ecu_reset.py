@@ -1,11 +1,6 @@
 from actions.base_actions import *
 from configs.data_identifiers import *
 
-MCU = 0
-ECU_BATTERY = 1
-ECU_ENGINE = 2
-ECU_DOORS = 3
-
 
 class Reset(Action):
     """ curl -X POST http://127.0.0.1:5000/api/reset_ecu \
@@ -49,7 +44,6 @@ class Reset(Action):
 
             if frame_response.data[1] == 0x51 and frame_response.data[2] == 0x02:
                 response_json = {
-                    "status": "success",
                     "message": "ECU reset successful",
                     "can_id": f"0x{id:03X}",
                 }
@@ -58,12 +52,11 @@ class Reset(Action):
             return response_json
 
         except CustomError as e:
-            log_error_message(logger, f"Error during ECU reset: {e.message}")
+            log_error_message(logger, f"Encountered an issue during ECU reset: {e.message}")
             nrc_msg = self.last_msg.data[3] if self.last_msg and len(self.last_msg.data) > 3 else 0x00
             sid_msg = self.last_msg.data[2] if self.last_msg and len(self.last_msg.data) > 2 else 0x00
             negative_response = self.handle_negative_response(nrc_msg, sid_msg)
             return {
-                "status": "error",
-                "message": "Error during ECU reset",
+                "message": "An issue was encountered while attempting to reset the ECU.",
                 "negative_response": negative_response
             }

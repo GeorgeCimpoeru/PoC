@@ -63,7 +63,6 @@ class RequestIdAction(Action):
                     sid_msg = data[2]
                     negative_response = self.handle_negative_response(nrc_msg, sid_msg)
                     return {
-                        "status": "error",
                         "message": f"Negative response received while resetting device {id}",
                         "negative_response": negative_response
                     }

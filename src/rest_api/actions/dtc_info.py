@@ -23,7 +23,6 @@ class DiagnosticTroubleCode(Action):
             if frame_response.data[1] == 0x7F:
                 negative_response = self.handle_negative_response(frame_response.data[3], frame_response.data[2])
                 json_response = {
-                    "status": "error",
                     "message": "Negative response received while Requesting read DTC information",
                     "negative_response": negative_response
                 }
@@ -56,7 +55,6 @@ class DiagnosticTroubleCode(Action):
 
             if frame_response.data[1] == 0x54:
                 return {
-                    "status": "succes",
                     "message": "Clearing all DTCs information with positive response succeded"
                 }
 
@@ -65,7 +63,6 @@ class DiagnosticTroubleCode(Action):
                 sid_msg = frame_response.data[2]
                 negative_response = self.handle_negative_response(nrc_msg, sid_msg)
                 return {
-                    "status": "error",
                     "message": "Negative response received while Requesting read DTC information",
                     "negative_response": negative_response
                 }

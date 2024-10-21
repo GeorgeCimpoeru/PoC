@@ -96,6 +96,14 @@ class RoutineControl
     int socket = -1;
     Logger& rc_logger;
 
+    /**
+    * @brief Method to compute the checksum of of data from memory for verification
+    * @param data pointer to the data block
+    * @param block_size te size of the data block
+    * @return checksum
+    */
+    uint8_t computeChecksum(const uint8_t* data, size_t block_size);
+
 };
 
 #endif
