@@ -186,6 +186,28 @@ const DivCenterBattery = (props: any) => {
     };
 
 
+    const readInfoBattery = async () => {
+        displayLoadingCircle();
+        console.log("Reading battery info...");
+        try {
+            await fetch(`http://127.0.0.1:5000/api/read_info_battery?is_manual_flow=false`, {
+                method: 'GET',
+            }).then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    setData(data);
+                    if (data?.ERROR === "interrupted") {
+                        displayErrorPopup("Connection failed");
+                    }
+                });
+        } catch (error) {
+            console.log(error);
+            removeLoadingCicle();
+            displayErrorPopup("Connection failed");
+        }
+        removeLoadingCicle();
+    };
+
     useEffect(() => {
         readInfoBattery(false, setData);
     }, []);

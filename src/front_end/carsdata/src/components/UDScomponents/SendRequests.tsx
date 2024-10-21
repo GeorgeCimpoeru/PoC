@@ -216,7 +216,9 @@ const SendRequests = () => {
                         if (data.ecu_ids[0] == '00') {
                             setDisableInfoBatteryBtns(true);
                         } else {
+
                             readInfoBattery(true, setData23);
+
                         }
                         if (data.ecu_ids[1] == '00') {
                             setDisableInfoEngineBtns(true);
@@ -262,7 +264,6 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
-
     const writeInfoEngine = async () => {
         displayLoadingCircle();
         const engine_rpm = prompt('Enter Engine rpm:');
@@ -274,7 +275,9 @@ const SendRequests = () => {
         const oil_temperature = prompt('Enter oil temperature:');
         const fuel_pressure = prompt('Enter fuel pressure:');
         const intake_air_temperature = prompt('Enter intake air temperature:');
+        const is_manual_flow = true;
 
+    
 
         const data = {
             engine_rpm: engine_rpm || null,
@@ -286,6 +289,7 @@ const SendRequests = () => {
             oil_temperature: oil_temperature || null,
             fuel_pressure: fuel_pressure || null,
             intake_air_temperature: intake_air_temperature || null,
+            is_manual_flow: is_manual_flow || null
 
         };
         console.log("Writing info engine...");
@@ -314,7 +318,7 @@ const SendRequests = () => {
         displayLoadingCircle();
         console.log("Reading info doors...");
         try {
-            await fetch(`http://127.0.0.1:5000/api/read_info_doors`, {
+            await fetch(`http://127.0.0.1:5000/api/read_info_doors?is_manual_flow=true`, {
                 method: 'GET',
             }).then(response => response.json())
                 .then(data => {
@@ -431,6 +435,7 @@ const SendRequests = () => {
         const passenger_lock = checkInput('Enter Passenger Lock:');
         const driver = checkInput('Enter Driver:');
         const ajar = checkInput('Enter Ajar:');
+        const is_manual_flow = true;
         // const windows_closed = prompt('Enter Window Status:');
 
         const data = {
@@ -439,6 +444,7 @@ const SendRequests = () => {
             passenger_lock: passenger_lock || null,
             driver: driver || null,
             ajar: ajar || null,
+            is_manual_flow: is_manual_flow || null,
             // windows_closed: windows_closed || null,
         };
         console.log("Writing info doors...");
@@ -471,6 +477,7 @@ const SendRequests = () => {
         const cabin_temperature_driver_set = prompt('Enter Cabin Temperature Driver Set:');
         const fan_speed = prompt('Enter Fan Speed:');
         const hvac_modes = checkInput('Enter Hvac Modes:');
+        const is_manual_flow = true;
 
         const data = {
             mass_air_flow: mass_air_flow || null,
@@ -479,6 +486,7 @@ const SendRequests = () => {
             cabin_temperature_driver_set: cabin_temperature_driver_set || null,
             fan_speed: fan_speed || null,
             hvac_modes: hvac_modes || null,
+            is_manual_flow: is_manual_flow || null
         };
         console.log("Writing info hvac...");
         console.log(data);
@@ -501,6 +509,7 @@ const SendRequests = () => {
         }
         removeLoadingCicle();
     }
+
 
     // const writeInfoBattery = async (item: string) => {
     //     let data2 = {}
@@ -561,6 +570,7 @@ const SendRequests = () => {
     //     }
     //     removeLoadingCicle();
     // }
+
 
     const changeSession = async () => {
         let sessiontype: any;
@@ -912,7 +922,7 @@ const SendRequests = () => {
                                 priority
                             />
                         </button>
-                        {isDropdownOpen && (
+                        {/* {isDropdownOpen && ( 
                             <ul tabIndex={2} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
                                 <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>All params</a></li>
                                 <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>Battery level</a></li>
@@ -920,7 +930,7 @@ const SendRequests = () => {
                                 <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>Percentage</a></li>
                                 <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>Voltage</a></li>
                             </ul>
-                        )}
+                        )} */}
                     </div>
                     <div className="dropdown">
                         <button tabIndex={3} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpen(!isDropdownOpen)} disabled={disableInfoBatteryBtns}>
@@ -934,6 +944,7 @@ const SendRequests = () => {
                                 priority
                             />
                         </button>
+
                         {isDropdownOpen && (
                             <div>
                                 <ul tabIndex={3} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
@@ -967,7 +978,9 @@ const SendRequests = () => {
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoEngine} disabled={disableInfoEngineBtns}>Write Info Engine</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoDoors} disabled={disableInfoDoorsBtns}>Read Info Doors</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoDoors} disabled={disableInfoDoorsBtns}>Write Doors Info</button>
+
                     {/* <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoHvac} disabled={disableInfoHvacBtns}>Read Info Hvac</button> */}
+
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoHvac} disabled={disableInfoHvacBtns}>Write Info Hvac</button>
                 </div>
 
