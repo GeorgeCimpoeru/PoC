@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { batteryData, readInfoBattery } from './DivCenterBattery';
 import { writeInfoBattery } from './DivCenterBattery';
 import ModalUDS from './ModalUDS';
+import { displayLoadingCircle, displayErrorPopup, removeLoadingCicle } from '../sharedComponents/LoadingCircle';
 
 
 let intervalID: number | NodeJS.Timeout | null = null;
@@ -33,91 +34,8 @@ const SendRequests = () => {
     let popupStyleElement: HTMLStyleElement | null = null;
     let overlayElement: HTMLDivElement | null = null;
 
-    const displayLoadingCircle = () => {
-        if (popupElement || popupStyleElement || overlayElement) {
-            return;
-        }
-
-        overlayElement = document.createElement('div');
-        overlayElement.style.position = 'fixed';
-        overlayElement.style.top = '0';
-        overlayElement.style.left = '0';
-        overlayElement.style.width = '100vw';
-        overlayElement.style.height = '100vh';
-        overlayElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-        overlayElement.style.zIndex = '999';
-        overlayElement.style.pointerEvents = 'all';
-        overlayElement.style.cursor = 'not-allowed';
-
-        document.body.appendChild(overlayElement);
-
-        popupElement = document.createElement('div');
-        popupElement.style.position = 'fixed';
-        popupElement.style.top = '50%';
-        popupElement.style.left = '50%';
-        popupElement.style.transform = 'translate(-50%, -50%)';
-        popupElement.style.padding = '20px';
-        popupElement.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-        popupElement.style.borderRadius = '10px';
-        popupElement.style.zIndex = '1000';
-        popupElement.style.textAlign = 'center';
-
-        const loadingCircle = document.createElement('div');
-        loadingCircle.style.width = '40px';
-        loadingCircle.style.height = '40px';
-        loadingCircle.style.border = '5px solid white';
-        loadingCircle.style.borderTop = '5px solid transparent';
-        loadingCircle.style.borderRadius = '50%';
-        loadingCircle.style.animation = 'spin 1s linear infinite';
-
-        popupElement.appendChild(loadingCircle);
-
-        document.body.appendChild(popupElement);
-
-        popupStyleElement = document.createElement('style');
-        popupStyleElement.type = 'text/css';
-        popupStyleElement.innerText = `
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }`;
-        document.head.appendChild(popupStyleElement);
-    };
-
-    const displayMessagePopup = (text: string) => {
-        const popup = document.createElement('div');
-        popup.innerText = text;
-        popup.style.position = 'fixed';
-        popup.style.top = '50%';
-        popup.style.left = '50%';
-        popup.style.transform = 'translate(-50%, -50%)';
-        popup.style.padding = '20px';
-        popup.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-        popup.style.color = 'white';
-        popup.style.borderRadius = '10px';
-        popup.style.zIndex = '1000';
-        popup.style.textAlign = 'center';
-
-        document.body.appendChild(popup);
-
-        setTimeout(() => {
-            document.body.removeChild(popup);
-        }, 2000);
-    };
-
-    const removeLoadingCicle = () => {
-        if (popupElement && popupStyleElement && overlayElement) {
-            document.body.removeChild(popupElement);
-            document.head.removeChild(popupStyleElement);
-            document.body.removeChild(overlayElement);
-
-            popupElement = null;
-            popupStyleElement = null;
-            overlayElement = null;
-        }
-    };
-
     const fetchLogs = async () => {
+        displayLoadingCircle();
         console.log("Fetching logs...");
         await fetch(`http://127.0.0.1:5000/api/logs`, {
             method: 'GET',
@@ -128,7 +46,10 @@ const SendRequests = () => {
             })
             .catch(error => {
                 console.error('Error fetching logs:', error);
+                displayErrorPopup("Connection failed");
+                removeLoadingCicle();
             });
+        removeLoadingCicle();
     }
 
     const hexToAscii = () => {
@@ -188,6 +109,7 @@ const SendRequests = () => {
                 });
         } catch (error) {
             removeLoadingCicle();
+            displayErrorPopup("can't read DTC ");
         }
         removeLoadingCicle();
     }
@@ -216,9 +138,7 @@ const SendRequests = () => {
                         if (data.ecu_ids[0] == '00') {
                             setDisableInfoBatteryBtns(true);
                         } else {
-
                             readInfoBattery(true, setData23);
-
                         }
                         if (data.ecu_ids[1] == '00') {
                             setDisableInfoEngineBtns(true);
@@ -233,6 +153,7 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
+            displayErrorPopup("Connection failed");
             removeLoadingCicle();
         }
         removeLoadingCicle();
@@ -259,10 +180,12 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
+            displayErrorPopup("Connection failed");
             removeLoadingCicle();
         }
         removeLoadingCicle();
     }
+
 
     const writeInfoEngine = async () => {
         displayLoadingCircle();
@@ -277,8 +200,6 @@ const SendRequests = () => {
         const intake_air_temperature = prompt('Enter intake air temperature:');
         const is_manual_flow = true;
 
-    
-
         const data = {
             engine_rpm: engine_rpm || null,
             coolant_temperature: coolant_temperature || null,
@@ -291,11 +212,12 @@ const SendRequests = () => {
             intake_air_temperature: intake_air_temperature || null,
             is_manual_flow: is_manual_flow || null
 
+
         };
         console.log("Writing info engine...");
         console.log(data);
         try {
-            await fetch(`http://127.0.0.1:5000/api/write_info_engine`, {
+            await fetch(`http://127.0.0.1:5000/api/write_info_engine?is_manual_flow=true`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -309,6 +231,7 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
+            displayErrorPopup("Connection failed");
             removeLoadingCicle();
         }
         removeLoadingCicle();
@@ -318,7 +241,7 @@ const SendRequests = () => {
         displayLoadingCircle();
         console.log("Reading info doors...");
         try {
-            await fetch(`http://127.0.0.1:5000/api/read_info_doors?is_manual_flow=true`, {
+            await fetch(`http://127.0.0.1:5000/api/read_info_doors`, {
                 method: 'GET',
             }).then(response => response.json())
                 .then(data => {
@@ -510,68 +433,6 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
-
-    // const writeInfoBattery = async (item: string) => {
-    //     let data2 = {}
-    //     if (item === "battery_level") {
-    //         let batteryLevel = prompt('Enter Battery Level: ');
-    //         if (batteryLevel === null) {
-    //             return;
-    //         }
-    //         data2 = {
-    //             battery_level: parseInt(batteryLevel)
-    //         };
-    //     } else if (item === "state_of_charge") {
-    //         let stateOfCharge = prompt('Enter Battery State of Charge: ');
-    //         if (stateOfCharge === null) {
-    //             return;
-    //         }
-    //         data2 = {
-    //             state_of_charge: parseInt(stateOfCharge)
-    //         };
-    //     } else if (item === "percentage") {
-    //         let percentage = prompt('Enter Battery Percentage: ');
-    //         if (percentage === null) {
-    //             return;
-    //         }
-    //         data2 = {
-    //             percentage: parseInt(percentage)
-    //         };
-    //     } else if (item === "voltage") {
-    //         let voltage = prompt('Enter Battery Voltage: ');
-    //         if (voltage === null) {
-    //             return;
-    //         }
-    //         data2 = {
-    //             voltage: parseInt(voltage)
-    //         };
-    //     }
-
-    //     console.log("Writing info battery...");
-    //     console.log(data2);
-    //     displayLoadingCircle();
-    //     try {
-    //         await fetch(`http://127.0.0.1:5000/api/write_info_battery?item=${item}`, {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //             },
-    //             body: JSON.stringify(data2),
-    //         })
-    //             .then(response => response.json())
-    //             .then(data => {
-    //                 setData23(data);
-    //                 console.log(data);
-    //                 fetchLogs();
-    //             });
-    //     } catch (error) {
-    //         console.log(error);
-    //         removeLoadingCicle();
-    //     }
-    //     removeLoadingCicle();
-    // }
-
-
     const changeSession = async () => {
         let sessiontype: any;
         if (session === "default") {
@@ -662,15 +523,15 @@ const SendRequests = () => {
                     fetchLogs();
                     if (data.status === "success" && accessTiming === "current") {
                         setAccessTiming("default");
-                        displayMessagePopup("Current access timing")
+                        displayErrorPopup("Current access timing")
                     } else if (data.status === "success") {
                         setAccessTiming("current");
-                        displayMessagePopup("Default access timing")
+                        displayErrorPopup("Default access timing")
                     }
                 })
         } catch (error) {
             console.log(error);
-            displayMessagePopup("Connection failed");
+            displayErrorPopup("Failed to read access timing");
             removeLoadingCicle();
         }
         removeLoadingCicle();
@@ -707,16 +568,17 @@ const SendRequests = () => {
                     `New P2 Max Time: ${writtenValues["New P2 Max Time"]}\n` +
                     `New P2 Star Max: ${writtenValues["New P2 Star Max"]}`;
 
-                displayMessagePopup(message);
+                    displayErrorPopup(message);
             } else {
-                displayMessagePopup(`Error: ${data.message}`);
+                displayErrorPopup(`Error: ${data.message}`);
             }
 
             fetchLogs();
 
         } catch (error) {
             console.error("Error:", error);
-            displayMessagePopup("Failed to write timing values");
+            displayErrorPopup("Failed to write timing values");
+            removeLoadingCicle();
         }
 
         removeLoadingCicle();
@@ -782,7 +644,7 @@ const SendRequests = () => {
 
     const ecuReset = async (resetType: string) => {
         if (selectedECUid === "") {
-            displayMessagePopup("Select ECU");
+            displayErrorPopup("Select ECU");
             return;
         }
         console.log("Reseting ECU...");
@@ -808,11 +670,11 @@ const SendRequests = () => {
                     setData23(data);
                     console.log(data);
                     fetchLogs();
-                    displayMessagePopup(selectedECUid + " reseted");
+                    displayErrorPopup(selectedECUid + " reseted");
                 })
         } catch (error) {
             console.log(error);
-            displayMessagePopup("Connection failed");
+            displayErrorPopup("Connection failed");
             removeLoadingCicle();
         }
         removeLoadingCicle();
@@ -922,15 +784,15 @@ const SendRequests = () => {
                                 priority
                             />
                         </button>
-                        {/* {isDropdownOpen && ( 
-                            <ul tabIndex={2} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                                <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>All params</a></li>
-                                <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>Battery level</a></li>
-                                <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>State of charge</a></li>
-                                <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>Percentage</a></li>
-                                <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>Voltage</a></li>
-                            </ul>
-                        )} */}
+                        {/* {isDropdownOpen && ( */}
+                        <ul tabIndex={2} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>All params</a></li>
+                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>Battery level</a></li>
+                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>State of charge</a></li>
+                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>Percentage</a></li>
+                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>Voltage</a></li>
+                        </ul>
+                        {/* )} */}
                     </div>
                     <div className="dropdown">
                         <button tabIndex={3} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpen(!isDropdownOpen)} disabled={disableInfoBatteryBtns}>
@@ -944,7 +806,6 @@ const SendRequests = () => {
                                 priority
                             />
                         </button>
-
                         {isDropdownOpen && (
                             <div>
                                 <ul tabIndex={3} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
@@ -978,9 +839,7 @@ const SendRequests = () => {
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoEngine} disabled={disableInfoEngineBtns}>Write Info Engine</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoDoors} disabled={disableInfoDoorsBtns}>Read Info Doors</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoDoors} disabled={disableInfoDoorsBtns}>Write Doors Info</button>
-
                     {/* <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoHvac} disabled={disableInfoHvacBtns}>Read Info Hvac</button> */}
-
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoHvac} disabled={disableInfoHvacBtns}>Write Info Hvac</button>
                 </div>
 

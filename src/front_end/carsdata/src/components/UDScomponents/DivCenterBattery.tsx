@@ -3,9 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import ModalUDS from './ModalUDS';
 import './style.css';
-import { displayLoadingCircle } from '../sharedComponents/LoadingCircle';
-import { displayErrorPopup } from '../sharedComponents/LoadingCircle';
-import { removeLoadingCicle } from '../sharedComponents/LoadingCircle';
+import { displayLoadingCircle , displayErrorPopup , removeLoadingCicle } from '../sharedComponents/LoadingCircle';
 
 export interface batteryData {
     battery_level: any,
@@ -90,6 +88,7 @@ export const writeInfoBattery = async (variable: string, newValue: string, setDa
         })
         .catch(error => {
             console.error(error);
+            displayErrorPopup("Connection failed");
             removeLoadingCicle();
         });
     readInfoBattery(true, setData);
@@ -101,118 +100,9 @@ const DivCenterBattery = (props: any) => {
     let popupStyleElement: HTMLStyleElement | null = null;
     let overlayElement: HTMLDivElement | null = null;
 
-    const displayLoadingCircle = () => {
-        if (popupElement || popupStyleElement || overlayElement) {
-            return;
-        }
-
-        overlayElement = document.createElement('div');
-        overlayElement.style.position = 'fixed';
-        overlayElement.style.top = '0';
-        overlayElement.style.left = '0';
-        overlayElement.style.width = '100vw';
-        overlayElement.style.height = '100vh';
-        overlayElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-        overlayElement.style.zIndex = '999';
-        overlayElement.style.pointerEvents = 'all';
-        overlayElement.style.cursor = 'not-allowed';
-
-        document.body.appendChild(overlayElement);
-
-        popupElement = document.createElement('div');
-        popupElement.style.position = 'fixed';
-        popupElement.style.top = '50%';
-        popupElement.style.left = '50%';
-        popupElement.style.transform = 'translate(-50%, -50%)';
-        popupElement.style.padding = '20px';
-        popupElement.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-        popupElement.style.borderRadius = '10px';
-        popupElement.style.zIndex = '1000';
-        popupElement.style.textAlign = 'center';
-
-        const loadingCircle = document.createElement('div');
-        loadingCircle.style.width = '40px';
-        loadingCircle.style.height = '40px';
-        loadingCircle.style.border = '5px solid white';
-        loadingCircle.style.borderTop = '5px solid transparent';
-        loadingCircle.style.borderRadius = '50%';
-        loadingCircle.style.animation = 'spin 1s linear infinite';
-
-        popupElement.appendChild(loadingCircle);
-
-        document.body.appendChild(popupElement);
-
-        popupStyleElement = document.createElement('style');
-        popupStyleElement.type = 'text/css';
-        popupStyleElement.innerText = `
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }`;
-        document.head.appendChild(popupStyleElement);
-    };
-
-    const displayErrorPopup = (text: string) => {
-        const popup = document.createElement('div');
-        popup.innerText = text;
-        popup.style.position = 'fixed';
-        popup.style.top = '50%';
-        popup.style.left = '50%';
-        popup.style.transform = 'translate(-50%, -50%)';
-        popup.style.padding = '20px';
-        popup.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-        popup.style.color = 'white';
-        popup.style.borderRadius = '10px';
-        popup.style.zIndex = '1000';
-        popup.style.textAlign = 'center';
-
-        document.body.appendChild(popup);
-
-        setTimeout(() => {
-            document.body.removeChild(popup);
-        }, 2000);
-    };
-
-    const removeLoadingCicle = () => {
-        if (popupElement && popupStyleElement && overlayElement) {
-            document.body.removeChild(popupElement);
-            document.head.removeChild(popupStyleElement);
-            document.body.removeChild(overlayElement);
-
-            popupElement = null;
-            popupStyleElement = null;
-            overlayElement = null;
-        }
-    };
-
-
-    const readInfoBattery = async () => {
-        displayLoadingCircle();
-        console.log("Reading battery info...");
-        try {
-            await fetch(`http://127.0.0.1:5000/api/read_info_battery?is_manual_flow=false`, {
-                method: 'GET',
-            }).then(response => response.json())
-                .then(data => {
-                    console.log(data);
-                    setData(data);
-                    if (data?.ERROR === "interrupted") {
-                        displayErrorPopup("Connection failed");
-                    }
-                });
-        } catch (error) {
-            console.log(error);
-            removeLoadingCicle();
-            displayErrorPopup("Connection failed");
-        }
-        removeLoadingCicle();
-    };
-
     useEffect(() => {
         readInfoBattery(false, setData);
     }, []);
-
-
 
     return (
         <div className="w-[65%] flex h-screen bg-indigo-950 math-paper" >
@@ -228,7 +118,6 @@ const DivCenterBattery = (props: any) => {
                         <ModalUDS id="my_modal_1" cardTitle={'Battery level'} writeInfo={writeInfoBattery} param="battery_level" setter={setData}/>
                         <p>Battery level</p>
                     </div>
-
 
                     <div className="w-[30%] m-7 grid justify-item-center">
                         <div className="dropdown dropdown-end">
@@ -246,7 +135,6 @@ const DivCenterBattery = (props: any) => {
                         </div>
                         <p className="text-white">State of charge</p>
                     </div>
-
 
                     <div className="w-[30%] m-7 text-white grid justify-item-start">
                         <label htmlFor="my_modal_3"
@@ -266,7 +154,6 @@ const DivCenterBattery = (props: any) => {
                         <p>Device consumption</p>
                     </div>
 
-
                     <div className="w-[30%] m-7 text-white grid justify-item-end">
                         <label htmlFor="my_modal_5"
                             className="inline-flex item-center justify-center p-2 bg-purple-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-purple-700">
@@ -276,7 +163,6 @@ const DivCenterBattery = (props: any) => {
                         <p>Full charged</p>
                     </div>
 
-
                 </div>
             </div>
             <div className="w-[30%] h-screen flex">
@@ -284,7 +170,6 @@ const DivCenterBattery = (props: any) => {
             </div>
 
             <div className="w-[35%] flex flex-col item-center justify-center">
-
 
                 <div className="w-[30%] m-7 text-white">
                     <label htmlFor="my_modal_6"
@@ -295,7 +180,6 @@ const DivCenterBattery = (props: any) => {
                     <p>Life cycle</p>
                 </div>
 
-
                 <div className="w-[30%] m-7 text-white grid justify-item-center">
                     <label htmlFor="my_modal_7"
                         className="inline-flex item-center justify-center p-2 bg-red-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-red-700">
@@ -305,7 +189,6 @@ const DivCenterBattery = (props: any) => {
                     <p>Life cycle</p>
                 </div>
 
-
                 <div className="w-[30%] m-7 text-white grid justify-item-end">
                     <label htmlFor="my_modal_8"
                         className="inline-flex item-center justify-center p-2 bg-green-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-green-700">
@@ -314,7 +197,6 @@ const DivCenterBattery = (props: any) => {
                     <ModalUDS id="my_modal_8" cardTitle={'Battery percentage'} writeInfo={writeInfoBattery} param="percentage" />
                     <p>Battery percentage</p>
                 </div>
-
 
                 <div className="w-[30%] m-7 text-white grid justify-item-center">
                     <label htmlFor="my_modal_9"
