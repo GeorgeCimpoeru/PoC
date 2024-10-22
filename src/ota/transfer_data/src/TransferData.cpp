@@ -177,7 +177,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
     /* Write the chunk to the vector */
     data.insert(data.end(), transfer_request.begin() + 3, transfer_request.end());
     /* Display progress, speed, and remaining time */
-    std::cout << "\rData received: " << data.size()
+    std::cout << "\rData received: " << data.size() << '\n'
                 << std::flush;
     if(ota_state == PROCESSING_TRANSFER_COMPLETE)
     {
@@ -188,36 +188,21 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
             nrc.sendNRC(can_id, TD_SID, NegativeResponse::TDS);
             MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_FAILED});
             AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
+            return;
         }
-        else
-        {   
-            /* Status remains PROCESSING_TRANSFER_COMPLETE */
-            response.clear();
-            /* prepare positive response */
-            response.push_back(0x02); /* PCI */
-            response.push_back(0x76); /* Service ID */
-            response.push_back(block_sequence_counter); /* block_sequence_counter */
-            /* TODO : this can be replaced with meaniningfull informations about the overall transfer*/
-            response.insert(response.end(), transfer_request.begin() + 3, transfer_request.end()); /* transfer parameter record */
-
-            /* Send the postive response frame */
-            generate_frames.sendFrame(can_id, response);
-            AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
-        }
-        return;
     }
-    // /* Status remains PROCESSING_TRANSFER_COMPLETE */
-            response.clear();
-            /* prepare positive response */
-            response.push_back(0x02); /* PCI */
-            response.push_back(0x76); /* Service ID */
-            response.push_back(block_sequence_counter); /* block_sequence_counter */
-            /* TODO : this can be replaced with meaniningfull informations about the overall transfer*/
-            // response.insert(response.end(), transfer_request.begin() + 3, transfer_request.end()); /* transfer parameter record */
-            response.emplace_back(static_cast<uint8_t>(ota_state));
-            /* Send the postive response frame */
-            generate_frames.sendFrame(can_id, response);
-            AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
+    /* Status remains PROCESSING_TRANSFER_COMPLETE */
+    response.clear();
+    /* prepare positive response */
+    response.push_back(0x02); /* PCI */
+    response.push_back(0x76); /* Service ID */
+    response.push_back(block_sequence_counter); /* block_sequence_counter */
+    /* TODO : this can be replaced with meaniningfull informations about the overall transfer*/
+    // response.insert(response.end(), transfer_request.begin() + 3, transfer_request.end()); /* transfer parameter record */
+    response.emplace_back(static_cast<uint8_t>(ota_state));
+    /* Send the postive response frame */
+    generate_frames.sendFrame(can_id, response);
+    AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
     /* Increment expected_block_sequence_number only if it matches the current block_sequence_counter */
     expected_block_sequence_number++;
     // AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);

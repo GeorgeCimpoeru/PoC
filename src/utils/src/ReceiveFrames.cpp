@@ -151,7 +151,7 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
         /* Starting frame processing timing if is it a frame request for MCU */
         auto it = std::find(service_sids.begin(), service_sids.end(), frame.data[1]);
 
-        if (it != service_sids.end())
+        if (it != service_sids.end() && frame.data[1] != TRANSFER_DATA_SID)
         {
             startTimer(frame_dest_id, frame.data[1]);
         }
@@ -214,21 +214,21 @@ void ReceiveFrames::startTimer(uint8_t frame_dest_id, uint8_t sid) {
     switch(frame_dest_id)
     {
     case 0x11:
-        // battery->_ecu->timing_parameters[sid] = start_time.time_since_epoch().count();
+        battery->_ecu->timing_parameters[sid] = start_time.time_since_epoch().count();
 
-        // // Initialize stop flag for this SID
-        // battery->_ecu->stop_flags[sid] = true;
+        // Initialize stop flag for this SID
+        battery->_ecu->stop_flags[sid] = true;
 
-        // battery->_ecu->active_timers[sid] = std::async(std::launch::async, [sid, this, start_time, timer_value, frame_dest_id]() {
-        //     while (battery->_ecu->stop_flags[sid]) {
-        //         auto now = std::chrono::steady_clock::now();
-        //         std::chrono::duration<double> elapsed = now - start_time;
-        //         if (elapsed.count() > timer_value / 20.0) {
-        //             stopTimer(frame_dest_id, sid);
-        //         }
-        //         std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        //     }
-        // });
+        battery->_ecu->active_timers[sid] = std::async(std::launch::async, [sid, this, start_time, timer_value, frame_dest_id]() {
+            while (battery->_ecu->stop_flags[sid]) {
+                auto now = std::chrono::steady_clock::now();
+                std::chrono::duration<double> elapsed = now - start_time;
+                if (elapsed.count() > timer_value / 20.0) {
+                    stopTimer(frame_dest_id, sid);
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
+        });
         break;
     case 0x12:
         engine->_ecu->timing_parameters[sid] = start_time.time_since_epoch().count();
