@@ -2,7 +2,6 @@
 #include "../include/RequestDownload.h"
 #include "../../../ecu_simulation/BatteryModule/include/BatteryModule.h"
 
-size_t RequestDownloadService::max_number_block = 0;
 RDSData RequestDownloadService::rds_data = {0, 0, 0, 0};
 
 RequestDownloadService::RequestDownloadService(Logger& RDSlogger)
@@ -421,11 +420,6 @@ void RequestDownloadService::downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_
         LOG_ERROR(RDSlogger.GET_LOGGER(), "Python error: {}", e.what());
         MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ERROR});
     }
-}
-
-size_t RequestDownloadService::getMaxNumberBlock()
-{
-    return RequestDownloadService::max_number_block;
 }
 
 RDSData RequestDownloadService::getRdsData()

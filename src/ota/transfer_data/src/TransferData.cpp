@@ -50,7 +50,7 @@ void TransferData::processDataForTransfer(uint8_t receiver_id, std::vector<uint8
     if(ota_state == WAIT_DOWNLOAD_COMPLETED)
     {
         /* Get chunk_size from request download */
-        chunk_size = 0x05; //static_cast<size_t>(RequestDownloadService::getMaxNumberBlock());
+        chunk_size = 0x05;
         /* Initialize the bytes sent */
         bytes_sent = 0;
 
@@ -147,7 +147,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
     if(ota_state == WAIT_DOWNLOAD_COMPLETED)
     {
         /* Get chunk_size from request download */
-        chunk_size = 5; //static_cast<size_t>(RequestDownloadService::getMaxNumberBlock());
+        chunk_size = 5;
         /* set expected transfer data requests that is defined in request download */
         expected_transfer_data_requests = MAX_TRANSER_DATA_BYTES;
         expected_block_sequence_number = 1;

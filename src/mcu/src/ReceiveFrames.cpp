@@ -244,6 +244,9 @@ bool ReceiveFrames::receiveFramesFromAPI()
                 {
                     std::vector<uint8_t> data(frame.data, frame.data + frame.can_dlc);
                     LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Received frame for ECU to execute service with SID: 0x{:x}", frame.data[1]));
+                    /* Transfer data service need to have the data in the request body.
+                        Here, if we have a transfer data request, we add the data to the request.
+                    */
                     if(frame.data[1] == TRANSFER_DATA_SID)
                     {
                         TransferData::processDataForTransfer(receiver_id, data, *MCULogger);

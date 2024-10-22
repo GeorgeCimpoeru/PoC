@@ -69,11 +69,11 @@ namespace MCU
         delete receive_frames;
         if(system("pkill main_mcu") != 0)
         {
-
+            LOG_ERROR(MCULogger->GET_LOGGER(), "Error when trying to kill main_mcu process");
         }
         else
         {
-
+            /* do nothing */
         }
     }
 

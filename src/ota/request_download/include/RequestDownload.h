@@ -34,10 +34,15 @@
 #include "../../utils/include/MemoryManager.h"
 #include <pybind11/embed.h>
 
-/* ECU permitted transfer data requests */
+/* ECU permitted transfer data bytes in a request. Set to 5 because we use only 8 bytes for requests (1 pci, 1 sid, 1 blc_indx => remaining 5 bytes)*/
 #define MAX_TRANSER_DATA_BYTES 5
 #define MAXIMUM_ALLOWED_DOWNLOAD_SIZE  50000000
 
+/* Structure that contains information about the download. The values are set in the Request Download service.
+    This informations are shared with Transfer Data & Routine Control in order to do the actions that are needed.
+    Data format is used for handling compression and encryption
+    Address, size & max_number_block for Transfer Data to write in that memory
+*/
 struct RDSData
 {
     uint8_t data_format;
@@ -49,7 +54,13 @@ struct RDSData
 class RequestDownloadService
 {
 public:
+/***********************************************************************/
+/************************* PUBLIC VARIABLES ****************************/
+/***********************************************************************/
     static constexpr uint8_t RDS_SID = 0x34;
+/*********************************************************************/
+/************************* PUBLIC METHODS ****************************/
+/*********************************************************************/
     /**
      * @brief Construct a new Request Download Service object
      * 
@@ -85,20 +96,23 @@ public:
     void requestDownloadResponse(canid_t id, int memory_address, int max_number_block);
 
     /**
-     * @brief Method used in Transfer Data to get the max_number_block from Request Download
+     * @brief Method used to get the informations about the download request.
+     * 
+     * @return RDSData 
      */
-    static size_t getMaxNumberBlock();
-
     static RDSData getRdsData();
 private:
+/*********************************************************************/
+/************************* PRIVATE VARIABLES *************************/
+/*********************************************************************/
     int socket = -1;
     Logger& RDSlogger;
-
     GenerateFrames generate_frames;
-    /* Variable used in Transfer Data as maximum 1 transfer data size */
-    static size_t max_number_block;
-
     static RDSData rds_data;
+
+/*********************************************************************/
+/************************* PRIVATE METHODS ***************************/
+/*********************************************************************/
     /**
      * @brief Method for validation of the provided memory address and size, ensuring they are within acceptable bounds and logical ranges.
      *

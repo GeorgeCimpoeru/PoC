@@ -18,20 +18,20 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     uint16_t routine_identifier = request[3] << 8 | request[4];
     std::vector<uint8_t> response;
     NegativeResponse nrc(socket, rc_logger);
-    uint8_t lowerbits = can_id & 0xFF;
-    uint8_t upperbits = can_id >> 8 & 0xFF;
+    uint8_t receiver_id = can_id & 0xFF;
+    uint8_t sender_id = can_id >> 8 & 0xFF;
     uint8_t target_id = can_id >> 16 & 0xFF; 
     uint8_t sub_function = request[2];
     std::vector<uint8_t> routine_result = {0x00};
     /* reverse ids */
-    can_id = lowerbits << 8 | upperbits;
+    can_id = receiver_id << 8 | sender_id;
     OtaUpdateStatesEnum ota_state = static_cast<OtaUpdateStatesEnum>(MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0]);
 
     if (request.size() < 6 || (request.size() - 1 != request[0]))
     {
         /* Incorrect message length or invalid format - prepare a negative response */
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::IMLOIF);
-        AccessTimingParameter::stopTimingFlag(lowerbits, 0x31);
+        AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
         return;
     }
 
@@ -39,23 +39,23 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     {
         /* Sub Function not supported - prepare a negative response */
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SFNS);
-        AccessTimingParameter::stopTimingFlag(lowerbits, 0x31);
+        AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
         return;
     }
 
-    if (lowerbits == 0x10 && !SecurityAccess::getMcuState(rc_logger))
+    if (receiver_id == 0x10 && !SecurityAccess::getMcuState(rc_logger))
     {
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
-        AccessTimingParameter::stopTimingFlag(lowerbits, 0x31);
+        AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
         return;
     }
 
-    if ((lowerbits == 0x11 || lowerbits == 0x12 ||
-              lowerbits == 0x13 || lowerbits == 0x14) &&
+    if ((receiver_id == 0x11 || receiver_id == 0x12 ||
+              receiver_id == 0x13 || receiver_id == 0x14) &&
               !ReceiveFrames::getEcuState())
     {
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::SAD);
-        AccessTimingParameter::stopTimingFlag(lowerbits, 0x31);
+        AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
         return;
     }
     /* when our identifiers will be defined, this range should be smaller */
@@ -63,7 +63,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     {
         /* Request Out of Range - prepare a negative response */
         nrc.sendNRC(can_id,ROUTINE_CONTROL_SID,NegativeResponse::ROOR);
-        AccessTimingParameter::stopTimingFlag(lowerbits, 0x31);
+        AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
         return;
     }
   
@@ -95,6 +95,12 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::CNC);
                 return;
             }
+            if(receiver_id != MCU_ID)
+            {
+                LOG_WARN(rc_logger.GET_LOGGER(), "OTA update can be initialised only by MCU");
+                nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::CNC);
+                return;
+            }
 
             LOG_INFO(rc_logger.GET_LOGGER(), "Initialise OTA update routine called.");
             if(initialiseOta(target_id, request, routine_result) == false)
@@ -118,7 +124,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
             /* call writeToFile routine*/
             LOG_INFO(rc_logger.GET_LOGGER(), "writeToFile routine called.");
 
-            if(lowerbits != MCU_ID)
+            if(receiver_id != MCU_ID)
             {
                 uint8_t file_size_format = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), 1, rc_logger)[0];
                 auto file_size_bytes = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress() + 1, file_size_format, rc_logger);   
@@ -134,7 +140,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 auto binary_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress() + binary_offset, file_size, rc_logger);
 
                 std::string ecu_path;
-                if(FileManager::getEcuPath(lowerbits, ecu_path, 1, rc_logger) == 0)
+                if(FileManager::getEcuPath(receiver_id, ecu_path, 1, rc_logger) == 0)
                 {
                     LOG_ERROR(rc_logger.GET_LOGGER(), "Invalid ecu path for writting to file:\n{}", ecu_path);
                     nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
@@ -150,7 +156,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 }
             }
             
-            bool status = handleDataCompressionEncryption(lowerbits);
+            bool status = handleDataCompressionEncryption(receiver_id);
             if(status == 0)
             {
                 LOG_ERROR(rc_logger.GET_LOGGER(), "Compression encryption for file failed.");
@@ -169,7 +175,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
             // }
 
             LOG_INFO(rc_logger.GET_LOGGER(), "Verify installation routine called.");
-            if(verifySoftware(lowerbits) == false)
+            if(verifySoftware(receiver_id) == false)
             {
                 MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {VERIFY_FAILED});
                 nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::IMLOIF);

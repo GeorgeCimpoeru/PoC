@@ -27,9 +27,15 @@
 
 class RoutineControl
 {
-    public:
+public:
+/*********************************************************************/
+/************************* PUBLIC VARIABLES **************************/
+/*********************************************************************/
     /* Define the service identifier for Routine Control */
     static constexpr uint8_t ROUTINE_CONTROL_SID = 0x31;
+/*********************************************************************/
+/************************* PUBLIC METHODS ****************************/
+/*********************************************************************/
     /**
     * @brief Default constructor
     * 
@@ -53,6 +59,16 @@ class RoutineControl
     */
     void routineControlResponse(canid_t can_id, uint8_t sub_function, const uint16_t& routine_identifier, std::vector<uint8_t>& routine_result);
     
+private:
+/*********************************************************************/
+/************************* PRIVATE VARIABLES *************************/
+/*********************************************************************/
+    GenerateFrames generate_frames;
+    int socket = -1;
+    Logger& rc_logger;
+/*********************************************************************/
+/************************* PRIVATE METHODS ***************************/
+/*********************************************************************/
     /**
      * @brief 
      * 
@@ -62,7 +78,9 @@ class RoutineControl
     bool initialiseOta(uint8_t target_ecu, const std::vector<uint8_t>& request, std::vector<uint8_t>& routine_result);
 
     /**
-     * @brief 
+     * @brief Method used for activating a new software that was downloaded.
+     *          Before activating, it saves the current software to PARTITION 2.
+     *          If activation fails, the software is rolled back to the previous version.
      * 
      * @return true 
      * @return false 
@@ -70,7 +88,11 @@ class RoutineControl
     bool activateSoftware();
 
     /**
-     * @brief 
+     * @brief Method used for checking data before using it. 
+     * This method checks for 2 data signatures: ELF or ZIP and
+     * compares the sent checksum calculated when transferring data with the new one calculated after the transfer is completed.
+     * 
+     * If the software is intended for MCU, only 
      * 
      * @return true 
      * @return false 
@@ -87,15 +109,19 @@ class RoutineControl
      */
     bool getCurrentProcessInfo(pid_t& pid, std::string& pname, std::string& ppath);
 
+    /**
+     * 
+     */
     bool rollbackSoftware();
 
+    /**
+     * 
+     */
     bool saveCurrentSoftware();
 
-    private:
-    GenerateFrames generate_frames;
-    int socket = -1;
-    Logger& rc_logger;
-
+    /**
+     * 
+     */
     bool handleDataCompressionEncryption(uint8_t receiver_id);
 };
 
