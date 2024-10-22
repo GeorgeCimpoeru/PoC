@@ -3,9 +3,10 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import ModalUDS from './ModalUDS';
 import './style.css';
+import { displayLoadingCircle, displayErrorPopup, removeLoadingCicle } from '../sharedComponents/LoadingCircle';
 
 interface doorsData {
-    ajar: any, // verifica daca e usa deschisa/ inchisa cum trebuie 
+    ajar: any,
     door: any,
     passenger: any,
     passenger_lock: any,
@@ -19,6 +20,8 @@ const DivCenterDoors = (props: any) => {
 
     useEffect(() => {
         const readInfoDoors = async () => {
+            displayLoadingCircle();
+            console.log("Reading doors info...");
             await fetch(`http://127.0.0.1:5000/api/read_info_doors?is_manual_flow=false`)
                 .then(response => {
                     if (!response.ok) {
@@ -32,8 +35,11 @@ const DivCenterDoors = (props: any) => {
                 })
                 .catch(error => {
                     setError(error);
+                    displayErrorPopup("Connection failed");
+                    removeLoadingCicle();
 
                 });
+            removeLoadingCicle();
         };
         readInfoDoors();
     }, []);
