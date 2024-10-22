@@ -30,7 +30,6 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     LOG_INFO(RDSlogger.GET_LOGGER(), "Service 0x34 RequestDownload");
     auto ota_status = MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0];
     /* This will be replaced by OTA Session */
-    bool ota_initialised = (ota_status == INIT);
     /* Extract and switch sender and receiver */
     uint8_t receiver_id = id  & 0xFF;
     uint8_t sender_id = (id >> 8) & 0xFF;
@@ -73,6 +72,8 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
         AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
         return;
     }
+    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT});
+
     /** data format identifier is 0x00 when no compression or encryption method is used 
      * 0x11 when both compression and encryption are used
      * 0x01 when only encryption is used
@@ -88,8 +89,6 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
         return;
     }
 
-    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT});
-
     /* extract method returns IMLOIF if full length check fails */
     std::pair<int,int> address_and_size_length = extractSizeAndAddressLength(id, stored_data);
     int length_memory_address = address_and_size_length.first;
@@ -100,12 +99,6 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     RequestDownloadService::rds_data.address = memory_address;
     int memory_size = address_and_size.second;
     RequestDownloadService::rds_data.size = memory_size;
-
-    if(ota_initialised == 1)
-    {   
-        /* OTA initialised, convert from MB to bytes */
-        memory_size *= 1000000;
-    }
 
     /* Validate memory address and size */
     if (!isValidMemoryRange(memory_address, memory_size))
@@ -127,7 +120,7 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     LOG_INFO(RDSlogger.GET_LOGGER(), "Encryption Type: 0x{0:x}", static_cast<int>(encryption_type));
 
     /* Check if software is at the latest version */ 
-    if (ota_initialised && !isLatestSoftwareVersion())
+    if (!isLatestSoftwareVersion())
     {
         LOG_INFO(RDSlogger.GET_LOGGER(), "Software is not at the latest version");
         MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
@@ -138,7 +131,6 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     RequestDownloadService::rds_data.max_number_block = calculate_max_number_block(memory_size);
     requestDownloadResponse(id, memory_address, RequestDownloadService::rds_data.max_number_block);
     AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
-
     return;
 }
 
@@ -147,7 +139,7 @@ int RequestDownloadService::calculate_max_number_block(int memory_size)
     /* max_number_block = maximum number of bytes for 1 transfer data 
         This is set to 5 because in a transfer data we can send only 5 bytes of data (8 - pci - sid - blc_indx)
     */
-    int max_number_block = 5; //(memory_size / MAX_TRANSFER_DATA_REQUESTS) + (memory_size % MAX_TRANSFER_DATA_REQUESTS != 0);
+    int max_number_block = MAX_TRANSER_DATA_BYTES;
     return max_number_block;    
 }
 

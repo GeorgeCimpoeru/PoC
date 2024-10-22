@@ -35,7 +35,7 @@
 #include <pybind11/embed.h>
 
 /* ECU permitted transfer data requests */
-#define MAX_TRANSFER_DATA_REQUESTS 5
+#define MAX_TRANSER_DATA_BYTES 5
 #define MAXIMUM_ALLOWED_DOWNLOAD_SIZE  50000000
 
 struct RDSData

@@ -12,7 +12,6 @@ TransferData::TransferData(int socket, Logger transfer_data_logger)
 /* Definition and initialization of the static member variable */
 MemoryManager* TransferData::memory_manager = nullptr;
 uint8_t TransferData::expected_block_sequence_number = 0x01;  /* Start from 1 */
-bool TransferData::is_first_transfer = false;
 size_t TransferData::chunk_size = 0;
 uint8_t TransferData::expected_transfer_data_requests = 0;
 /* Static vector to store the checksums */
@@ -52,13 +51,12 @@ void TransferData::processDataForTransfer(uint8_t receiver_id, std::vector<uint8
     {
         /* Get chunk_size from request download */
         chunk_size = 0x05; //static_cast<size_t>(RequestDownloadService::getMaxNumberBlock());
-        /* Initialize the bytes sent for the first transfer */
+        /* Initialize the bytes sent */
         bytes_sent = 0;
 
         std::string path_to_main;
         if(FileManager::getEcuPath(receiver_id, path_to_main, 3, logger) == 0)
         {
-            // nrc.sendNRC(can_id, TD_SID, NegativeResponse::TDS);
             MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_FAILED});
             return;
         }
@@ -66,11 +64,11 @@ void TransferData::processDataForTransfer(uint8_t receiver_id, std::vector<uint8
         /* Read data from the extracted binary */
         data = MemoryManager::readBinary(path_to_main, logger);
         total_size = data.size();
-        bool first_byte_found = false;
 
         /* Determine how many bytes are needed to represent the size */
         std::vector<uint8_t>binary_data_size_bytes;                
         uint8_t byte;
+        bool first_byte_found = false;
 
         for(int i = sizeof(total_size) - 1; i >=0; --i)
         {
@@ -86,18 +84,13 @@ void TransferData::processDataForTransfer(uint8_t receiver_id, std::vector<uint8
         current_data.emplace_back(binary_data_size_bytes.size());
 
         /* Add the actual size bytes
-            PCI_1 + SID_1 + BL_IDX_1 + SIZE_FORMAT_1 + SIZE_1 + SIZE_2 + SIZE_3 + fill_bytes (0)
+            PCI_1 + SID_1 + BL_IDX_1 + SIZE_FORMAT_1 + SIZE_1 + SIZE_2 + SIZE_3 + how many bytes are needed for the size
          */
         current_data.insert(current_data.end(), binary_data_size_bytes.begin(), binary_data_size_bytes.end());
-        // while((current_data.size() - 3) < chunk_size)
-        // {
-        //     current_data.emplace_back(0x00);
-        // }
         return;
     }
-
+    
     size_t current_chunk_size = std::min(static_cast<size_t>(chunk_size), total_size - bytes_sent);
-
     if (bytes_sent >= total_size)
     {   
         current_data.emplace_back(TransferData::computeChecksum(TransferData::checksums.data(), TransferData::checksums.size()));
@@ -106,12 +99,11 @@ void TransferData::processDataForTransfer(uint8_t receiver_id, std::vector<uint8
     else
     {
         current_data.insert(current_data.end(), data.begin() + bytes_sent, data.begin() + bytes_sent + current_chunk_size);
-        current_data[0] = static_cast<uint8_t>(current_data.size() - 1);
-
         TransferData::checksums.emplace_back(TransferData::computeChecksum(data.data() + bytes_sent, current_chunk_size));
         bytes_sent += current_chunk_size;
     }
-    /* Display progress, speed, and remaining time */
+    current_data[0] = static_cast<uint8_t>(current_data.size() - 1);
+    /* Display progress */
     std::cout << "\rProgress: " << static_cast<int>((static_cast<double>(bytes_sent) / total_size) * 100) << "% "
                 << "Sent: " << bytes_sent << " / " << total_size << " "
                 << std::flush;
@@ -154,14 +146,14 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
     OtaUpdateStatesEnum ota_state = static_cast<OtaUpdateStatesEnum>(MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0]);
     if(ota_state == WAIT_DOWNLOAD_COMPLETED)
     {
-        is_first_transfer = true;
         /* Get chunk_size from request download */
         chunk_size = 5; //static_cast<size_t>(RequestDownloadService::getMaxNumberBlock());
         /* set expected transfer data requests that is defined in request download */
-        expected_transfer_data_requests = MAX_TRANSFER_DATA_REQUESTS;
+        expected_transfer_data_requests = MAX_TRANSER_DATA_BYTES;
         expected_block_sequence_number = 1;
         TransferData::memory_manager = MemoryManager::getInstance(DEV_LOOP_PARTITION_1_ADDRESS, DEV_LOOP, transfer_data_logger);                
 
+        memory_write_status = false;
         MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING});
         ota_state = static_cast<OtaUpdateStatesEnum>(MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0]);
     }
@@ -181,32 +173,43 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
                 << std::flush;
     if(ota_state == PROCESSING_TRANSFER_COMPLETE)
     {
-        memory_manager->setAddress(DEV_LOOP_PARTITION_1_ADDRESS);
-        bool write_success = memory_manager->writeToAddress(data);
-        if(write_success == false)
+        if(memory_write_status == false)
         {
-            nrc.sendNRC(can_id, TD_SID, NegativeResponse::TDS);
-            MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_FAILED});
+            memory_manager->setAddress(DEV_LOOP_PARTITION_1_ADDRESS);
+            memory_write_status = memory_manager->writeToAddress(data);
+            if(memory_write_status == false)
+            {
+                nrc.sendNRC(can_id, TD_SID, NegativeResponse::TDS);
+                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_FAILED});
+                AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
+                return;
+            }
+            /* Status remains PROCESSING_TRANSFER_COMPLETE */
+            response.clear();
+            /* prepare positive response */
+            response.push_back(0x02); /* PCI */
+            response.push_back(0x76); /* Service ID */
+            response.push_back(block_sequence_counter); /* block_sequence_counter */
+            response.emplace_back(static_cast<uint8_t>(ota_state));
+            /* Send the postive response frame */
+            generate_frames.sendFrame(can_id, response);
             AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
-            return;
         }
+        return;
     }
-    /* Status remains PROCESSING_TRANSFER_COMPLETE */
+    /* Continue */
     response.clear();
     /* prepare positive response */
     response.push_back(0x02); /* PCI */
     response.push_back(0x76); /* Service ID */
     response.push_back(block_sequence_counter); /* block_sequence_counter */
-    /* TODO : this can be replaced with meaniningfull informations about the overall transfer*/
-    // response.insert(response.end(), transfer_request.begin() + 3, transfer_request.end()); /* transfer parameter record */
     response.emplace_back(static_cast<uint8_t>(ota_state));
     /* Send the postive response frame */
     generate_frames.sendFrame(can_id, response);
     AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
+
     /* Increment expected_block_sequence_number only if it matches the current block_sequence_counter */
     expected_block_sequence_number++;
-    // AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
-
     /* reset it to 0x01 after it reaches 0xFF and resets to 0*/
     if (expected_block_sequence_number == 0x00)
     {

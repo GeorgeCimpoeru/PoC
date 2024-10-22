@@ -50,7 +50,6 @@ class TransferData
      */
     static uint8_t computeChecksum(const uint8_t* data, size_t block_size);
 
-    static bool is_first_transfer;
     static uint8_t expected_block_sequence_number;
     /* This represents 1 transfer data size, calculated in Request Download representing the  max_number_block */
     static size_t chunk_size;
@@ -64,6 +63,7 @@ class TransferData
     int socket = -1;
     size_t total_size;
     size_t bytes_sent;
+    bool memory_write_status = false;
     /* Static vector used in Request Transfer Exit thta contains the checksums for each chunk data transfer */
     static std::vector<uint8_t>checksums;
 };

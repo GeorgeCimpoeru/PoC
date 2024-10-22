@@ -111,43 +111,49 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
         }
         case 0x0301:
         {
+            // if(ota_state != VERIFY_SUCCESS)
+            // {
+            //     return 0;
+            // }
             /* call writeToFile routine*/
             LOG_INFO(rc_logger.GET_LOGGER(), "writeToFile routine called.");
 
-
-            uint8_t file_size_format = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), 1, rc_logger)[0];
-            auto file_size_bytes = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress() + 1, file_size_format, rc_logger);   
-            uint8_t binary_offset = sizeof(file_size_format) + file_size_format;
-    
-            size_t file_size = 0;
-            for(uint8_t i = 0; i < file_size_format; i++)
+            if(lowerbits != MCU_ID)
             {
-                file_size |= (file_size_bytes[i] << ((file_size_format - i - 1) * 8));
-            }   
+                uint8_t file_size_format = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), 1, rc_logger)[0];
+                auto file_size_bytes = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress() + 1, file_size_format, rc_logger);   
+                uint8_t binary_offset = sizeof(file_size_format) + file_size_format;
+        
+                size_t file_size = 0;
+                for(uint8_t i = 0; i < file_size_format; i++)
+                {
+                    file_size |= (file_size_bytes[i] << ((file_size_format - i - 1) * 8));
+                }   
 
-            /* Read the binary data from memory */            
-            auto binary_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress() + binary_offset, file_size, rc_logger);
+                /* Read the binary data from memory */            
+                auto binary_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress() + binary_offset, file_size, rc_logger);
 
-            std::string ecu_path;
-            if(FileManager::getEcuPath(lowerbits, ecu_path, 1, rc_logger) == 0)
-            {
-                LOG_ERROR(rc_logger.GET_LOGGER(), "Invalid ecu path for writting to file:\n{}", ecu_path);
-                nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
-                return;
-            }
-            bool status = MemoryManager::writeToFile(binary_data, ecu_path, rc_logger);
+                std::string ecu_path;
+                if(FileManager::getEcuPath(lowerbits, ecu_path, 1, rc_logger) == 0)
+                {
+                    LOG_ERROR(rc_logger.GET_LOGGER(), "Invalid ecu path for writting to file:\n{}", ecu_path);
+                    nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
+                    return;
+                }
+                bool status = MemoryManager::writeToFile(binary_data, ecu_path, rc_logger);
 
-            if(status == 0)
-            {
-                LOG_ERROR(rc_logger.GET_LOGGER(), "Write to file {} failed.", ecu_path);
-                nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
-                return;
+                if(status == 0)
+                {
+                    LOG_ERROR(rc_logger.GET_LOGGER(), "Write to file {} failed.", ecu_path);
+                    nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
+                    return;
+                }
             }
             
-            status = handleDataCompressionEncryption(lowerbits);
+            bool status = handleDataCompressionEncryption(lowerbits);
             if(status == 0)
             {
-                LOG_ERROR(rc_logger.GET_LOGGER(), "Compression encryption for file {} failed.", ecu_path);
+                LOG_ERROR(rc_logger.GET_LOGGER(), "Compression encryption for file failed.");
                 nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
                 return;
             }
@@ -157,8 +163,13 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
         }
         case 0x0401:
         {
+            // if(ota_state != READY)
+            // {
+            //     return 0;
+            // }
+
             LOG_INFO(rc_logger.GET_LOGGER(), "Verify installation routine called.");
-            if(verifySoftware() == false)
+            if(verifySoftware(lowerbits) == false)
             {
                 MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {VERIFY_FAILED});
                 nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::IMLOIF);
@@ -312,21 +323,46 @@ bool RoutineControl::activateSoftware()
     
     return 1;
 }
-bool RoutineControl::verifySoftware()
+bool RoutineControl::verifySoftware(uint8_t receiver_id)
 {
-    MemoryManager* memory_manager = MemoryManager::getInstance(DEV_LOOP_PARTITION_1_ADDRESS, DEV_LOOP, rc_logger); 
-    uint8_t binary_size_format = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), 1, rc_logger)[0];
-    auto binary_size_bytes = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress() + 1, binary_size_format, rc_logger);    
-    uint8_t binary_offset = sizeof(binary_size_format) + binary_size_format;
-        
-    size_t binary_size = 0;
-    for(uint8_t i = 0; i < binary_size_format; i++)
+    std::vector<uint8_t> binary_data;
+    if(receiver_id != MCU_ID)
     {
-        binary_size |= (binary_size_bytes[i] << ((binary_size_format - i - 1) * 8));
-    }
 
-    /* Read the binary data from memory */    
-    auto binary_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress() + binary_offset, binary_size, rc_logger);
+        MemoryManager* memory_manager = MemoryManager::getInstance(DEV_LOOP_PARTITION_1_ADDRESS, DEV_LOOP, rc_logger); 
+        uint8_t binary_size_format = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), 1, rc_logger)[0];
+        auto binary_size_bytes = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress() + 1, binary_size_format, rc_logger);    
+        uint8_t binary_offset = sizeof(binary_size_format) + binary_size_format;
+            
+        size_t binary_size = 0;
+        for(uint8_t i = 0; i < binary_size_format; i++)
+        {
+            binary_size |= (binary_size_bytes[i] << ((binary_size_format - i - 1) * 8));
+        }
+        /* Read the binary data from memory */    
+        binary_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress() + binary_offset, binary_size, rc_logger);
+
+        size_t checksum_address = DEV_LOOP_PARTITION_1_ADDRESS + 1 + binary_size_format + binary_size;
+        uint8_t checksum = MemoryManager::readFromAddress(DEV_LOOP, checksum_address, 1, rc_logger)[0];
+        uint8_t recomputed_checksum = TransferData::computeChecksum(binary_data.data(), binary_data.size());
+        if(checksum != recomputed_checksum)
+        {
+            LOG_ERROR(rc_logger.GET_LOGGER(),"Error in checksum verification. Sent checksum = 0b{:b}, recomputed checksum = 0b{:b}", checksum, recomputed_checksum);
+            return 0;
+        }
+    }
+    else
+    {
+        std::string path_to_zip;
+        if(FileManager::getEcuPath(receiver_id, path_to_zip, 3, rc_logger) == 0)
+        {
+            LOG_ERROR(rc_logger.GET_LOGGER(), "Error in reading file path, may not exist: {}", path_to_zip);
+            return 0;
+        }
+
+        /* Read data from the extracted binary */
+        binary_data = MemoryManager::readBinary(path_to_zip, rc_logger);
+    }
 
     auto rds_data = RequestDownloadService::getRdsData();
     /* Check if the binary data is in ELF format */
@@ -358,52 +394,6 @@ bool RoutineControl::verifySoftware()
             return 0;
         }
     }
-
-    // size_t bytes_processed = 0;
-    /* Get chunk_size from request download */
-    /* size_t chunk_size = static_cast<size_t>(RequestDownloadService::getMaxNumberBlock()); */
-    // size_t chunk_size = rds_data.max_number_block;
-    /* Offset computation based on the size, size bytes and binary data written in memory */
-    // size_t checksum_offset = memory_manager->getAddress() + binary_offset + binary_size;    
-    size_t checksum_address = DEV_LOOP_PARTITION_1_ADDRESS + 1 + binary_size_format + binary_size;
-    uint8_t checksum = MemoryManager::readFromAddress(DEV_LOOP, checksum_address, 1, rc_logger)[0];
-    uint8_t recomputed_checksum = TransferData::computeChecksum(binary_data.data(), binary_data.size());
-    if(checksum != recomputed_checksum)
-    {
-        LOG_ERROR(rc_logger.GET_LOGGER(),"Error in checksum verification. Sent checksum = 0b{:b}, recomputed checksum = 0b{:b}", checksum, recomputed_checksum);
-        return 0;
-    }
-    // /* Iterate over each chunk while there are still bytes left to process */
-    // while (bytes_processed < binary_data.size())
-    // {
-    //     /* Compute the current chunk size */        
-    //     size_t current_chunk_size = std::min(chunk_size, binary_data.size() - bytes_processed);
-
-    //     /* Extract the current chunk from the binary data */
-    //     std::vector<uint8_t> chunk_data(binary_data.begin() + bytes_processed, binary_data.begin() + bytes_processed + current_chunk_size);
-        
-    //     /* Recompute and store checksum for this chunk */
-    //     uint8_t recomputed_checksum = computeChecksum(chunk_data.data(), chunk_data.size());
-
-    //     /* Read the corresponding checksum for this chunk from memory */
-    //     auto stored_checksum = MemoryManager::readFromAddress(DEV_LOOP, checksum_offset + checksum_index, 1, rc_logger)[0];
-
-    //     /* Compare the recomputed checksum with the stored checksum */
-    //     if (recomputed_checksum != stored_checksum)
-    //     {
-    //         LOG_ERROR(rc_logger.GET_LOGGER(), "Checksum mismatch in chunk {}: expected 0x{:X} but got 0x{:X}", checksum_index + 1, static_cast<int>(stored_checksum), static_cast<int>(recomputed_checksum));
-    //         /* Stop further checks if checksums don't match */
-    //         break;
-    //     }
-    //     else
-    //     {
-    //         LOG_INFO(rc_logger.GET_LOGGER(), "Checksum match in chunk {}: expected 0x{:X} and  got 0x{:X}", checksum_index + 1, static_cast<int>(stored_checksum), static_cast<int>(recomputed_checksum));
-    //     }
-
-    //     /* Update the offset to move to the next chunk */
-    //     bytes_processed += current_chunk_size;
-    //     checksum_index++;
-    // }
 
     return true;
 }
@@ -559,19 +549,34 @@ bool RoutineControl::handleDataCompressionEncryption(uint8_t receiver_id)
     {
         std::string zipFilePath;
 
-        if(FileManager::getEcuPath(receiver_id, zipFilePath, 1, rc_logger) == 0)
+        if(receiver_id != MCU_ID)
         {
-            LOG_ERROR(rc_logger.GET_LOGGER(), "No valid zip file file found in PROJECT_PATH.");
-            // nrc.sendNRC(id, RDS_SID, NegativeResponse::UDNA);
-            // AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
-            return 0;
-        }            
+            if(FileManager::getEcuPath(receiver_id, zipFilePath, 1, rc_logger) == 0)
+            {
+                LOG_ERROR(rc_logger.GET_LOGGER(), "No valid zip file file found in PROJECT_PATH.");
+                // nrc.sendNRC(id, RDS_SID, NegativeResponse::UDNA);
+                // AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
+                return 0;
+            }            
+        }
+        else
+        {
+            if(FileManager::getEcuPath(receiver_id, zipFilePath, 3, rc_logger) == 0)
+            {
+                LOG_ERROR(rc_logger.GET_LOGGER(), "No valid zip file file found in PROJECT_PATH.");
+                // nrc.sendNRC(id, RDS_SID, NegativeResponse::UDNA);
+                // AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
+                return 0;
+            }
+        }
+
         std::string extractedZipOutputPath;
         if(FileManager::getEcuPath(receiver_id, extractedZipOutputPath, 2, rc_logger) == 0)
         {
             LOG_ERROR(rc_logger.GET_LOGGER(), "No valid ecu path for extracted zip.");
             return 0;
         }
+
         if (FileManager::extractZipFile(receiver_id, zipFilePath, extractedZipOutputPath, rc_logger))
         {
             LOG_INFO(rc_logger.GET_LOGGER(), "Files extracted successfully");

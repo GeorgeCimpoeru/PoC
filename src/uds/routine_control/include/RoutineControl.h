@@ -75,7 +75,7 @@ class RoutineControl
      * @return true 
      * @return false 
      */
-    bool verifySoftware();
+    bool verifySoftware(uint8_t receiver_id);
     
     /**
      * @brief Get the Current Process Informations
