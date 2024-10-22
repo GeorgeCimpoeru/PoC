@@ -1,6 +1,5 @@
 package com.poc.p_couds
 
-import com.poc.p_couds.models.IApiService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 

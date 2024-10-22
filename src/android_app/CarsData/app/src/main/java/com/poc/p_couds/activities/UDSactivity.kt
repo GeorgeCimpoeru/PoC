@@ -59,8 +59,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.poc.p_couds.R
 import com.poc.p_couds.models.EcusInfoViewModel
+import com.poc.p_couds.R
 import com.poc.p_couds.ui.theme.CarsDataTheme
 
 class UDSactivity : ComponentActivity() {
@@ -190,10 +190,7 @@ class UDSactivity : ComponentActivity() {
                 ) {
                     DropdownMenuItem(
                         text = { Text(text = "Send requests") },
-                        onClick = {
-                            val intent = Intent(this@UDSactivity, RequestActivity::class.java)
-                            startActivity(intent)
-                        }
+                        onClick = {}
                     )
                 }
             },
