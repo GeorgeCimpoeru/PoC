@@ -75,7 +75,40 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
         {
             /* Erase memory or specific data */
             /* call eraseMemory routine */
-            LOG_INFO(rc_logger.GET_LOGGER(), "eraseMemory routine called.");
+            LOG_INFO(rc_logger.GET_LOGGER(), "Erase memory routine called for address set.");
+
+            size_t starting_address = 0;
+            for(uint8_t i = 5; i < request.size(); i++)
+            {
+                starting_address |= (request[i] << ((request.size() - i - 1) * 8));
+            }
+            if(eraseMemory(starting_address, routine_identifier) == false)
+            {
+                LOG_WARN(rc_logger.GET_LOGGER(), "Erase memory routine failed");
+                nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::CNC);
+                AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
+                return;
+            }
+            routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
+            break;
+        }
+        case 0x0102:
+        {
+            /* Erase memory or specific data */
+            /* call eraseMemory routine */
+            LOG_INFO(rc_logger.GET_LOGGER(), "Erase memory routine called for size set and erase.");
+            ssize_t size = 0;
+            for(uint8_t i = 5; i < request.size(); i++)
+            {
+                size |= (request[i] << ((request.size() - i - 1) * 8));
+            }
+            if(eraseMemory(size, routine_identifier) == false)
+            {
+                LOG_WARN(rc_logger.GET_LOGGER(), "Erase memory routine failed");
+                nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::CNC);
+                AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
+                return;
+            }
             routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
             break;
         }
@@ -86,18 +119,21 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
             {
                 LOG_WARN(rc_logger.GET_LOGGER(), "OTA update can be initialised only in EXTENDED_DIAGNOSTIC_SESSION");
                 nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
+                AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
                 return;
             }
             if(ota_state != IDLE && ota_state != ERROR)
             {
                 LOG_WARN(rc_logger.GET_LOGGER(), "OTA update can be initialised only from an IDLE or ERROR state, current state is {:x}", ota_state);
                 nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::CNC);
+                AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
                 return;
             }
             if(receiver_id != MCU_ID)
             {
                 LOG_WARN(rc_logger.GET_LOGGER(), "OTA update can be initialised only by MCU");
                 nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::CNC);
+                AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
                 return;
             }
 
@@ -112,6 +148,8 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {INIT});
                 routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
             }
+
+            AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
             break;
         }
         case 0x0301:
@@ -152,6 +190,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 {
                     LOG_ERROR(rc_logger.GET_LOGGER(), "Invalid ecu path for writting to file:\n{}", ecu_path);
                     nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
+                    AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
                     return;
                 }
                 bool status = MemoryManager::writeToFile(binary_data, ecu_path, rc_logger);
@@ -160,6 +199,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 {
                     LOG_ERROR(rc_logger.GET_LOGGER(), "Write to file {} failed.", ecu_path);
                     nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
+                    AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
                     return;
                 }
             }
@@ -169,6 +209,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
             {
                 LOG_ERROR(rc_logger.GET_LOGGER(), "Compression encryption for file failed.");
                 nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::SFNSIAS);
+                AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
                 return;
             }
 
@@ -193,6 +234,8 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {VERIFY_COMPLETE});
                 routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
             }
+            AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
+
             break;
         }
         case 0x0501:
@@ -201,6 +244,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
             {
                 LOG_WARN(rc_logger.GET_LOGGER(), "OTA software rollback can be started only from an IDLE, ERROR or ACTIVATE_INSTALL_FAILED state, current state is {:x}", ota_state);
                 nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::CNC);
+                AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
                 return;
             }
 
@@ -208,6 +252,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
             {
                 LOG_ERROR(rc_logger.GET_LOGGER(), "Rollback failed.");
                 nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::CNC);
+                AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
                 return;
             }
             else
@@ -224,6 +269,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 LOG_ERROR(rc_logger.GET_LOGGER(), "Current software saving failed.");
                 MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_FAILED});
                 nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::IMLOIF);
+                AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
                 return;
             }
             LOG_INFO(rc_logger.GET_LOGGER(), "Current software saved. Activating the new software..");
@@ -239,6 +285,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
                 MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_COMPLETE});
                 routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
             }
+            AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
             break;
         }
         default:
@@ -457,8 +504,8 @@ bool RoutineControl::rollbackSoftware()
         Following n bytes are used to represent the size.
         The following bytes after this are the binary data.
     */
-    uint8_t binary_size_format = MemoryManager::readFromAddress(DEV_LOOP, DEV_LOOP_PARTITION_2_ADDRESS, 1, rc_logger)[0];
-    auto binary_size_bytes = MemoryManager::readFromAddress(DEV_LOOP, DEV_LOOP_PARTITION_2_ADDRESS + 1, binary_size_format, rc_logger);
+    uint8_t binary_size_format = MemoryManager::readFromAddress(DEV_LOOP, DEV_LOOP_PARTITION_2_ADDRESS_START, 1, rc_logger)[0];
+    auto binary_size_bytes = MemoryManager::readFromAddress(DEV_LOOP, DEV_LOOP_PARTITION_2_ADDRESS_START + 1, binary_size_format, rc_logger);
     uint8_t binary_offset = sizeof(binary_size_format) + binary_size_format;
 
     size_t binary_size = 0;
@@ -468,7 +515,7 @@ bool RoutineControl::rollbackSoftware()
         binary_size |= (binary_size_bytes[i] << ((binary_size_format - i - 1) * 8));
     }
 
-    auto binary_data = MemoryManager::readFromAddress(DEV_LOOP, DEV_LOOP_PARTITION_2_ADDRESS + binary_offset, binary_size, rc_logger);
+    auto binary_data = MemoryManager::readFromAddress(DEV_LOOP, DEV_LOOP_PARTITION_2_ADDRESS_START + binary_offset, binary_size, rc_logger);
 
     /* Check is software is saved in the memory by checking the .elf extension */
     if( (binary_data[1] != 'E') || 
@@ -533,7 +580,7 @@ bool RoutineControl::saveCurrentSoftware()
     binary_data_info.push_back(binary_data_size_bytes.size());
     binary_data_info.insert(binary_data_info.end(), binary_data_size_bytes.begin(), binary_data_size_bytes.end());
     /* Write at the start of partition 2 the informations about the binary */
-    memory_manager->setAddress(DEV_LOOP_PARTITION_2_ADDRESS);
+    memory_manager->setAddress(DEV_LOOP_PARTITION_2_ADDRESS_START);
     bool write_success = memory_manager->writeToAddress(binary_data_info);
     if(write_success == false)
     {
@@ -542,7 +589,7 @@ bool RoutineControl::saveCurrentSoftware()
     uint8_t offset = binary_data_size_bytes.size() + 1;
 
     /* Set address to point to partition 2 */
-    memory_manager->setAddress(DEV_LOOP_PARTITION_2_ADDRESS + offset);
+    memory_manager->setAddress(DEV_LOOP_PARTITION_2_ADDRESS_START + offset);
     /* Write to the second partition (used for rollback) */
     write_success = memory_manager->writeToAddress(binary_data);
     if(write_success == false)
@@ -616,5 +663,41 @@ bool RoutineControl::handleDataCompressionEncryption(uint8_t receiver_id)
         /* TODO */
     }
 
+    return 1;
+}
+
+bool RoutineControl::eraseMemory(size_t address_or_size_parameter, uint16_t routine_id)
+{
+    static auto memory_manager = MemoryManager::getInstance(rc_logger);
+    switch(routine_id)
+    {
+        case 0x0101:
+        {
+            if(address_or_size_parameter < DEV_LOOP_PARTITION_1_ADDRESS_START || address_or_size_parameter > DEV_LOOP_PARTITION_2_ADDRESS_END)
+            {
+                LOG_INFO(rc_logger.GET_LOGGER(), "Erase memory routine 0x0101 failed setting the addres. Address not valid");
+                return 0;
+            }
+            memory_manager->setAddress(address_or_size_parameter);
+            memory_manager->setPath(DEV_LOOP);
+            break;
+        }
+        case 0x0102:
+        {
+            /* TODO: Work on the upper limit of the size param */
+            if((address_or_size_parameter <= 0)) /* || ((memory_manager->getAddress() * SECTOR_SIZE) + address_or_size_parameter) > (DEV_LOOP_PARTITION_2_ADDRESS_END))*/
+            {
+                LOG_INFO(rc_logger.GET_LOGGER(), "Erase memory routine 0x0102 failed setting the size. Size not valid");
+                return 0;
+            }
+            std::vector<uint8_t> zero_vector(address_or_size_parameter, 0);
+            memory_manager->writeToAddress(zero_vector);
+            break;
+        }
+        default:
+        {
+            return 0;
+        }
+    }
     return 1;
 }

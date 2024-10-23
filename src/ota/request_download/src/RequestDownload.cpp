@@ -352,7 +352,7 @@ std::pair<int,int> RequestDownloadService::extractSizeAndAddress( std::vector<ui
 bool RequestDownloadService::isValidMemoryRange(const int &memory_address, const int &memory_size)
 {
     /* Validate the full memory address */
-    if (memory_address < 0 || (static_cast<unsigned int>(memory_address) > 0xFFFFFFFFU))
+    if (memory_address < DEV_LOOP_PARTITION_1_ADDRESS_START || (static_cast<unsigned int>(memory_address) > DEV_LOOP_PARTITION_2_ADDRESS_END))
     {
         LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Invalid memory address: 0x{0:x}", memory_address);
         /* Request out of range -Invalid memory address */

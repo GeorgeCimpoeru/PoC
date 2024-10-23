@@ -104,7 +104,7 @@ void TransferData::processDataForTransfer(uint8_t receiver_id, std::vector<uint8
     current_data[0] = static_cast<uint8_t>(current_data.size() - 1);
     /* Display progress */
     std::cout << "\rProgress: " << static_cast<int>((static_cast<double>(bytes_sent) / total_size) * 100) << "% "
-                << "Sent: " << bytes_sent << " / " << total_size << " "
+                << "Sent: " << bytes_sent << " / " << total_size
                 << std::flush;
 }
 
@@ -112,7 +112,6 @@ void TransferData::processDataForTransfer(uint8_t receiver_id, std::vector<uint8
 /* frame format = {PCI_L, SID(0x36), block_sequence_counter, transfer_request_parameter_record}*/
 void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_request)
 {
-    std::cout << "Transfer data entered\n";
     /* Declaration of data as static in order to retain its value between calls */
     static std::vector<uint8_t> data;
     NegativeResponse nrc(socket, transfer_data_logger);
@@ -177,7 +176,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
 
     /* Write the chunk to the vector */
     data.insert(data.end(), transfer_request.begin() + 3, transfer_request.end());
-    /* Display progress, speed, and remaining time */
+    /* Display bytes received */
     std::cout << "\rBytes received: " << data.size()
                 << std::flush;
     if(ota_state == PROCESSING_TRANSFER_COMPLETE)

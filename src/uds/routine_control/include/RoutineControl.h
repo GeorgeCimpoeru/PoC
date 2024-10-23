@@ -123,6 +123,16 @@ private:
      * 
      */
     bool handleDataCompressionEncryption(uint8_t receiver_id);
+
+    /**
+     * @brief 
+     * 
+     * @param address_or_size_parameter 
+     * @param routine_id 
+     * @return true 
+     * @return false 
+     */
+    bool eraseMemory(size_t address_or_size_parameter, uint16_t routine_id);
 };
 
 #endif
