@@ -132,7 +132,7 @@ namespace MCU
       /* Request Transfer Exit */
       0x37,
       /* Authentication */
-      0x29
+      0x27
   };
 
   class ReceiveFrames
