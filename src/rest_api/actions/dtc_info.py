@@ -34,6 +34,9 @@ class DiagnosticTroubleCode(Action):
         """
         Converts a list of bit names into a hexdecimal mask.
         """
+        if not bit_names:
+            return 0xFF
+
         mask = 0
         for bit_name in bit_names:
             if bit_name in DTC_STATUS_BITS:
@@ -42,17 +45,17 @@ class DiagnosticTroubleCode(Action):
                 return make_response(jsonify(f"Invalid DTC status bit name: {bit_name}"), 400)
         return mask
 
-    def read_dtc_info(self, subfunc, dtc_mask_bits):
+    def read_dtc_info(self, subfunc, dtc_mask_bits, ecu_id):
         """ Byte 2 (Sub-function): Defines what kind of DTC report is requested.
                 0x01 for the number of DTCs by status mask.
                 0x02 for reporting DTCs by the status mask.
 
-        curl -X GET 'http://127.0.0.1:5000/read_dtc_info?subfunc=1&dtc_mask_bits=testFailed&dtc_mask_bits=confirmedDTC'
+        curl -X GET 'http://127.0.0.1:5000/api/read_dtc_info?subfunc=1&dtc_mask_bits=testFailed&dtc_mask_bits=confirmedDTC&ecu_id=0x12'
 
         """
         try:
 
-            id = (0x00 << 16) + (0xFA << 8) + self.id_ecu[ECU_BATTERY]
+            id = (0x00 << 16) + (0xFA << 8) + ecu_id# self.id_ecu[ECU_BATTERY]
 
             log_info_message(logger, "Requesting read DTC information")
             dtc_mask = self._get_dtc_mask_from_bits(dtc_mask_bits)

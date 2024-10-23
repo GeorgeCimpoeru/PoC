@@ -98,6 +98,9 @@ class Action(GF):
 
         log_info_message(logger, f"[Collect Response] Initial message received: {msg}")
 
+        total_data_length = 0
+        collected_data = []
+
         while msg is not None:
             if msg.data[1] == 0x7F and msg.data[3] == 0x78:
                 log_info_message(logger, f"[Collect Response] Response pending for SID {msg.data[2]:02X}. Waiting for actual response...")
@@ -108,13 +111,18 @@ class Action(GF):
             # First Frame
             if msg.data[0] == 0x10:
                 flag = True
-                msg_ext = msg[1:]
+                total_data_length = (msg.data[1] << 8) | msg.data[2]
+                collected_data = msg.data[3:]
                 log_info_message(logger, f"[Collect Response] First frame received: {msg_ext}")
 
             # Consecutive frame
             elif flag and 0x20 < msg.data[0] < 0x30:
-                msg_ext.data += msg.data[1:]
+                collected_data += msg.data[1:]
                 log_info_message(logger, f"[Collect Response] Consecutive frame received. Updated data: {msg_ext}")
+
+                if len(collected_data) >= total_data_length:
+                    log_info_message(logger, "[Collect Response] All frames received.")
+                    break
 
             # Simple frame or other types
             else:
@@ -126,8 +134,10 @@ class Action(GF):
 
         log_info_message(logger, f"[Collect Response] Final message after processing: {msg}")
 
-        if flag:
+        if flag and len(collected_data) >= total_data_length:
+            msg_ext = can.Message(arbitration_id=msg_ext.arbitration_id, data=collected_data)
             msg = msg_ext
+            log_info_message(logger, f"[Collect Response] Final assembled multi-frame message: {msg}")
 
         if msg is not None and self.__verify_frame(msg, sid):
             log_info_message(logger, f"[Collect Response] Valid message collected for SID {sid:02X}: {msg}")

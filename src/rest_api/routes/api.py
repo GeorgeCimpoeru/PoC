@@ -172,6 +172,17 @@ def read_dtc_info():
     try:
         errors = []
         log_info_message(logger, f"Read DTC Info Request received: {request.args}")
+
+        ecu_id_str = request.args.get('ecu_id', default='0x11')
+        try:
+            ecu_id = int(ecu_id_str, 16)
+        except ValueError:
+            errors.append({"error": "Invalid ecu", "details": f"Ecu {ecu_id_str} is not a valid hexadecimal value"}), 400
+
+        valid_values = [0x11, 0x12, 0x13]
+        if ecu_id not in valid_values:
+            errors.append({"error": "Invalid ecu", "details": f"Ecu {ecu_id} is not supported"}), 400
+
         subfunc = request.args.get('subfunc', default=1, type=int)
         if subfunc not in [1, 2]:
             errors.append({"error": "Invalid sub-function", "details": f"Sub-function {subfunc} is not supported"}), 400
@@ -184,7 +195,7 @@ def read_dtc_info():
         if errors:
             return jsonify({"errors": errors})
         dtc_instance = DiagnosticTroubleCode()
-        return dtc_instance.read_dtc_info(subfunc, dtc_mask_bits)
+        return dtc_instance.read_dtc_info(subfunc, dtc_mask_bits, ecu_id)
 
     except HTTPException as http_err:
         log_info_message(logger, f"HTTP Exception occurred: {http_err}")
