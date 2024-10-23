@@ -1,5 +1,9 @@
-package com.poc.p_couds
+package com.poc.p_couds.models
 
+import com.poc.p_couds.pojo.WriteBatteryResponseDataClass
+import com.poc.p_couds.pojo.WriteDoorsResponseDataClass
+import com.poc.p_couds.pojo.WriteEngineResponseDataClass
+import com.poc.p_couds.pojo.WriteHvacResponseDataClass
 import com.poc.p_couds.pojo.Authenticate
 import com.poc.p_couds.pojo.BatteryDataClass
 import com.poc.p_couds.pojo.ChangeStatus
@@ -20,6 +24,7 @@ import com.poc.p_couds.pojo.UpdateV
 import com.poc.p_couds.pojo.UpdateVResponse
 import com.poc.p_couds.pojo.VINResponse
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -28,17 +33,37 @@ import retrofit2.http.Path
 interface IApiService {
 
     //UDS
-    @GET("api/read_info_battery")
+    @GET("api/read_info_battery?is_manual_flow=false")
     fun getInfoBattery(): Call<BatteryDataClass>
 
-    @GET("api/read_info_engine")
+    @GET("api/read_info_engine?is_manual_flow=false")
     fun getInfoEngine(): Call<EngineDataClass>
 
-    @GET("api/read_info_doors")
+    @GET("api/read_info_doors?is_manual_flow=false")
     fun getInfoDoors(): Call<DoorsDataClass>
 
-    @GET("api/read_info_hvac")
+    @GET("api/read_info_hvac?is_manual_flow=false")
     fun getInfoHVAC(): Call<HVACDataClass>
+
+    @POST("api/write_info_battery")
+    suspend fun writeInfoBattery(
+        @Body request: Any
+    ): Response<Any>
+
+    @POST("api/write_info_engine")
+    suspend fun writeInfoEngine(
+        @Body request: Any
+    ): Response<Any>
+
+    @POST("api/write_info_doors")
+    suspend fun writeInfoDoors(
+        @Body request: Any
+    ): Response<Any>
+
+    @POST("api/write_info_hvac")
+    suspend fun writeInfoHVAC(
+        @Body request: Any
+    ): Response<Any>
 
     //MAIN
 

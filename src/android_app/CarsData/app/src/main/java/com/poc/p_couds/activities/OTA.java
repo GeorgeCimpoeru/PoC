@@ -28,7 +28,6 @@ import com.poc.p_couds.R;
 import com.poc.p_couds.UpdateViewModel;
 import com.poc.p_couds.UpdateViewModelFactory;
 import com.poc.p_couds.fragments.Fragment_Update;
-import com.poc.p_couds.fragments.ManualFragment;
 import com.poc.p_couds.pojo.ECU;
 import com.poc.p_couds.pojo.FileNode;
 

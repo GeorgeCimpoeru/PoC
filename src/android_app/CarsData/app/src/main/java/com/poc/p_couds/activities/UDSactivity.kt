@@ -1,5 +1,6 @@
 package com.poc.p_couds.activities
 
+import LoadingIndicator
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
@@ -40,6 +41,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -86,8 +89,8 @@ class UDSactivity : ComponentActivity() {
             modifier = Modifier.fillMaxSize(),
             bottomBar = {
                 BottomAppBar(
-                    selectedIndex = selectedIndex.value,
-                    onButtonSelected = { index -> selectedIndex.value = index }
+                    selectedIndex = selectedIndex.intValue,
+                    onButtonSelected = { index -> selectedIndex.intValue = index }
                 )
             },
         ) {
@@ -98,7 +101,7 @@ class UDSactivity : ComponentActivity() {
 
                 ThreeColumnLayout(
                     modifier = Modifier.weight(1f),
-                    selectedIndex = selectedIndex.value
+                    selectedIndex = selectedIndex.intValue
                 )
             }
         }
@@ -209,25 +212,41 @@ class UDSactivity : ComponentActivity() {
         val screenWidth = LocalConfiguration.current.screenWidthDp
         val columnWidth: Dp = (screenWidth * 0.27).dp
         var vectImg: ImageVector = ImageVector.vectorResource(id = R.drawable.car)
+        val isLoading by ecusInfoViewModel.loading.collectAsState()
         when (selectedIndex) {
             0 -> {
                 vectImg = ImageVector.vectorResource(id = R.drawable.car)
             }
             1 -> {
                 vectImg = ImageVector.vectorResource(id = R.drawable.battery)
-                ecusInfoViewModel.fetchBatteryInfo()
             }
             2 -> {
                 vectImg = ImageVector.vectorResource(id = R.drawable.engine)
-                ecusInfoViewModel.fetchEngineInfo()
             }
             3 -> {
                 vectImg = ImageVector.vectorResource(id = R.drawable.door)
-                ecusInfoViewModel.fetchDoorsInfo()
             }
             4 -> {
                 vectImg = ImageVector.vectorResource(id = R.drawable.hvac)
-                ecusInfoViewModel.fetchHvacInfo()
+            }
+        }
+        LaunchedEffect(selectedIndex) {
+            when (selectedIndex) {
+                0 -> {
+                    /*TODO*/
+                }
+                1 -> {
+                    ecusInfoViewModel.fetchBatteryInfo()
+                }
+                2 -> {
+                    ecusInfoViewModel.fetchEngineInfo()
+                }
+                3 -> {
+                    ecusInfoViewModel.fetchDoorsInfo()
+                }
+                4 -> {
+                    ecusInfoViewModel.fetchHvacInfo()
+                }
             }
         }
         Box(
@@ -251,33 +270,33 @@ class UDSactivity : ComponentActivity() {
                 ) {
                     when (selectedIndex) {
                         0 -> {
-                            ParamsButton(Color.Blue,"Val1", "Param1", ecusInfoViewModel, "MCU")
-                            ParamsButton(Color.Blue,"Val2", "Param2", ecusInfoViewModel, "MCU")
-                            ParamsButton(Color.Blue,"Val3", "Param3", ecusInfoViewModel, "MCU")
-                            ParamsButton(Color.Blue,"Val4", "Param4", ecusInfoViewModel, "MCU")
-                            ParamsButton(Color.Blue,"Val5", "Param5", ecusInfoViewModel, "MCU")
+                            ParamsButton(Color.Blue,"Val1", "Param1", "MCU")
+                            ParamsButton(Color.Blue,"Val2", "Param2", "MCU")
+                            ParamsButton(Color.Blue,"Val3", "Param3", "MCU")
+                            ParamsButton(Color.Blue,"Val4", "Param4", "MCU")
+                            ParamsButton(Color.Blue,"Val5", "Param5", "MCU")
                         }
                         1 -> {
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.batteryInfo?.battery_level}", "Battery level", ecusInfoViewModel, "Battery")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.batteryInfo?.battery_state_of_charge}", "State of charge", ecusInfoViewModel, "Battery")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.batteryInfo?.battery_level}", "Battery level", "Battery")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.batteryInfo?.battery_state_of_charge}", "State of charge", "Battery")
                         }
                         2 -> {
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.coolant_temperature}", "Coolant temp", ecusInfoViewModel, "Engine")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.engine_load}", "Load", ecusInfoViewModel, "Engine")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.engine_rpm}", "Rpm", ecusInfoViewModel, "Engine")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.fuel_level}", "Fuel", ecusInfoViewModel, "Engine")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.fuel_pressure}", "Fuel pressure", ecusInfoViewModel, "Engine")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.coolant_temperature}", "Coolant temp", "Engine")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.engine_load}", "Load", "Engine")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.engine_rpm}", "Rpm", "Engine")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.fuel_level}", "Fuel", "Engine")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.fuel_pressure}", "Fuel pressure", "Engine")
                         }
                         3 -> {
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.doorsInfo?.ajar}", "Ajar", ecusInfoViewModel, "Doors")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.doorsInfo?.door}", "Door", ecusInfoViewModel, "Doors")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.doorsInfo?.ajar}", "Ajar", "Doors")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.doorsInfo?.door}", "Door", "Doors")
                         }
                         4 -> {
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.ambient_air_temperature}", "Ambient temp", ecusInfoViewModel, "HVAC")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.cabin_temperature}", "Cabin temp", ecusInfoViewModel, "HVAC")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.cabin_temperature_driver_set}", "Driver set temp", ecusInfoViewModel, "HVAC")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.fan_speed}", "Fan speed", ecusInfoViewModel, "HVAC")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.AC_Status}", "AC status", ecusInfoViewModel, "HVAC")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.ambient_air_temperature}", "Ambient temp", "HVAC")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.cabin_temperature}", "Cabin temp", "HVAC")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.cabin_temperature_driver_set}", "Driver set temp", "HVAC")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.fan_speed}", "Fan speed", "HVAC")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.AC_Status}", "AC status", "HVAC")
                         }
                     }
                 }
@@ -293,6 +312,9 @@ class UDSactivity : ComponentActivity() {
                         tint = Color.White,
                         modifier = Modifier.size(350.dp)
                     )
+                    if (isLoading) {
+                        LoadingIndicator()
+                    }
                 }
 
                 Column(
@@ -305,32 +327,32 @@ class UDSactivity : ComponentActivity() {
                 ) {
                     when (selectedIndex) {
                         0 -> {
-                            ParamsButton(Color.Blue,"Val6", "Param6", ecusInfoViewModel, "MCU")
-                            ParamsButton(Color.Blue,"Val7", "Param7", ecusInfoViewModel, "MCU")
-                            ParamsButton(Color.Blue,"Val8", "Param8", ecusInfoViewModel, "MCU")
-                            ParamsButton(Color.Blue,"Val9", "Param9", ecusInfoViewModel, "MCU")
-                            ParamsButton(Color.Blue,"Val10", "Param10", ecusInfoViewModel, "MCU")
+                            ParamsButton(Color.Blue,"Val6", "Param6", "MCU")
+                            ParamsButton(Color.Blue,"Val7", "Param7", "MCU")
+                            ParamsButton(Color.Blue,"Val8", "Param8", "MCU")
+                            ParamsButton(Color.Blue,"Val9", "Param9", "MCU")
+                            ParamsButton(Color.Blue,"Val10", "Param10", "MCU")
                         }
                         1 -> {
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.batteryInfo?.percentage}", "Percentage", ecusInfoViewModel, "Battery")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.batteryInfo?.voltage}", "Voltage", ecusInfoViewModel, "Battery")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.batteryInfo?.percentage}", "Percentage", "Battery")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.batteryInfo?.voltage}", "Voltage", "Battery")
                         }
                         2 -> {
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.intake_air_temperature}", "Intake air temp", ecusInfoViewModel, "Engine")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.oil_temperature}", "Oil temp", ecusInfoViewModel, "Engine")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.throttle_position}", "Throttle position", ecusInfoViewModel, "Engine")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.vehicle_speed}", "Speed", ecusInfoViewModel, "Engine")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.intake_air_temperature}", "Intake air temp", "Engine")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.oil_temperature}", "Oil temp", "Engine")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.throttle_position}", "Throttle position", "Engine")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.engineInfo?.vehicle_speed}", "Speed", "Engine")
                         }
                         3 -> {
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.doorsInfo?.passenger}", "Passanger", ecusInfoViewModel, "Doors")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.doorsInfo?.passenger_lock}", "Passanger lock", ecusInfoViewModel, "Doors")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.doorsInfo?.passenger}", "Passanger", "Doors")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.doorsInfo?.passenger_lock}", "Passanger lock", "Doors")
                         }
                         4 -> {
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.Air_Recirculation}", "Air recirc", ecusInfoViewModel, "HVAC")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.Defrost}", "Defrost", ecusInfoViewModel, "HVAC")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.Front}", "Front", ecusInfoViewModel, "HVAC")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.Legs}", "Legs", ecusInfoViewModel, "HVAC")
-                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.mass_air_flow}", "Mass air flow", ecusInfoViewModel, "HVAC")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.Air_Recirculation}", "Air recirc", "HVAC")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.Defrost}", "Defrost", "HVAC")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.Front}", "Front", "HVAC")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.hvac_modes?.Legs}", "Legs", "HVAC")
+                            ParamsButton(Color.Blue,"${ecusInfoViewModel.hvacInfo?.mass_air_flow}", "Mass air flow", "HVAC")
                         }
                     }
                 }
@@ -373,10 +395,8 @@ class UDSactivity : ComponentActivity() {
         }
     }
 
-
-
     @Composable
-    fun ParamsButton(buttonColor: Color, txtBtn: String, paramName: String, ecusInfoViewModel: EcusInfoViewModel, selectedEcu: String) {
+    fun ParamsButton(buttonColor: Color, txtBtn: String, paramName: String, selectedEcu: String) {
         var showDialog by remember { mutableStateOf(false) }
         var inputText by remember { mutableStateOf(txtBtn) }
         Button(
@@ -396,7 +416,6 @@ class UDSactivity : ComponentActivity() {
                 onDismiss = { showDialog = false },
                 inputText = inputText,
                 onInputChange = { inputText = it },
-                ecusInfoViewModel,
                 selectedEcu
             )
         }
@@ -408,7 +427,6 @@ class UDSactivity : ComponentActivity() {
         onDismiss: () -> Unit,
         inputText: String,
         onInputChange: (String) -> Unit,
-        ecusInfoViewModel: EcusInfoViewModel,
         selectedEcu: String
     ) {
         Dialog(onDismissRequest = onDismiss, properties = DialogProperties()) {

@@ -20,16 +20,18 @@ public class APIClient {
     private static Retrofit retrofit = null;
 
     public static Retrofit getClient() {
-        String Base_url = "http://10.0.2.2:5001/";
+        String Base_url = "http://10.0.2.2:5000/";
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
         interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
         OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).readTimeout(60, TimeUnit.SECONDS).build();
 
-        retrofit = new Retrofit.Builder()
-                .baseUrl(Base_url)
-                .addConverterFactory(GsonConverterFactory.create())
-                .client(client)
-                .build();
+        if (retrofit == null) {
+            retrofit = new Retrofit.Builder()
+                    .baseUrl(Base_url)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .client(client)
+                    .build();
+        }
         return retrofit;
     }
 }
