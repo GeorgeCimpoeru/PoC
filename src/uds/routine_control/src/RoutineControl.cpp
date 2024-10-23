@@ -69,7 +69,6 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
   
     std::vector<uint8_t> binary_data;
     std::vector<uint8_t> adress_data;
-    MemoryManager* memory_manager = MemoryManager::getInstance(DEV_LOOP_PARTITION_1_ADDRESS, DEV_LOOP, rc_logger);
     switch(routine_identifier)
     {
         case 0x0101:
@@ -126,6 +125,15 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
 
             if(receiver_id != MCU_ID)
             {
+                auto rds_data = RequestDownloadService::getRdsData();
+                auto memory_manager = MemoryManager::getInstance(rc_logger);
+                /* Address and path should have been initialized from Request Download. If they are not, initialisation is done here.*/            
+                if(memory_manager->getAddress() != rds_data.address || memory_manager->getPath() != DEV_LOOP)
+                {
+                    LOG_WARN(rc_logger.GET_LOGGER(), "Write to file routine called with uninitialized memory manager instance. Initilization done in write to file routine.");
+                    memory_manager->setAddress(rds_data.address);
+                    memory_manager->setPath(DEV_LOOP);
+                }
                 uint8_t file_size_format = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), 1, rc_logger)[0];
                 auto file_size_bytes = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress() + 1, file_size_format, rc_logger);   
                 uint8_t binary_offset = sizeof(file_size_format) + file_size_format;
@@ -331,11 +339,17 @@ bool RoutineControl::activateSoftware()
 }
 bool RoutineControl::verifySoftware(uint8_t receiver_id)
 {
+    auto rds_data = RequestDownloadService::getRdsData();
     std::vector<uint8_t> binary_data;
     if(receiver_id != MCU_ID)
     {
-
-        MemoryManager* memory_manager = MemoryManager::getInstance(DEV_LOOP_PARTITION_1_ADDRESS, DEV_LOOP, rc_logger); 
+        auto memory_manager = MemoryManager::getInstance(rc_logger);
+        if(memory_manager->getAddress() != rds_data.address || memory_manager->getPath() != DEV_LOOP)
+        {
+            LOG_WARN(rc_logger.GET_LOGGER(), "Verify software routine called with uninitialized memory manager instance. Initilization done in verify software routine.");
+            memory_manager->setAddress(rds_data.address);
+            memory_manager->setPath(DEV_LOOP);
+        }
         uint8_t binary_size_format = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress(), 1, rc_logger)[0];
         auto binary_size_bytes = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress() + 1, binary_size_format, rc_logger);    
         uint8_t binary_offset = sizeof(binary_size_format) + binary_size_format;
@@ -348,8 +362,7 @@ bool RoutineControl::verifySoftware(uint8_t receiver_id)
         /* Read the binary data from memory */    
         binary_data = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress() + binary_offset, binary_size, rc_logger);
 
-        size_t checksum_address = DEV_LOOP_PARTITION_1_ADDRESS + 1 + binary_size_format + binary_size;
-        uint8_t checksum = MemoryManager::readFromAddress(DEV_LOOP, checksum_address, 1, rc_logger)[0];
+        uint8_t checksum = MemoryManager::readFromAddress(DEV_LOOP, memory_manager->getAddress() + 1 + binary_size_format + binary_size, 1, rc_logger)[0];
         uint8_t recomputed_checksum = TransferData::computeChecksum(binary_data.data(), binary_data.size());
         if(checksum != recomputed_checksum)
         {
@@ -370,7 +383,6 @@ bool RoutineControl::verifySoftware(uint8_t receiver_id)
         binary_data = MemoryManager::readBinary(path_to_zip, rc_logger);
     }
 
-    auto rds_data = RequestDownloadService::getRdsData();
     /* Check if the binary data is in ELF format */
     if (binary_data.size() >= 4)
     {

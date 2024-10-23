@@ -13,7 +13,6 @@ TransferData::TransferData(int socket, Logger transfer_data_logger)
 MemoryManager* TransferData::memory_manager = nullptr;
 uint8_t TransferData::expected_block_sequence_number = 0x01;  /* Start from 1 */
 size_t TransferData::chunk_size = 0;
-uint8_t TransferData::expected_transfer_data_requests = 0;
 /* Static vector to store the checksums */
 std::vector<uint8_t>TransferData::checksums;
 
@@ -135,28 +134,30 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
         AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
         return;
     }
-    if (expected_block_sequence_number != block_sequence_counter)
-    {
-        /* Wrong block sequence counter - prepare a negative response */
-        nrc.sendNRC(can_id, TD_SID, NegativeResponse::WBSC);
-        AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
-        return;
-    }
 
     OtaUpdateStatesEnum ota_state = static_cast<OtaUpdateStatesEnum>(MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0]);
     if(ota_state == WAIT_DOWNLOAD_COMPLETED)
     {
+        /* Request Download informations */
+        RDSData rds_data = RequestDownloadService::getRdsData();
         /* Get chunk_size from request download */
-        chunk_size = 5;
+        chunk_size = rds_data.max_number_block;
         /* set expected transfer data requests that is defined in request download */
-        expected_transfer_data_requests = MAX_TRANSER_DATA_BYTES;
         expected_block_sequence_number = 1;
-        TransferData::memory_manager = MemoryManager::getInstance(DEV_LOOP_PARTITION_1_ADDRESS, DEV_LOOP, transfer_data_logger);                
-
+        TransferData::memory_manager = MemoryManager::getInstance(transfer_data_logger);
+        /* Address and path should have been initialized from Request Download. If they are not, initialisation is done here.*/            
+        if(memory_manager->getAddress() != rds_data.address || memory_manager->getPath() != DEV_LOOP)
+        {
+            LOG_WARN(transfer_data_logger.GET_LOGGER(), "Transfer Data initialized without setting address and path in Request Download. Initialization done in Transfer Data.");
+            memory_manager->setAddress(rds_data.address);
+            memory_manager->setPath(DEV_LOOP);
+        }
         memory_write_status = false;
+
         MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING});
         ota_state = static_cast<OtaUpdateStatesEnum>(MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0]);
     }
+
 
     if(ota_state != PROCESSING && ota_state != PROCESSING_TRANSFER_COMPLETE)
     {
@@ -166,16 +167,23 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
         return;
     }
 
+    if (expected_block_sequence_number != block_sequence_counter)
+    {
+        /* Wrong block sequence counter - prepare a negative response */
+        nrc.sendNRC(can_id, TD_SID, NegativeResponse::WBSC);
+        AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
+        return;
+    }
+
     /* Write the chunk to the vector */
     data.insert(data.end(), transfer_request.begin() + 3, transfer_request.end());
     /* Display progress, speed, and remaining time */
-    std::cout << "\rData received: " << data.size() << '\n'
+    std::cout << "\rBytes received: " << data.size()
                 << std::flush;
     if(ota_state == PROCESSING_TRANSFER_COMPLETE)
     {
         if(memory_write_status == false)
         {
-            memory_manager->setAddress(DEV_LOOP_PARTITION_1_ADDRESS);
             memory_write_status = memory_manager->writeToAddress(data);
             if(memory_write_status == false)
             {
@@ -187,7 +195,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
             /* Status remains PROCESSING_TRANSFER_COMPLETE */
             response.clear();
             /* prepare positive response */
-            response.push_back(0x02); /* PCI */
+            response.push_back(0x03); /* PCI */
             response.push_back(0x76); /* Service ID */
             response.push_back(block_sequence_counter); /* block_sequence_counter */
             response.emplace_back(static_cast<uint8_t>(ota_state));
@@ -200,7 +208,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
     /* Continue */
     response.clear();
     /* prepare positive response */
-    response.push_back(0x02); /* PCI */
+    response.push_back(0x03); /* PCI */
     response.push_back(0x76); /* Service ID */
     response.push_back(block_sequence_counter); /* block_sequence_counter */
     response.emplace_back(static_cast<uint8_t>(ota_state));

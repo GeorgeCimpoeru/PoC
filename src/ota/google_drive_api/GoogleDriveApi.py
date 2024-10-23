@@ -130,7 +130,7 @@ class GDriveAPI:
 
     def searchVersion(self, ecu_id, sw_version_byte, return_file=False):
         sw_version = self.__convertByteToSwVersion(hex(sw_version_byte))
-        print(f"{GREEN}Searching in Google Drive for version" +
+        print(f"{GREEN}Searching in Google Drive for version " +
               ecu_map[ecu_id] + ' ' + sw_version + f"{RESET}")
 
         self.getDriveData()
