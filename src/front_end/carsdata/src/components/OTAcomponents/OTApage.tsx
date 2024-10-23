@@ -5,7 +5,7 @@ import NavbarOta from "@/src/components/OTAcomponents/NavbarOta";
 import TableVersionControl from "@/src/components/OTAcomponents/TableVersionControl";
 import TableHistory from "@/src/components/OTAcomponents/TableHistory";
 import {displayLoadingCircle, displayErrorPopup, removeLoadingCicle} from '../sharedComponents/LoadingCircle';
-
+import logger from '@/src/utils/Logger';
 
 let MCU_versions : string = '';
 let Battery_versions : string = '';
@@ -37,6 +37,8 @@ getAvailable();
 
 
 const OTApage = () => {
+    logger.init();
+
     let history1: { id: number, artifact: string, status: string, startTime: string, size: string, uploadedBy: string }[] = [
         { "id": 0, "artifact": "Software update 1", "status": "Failed", "startTime": "18 July 2024, 09:30", "size": "23kB", "uploadedBy": "user1" },
         { "id": 1, "artifact": "Software update 2", "status": "Succeded", "startTime": "20 July 2024, 12:30", "size": "235kB", "uploadedBy": "user1" },

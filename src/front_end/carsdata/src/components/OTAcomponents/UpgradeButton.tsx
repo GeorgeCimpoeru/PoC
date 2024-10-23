@@ -2,8 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Modal } from 'antd';
 import {displayLoadingCircle, displayErrorPopup, removeLoadingCicle} from '../sharedComponents/LoadingCircle';
+import logger from '@/src/utils/Logger';
 
 const UpgradeButton = (props: any) => {
+    logger.init();
+    
     const [isVersionPopupVisible, setIsVersionPopupVisible] = useState(false);
 
     const showVersionPopup = () => setIsVersionPopupVisible(true);

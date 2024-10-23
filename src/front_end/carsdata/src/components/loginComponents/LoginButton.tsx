@@ -1,7 +1,10 @@
 'use client';
 import React from 'react';
+import logger from '@/src/utils/Logger';
 
 const LoginButton = () => {
+    logger.init();
+    
     const handleLogin = () => {
         console.log('Login button clicked');
         // here we will create an event listener for all the logic behind login
