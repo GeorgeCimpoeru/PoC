@@ -17,10 +17,9 @@ import android.widget.Toast;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 import com.poc.p_couds.APIClient;
-import com.poc.p_couds.IApiService;
+import com.poc.p_couds.models.IApiService;
 import com.poc.p_couds.R;
 import com.poc.p_couds.fragments.Fragment_Update;
-import com.poc.p_couds.fragments.ManualFragment;
 import com.poc.p_couds.pojo.ECU;
 
 import java.io.IOException;
