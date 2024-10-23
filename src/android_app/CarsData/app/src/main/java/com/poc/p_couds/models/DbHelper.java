@@ -38,7 +38,6 @@ public class DbHelper extends SQLiteOpenHelper {
                 + ARTIFACT_COL + " TEXT PRIMARY KEY UNIQUE, "
                 + STATUS_COL + " TEXT, "
                 + START_TIME_COL + " TEXT, "
-                + START_TIME_COL + " TEXT, "
                 + SIZE_COL + " TEXT)";
         sqLiteDatabase.execSQL(query);
     }

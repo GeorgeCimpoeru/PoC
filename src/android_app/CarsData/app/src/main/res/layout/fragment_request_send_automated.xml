@@ -38,6 +38,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/tester_present"/>
                 <androidx.appcompat.widget.SwitchCompat
+                    android:id="@id/change_session"
                     android:layout_width="105dp"
                     android:layout_height="wrap_content"
                     android:text="@string/session"/>

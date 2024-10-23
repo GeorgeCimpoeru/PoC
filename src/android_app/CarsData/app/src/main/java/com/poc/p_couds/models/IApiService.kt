@@ -7,6 +7,7 @@ import com.poc.p_couds.pojo.WriteHvacResponseDataClass
 import com.poc.p_couds.pojo.Authenticate
 import com.poc.p_couds.pojo.BatteryDataClass
 import com.poc.p_couds.pojo.ChangeStatus
+import com.poc.p_couds.pojo.ChangeStatusSession
 import com.poc.p_couds.pojo.DoorsDataClass
 import com.poc.p_couds.pojo.ECU
 import com.poc.p_couds.pojo.EngineDataClass
@@ -23,6 +24,8 @@ import com.poc.p_couds.pojo.UpdateHistory
 import com.poc.p_couds.pojo.UpdateV
 import com.poc.p_couds.pojo.UpdateVResponse
 import com.poc.p_couds.pojo.VINResponse
+import com.poc.p_couds.pojo.WriteTiming
+import com.poc.p_couds.pojo.WriteTimingPost
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Body
@@ -83,8 +86,8 @@ interface IApiService {
     @GET("/api/history_updates")
     fun requestListOfUpdatesHistory(): Call<List<UpdateHistory>>
 
-    @GET("/api/change_session")
-    fun requestChangeStatus(): Call<ChangeStatus>
+    @POST("/api/change_session")
+    fun requestChangeStatus(@Body changeStatusSession: ChangeStatusSession): Call<ChangeStatus>
 
     @GET("/api/read_dtc_info")
     fun requestReadDtcInfo(): Call<ReadDtc>
@@ -103,4 +106,7 @@ interface IApiService {
 
     @GET("/api/get_identifiers")
     fun requestGetIdentifiers(): Call<GetIdentifiers>
+
+    @POST("/api/write_timing")
+    fun requestWriteTiming(@Body writeTimingPost: WriteTimingPost): Call<WriteTiming>
 }

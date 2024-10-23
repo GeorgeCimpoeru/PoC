@@ -193,7 +193,10 @@ class UDSactivity : ComponentActivity() {
                 ) {
                     DropdownMenuItem(
                         text = { Text(text = "Send requests") },
-                        onClick = {}
+                        onClick = {
+                            val intent = Intent(this@UDSactivity, RequestActivity::class.java)
+                            startActivity(intent)
+                        }
                     )
                 }
             },
