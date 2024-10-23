@@ -20,6 +20,8 @@ from actions.ecu_reset import Reset  # noqa: E402
 from actions.security_decorator import *  # noqa: E402
 from utils.input_validation import validate_update_request  # noqa: E402
 from config import *  # noqa: E402
+from werkzeug.exceptions import HTTPException
+from actions.dtc_info import DTC_STATUS_BITS
 
 api_bp = Blueprint('api', __name__)
 
@@ -168,15 +170,28 @@ def authenticate():
 @api_bp.route('/read_dtc_info', methods=['GET'])
 def read_dtc_info():
     try:
-        reader = DiagnosticTroubleCode()
-        response_json = reader.read_dtc_info()
-        return jsonify(response_json), 200
+        errors = []
+        log_info_message(logger, f"Read DTC Info Request received: {request.args}")
+        subfunc = request.args.get('subfunc', default=1, type=int)
+        if subfunc not in [1, 2]:
+            errors.append({"error": "Invalid sub-function", "details": f"Sub-function {subfunc} is not supported"}), 400
+        dtc_mask_bits = request.args.getlist('dtc_mask_bits')
+        invalid_bits = [bit for bit in dtc_mask_bits if bit not in DTC_STATUS_BITS]
 
-    except CustomError as e:
-        return jsonify(e.message), 400
+        if invalid_bits:
+            errors.append({"error": "Invalid DTC mask bits", "details": f"The following bits are not supported: {invalid_bits}"})
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        if errors:
+            return jsonify({"errors": errors})
+        dtc_instance = DiagnosticTroubleCode()
+        return dtc_instance.read_dtc_info(subfunc, dtc_mask_bits)
+
+    except HTTPException as http_err:
+        log_info_message(logger, f"HTTP Exception occurred: {http_err}")
+        return jsonify({"error": "HTTP Exception occurred", "details": str(http_err)}), http_err.code
+    except Exception as err:
+        log_info_message(logger, f"An unexpected error occurred: {err}")
+        return jsonify({"error": "An unexpected error occurred", "details": str(err)}), 500
 
 
 @api_bp.route('/clear_dtc_info', methods=['GET'])
