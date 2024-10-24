@@ -137,6 +137,8 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
     OtaUpdateStatesEnum ota_state = static_cast<OtaUpdateStatesEnum>(MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0]);
     if(ota_state == WAIT_DOWNLOAD_COMPLETED)
     {
+        /* Clear old data */
+        data.clear();
         /* Request Download informations */
         RDSData rds_data = RequestDownloadService::getRdsData();
         /* Get chunk_size from request download */

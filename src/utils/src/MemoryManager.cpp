@@ -251,6 +251,7 @@ std::vector<uint8_t> MemoryManager::readFromAddress(std::string path, off_t addr
     if (bytes_readed != size)
     {
          LOG_ERROR(logger.GET_LOGGER(), "Failed to read the file " + path);
+        close(sd_fd);
         return {};
     }
 

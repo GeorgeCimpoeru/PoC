@@ -276,7 +276,11 @@ void RequestDownloadService::requestDownloadResponse(canid_t id, int memory_addr
     LOG_INFO(RDSlogger.GET_LOGGER(), "memory adress: 0x{0:x}", static_cast<int>(memory_address));
 
     MemoryManager* managerInstance = MemoryManager::getInstance(memory_address, path, RDSlogger);
-    managerInstance->getAddress();
+    if(managerInstance->getAddress() != memory_address || managerInstance->getPath() != DEV_LOOP)
+    {
+        managerInstance->setAddress(memory_address);
+        managerInstance->setPath(DEV_LOOP);
+    }
     /* Call response method from generate_frames */
     generate_frames.requestDownloadResponse(id, max_number_block);
     MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_COMPLETED});
