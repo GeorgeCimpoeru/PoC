@@ -5,6 +5,7 @@ import { batteryData, readInfoBattery } from './DivCenterBattery';
 import { writeInfoBattery } from './DivCenterBattery';
 import ModalUDS from './ModalUDS';
 import { displayLoadingCircle, displayErrorPopup, removeLoadingCicle } from '../sharedComponents/LoadingCircle';
+import { doorsData, readInfoDoors, writeInfoDoors } from './DivCenterDoors'
 
 
 let intervalID: number | NodeJS.Timeout | null = null;
@@ -237,25 +238,6 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
-    const readInfoDoors = async () => {
-        displayLoadingCircle();
-        console.log("Reading info doors...");
-        try {
-            await fetch(`http://127.0.0.1:5000/api/read_info_doors`, {
-                method: 'GET',
-            }).then(response => response.json())
-                .then(data => {
-                    setData23(data);
-                    console.log(data);
-                    fetchLogs();
-                });
-        } catch (error) {
-            console.log(error);
-            removeLoadingCicle();
-        }
-        removeLoadingCicle();
-    };
-
     const getNewSoftVersions = async (): Promise<{ message: string; versions: { name: string; version: string }[] }> => {
         displayLoadingCircle();
         const responseContainer = document.getElementById('response-data');
@@ -351,46 +333,46 @@ const SendRequests = () => {
     };
 
 
-    const writeInfoDoors = async () => {
-        displayLoadingCircle();
-        const door = checkInput('Enter Door Parameter:');
-        const passenger = checkInput('Enter Passenger:');
-        const passenger_lock = checkInput('Enter Passenger Lock:');
-        const driver = checkInput('Enter Driver:');
-        const ajar = checkInput('Enter Ajar:');
-        const is_manual_flow = true;
-        // const windows_closed = prompt('Enter Window Status:');
+    // const writeInfoDoors = async () => {
+    //     displayLoadingCircle();
+    //     const door = checkInput('Enter Door Parameter:');
+    //     const passenger = checkInput('Enter Passenger:');
+    //     const passenger_lock = checkInput('Enter Passenger Lock:');
+    //     const driver = checkInput('Enter Driver:');
+    //     const ajar = checkInput('Enter Ajar:');
+    //     const is_manual_flow = true;
+    //     // const windows_closed = prompt('Enter Window Status:');
 
-        const data = {
-            door: door || null,
-            passenger: passenger || null,
-            passenger_lock: passenger_lock || null,
-            driver: driver || null,
-            ajar: ajar || null,
-            is_manual_flow: is_manual_flow || null,
-            // windows_closed: windows_closed || null,
-        };
-        console.log("Writing info doors...");
-        console.log(data);
-        try {
-            await fetch(`http://127.0.0.1:5000/api/write_info_doors`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            }).then(response => response.json())
-                .then(data => {
-                    setData23(data);
-                    console.log(data);
-                    fetchLogs();
-                });
-        } catch (error) {
-            console.log(error);
-            removeLoadingCicle();
-        }
-        removeLoadingCicle();
-    }
+    //     const data = {
+    //         door: door || null,
+    //         passenger: passenger || null,
+    //         passenger_lock: passenger_lock || null,
+    //         driver: driver || null,
+    //         ajar: ajar || null,
+    //         is_manual_flow: is_manual_flow || null,
+    //         // windows_closed: windows_closed || null,
+    //     };
+    //     console.log("Writing info doors...");
+    //     console.log(data);
+    //     try {
+    //         await fetch(`http://127.0.0.1:5000/api/write_info_doors`, {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //             },
+    //             body: JSON.stringify(data),
+    //         }).then(response => response.json())
+    //             .then(data => {
+    //                 setData23(data);
+    //                 console.log(data);
+    //                 fetchLogs();
+    //             });
+    //     } catch (error) {
+    //         console.log(error);
+    //         removeLoadingCicle();
+    //     }
+    //     removeLoadingCicle();
+    // }
 
     const writeInfoHvac = async () => {
         displayLoadingCircle();
@@ -568,7 +550,7 @@ const SendRequests = () => {
                     `New P2 Max Time: ${writtenValues["New P2 Max Time"]}\n` +
                     `New P2 Star Max: ${writtenValues["New P2 Star Max"]}`;
 
-                    displayErrorPopup(message);
+                displayErrorPopup(message);
             } else {
                 displayErrorPopup(`Error: ${data.message}`);
             }
@@ -837,8 +819,24 @@ const SendRequests = () => {
                     </div>
                     {/* <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoEngine} disabled={disableInfoEngineBtns}>Read Info Engine</button> */}
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoEngine} disabled={disableInfoEngineBtns}>Write Info Engine</button>
-                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoDoors} disabled={disableInfoDoorsBtns}>Read Info Doors</button>
-                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoDoors} disabled={disableInfoDoorsBtns}>Write Doors Info</button>
+
+                    <button
+                        className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white"
+                        onClick={() => readInfoDoors(true, setData23)}
+                        disabled={disableInfoDoorsBtns}
+                    >
+                        Read Info Doors
+                    </button>
+
+                    <button
+                        className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white"
+                        onClick={() => writeInfoDoors(setData23)}
+                        disabled={disableInfoDoorsBtns}
+                    >
+                        Write Info Doors
+                    </button>
+
+                    {/* <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoDoors(setData23)} disabled={disableInfoDoorsBtns}>Write Doors Info</button> */}
                     {/* <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoHvac} disabled={disableInfoHvacBtns}>Read Info Hvac</button> */}
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoHvac} disabled={disableInfoHvacBtns}>Write Info Hvac</button>
                 </div>
