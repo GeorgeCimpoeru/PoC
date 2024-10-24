@@ -83,7 +83,7 @@ class Action(GF):
 
     def __collect_response(self, sid: int):
         """
-        Collects the response message from the CAN bus.
+        Collects the response message from the CAN bus, handling multi-frame responses if necessary.
 
         Args:
         - sid: Service identifier to verify the response.
@@ -91,40 +91,44 @@ class Action(GF):
         Returns:
         - The collected CAN message if valid, otherwise None.
         """
-        flag = False
-        msg_ext = None
         msg = self.bus.recv(Config.BUS_RECEIVE_TIMEOUT)
         self.last_msg = msg
+
+        if msg is None:
+            log_error_message(logger, "[Collect Response] No initial message received.")
+            return None
 
         log_info_message(logger, f"[Collect Response] Initial message received: {msg}")
 
         total_data_length = 0
         collected_data = []
 
+        # Handle multi-frame responses
         while msg is not None:
+            # Check for response pending (negative response, 0x7F with 0x78 sub-function)
             if msg.data[1] == 0x7F and msg.data[3] == 0x78:
                 log_info_message(logger, f"[Collect Response] Response pending for SID {msg.data[2]:02X}. Waiting for actual response...")
                 msg = self.bus.recv(Config.BUS_RECEIVE_TIMEOUT)
                 self.last_msg = msg
                 continue
 
-            # First Frame
+            # First Frame (starts with 0x10)
             if msg.data[0] == 0x10:
-                flag = True
-                total_data_length = (msg.data[1] << 8) | msg.data[2]
-                collected_data = msg.data[3:]
-                log_info_message(logger, f"[Collect Response] First frame received: {msg_ext}")
+                total_data_length = (msg.data[1] << 8) | msg.data[7]  # Total length from the first frame (byte 1 and 2)
+                collected_data = msg.data[3:]  # Store the data portion starting from byte 3
+                log_info_message(logger, f"[Collect Response] First frame received. Total length expected: {total_data_length}, Data: {collected_data}")
 
-            # Consecutive frame
-            elif flag and 0x20 < msg.data[0] < 0x30:
-                collected_data += msg.data[1:]
-                log_info_message(logger, f"[Collect Response] Consecutive frame received. Updated data: {msg_ext}")
+            # Consecutive Frames (start with 0x21 to 0x2F)
+            elif msg.data[0] == 0x21:
+                collected_data += msg.data[1:]  # Append the data from the consecutive frames
+                log_info_message(logger, f"[Collect Response] Consecutive frame received, updated data: {collected_data}")
 
+                # If we have collected the total expected length, stop
                 if len(collected_data) >= total_data_length:
                     log_info_message(logger, "[Collect Response] All frames received.")
                     break
 
-            # Simple frame or other types
+            # Single-frame response or other types
             else:
                 log_info_message(logger, f"[Collect Response] Simple frame or other frame received: {msg}")
                 break
@@ -132,12 +136,11 @@ class Action(GF):
             msg = self.bus.recv(Config.BUS_RECEIVE_TIMEOUT)
             self.last_msg = msg
 
-        log_info_message(logger, f"[Collect Response] Final message after processing: {msg}")
-
-        if flag and len(collected_data) >= total_data_length:
-            msg_ext = can.Message(arbitration_id=msg_ext.arbitration_id, data=collected_data)
+        # Verify the assembled response, if multi-frame was used
+        if total_data_length > 0 and len(collected_data) >= total_data_length:
+            msg_ext = can.Message(arbitration_id=msg.arbitration_id, data=collected_data)
+            log_info_message(logger, f"[Collect Response] Final assembled multi-frame message: {msg_ext}")
             msg = msg_ext
-            log_info_message(logger, f"[Collect Response] Final assembled multi-frame message: {msg}")
 
         if msg is not None and self.__verify_frame(msg, sid):
             log_info_message(logger, f"[Collect Response] Valid message collected for SID {sid:02X}: {msg}")
@@ -152,6 +155,9 @@ class Action(GF):
 
         if msg.arbitration_id % 0x100 != self.my_id:
             return False
+
+        if msg.data[0] == 0x21:
+            return True
 
         if msg.data[1] == 0x7F and msg.data[3] == 0x78:
             return True

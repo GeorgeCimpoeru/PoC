@@ -35,8 +35,8 @@ def requires_auth(func):
         try:
             id = (API_ID << 8) + 0x10
 
-            session = SessionManager(API_ID)
-            session._change_session(id, 2)
+            session = SessionManager()
+            session._change_session(2)
 
             auth = Auth()
             auth_response = auth._auth_to()
