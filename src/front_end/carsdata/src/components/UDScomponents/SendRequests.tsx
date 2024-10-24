@@ -5,11 +5,14 @@ import { batteryData, readInfoBattery } from './DivCenterBattery';
 import { writeInfoBattery } from './DivCenterBattery';
 import ModalUDS from './ModalUDS';
 import { displayLoadingCircle, displayErrorPopup, removeLoadingCicle } from '../sharedComponents/LoadingCircle';
+import logger from '@/src/utils/Logger';
 
 
 let intervalID: number | NodeJS.Timeout | null = null;
 
 const SendRequests = () => {
+    logger.init();
+    
     const [logs, setLogs] = useState<string[]>([]);
     const [data23, setData23] = useState<{ ecu_ids: [], mcu_id: any, status: string, time_stamp: string } | string[] | string | null |
         { name: string; version: string; }[]>();
@@ -689,9 +692,14 @@ const SendRequests = () => {
             <div className="w-[60%] h-screen flex flex-col">
                 <h1 className="text-3xl mt-2">CAN Interface Control</h1>
                 <div className="inline-flex">
-                    <button className="btn btn-info w-fit mt-2 text-white">
-                        <Link href="http://127.0.0.1:5000/apidocs/" target="_blank" rel="noopener noreferrer">Go to Docs</Link>
-                    </button>
+                    <div className="flex flex-col">
+                        <button className="btn btn-info w-fit mt-2 text-white">
+                            <Link href="http://127.0.0.1:5000/apidocs/" target="_blank" rel="noopener noreferrer">Go to Docs</Link>
+                        </button>
+                        <button className="btn btn-info w-fit mt-2 text-white" onClick={() => logger.downloadLogs()}>
+                            Download Logs
+                        </button>
+                    </div>
                     <div className="mt-2 ml-5">
                         <p>Tester present: {testerPres}</p>
                         <input type="checkbox" className="toggle toggle-info" checked={testerPres === "disabled" ? false : true} onClick={testerPresent} />

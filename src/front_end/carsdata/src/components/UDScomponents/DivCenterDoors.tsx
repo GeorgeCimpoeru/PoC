@@ -4,6 +4,7 @@ import Image from 'next/image';
 import ModalUDS from './ModalUDS';
 import './style.css';
 import { displayLoadingCircle, displayErrorPopup, removeLoadingCicle } from '../sharedComponents/LoadingCircle';
+import logger from '@/src/utils/Logger';
 
 interface doorsData {
     ajar: any,
@@ -12,8 +13,9 @@ interface doorsData {
     passenger_lock: any,
 }
 
-
 const DivCenterDoors = (props: any) => {
+    logger.init();
+    
     const [data, setData] = useState<doorsData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);

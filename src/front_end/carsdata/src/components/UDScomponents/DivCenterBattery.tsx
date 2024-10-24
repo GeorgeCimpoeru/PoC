@@ -4,6 +4,7 @@ import Image from 'next/image';
 import ModalUDS from './ModalUDS';
 import './style.css';
 import { displayLoadingCircle , displayErrorPopup , removeLoadingCicle } from '../sharedComponents/LoadingCircle';
+import logger from '@/src/utils/Logger';
 
 export interface batteryData {
     battery_level: any,
@@ -95,6 +96,8 @@ export const writeInfoBattery = async (variable: string, newValue: string, setDa
 }
 
 const DivCenterBattery = (props: any) => {
+    logger.init();
+    
     const [data, setData] = useState<batteryData | null>(null);
     let popupElement: HTMLDivElement | null = null;
     let popupStyleElement: HTMLStyleElement | null = null;

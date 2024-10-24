@@ -4,8 +4,11 @@ import Image from 'next/image';
 import ModalUDS from './ModalUDS';
 import './style.css';
 import { displayLoadingCircle, displayErrorPopup, removeLoadingCicle } from '../sharedComponents/LoadingCircle';
+import logger from '@/src/utils/Logger';
 
 const DivCenterMCU = (props: any) => {
+    logger.init();
+    
     const [jsonResp, setJsonResp] = useState('');
 
     const callApi = async () => {

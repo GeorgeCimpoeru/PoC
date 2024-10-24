@@ -1,8 +1,11 @@
 'use client'
 import React, { useState } from 'react';
 import { Button, Modal } from 'antd';
+import logger from '@/src/utils/Logger';
 
 const DowngradeButton = () => {
+    logger.init();
+    
     const [isPopupVisible, setIsPopupVisible] = useState(false);
     const [isVersionPopupVisible, setIsVersionPopupVisible] = useState(false);
     const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
