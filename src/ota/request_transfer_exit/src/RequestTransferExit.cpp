@@ -81,7 +81,7 @@ void RequestTransferExit::requestTRansferExitRequest(canid_t can_id, const std::
             const std::vector<uint8_t>& stored_checksums = TransferData::getChecksums();
 
             /* Prepare positive response if the checksums match */
-            if (stored_checksums.size() == MAX_TRANSFER_DATA_REQUESTS && checkValidChecksums(stored_checksums))
+            if (stored_checksums.size() == MAX_TRANSER_DATA_BYTES && checkValidChecksums(stored_checksums))
             {    
                 /* prepare positive response */
                 response.push_back(0x02); /* PCI */

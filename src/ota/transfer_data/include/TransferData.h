@@ -14,9 +14,14 @@
 #include "../../utils/include/MemoryManager.h"
 #include "../../../utils/include/NegativeResponse.h"
 #include "../../request_transfer_exit/include/RequestTransferExit.h"
+
+#define TRANSFER_DATA_SID 0x36
 class TransferData 
 {
-    public:
+public:
+/********************************************************************/
+/************************* PUBLIC METHODS ***************************/
+/********************************************************************/
     static constexpr uint8_t TD_SID = 0x36;
     /**
      * @brief Constructor for transfer data object
@@ -37,20 +42,16 @@ class TransferData
      *    
      */
     static const std::vector<uint8_t>& getChecksums();
-    private:
-    Logger transfer_data_logger;
-    GenerateFrames generate_frames;
-    int socket = -1;
-    size_t total_size;
-    size_t bytes_sent;
-    static uint8_t expected_block_sequence_number;
-    static bool is_first_transfer;
-    /* This represents 1 transfer data size, calculated in Request Download representing the  max_number_block */
-    static size_t chunk_size;
-    /* Used to check if all transfers are done, this is set in Request Download*/
-    static uint8_t expected_transfer_data_requests;
-    /* Static vector used in Request Transfer Exit thta contains the checksums for each chunk data transfer */
-    static std::vector<uint8_t>checksums;
+
+    /**
+     * @brief Method used for processing data before it is added to the transfer data service request.
+     *      This will be used only in the MCU process, right before sending the request to the ECU
+     * 
+     * @param receiver_id 
+     * @param current_data 
+     * @param logger 
+     */
+    static void processDataForTransfer(uint8_t receiver_id, std::vector<uint8_t>& current_data, Logger& logger);
     /**
      * @brief method used to compute a simple checksum for a block of data transferred
      * 
@@ -58,8 +59,28 @@ class TransferData
      * @param block_size te size of the data block
      * @return 1 byte checksum
      */
-    uint8_t computeChecksum(const uint8_t* data, size_t block_size);
+    static uint8_t computeChecksum(const uint8_t* data, size_t block_size);
+/********************************************************************/
+/************************* PUBLIC VARIABLES *************************/
+/********************************************************************/
+    static uint8_t expected_block_sequence_number;
+    /* This represents 1 transfer data size, calculated in Request Download representing the  max_number_block */
+    static size_t chunk_size;
+    /* Used to check if all transfers are done, this is set in Request Download*/
+    static MemoryManager* memory_manager;
 
+private:
+/*********************************************************************/
+/************************* PRIVATE VARIABLES *************************/
+/*********************************************************************/
+    Logger transfer_data_logger;
+    GenerateFrames generate_frames;
+    int socket = -1;
+    size_t total_size;
+    size_t bytes_sent;
+    bool memory_write_status = false;
+    /* Static vector used in Request Transfer Exit thta contains the checksums for each chunk data transfer */
+    static std::vector<uint8_t>checksums;
 };
 
 #endif

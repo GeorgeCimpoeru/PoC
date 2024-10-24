@@ -244,6 +244,14 @@ bool ReceiveFrames::receiveFramesFromAPI()
                 {
                     std::vector<uint8_t> data(frame.data, frame.data + frame.can_dlc);
                     LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Received frame for ECU to execute service with SID: 0x{:x}", frame.data[1]));
+                    /* Transfer data service need to have the data in the request body.
+                        Here, if we have a transfer data request, we add the data to the request.
+                        This is needed only if the transfer data request does not already contain the data to be sent => it's size == 3 (pci, sid, bl_indx)
+                    */
+                    if(frame.data[1] == TRANSFER_DATA_SID && data.size() == 3)
+                    {
+                        TransferData::processDataForTransfer(receiver_id, data, *MCULogger);
+                    }
                     generate_frames.sendFrame(frame.can_id, data);
                     LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Frame with ID: 0x{:x} sent on CANBus socket", frame.can_id));
                 }

@@ -151,7 +151,7 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
         /* Starting frame processing timing if is it a frame request for MCU */
         auto it = std::find(service_sids.begin(), service_sids.end(), frame.data[1]);
 
-        if (it != service_sids.end())
+        if (it != service_sids.end() && frame.data[1] != TRANSFER_DATA_SID)
         {
             startTimer(frame_dest_id, frame.data[1]);
         }
