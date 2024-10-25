@@ -35,6 +35,7 @@ BATTERY_DIR_TEST = ../ecu_simulation/BatteryModule/test
 ENGINE_DIR = ../ecu_simulation/EngineModule/src
 DOORS_DIR = ../ecu_simulation/DoorsModule/src
 HVAC_DIR = ../ecu_simulation/HVACModule/src
+ENGINE_DIR_TEST = ../ecu_simulation/EngineModule/test
 OTA_DIR = ../ota
 OBJ_DIR = obj
 
@@ -650,6 +651,17 @@ $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o: $(UDS_DI
 
 
 
+# EngineModule Unit tests
+engineModuleTest: $(OBJ_DIR) $(ENGINE_DIR_TEST)/engineModuleTest.out
+
+$(ENGINE_DIR_TEST)/engineModuleTest.out: $(OBJ_DIR) $(ENGINE_DIR_TEST)/engineModule_test.o $(OBJS_TEST)
+	$(CXX) $(CFLAGSTST) -o $(ENGINE_DIR_TEST)/engineModuleTest.out $(ENGINE_DIR_TEST)/engineModule_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
+
+$(ENGINE_DIR_TEST)/engineModule_test.o: $(ENGINE_DIR_TEST)/EngineModuleTest.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(ENGINE_DIR_TEST)/EngineModuleTest.cpp -o $(ENGINE_DIR_TEST)/engineModule_test.o $(CFLAGSTST2) $(LDFLAGS)
+
+
+
 # NegativeResponse Unit tests
 negativeResponseTest: $(OBJ_DIR) $(UTILS_TEST)/negativeResponseTest.out
 
@@ -1028,6 +1040,21 @@ negativeResponse_coverage: negativeResponseTest
 
 
 
+
+# EngineModule Coverage - solo job
+engineModuleCoverage: engineModule_coverage
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
+	lcov --remove coverage.info '/test/' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_EngineModuleTest
+	xdg-open coverage/out_EngineModuleTest/index.html
+# This job runs for allCoverage
+engineModule_coverage: engineModuleTest
+	./$(ENGINE_DIR_TEST)/engineModuleTest.out
+	mkdir -p coverage/out_EngineModule
+	gcov -o obj/EngineModule_test.gcno obj/EngineModule_test.gcda $(ENGINE_DIR)/EngineModule.cpp
+	mv EngineModule.cpp.gcov coverage/out_EngineModule
+
 # BatteryModule Coverage - solo job
 batteryModuleCoverage: batteryModule_coverage
 	lcov --capture --directory . --output-file coverage.info
@@ -1041,6 +1068,7 @@ batteryModule_coverage: batteryModuleTest
 	mkdir -p coverage/out_BatteryModule
 	gcov -o obj/BatteryModule_test.gcno obj/BatteryModule_test.gcda $(BATTERY_DIR)/BatteryModule.cpp
 	mv BatteryModule.cpp.gcov coverage/out_BatteryModule
+
 
 
 
