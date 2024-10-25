@@ -71,6 +71,10 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     std::vector<uint8_t> adress_data;
     switch(routine_identifier)
     {
+        /* Memory erase routine needs 2 requests because of request size limitations.
+            The first one is for routine 0101 and is used to set the address.
+            The second one is for routine 0102 and is used to set the size and erase that amount of bytes from memory.
+        */
         case 0x0101:
         {
             /* Erase memory or specific data */

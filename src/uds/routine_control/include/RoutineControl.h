@@ -125,7 +125,14 @@ private:
     bool handleDataCompressionEncryption(uint8_t receiver_id);
 
     /**
-     * @brief 
+     * @brief Method used to erase memory at a certain address.
+     * 
+     *      This has 2 parts:
+     *      The first call is for routine 0101 and is used to set the address from where to delete memory.
+     *      example: cansend vcan1 0000fa10#06310101010800 => address 2048
+     * 
+     *      The second call sets the size and deletes data.
+     *      example: cansend vcan1 0000fa10#053101010205 => deletes 5 bytes
      * 
      * @param address_or_size_parameter 
      * @param routine_id 
