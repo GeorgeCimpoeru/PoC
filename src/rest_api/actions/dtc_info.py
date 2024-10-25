@@ -85,10 +85,10 @@ class DiagnosticTroubleCode(Action):
         except CustomError as e:
             return make_response(jsonify({"error": e.message}), 500)  # Return 500 Internal Server Error
 
-    def clear_dtc_info(self):
+    def clear_dtc_info(self, ecu_id):
         """ curl -X GET http://127.0.0.1:5000/api/clear_dtc_info """
-        id_mcu = self.id_ecu[MCU]
-        id = self.my_id * 0x100 + id_mcu
+        # id_mcu = self.id_ecu[MCU]
+        id = self.my_id * 0x100 + ecu_id
 
         try:
             log_info_message(logger, "Clearing all DTCs information with positive response")

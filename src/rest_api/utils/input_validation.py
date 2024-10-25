@@ -17,7 +17,7 @@ def validate_update_request(func):
             errors['update_file_version'] = 'Invalid format. Must be in the format "0.0" and contain only numbers.'
 
         ecu_id = data.get('ecu_id')
-        valid_ecu_ids = ['0x10', '0x11', '0x12', '0x13']
+        valid_ecu_ids = [10, 11, 12, 13]
         if ecu_id not in valid_ecu_ids:
             errors['ecu_id'] = 'Invalid value. No such device found.'
 

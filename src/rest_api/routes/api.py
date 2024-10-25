@@ -208,8 +208,10 @@ def read_dtc_info():
 @api_bp.route('/clear_dtc_info', methods=['GET'])
 def clear_dtc_info():
     try:
+        ecu_id_str = request.args.get('ecu_id', default='0x11')
+        ecu_id = int(ecu_id_str, 16)
         clearer = DiagnosticTroubleCode()
-        response_json = clearer.clear_dtc_info()
+        response_json = clearer.clear_dtc_info(ecu_id)
         return jsonify(response_json), 200
 
     except CustomError as e:
