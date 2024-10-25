@@ -213,7 +213,6 @@ MCU_OBJS_TEST = $(OBJ_DIR)/MCUModule_test.o \
                 $(OBJ_DIR)/ReceiveFrames_test.o
 
 ECU_OBJS_TEST = $(OBJ_DIR)/BatteryModule_test.o \
-                $(OBJ_DIR)/ECU_ReceiveFrames_test.o \
                 $(OBJ_DIR)/EngineModule_test.o \
                 $(OBJ_DIR)/DoorsModule_test.o \
                 $(OBJ_DIR)/HVACModule_test.o \
@@ -225,6 +224,7 @@ UTILS_OBJS_TEST = $(OBJ_DIR)/MemoryManager_test.o \
                   $(OBJ_DIR)/GenerateFrames_test.o \
                   $(OBJ_DIR)/NegativeResponse_test.o \
                   $(OBJ_DIR)/HandleFrames_test.o \
+				  $(OBJ_DIR)/ReceiveFrames_test_utils.o \
                   $(OBJ_DIR)/FileManager_test.o
 
 OBJS_GENERATE_TEST = $(OBJ_DIR)/Logger_test.o \
@@ -374,8 +374,8 @@ $(OBJ_DIR)/SecurityAccess_test.o: $(UDS_DIR)/authentication/src/SecurityAccess.c
 $(OBJ_DIR)/TesterPresent_test.o: $(UDS_DIR)/tester_present/src/TesterPresent.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/tester_present/src/TesterPresent.cpp -o $(OBJ_DIR)/TesterPresent_test.o $(CFLAGSTST2) $(LDFLAGS)
 
-$(OBJ_DIR)/ECU_ReceiveFrames_test.o: $(UTILS_DIR)/ReceiveFrames.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_DIR)/ReceiveFrames.cpp -o $(OBJ_DIR)/ECU_ReceiveFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
+$(OBJ_DIR)/ReceiveFrames_test_utils.o: $(UTILS_DIR)/ReceiveFrames.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_DIR)/ReceiveFrames.cpp -o $(OBJ_DIR)/ReceiveFrames_test_utils.o $(CFLAGSTST2) $(LDFLAGS)
 
 $(OBJ_DIR)/FileManager_test.o: $(UTILS_DIR)/FileManager.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_DIR)/FileManager.cpp -o $(OBJ_DIR)/FileManager_test.o $(CFLAGSTST2) $(LDFLAGS)
@@ -419,7 +419,7 @@ $(OBJ_DIR)/NegativeResponse_test.o: $(UTILS_DIR)/NegativeResponse.cpp
 	
 # Compile all unit tests
 
-allTests: mcuModuleTest handleFramesTest receiveFramesTest generateFramesTest loggerTest memoryManagerTest createInterfaceTest diagnosticSessionControlTest writeDataByIdentifierTest readDataByIdentifierTest requestTransferExitTest readDtcTest clearDtcTest requestUpdateStatusTest securityAccessTest testerPresentTest routineControlTest transferDataTest requestDownloadTest ecuResetTest negativeResponseTest accessTimingParameterTest
+allTests: mcuModuleTest handleFramesTest receiveFramesTest generateFramesTest loggerTest memoryManagerTest createInterfaceTest diagnosticSessionControlTest writeDataByIdentifierTest readDataByIdentifierTest requestTransferExitTest readDtcTest clearDtcTest requestUpdateStatusTest securityAccessTest testerPresentTest routineControlTest transferDataTest requestDownloadTest ecuResetTest negativeResponseTest accessTimingParameterTest receiveFramesTestUtils
 
 
 # HandleFrames Unit tests
@@ -431,6 +431,14 @@ $(UTILS_TEST)/handleFramesTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UTILS_TEST)/Handle
 $(UTILS_TEST)/HandleFrames_test.o: $(UTILS_TEST)/HandleFramesTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/HandleFramesTest.cpp -o $(UTILS_TEST)/HandleFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
 
+# ReceiveFramesUtils Unit tests
+receiveFramesTestUtils: $(OBJ_DIR) $(UTILS_TEST)/receiveFramesTestUtils.out
+
+$(UTILS_TEST)/receiveFramesTestUtils.out: $(OBJ_DIR) $(OBJS_TEST) $(UTILS_TEST)/ReceiveFrames_test_utils.o
+	$(CXX) $(CFLAGSTST) -o $(UTILS_TEST)/receiveFramesTestUtils.out $(UTILS_TEST)/ReceiveFrames_test_utils.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
+
+$(UTILS_TEST)/ReceiveFrames_test_utils.o: $(UTILS_TEST)/ReceiveFramesTest.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/ReceiveFramesTest.cpp -o $(UTILS_TEST)/ReceiveFrames_test_utils.o $(CFLAGSTST2) $(LDFLAGS)
 
 # ReceiveFrames Unit tests
 receiveFramesTest: $(OBJ_DIR) $(SRC_TEST)/receiveFramesTest.out
@@ -863,7 +871,19 @@ handleFrames_coverage: handleFramesTest
 	gcov -o obj/HandleFrames_test.gcno obj/HandleFrames_test.gcda $(UTILS_TEST)/HandleFrames.cpp
 	mv HandleFrames.cpp.gcov coverage/out_HandleFrames
 
-
+# ReceiveFramesUtils Coverage - solo job
+receiveFramesCoverageUtils: receiveFrames_coverage_utils
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
+	lcov --remove coverage.info '/test/' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_ReceiveFramesTestUtils
+	xdg-open coverage/out_ReceiveFramesTestUtils/index.html
+# This job runs for allCoverage
+receiveFrames_coverage_utils: receiveFramesTestUtils
+	./$(UTILS_TEST)/receiveFramesTestUtils.out
+	mkdir -p coverage/out_ReceiveFramesTestUtils
+	gcov -o obj/ReceiveFrames_test_utils.gcno obj/ReceiveFrames_test_utils.gcda $(UTILS_TEST)/ReceiveFrames.cpp
+	mv ReceiveFrames.cpp.gcov coverage/out_ReceiveFramesTestUtils
 
 # ReceiveFrames Coverage - solo job
 receiveFramesCoverage: receiveFrames_coverage
@@ -1041,7 +1061,6 @@ negativeResponse_coverage: negativeResponseTest
 
 
 
-
 # EngineModule Coverage - solo job
 engineModuleCoverage: engineModule_coverage
 	lcov --capture --directory . --output-file coverage.info
@@ -1073,7 +1092,7 @@ batteryModule_coverage: batteryModuleTest
 
 
 
-allCoverage: securityAccess_coverage routineControl_coverage transferData_coverage requestDownload_coverage ecuReset_coverage memoryManager_coverage logger_coverage generateFrames_coverage mcuModule_coverage receiveFrames_coverage handleFrames_coverage createInterface_coverage diagnosticSessionControl_coverage writeDataByIdentifier_coverage readDataByIdentifier_coverage testerPresent_coverage requestTransferExit_coverage clearDtc_coverage readDtc_coverage requestUpdateStatus_coverage negativeResponse_coverage accessTimingParameter_coverage
+allCoverage: securityAccess_coverage routineControl_coverage transferData_coverage requestDownload_coverage ecuReset_coverage memoryManager_coverage logger_coverage generateFrames_coverage mcuModule_coverage receiveFrames_coverage handleFrames_coverage createInterface_coverage diagnosticSessionControl_coverage writeDataByIdentifier_coverage readDataByIdentifier_coverage testerPresent_coverage requestTransferExit_coverage clearDtc_coverage readDtc_coverage requestUpdateStatus_coverage negativeResponse_coverage accessTimingParameter_coverage receiveFrames_coverage_utils
 
 
 allCoveragePostProcess:

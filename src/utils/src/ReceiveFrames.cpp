@@ -193,7 +193,8 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             goto label1;
         }
-        /* Process the received frame */ 
+        /* Process the received frame */
+        LOG_INFO(receive_logger.GET_LOGGER(), "Calling HandleFrames module to parse the frame.");
         handle_frame.handleFrame(socket, frame);
     }
 }
