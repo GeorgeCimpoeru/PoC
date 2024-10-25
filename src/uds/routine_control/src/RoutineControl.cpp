@@ -154,10 +154,6 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
         }
         case 0x0301:
         {
-            // if(ota_state != VERIFY_SUCCESS)
-            // {
-            //     return 0;
-            // }
             /* call writeToFile routine*/
             LOG_INFO(rc_logger.GET_LOGGER(), "writeToFile routine called.");
 
