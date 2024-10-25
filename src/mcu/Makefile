@@ -36,6 +36,7 @@ BATTERY_DIR_TEST = ../ecu_simulation/BatteryModule/test
 ENGINE_DIR = ../ecu_simulation/EngineModule/src
 DOORS_DIR = ../ecu_simulation/DoorsModule/src
 HVAC_DIR = ../ecu_simulation/HVACModule/src
+DOORS_DIR_TEST = ../ecu_simulation/DoorsModule/test
 ENGINE_DIR_TEST = ../ecu_simulation/EngineModule/test
 OTA_DIR = ../ota
 OBJ_DIR = obj
@@ -627,6 +628,17 @@ $(UDS_DIR)/ecu_reset/utest/EcuReset_test.o: $(UDS_DIR)/ecu_reset/utest/EcuResetT
 
 
 
+# DoorsModule Unit tests
+doorsModuleTest: $(OBJ_DIR) $(DOORS_DIR_TEST)/doorsModuleTest.out
+
+$(DOORS_DIR_TEST)/doorsModuleTest.out: $(OBJ_DIR) $(DOORS_DIR_TEST)/doorsModule_test.o $(OBJS_TEST)
+	$(CXX) $(CFLAGSTST) -o $(DOORS_DIR_TEST)/doorsModuleTest.out $(DOORS_DIR_TEST)/doorsModule_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
+
+$(DOORS_DIR_TEST)/doorsModule_test.o: $(DOORS_DIR_TEST)/DoorsModuleTest.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(DOORS_DIR_TEST)/DoorsModuleTest.cpp -o $(DOORS_DIR_TEST)/doorsModule_test.o $(CFLAGSTST2) $(LDFLAGS)
+
+
+
 # RequestDownload Unit tests
 requestDownloadTest: $(OBJ_DIR) $(OTA_DIR)/request_download/utest/requestDownloadTest.out
 
@@ -790,6 +802,22 @@ requestTransferExit_coverage: requestTransferExitTest
 	mkdir -p coverage/out_RequestTransferExit
 	gcov -o obj/RequestTransferExit_test.gcno obj/RequestTransferExit_test.gcda $(OTA_DIR)/request_transfer_exit/src/RequestTransferExit.cpp
 	mv RequestTransferExit.cpp.gcov coverage/out_RequestTransferExit
+
+
+# DoorsModule Coverage - solo job
+doorsModuleCoverage: doorsModule_coverage
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
+	lcov --remove coverage.info '/test/' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_DoorsModuleTest
+	xdg-open coverage/out_DoorsModuleTest/index.html
+
+# This job runs for allCoverage
+doorsModule_coverage: doorsModuleTest
+	./$(DOORS_DIR_TEST)/doorsModuleTest.out
+	mkdir -p coverage/out_DoorsModule
+	gcov -o obj/DoorsModule_test.gcno obj/DoorsModule_test.gcda $(DOORS_DIR)/DoorsModule.cpp
+	mv DoorsModule.cpp.gcov coverage/out_DoorsModule
 
 
 
