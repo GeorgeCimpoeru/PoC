@@ -3,4 +3,12 @@
     <item name="fragment_container_view" type="id"/>
     <item name="fragment_container_view2" type="id"/>
     <item name="fragment_container" type="id"/>
+    <item name="fragment_container_request" type="id"/>
+    <item name="read" type="id"/>
+    <item name="write" type="id"/>
+    <item name="tester" type="id"/>
+    <item name="response" type="id"/>
+    <item name="read_access" type="id"/>
+    <item name="change_session" type="id"/>
+    <item name="spinner_ecu" type="id"/>
 </resources>
