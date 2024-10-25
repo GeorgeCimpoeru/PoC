@@ -1,8 +1,8 @@
-from functools import wraps
-from flask import jsonify, request
-from actions.secure_auth import Auth
-from actions.diag_session import SessionManager
-from configs.data_identifiers import *
+from functools import wraps  # noqa: E401
+from flask import jsonify, request  # noqa: E401
+from actions.secure_auth import Auth  # noqa: E401
+from actions.diag_session import SessionManager  # noqa: F401
+from configs.data_identifiers import *  # noqa: F401
 
 
 def requires_auth(func):
@@ -33,10 +33,8 @@ def requires_auth(func):
         if is_manual_flow:
             return func(*args, **kwargs)
         try:
-            id = (API_ID << 8) + 0x10
-
-            session = SessionManager(API_ID)
-            session._change_session(id, 2)
+            session = SessionManager()
+            session._change_session(2)
 
             auth = Auth()
             auth_response = auth._auth_to()

@@ -13,8 +13,8 @@ class WriteInfo(Action):
     - data: Dictionary containing data to be written.
     """
 
-    def __init__(self, my_id, id_ecu_list, data):
-        super().__init__(my_id, id_ecu_list)
+    def __init__(self, data):
+        super().__init__()
         self.data = data
 
     def write_to_battery(self, data_dict=None):
