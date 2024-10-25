@@ -10,4 +10,5 @@
     <item name="response" type="id"/>
     <item name="read_access" type="id"/>
     <item name="change_session" type="id"/>
+    <item name="spinner_ecu" type="id"/>
 </resources>
