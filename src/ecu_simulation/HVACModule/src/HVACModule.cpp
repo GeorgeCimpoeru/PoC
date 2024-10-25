@@ -50,7 +50,6 @@ void HVACModule::fetchHvacData()
     /* Update the relevant DID values in the file contents */
     while (std::getline(file_stream, file_line))
     {
-        bool updated = false;
         for (const auto& pair : default_DID_hvac)
         {
             std::stringstream did_ss;
@@ -65,13 +64,8 @@ void HVACModule::fetchHvacData()
                     }
 
                     updated_file_contents += did_ss.str() + " " + value_ss.str() + "\n";
-                    updated = true;
                     break;
                 }
-        }
-        if (!updated)
-        {
-            updated_file_contents += file_line + "\n";
         }
     }
 
