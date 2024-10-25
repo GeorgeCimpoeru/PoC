@@ -40,6 +40,7 @@ DOORS_DIR_TEST = ../ecu_simulation/DoorsModule/test
 ENGINE_DIR_TEST = ../ecu_simulation/EngineModule/test
 OTA_DIR = ../ota
 OBJ_DIR = obj
+HVAC_DIR_TEST = ../ecu_simulation/HVACModule/test
 
 #----------------------------------------------------MCU MODULE-----------------------------------------------------
 
@@ -661,6 +662,17 @@ $(OTA_DIR)/transfer_data/utest/TransferData_test.o: $(OTA_DIR)/transfer_data/ute
 
 
 
+# HVACModule Unit tests
+hvacModuleTest: $(OBJ_DIR) $(HVAC_DIR_TEST)/hvacModuleTest.out
+
+$(HVAC_DIR_TEST)/hvacModuleTest.out: $(OBJ_DIR) $(HVAC_DIR_TEST)/hvacModule_test.o $(OBJS_TEST)
+	$(CXX) $(CFLAGSTST) -o $(HVAC_DIR_TEST)/hvacModuleTest.out $(HVAC_DIR_TEST)/hvacModule_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
+
+$(HVAC_DIR_TEST)/hvacModule_test.o: $(HVAC_DIR_TEST)/HVACModuleTest.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(HVAC_DIR_TEST)/HVACModuleTest.cpp -o $(HVAC_DIR_TEST)/hvacModule_test.o $(CFLAGSTST2) $(LDFLAGS)
+
+
+
 # AccessTimingParameter Unit tests
 accessTimingParameterTest: $(OBJ_DIR) $(UDS_DIR)/access_timing_parameters/utest/accessTimingParameterTest.out
 
@@ -990,6 +1002,23 @@ memoryManager_coverage: memoryManagerTest
 	mkdir -p coverage/out_MemoryManager
 	gcov -o obj/MemoryManager_test.gcno obj/MemoryManager_test.gcda $(UTILS_DIR)/MemoryManager.cpp
 	mv MemoryManager.cpp.gcov coverage/out_MemoryManager
+
+
+
+# HVACModule Coverage - solo job
+hvacModuleCoverage: hvacModule_coverage
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
+	lcov --remove coverage.info '/test/' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_HVACModuleTest
+	xdg-open coverage/out_HVACModuleTest/index.html
+
+# This job runs for allCoverage
+hvacModule_coverage: hvacModuleTest
+	./$(HVAC_DIR_TEST)/hvacModuleTest.out
+	mkdir -p coverage/out_HVACModule
+	gcov -o obj/HVACModule_test.gcno obj/HVACModule_test.gcda $(HVAC_DIR)/HVACModule.cpp
+	mv HVACModule.cpp.gcov coverage/out_HVACModule
 
 
 
