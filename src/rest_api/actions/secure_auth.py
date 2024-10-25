@@ -29,7 +29,7 @@ class Auth(Action):
                 }
 
             # Check if the initial response is successful
-            if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x01 and frame_response.data[3] == 0x00:
+            if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x01 and len(frame_response.data[3]) == 0:
                 log_info_message(logger, "Authentication successful")
                 return {
                     "message": "Authentication successful"
