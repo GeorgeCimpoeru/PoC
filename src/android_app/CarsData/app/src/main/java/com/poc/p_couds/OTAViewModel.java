@@ -52,6 +52,7 @@ public class OTAViewModel extends ViewModel {
                     listOfVersionResponse.setValue(body);
                     Log.i(TAG,"All good");
                 }
+                errorMessageVersions.setValue("Code response: " + response.code());
             }
 
             @Override

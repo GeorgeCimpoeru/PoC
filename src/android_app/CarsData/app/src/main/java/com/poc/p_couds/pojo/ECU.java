@@ -8,8 +8,8 @@ import java.util.List;
 
 public class ECU {
 
-    @SerializedName("ecu_ids")
-    private ArrayList<String> ecus;
+    @SerializedName("ecus")
+    private ArrayList<ECUDetail> ecus;
     @SerializedName("mcu_id")
     private String mcuId;
     @SerializedName("status")
@@ -17,7 +17,7 @@ public class ECU {
     @SerializedName("time_stamp")
     private String timeStamp;
 
-    public ArrayList<String> getEcus() {
+    public ArrayList<ECUDetail> getEcus() {
         return ecus;
     }
 
@@ -31,5 +31,20 @@ public class ECU {
 
     public String getTimeStamp() {
         return timeStamp;
+    }
+
+    public static class ECUDetail{
+        @SerializedName("ecu_id")
+        private String ecu_id;
+        @SerializedName("version")
+        private String version;
+
+        public String getEcu_id() {
+            return ecu_id;
+        }
+
+        public String getVersion() {
+            return version;
+        }
     }
 }
