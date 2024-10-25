@@ -20,7 +20,7 @@ interface engineData {
 
 const DivCenterEngine = (props: any) => {
     logger.init();
-    
+
     const [data, setData] = useState<engineData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -128,7 +128,6 @@ const DivCenterEngine = (props: any) => {
         console.log("TEST READ")
         readInfoEngine();
     };
-
 
     console.log(data)
     return (

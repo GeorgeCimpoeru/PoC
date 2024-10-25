@@ -189,7 +189,6 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
-
     const writeInfoEngine = async () => {
         displayLoadingCircle();
         const engine_rpm = prompt('Enter Engine rpm:');
@@ -311,7 +310,6 @@ const SendRequests = () => {
             } else {
                 return { message: "No versions available", versions: [] };
             }
-
         } catch (error) {
             console.error("Error:", error);
             const errorMessage = (error instanceof Error) ? error.message : "Unknown error occurred";
@@ -354,7 +352,7 @@ const SendRequests = () => {
     };
 
 
-    const writeInfoDoors = async () => {
+    const writeInfoHvac = async () => {
         displayLoadingCircle();
         const door = checkInput('Enter Door Parameter:');
         const passenger = checkInput('Enter Passenger:');
@@ -373,10 +371,10 @@ const SendRequests = () => {
             is_manual_flow: is_manual_flow || null,
             // windows_closed: windows_closed || null,
         };
-        console.log("Writing info doors...");
+        console.log("Writing info hvac...");
         console.log(data);
         try {
-            await fetch(`http://127.0.0.1:5000/api/write_info_doors`, {
+            await fetch(`http://127.0.0.1:5000/api/write_info_hvac`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

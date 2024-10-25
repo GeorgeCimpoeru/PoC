@@ -173,7 +173,6 @@ const DivCenterBattery = (props: any) => {
             </div>
 
             <div className="w-[35%] flex flex-col item-center justify-center">
-
                 <div className="w-[30%] m-7 text-white">
                     <label htmlFor="my_modal_6"
                         className="inline-flex item-center justify-center p-2 bg-blue-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-blue-700">

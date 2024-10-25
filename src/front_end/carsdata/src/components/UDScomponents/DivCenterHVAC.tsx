@@ -29,7 +29,7 @@ interface HVACData {
 
 const DivCenterHVAC = (props: any) => {
     logger.init();
-    
+
     const [data, setData] = useState<HVACData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -37,6 +37,7 @@ const DivCenterHVAC = (props: any) => {
     useEffect(() => {
         const readInfoHVAC = async () => {
             displayLoadingCircle();
+
             await fetch(`http://127.0.0.1:5000/api/read_info_hvac`)
                 .then(response => {
                     if (!response.ok) {
