@@ -22,13 +22,11 @@ import android.widget.Toast;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 import com.poc.p_couds.APIClient;
-import com.poc.p_couds.fragments.ManualFragment;
 import com.poc.p_couds.models.IApiService;
 import com.poc.p_couds.OTAViewModel;
 import com.poc.p_couds.R;
-import com.poc.p_couds.UpdateViewModel;
-import com.poc.p_couds.UpdateViewModelFactory;
 import com.poc.p_couds.fragments.Fragment_Update;
+import com.poc.p_couds.fragments.ManualFragment;
 import com.poc.p_couds.pojo.ECU;
 import com.poc.p_couds.pojo.FileNode;
 
@@ -111,31 +109,35 @@ public class OTA extends AppCompatActivity {
 
     private ArrayList<Pair<String,String>> extractVersion(FileNode swVersions, String ecuFolderName)
     {
-        if (!Objects.equals(ecuFolderName, "") || !Objects.equals(ecuFolderName, "Error"))
-        {
-            FileNode targetFolder = null;
-            for (FileNode folder : swVersions.getChildren())
+        try{
+            if (!Objects.equals(ecuFolderName, "") || !Objects.equals(ecuFolderName, "Error"))
             {
-                if (Objects.equals(folder.getName(), ecuFolderName))
+                FileNode targetFolder = null;
+                for (FileNode folder : swVersions.getChildren())
                 {
-                    targetFolder = folder;
-                    break;
-                }
-            }
-            if (targetFolder != null)
-            {
-                ArrayList<Pair<String,String>> versions = new ArrayList<>();
-                for (FileNode swVersion: targetFolder.getChildren())
-                {
-                    if (!Objects.equals(swVersion.getType(), "folder"))
+                    if (Objects.equals(folder.getName(), ecuFolderName))
                     {
-                        versions.add(new Pair<>(swVersion.getSwVersion(), swVersion.getSize()));
+                        targetFolder = folder;
+                        break;
                     }
                 }
-                return versions;
+                if (targetFolder != null)
+                {
+                    ArrayList<Pair<String,String>> versions = new ArrayList<>();
+                    for (FileNode swVersion: targetFolder.getChildren())
+                    {
+                        if (!Objects.equals(swVersion.getType(), "folder"))
+                        {
+                            versions.add(new Pair<>(swVersion.getSwVersion(), swVersion.getSize()));
+                        }
+                    }
+                    return versions;
+                }
             }
+        }catch (NullPointerException e) {
+            return new ArrayList<>();
         }
-        return null;
+        return new ArrayList<>();
     }
 
     private void initElements()
@@ -200,19 +202,19 @@ public class OTA extends AppCompatActivity {
             fileName = "MCU_SW_VERSIONS";
         } else if (item.getItemId() == R.id.battery) {
             title = "Battery";
-            idEcu = ecu.getEcus().get(0);
+            idEcu = ecu.getEcus().get(0).getEcu_id();
             fileName = "ECU_BATTERY_SW_VERSIONS";
         } else if (item.getItemId() == R.id.engine) {
             title = "Engine";
-            idEcu = ecu.getEcus().get(1);
+            idEcu = ecu.getEcus().get(1).getEcu_id();
             fileName = "";
         } else if (item.getItemId() == R.id.door) {
             title = "Door";
-            idEcu = ecu.getEcus().get(2);
+            idEcu = ecu.getEcus().get(2).getEcu_id();
             fileName = "";
         } else if (item.getItemId() == R.id.hvac) {
             title = "HVAC";
-            idEcu = ecu.getEcus().get(3);
+            idEcu = ecu.getEcus().get(3).getEcu_id();
             fileName = "";
         }
 
@@ -255,7 +257,7 @@ public class OTA extends AppCompatActivity {
         } else if(item.getItemId() == R.id.updates_btn)
         {
             Fragment fr = new Fragment_Update();
-            openFragment(fr,"MCU",ecu.getEcus().get(0), "MCU_SW_VERSIONS");
+            openFragment(fr,"MCU",ecu.getMcuId(), "MCU_SW_VERSIONS");
         }
         return super.onOptionsItemSelected(item);
     }
@@ -272,7 +274,7 @@ public class OTA extends AppCompatActivity {
                 {
                     Log.d(TAG,response.code()+"");
                     ecu = response.body();
-                    List<String> listOfEcus = response.body().getEcus();
+                    List<ECU.ECUDetail> listOfEcus = response.body().getEcus();
                     String mcu_id = response.body().getMcuId();
                     String status = response.body().getStatus();
                     String time_stamp = response.body().getTimeStamp();
