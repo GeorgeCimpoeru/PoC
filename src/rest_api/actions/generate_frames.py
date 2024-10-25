@@ -266,7 +266,7 @@ class GenerateFrame(CanBridge):
         else:
             raise ValueError(f"Invalid version format: {version}")
 
-        data = [0x04, 0x31, 0x01, 0x02, 0x01, version_byte]
+        data = [0x05, 0x31, 0x01, 0x02, 0x01, version_byte]
         self.send_frame(id, data)
 
     def request_update_status(self, func):

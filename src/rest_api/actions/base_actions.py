@@ -75,9 +75,9 @@ class Action(GF):
     - g: Instance of GenerateFrame for generating CAN bus frames.
     """
 
-    def __init__(self, my_id, id_ecu: list = []):
-        self.my_id = my_id
-        self.id_ecu = id_ecu
+    def __init__(self):
+        self.my_id = API_ID
+        self.id_ecu = [0x10, 0x11, 0x12, 0x13]
         self.last_msg = None
         super().__init__()
 
@@ -134,11 +134,11 @@ class Action(GF):
             self.response_collected = True
             return msg
 
-        log_error_message(logger, f"[Collect Response] Invalid or no message collected for SID {sid:02X}")
+        log_error_message(logger, f"[Collect Response] Invalid or no message collected for SID {hex(sid)}")
         return None
 
     def __verify_frame(self, msg: can.Message, sid: int):
-        log_info_message(logger, f"[Verify Frame] Verifying frame with SID: {sid:02X}, message data: {[hex(byte) for byte in msg.data]}")
+        log_info_message(logger, f"[Verify Frame] Verifying frame with SID: {hex(sid)}, message data: {[hex(byte) for byte in msg.data]}")
 
         if msg.arbitration_id % 0x100 != self.my_id:
             return False
@@ -179,7 +179,7 @@ class Action(GF):
 
         if response is None:
             log_error_message(logger, error_str)
-            response_json = self._to_json_error("interrupted", 1)
+            response_json = self._to_json_error("Response was interrupted", 1)
             raise CustomError(response_json)
         return response
 
@@ -272,7 +272,6 @@ class Action(GF):
             sid_msg = frame_response.data[2]
             negative_response = self.handle_negative_response(nrc_msg, sid_msg)
             return {
-                "status": "error",
                 "message": "Negative response received while requesting seed",
                 "negative_response": negative_response
             }
@@ -303,7 +302,6 @@ class Action(GF):
                 sid_msg = frame_response.data[2]
                 negative_response = self.handle_negative_response(nrc_msg, sid_msg)
                 return {
-                    "status": "error",
                     "message": "Negative response received while sending key",
                     "negative_response": negative_response
                 }
@@ -314,7 +312,7 @@ class Action(GF):
                     "message": "Authentication successful",
                 }
             else:
-                log_info_message(logger, "Authentication failed")
+                log_error_message(logger, "Authentication failed")
                 return {
                     "message": "Authentication failed",
                 }
@@ -359,6 +357,7 @@ class Action(GF):
             0x73: "Wrong Block Sequence Counter",
             0x92: "Voltage Too High",
             0x93: "Voltage Too Low",
+            0x94: "Unable to read DTCs",
             0x78: "Request Correctly Received-Response Pending",
             0x7E: "SubFunction Not Supported In Active Session",
             0x7F: "Function Not Supported In Active Session"
@@ -378,17 +377,17 @@ class Action(GF):
 
         return response
 
-    def _to_json(self, status, no_errors):
+    def _to_json(self, ecu_type, written_values):
         response_to_frontend = {
-            "status": status,
-            "No of errors": no_errors,
+            "message": f"Successfully written values to {ecu_type} ECU.",
+            "written_values": written_values,
             "time_stamp": datetime.datetime.now().isoformat()
         }
         return response_to_frontend
 
-    def _to_json_error(self, error, no_errors):
+    def _to_json_error(self, message, issue_count):
         response_to_frontend = {
-            "ERROR": error,
+            "Error": error,
             "No of errors": no_errors,
             "time_stamp": datetime.datetime.now().isoformat()
         }

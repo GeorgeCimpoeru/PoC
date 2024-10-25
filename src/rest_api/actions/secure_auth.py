@@ -8,6 +8,7 @@ ECU_DOORS = 3
 
 
 class Auth(Action):
+    """ curl -X GET http://127.0.0.1:5000/api/authenticate """
     def _auth_to(self):
 
         id_mcu = self.id_ecu[MCU]
@@ -27,7 +28,6 @@ class Auth(Action):
                 sid_msg = frame_response.data[2]
                 negative_response = self.handle_negative_response(nrc_msg, sid_msg)
                 return {
-                    "status": "error",
                     "message": "Negative response received while requesting seed",
                     "negative_response": negative_response
                 }
@@ -59,7 +59,6 @@ class Auth(Action):
                     sid_msg = frame_response.data[2]
                     negative_response = self.handle_negative_response(nrc_msg, sid_msg)
                     return {
-                        "status": "error",
                         "message": "Negative response received while sending key",
                         "negative_response": negative_response
                     }
@@ -70,19 +69,16 @@ class Auth(Action):
                         "message": "Authentication successful",
                     }
                 else:
-                    log_info_message(logger, "Authentication failed")
+                    log_warning_message(logger, "Authentication failed")
                     return {
                         "message": "Authentication failed",
                     }
 
         except CustomError:
-            self.bus.shutdown()
             nrc_msg = self.last_msg.data[3] if self.last_msg and len(self.last_msg.data) > 3 else 0x00
             sid_msg = self.last_msg.data[2] if self.last_msg and len(self.last_msg.data) > 2 else 0x00
             negative_response = self.handle_negative_response(nrc_msg, sid_msg)
-            self.bus.shutdown()
             return {
-                "status": "error",
                 "message": "Error during authentication",
                 "negative_response": negative_response
             }

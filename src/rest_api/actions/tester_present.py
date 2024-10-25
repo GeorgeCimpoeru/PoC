@@ -8,6 +8,7 @@ ECU_DOORS = 3
 
 
 class Tester(Action):
+    """ curl -X GET http://127.0.0.1:5000/api/tester_present """
     def is_present(self):
         """
         Sends a Tester Present request and collects the response to construct a JSON message.
@@ -29,7 +30,6 @@ class Tester(Action):
                 negative_response = self.handle_negative_response(response.data[3],
                                                                   response.data[2])
                 return {
-                    "status": "error",
                     "message": "Negative response received while tester present",
                     "negative_response": negative_response
                 }
@@ -40,20 +40,17 @@ class Tester(Action):
                     "can_id": f"0x{id:03X}",
                 }
             else:
-                response_json = self._to_json_error("invalid response", 2)
+                response_json = self._to_json_error("The response was invalid", 2)
                 raise CustomError(response_json)
 
             log_info_message(logger, "Tester is present.")
             return response_json
 
         except CustomError:
-            self.bus.shutdown()
             nrc_msg = self.last_msg.data[3] if self.last_msg and len(self.last_msg.data) > 3 else 0x00
             sid_msg = self.last_msg.data[2] if self.last_msg and len(self.last_msg.data) > 2 else 0x00
             negative_response = self.handle_negative_response(nrc_msg, sid_msg)
-            self.bus.shutdown()
             return {
-                "status": "error",
                 "message": "Error during authentication",
                 "negative_response": negative_response
             }
