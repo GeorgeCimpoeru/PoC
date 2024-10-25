@@ -114,7 +114,7 @@ class Action(GF):
 
             # First Frame (starts with 0x10)
             if msg.data[0] == 0x10:
-                total_data_length = (msg.data[1] << 8) | msg.data[7]  # Total length from the first frame (byte 1 and 2)
+                total_data_length = msg.data[1]  # Total length from the first frame (byte 1 and 2)
                 collected_data = msg.data[3:]  # Store the data portion starting from byte 3
                 log_info_message(logger, f"[Collect Response] First frame received. Total length expected: {total_data_length}, Data: {collected_data}")
 
@@ -403,8 +403,8 @@ class Action(GF):
 
     def _to_json_error(self, message, issue_count):
         response_to_frontend = {
-            "Error": error,
-            "No of errors": no_errors,
+            "Error": message,
+            "No of errors": issue_count,
             "time_stamp": datetime.datetime.now().isoformat()
         }
         return response_to_frontend

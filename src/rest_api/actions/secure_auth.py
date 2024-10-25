@@ -10,12 +10,8 @@ ECU_DOORS = 3
 class Auth(Action):
     """ curl -X GET http://127.0.0.1:5000/api/authenticate """
     def _auth_to(self):
-
-        # id_mcu = self.id_ecu[MCU]
-        # id = self.my_id * 0x100 + id_mcu
-
         try:
-            id = (self.id_ecu[ECU_BATTERY] << 16) + (self.my_id << 8) + 0x10
+            id = (0x00<< 16) + (self.my_id << 8) + self.id_ecu[MCU]
             self.authentication_seed(id,
                                      sid_send=AUTHENTICATION_SEND,
                                      sid_recv=AUTHENTICATION_RECV,
