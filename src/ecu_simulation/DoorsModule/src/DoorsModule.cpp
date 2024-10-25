@@ -69,7 +69,6 @@ void DoorsModule::fetchDoorsData()
     /* Update the relevant DID values in the file contents */
     while (std::getline(file_stream, file_line))
     {
-        bool updated = false;
         for (const auto& pair : updated_values)
         {
             std::stringstream did_ss;
@@ -77,13 +76,8 @@ void DoorsModule::fetchDoorsData()
             if (file_line.find(did_ss.str()) != std::string::npos)
             {
                 updated_file_contents += did_ss.str() + " " + pair.second + "\n";
-                updated = true;
                 break;
             }
-        }
-        if (!updated)
-        {
-            updated_file_contents += file_line + "\n";
         }
     }
 
