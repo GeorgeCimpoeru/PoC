@@ -4,11 +4,16 @@
 #POC Project root path
 PROJECT_PATH := $(shell cd $(shell pwd)/../../ && pwd)
 SOFTWARE_VERSION = 0
-PROJECT_DEFINES = -DPROJECT_PATH=\"$(PROJECT_PATH)\" -DSOFTWARE_VERSION=${SOFTWARE_VERSION}
+PYTHON_ENABLED = 1
+PROJECT_DEFINES = -DPROJECT_PATH=\"$(PROJECT_PATH)\" -DSOFTWARE_VERSION=${SOFTWARE_VERSION} -DPYTHON_ENABLED=${PYTHON_ENABLED}
 
 #Python flags needed for pybing library
 PYTHON_INCL_DIR=-I/usr/include/python3.8
 PYTHON_LDFLAGS = -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -lcrypt -ldl -lutil -lm -lpthread
+
+# Uncomment this lines in production when running on Raspberry Pi
+# +PYTHON_INCL_DIR=-I/usr/include/python3.11
+# +PYTHON_LDFLAGS = -L/usr/lib/python3/config-3.11-aarch64-linux-gnu -lpython3.11 -lcrypt -ldl -lutil -lm -lpthread
 
 # Compiler flags
 CXX = g++
@@ -27,10 +32,12 @@ UTILS_DIR = ../utils/src
 UTILS_TEST = ../utils/test
 UDS_DIR = ../uds
 BATTERY_DIR = ../ecu_simulation/BatteryModule/src
+BATTERY_DIR_TEST = ../ecu_simulation/BatteryModule/test
 ENGINE_DIR = ../ecu_simulation/EngineModule/src
 DOORS_DIR = ../ecu_simulation/DoorsModule/src
 HVAC_DIR = ../ecu_simulation/HVACModule/src
 DOORS_DIR_TEST = ../ecu_simulation/DoorsModule/test
+ENGINE_DIR_TEST = ../ecu_simulation/EngineModule/test
 OTA_DIR = ../ota
 OBJ_DIR = obj
 
@@ -207,7 +214,6 @@ MCU_OBJS_TEST = $(OBJ_DIR)/MCUModule_test.o \
                 $(OBJ_DIR)/ReceiveFrames_test.o
 
 ECU_OBJS_TEST = $(OBJ_DIR)/BatteryModule_test.o \
-                $(OBJ_DIR)/ECU_ReceiveFrames_test.o \
                 $(OBJ_DIR)/EngineModule_test.o \
                 $(OBJ_DIR)/DoorsModule_test.o \
                 $(OBJ_DIR)/HVACModule_test.o \
@@ -219,6 +225,7 @@ UTILS_OBJS_TEST = $(OBJ_DIR)/MemoryManager_test.o \
                   $(OBJ_DIR)/GenerateFrames_test.o \
                   $(OBJ_DIR)/NegativeResponse_test.o \
                   $(OBJ_DIR)/HandleFrames_test.o \
+				  $(OBJ_DIR)/ReceiveFrames_test_utils.o \
                   $(OBJ_DIR)/FileManager_test.o
 
 OBJS_GENERATE_TEST = $(OBJ_DIR)/Logger_test.o \
@@ -368,8 +375,8 @@ $(OBJ_DIR)/SecurityAccess_test.o: $(UDS_DIR)/authentication/src/SecurityAccess.c
 $(OBJ_DIR)/TesterPresent_test.o: $(UDS_DIR)/tester_present/src/TesterPresent.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UDS_DIR)/tester_present/src/TesterPresent.cpp -o $(OBJ_DIR)/TesterPresent_test.o $(CFLAGSTST2) $(LDFLAGS)
 
-$(OBJ_DIR)/ECU_ReceiveFrames_test.o: $(UTILS_DIR)/ReceiveFrames.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_DIR)/ReceiveFrames.cpp -o $(OBJ_DIR)/ECU_ReceiveFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
+$(OBJ_DIR)/ReceiveFrames_test_utils.o: $(UTILS_DIR)/ReceiveFrames.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_DIR)/ReceiveFrames.cpp -o $(OBJ_DIR)/ReceiveFrames_test_utils.o $(CFLAGSTST2) $(LDFLAGS)
 
 $(OBJ_DIR)/FileManager_test.o: $(UTILS_DIR)/FileManager.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_DIR)/FileManager.cpp -o $(OBJ_DIR)/FileManager_test.o $(CFLAGSTST2) $(LDFLAGS)
@@ -413,7 +420,7 @@ $(OBJ_DIR)/NegativeResponse_test.o: $(UTILS_DIR)/NegativeResponse.cpp
 	
 # Compile all unit tests
 
-allTests: mcuModuleTest handleFramesTest receiveFramesTest generateFramesTest loggerTest memoryManagerTest createInterfaceTest diagnosticSessionControlTest writeDataByIdentifierTest readDataByIdentifierTest requestTransferExitTest readDtcTest clearDtcTest requestUpdateStatusTest securityAccessTest testerPresentTest routineControlTest transferDataTest requestDownloadTest ecuResetTest negativeResponseTest accessTimingParameterTest
+allTests: mcuModuleTest handleFramesTest receiveFramesTest generateFramesTest loggerTest memoryManagerTest createInterfaceTest diagnosticSessionControlTest writeDataByIdentifierTest readDataByIdentifierTest requestTransferExitTest readDtcTest clearDtcTest requestUpdateStatusTest securityAccessTest testerPresentTest routineControlTest transferDataTest requestDownloadTest ecuResetTest negativeResponseTest accessTimingParameterTest receiveFramesTestUtils
 
 
 # HandleFrames Unit tests
@@ -422,9 +429,17 @@ handleFramesTest: $(OBJ_DIR) $(UTILS_TEST)/handleFramesTest.out
 $(UTILS_TEST)/handleFramesTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UTILS_TEST)/HandleFrames_test.o
 	$(CXX) $(CFLAGSTST) -o $(UTILS_TEST)/handleFramesTest.out $(UTILS_TEST)/HandleFrames_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
 
-$(UTILS_TEST)/HandleFrames_test.o: $(UTILS_TEST)/HandleFrames_test.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/HandleFrames_test.cpp -o $(UTILS_TEST)/HandleFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
+$(UTILS_TEST)/HandleFrames_test.o: $(UTILS_TEST)/HandleFramesTest.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/HandleFramesTest.cpp -o $(UTILS_TEST)/HandleFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
 
+# ReceiveFramesUtils Unit tests
+receiveFramesTestUtils: $(OBJ_DIR) $(UTILS_TEST)/receiveFramesTestUtils.out
+
+$(UTILS_TEST)/receiveFramesTestUtils.out: $(OBJ_DIR) $(OBJS_TEST) $(UTILS_TEST)/ReceiveFrames_test_utils.o
+	$(CXX) $(CFLAGSTST) -o $(UTILS_TEST)/receiveFramesTestUtils.out $(UTILS_TEST)/ReceiveFrames_test_utils.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
+
+$(UTILS_TEST)/ReceiveFrames_test_utils.o: $(UTILS_TEST)/ReceiveFramesTest.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/ReceiveFramesTest.cpp -o $(UTILS_TEST)/ReceiveFrames_test_utils.o $(CFLAGSTST2) $(LDFLAGS)
 
 # ReceiveFrames Unit tests
 receiveFramesTest: $(OBJ_DIR) $(SRC_TEST)/receiveFramesTest.out
@@ -657,6 +672,17 @@ $(UDS_DIR)/access_timing_parameters/utest/AccessTimingParameter_test.o: $(UDS_DI
 
 
 
+# EngineModule Unit tests
+engineModuleTest: $(OBJ_DIR) $(ENGINE_DIR_TEST)/engineModuleTest.out
+
+$(ENGINE_DIR_TEST)/engineModuleTest.out: $(OBJ_DIR) $(ENGINE_DIR_TEST)/engineModule_test.o $(OBJS_TEST)
+	$(CXX) $(CFLAGSTST) -o $(ENGINE_DIR_TEST)/engineModuleTest.out $(ENGINE_DIR_TEST)/engineModule_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
+
+$(ENGINE_DIR_TEST)/engineModule_test.o: $(ENGINE_DIR_TEST)/EngineModuleTest.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(ENGINE_DIR_TEST)/EngineModuleTest.cpp -o $(ENGINE_DIR_TEST)/engineModule_test.o $(CFLAGSTST2) $(LDFLAGS)
+
+
+
 # NegativeResponse Unit tests
 negativeResponseTest: $(OBJ_DIR) $(UTILS_TEST)/negativeResponseTest.out
 
@@ -666,6 +692,16 @@ $(UTILS_TEST)/negativeResponseTest.out: $(OBJ_DIR) $(OBJS_NEGATIVERESPONSE_TEST)
 $(UTILS_TEST)/NegativeResponse_test.o: $(UTILS_TEST)/NegativeResponseTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/NegativeResponseTest.cpp -o $(UTILS_TEST)/NegativeResponse_test.o $(CFLAGSTST2) $(LDFLAGS)
 
+
+
+# BatteryModule Unit tests
+batteryModuleTest: $(OBJ_DIR) $(BATTERY_DIR_TEST)/batteryModuleTest.out
+
+$(BATTERY_DIR_TEST)/batteryModuleTest.out: $(OBJ_DIR) $(BATTERY_DIR_TEST)/batteryModule_test.o $(OBJS_TEST)
+	$(CXX) $(CFLAGSTST) -o $(BATTERY_DIR_TEST)/batteryModuleTest.out $(BATTERY_DIR_TEST)/batteryModule_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
+
+$(BATTERY_DIR_TEST)/batteryModule_test.o: $(BATTERY_DIR_TEST)/BatteryModuleTest.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(BATTERY_DIR_TEST)/BatteryModuleTest.cpp -o $(BATTERY_DIR_TEST)/batteryModule_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 
 #----------------------------------------------------Coverage--------------------------------------------------------
@@ -863,7 +899,19 @@ handleFrames_coverage: handleFramesTest
 	gcov -o obj/HandleFrames_test.gcno obj/HandleFrames_test.gcda $(UTILS_TEST)/HandleFrames.cpp
 	mv HandleFrames.cpp.gcov coverage/out_HandleFrames
 
-
+# ReceiveFramesUtils Coverage - solo job
+receiveFramesCoverageUtils: receiveFrames_coverage_utils
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
+	lcov --remove coverage.info '/test/' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_ReceiveFramesTestUtils
+	xdg-open coverage/out_ReceiveFramesTestUtils/index.html
+# This job runs for allCoverage
+receiveFrames_coverage_utils: receiveFramesTestUtils
+	./$(UTILS_TEST)/receiveFramesTestUtils.out
+	mkdir -p coverage/out_ReceiveFramesTestUtils
+	gcov -o obj/ReceiveFrames_test_utils.gcno obj/ReceiveFrames_test_utils.gcda $(UTILS_TEST)/ReceiveFrames.cpp
+	mv ReceiveFrames.cpp.gcov coverage/out_ReceiveFramesTestUtils
 
 # ReceiveFrames Coverage - solo job
 receiveFramesCoverage: receiveFrames_coverage
@@ -1041,7 +1089,38 @@ negativeResponse_coverage: negativeResponseTest
 
 
 
-allCoverage: securityAccess_coverage routineControl_coverage transferData_coverage requestDownload_coverage ecuReset_coverage memoryManager_coverage logger_coverage generateFrames_coverage mcuModule_coverage receiveFrames_coverage handleFrames_coverage createInterface_coverage diagnosticSessionControl_coverage writeDataByIdentifier_coverage readDataByIdentifier_coverage testerPresent_coverage requestTransferExit_coverage clearDtc_coverage readDtc_coverage requestUpdateStatus_coverage negativeResponse_coverage accessTimingParameter_coverage
+# EngineModule Coverage - solo job
+engineModuleCoverage: engineModule_coverage
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
+	lcov --remove coverage.info '/test/' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_EngineModuleTest
+	xdg-open coverage/out_EngineModuleTest/index.html
+# This job runs for allCoverage
+engineModule_coverage: engineModuleTest
+	./$(ENGINE_DIR_TEST)/engineModuleTest.out
+	mkdir -p coverage/out_EngineModule
+	gcov -o obj/EngineModule_test.gcno obj/EngineModule_test.gcda $(ENGINE_DIR)/EngineModule.cpp
+	mv EngineModule.cpp.gcov coverage/out_EngineModule
+
+# BatteryModule Coverage - solo job
+batteryModuleCoverage: batteryModule_coverage
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
+	lcov --remove coverage.info '/test/' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_BatteryModuleTest
+	xdg-open coverage/out_BatteryModuleTest/index.html
+# This job runs for allCoverage
+batteryModule_coverage: batteryModuleTest
+	./$(BATTERY_DIR_TEST)/batteryModuleTest.out
+	mkdir -p coverage/out_BatteryModule
+	gcov -o obj/BatteryModule_test.gcno obj/BatteryModule_test.gcda $(BATTERY_DIR)/BatteryModule.cpp
+	mv BatteryModule.cpp.gcov coverage/out_BatteryModule
+
+
+
+
+allCoverage: securityAccess_coverage routineControl_coverage transferData_coverage requestDownload_coverage ecuReset_coverage memoryManager_coverage logger_coverage generateFrames_coverage mcuModule_coverage receiveFrames_coverage handleFrames_coverage createInterface_coverage diagnosticSessionControl_coverage writeDataByIdentifier_coverage readDataByIdentifier_coverage testerPresent_coverage requestTransferExit_coverage clearDtc_coverage readDtc_coverage requestUpdateStatus_coverage negativeResponse_coverage accessTimingParameter_coverage receiveFrames_coverage_utils
 
 
 allCoveragePostProcess:

@@ -76,7 +76,7 @@ class GDriveAPI:
         file_metadata = {
             'name': file_name,
             'parents': [parent_folder_id],  # ID of the folder where you want to upload
-            'appProperties' : {
+            'appProperties': {
                 'size_uncompressed': str(size_uncompressed)
             }
         }
@@ -130,10 +130,11 @@ class GDriveAPI:
 
     def searchVersion(self, ecu_id, sw_version_byte, return_file=False):
         sw_version = self.__convertByteToSwVersion(hex(sw_version_byte))
-        print(f"{GREEN}Searching in Google Drive for version" +
+        print(f"{GREEN}Searching in Google Drive for version " +
               ecu_map[ecu_id] + ' ' + sw_version + f"{RESET}")
 
         self.getDriveData()
+
         file_to_download = [
             data for data in self.__drive_data_array if data['type'] == ecu_map[ecu_id] and data['sw_version'] == str(sw_version)]
 
