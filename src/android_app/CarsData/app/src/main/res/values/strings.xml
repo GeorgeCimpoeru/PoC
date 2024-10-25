@@ -42,7 +42,7 @@
     <string name="read_current_access_timing">Read current access timing</string>
     <string name="go_to_docs">Go to Docs</string>
     <string name="ecu_to_reset">ECU to reset:</string>
-    <string name="type_of_reset">Type of reset</string>
+    <string name="type_of_reset">Type of reset:</string>
     <string name="read_dtc">Read DTC</string>
     <string name="check_new_soft_version">Check new soft version</string>
     <string name="authentication">Authentication</string>
@@ -52,5 +52,13 @@
     <string name="response">Response</string>
     <string name="uds_services">UDS Services</string>
     <string name="ota_services">OTA Services</string>
+    <string name="write_battery_param">Write battery param</string>
+    <string name="read_info_engine">Read Info Engine</string>
+    <string name="write_info_engine">Write Info Engine</string>
+    <string name="read_info_doors">Read Info Doors</string>
+    <string name="write_doors_info">Write Doors Info</string>
+    <string name="read_battery_param">Read battery param</string>
+    <string name="read_info_hvac">Read Info HVAC</string>
+    <string name="write_info_hvac">Write Info HVAC</string>
 
 </resources>
