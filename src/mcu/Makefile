@@ -10,6 +10,10 @@ PROJECT_DEFINES = -DPROJECT_PATH=\"$(PROJECT_PATH)\" -DSOFTWARE_VERSION=${SOFTWA
 PYTHON_INCL_DIR=-I/usr/include/python3.8
 PYTHON_LDFLAGS = -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -lcrypt -ldl -lutil -lm -lpthread
 
+# Uncomment this lines in production when running on Raspberry Pi
+# +PYTHON_INCL_DIR=-I/usr/include/python3.11
+# +PYTHON_LDFLAGS = -L/usr/lib/python3/config-3.11-aarch64-linux-gnu -lpython3.11 -lcrypt -ldl -lutil -lm -lpthread
+
 # Compiler flags
 CXX = g++
 CFLAGS = -std=c++17 -g -Wall -Werror -pthread -I./include -I../utils/include ${PYTHON_INCL_DIR} ${PROJECT_DEFINES}
@@ -27,6 +31,7 @@ UTILS_DIR = ../utils/src
 UTILS_TEST = ../utils/test
 UDS_DIR = ../uds
 BATTERY_DIR = ../ecu_simulation/BatteryModule/src
+BATTERY_DIR_TEST = ../ecu_simulation/BatteryModule/test
 ENGINE_DIR = ../ecu_simulation/EngineModule/src
 DOORS_DIR = ../ecu_simulation/DoorsModule/src
 HVAC_DIR = ../ecu_simulation/HVACModule/src
@@ -422,8 +427,8 @@ handleFramesTest: $(OBJ_DIR) $(UTILS_TEST)/handleFramesTest.out
 $(UTILS_TEST)/handleFramesTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UTILS_TEST)/HandleFrames_test.o
 	$(CXX) $(CFLAGSTST) -o $(UTILS_TEST)/handleFramesTest.out $(UTILS_TEST)/HandleFrames_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
 
-$(UTILS_TEST)/HandleFrames_test.o: $(UTILS_TEST)/HandleFrames_test.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/HandleFrames_test.cpp -o $(UTILS_TEST)/HandleFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
+$(UTILS_TEST)/HandleFrames_test.o: $(UTILS_TEST)/HandleFramesTest.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/HandleFramesTest.cpp -o $(UTILS_TEST)/HandleFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 
 # ReceiveFrames Unit tests
@@ -666,6 +671,16 @@ $(UTILS_TEST)/negativeResponseTest.out: $(OBJ_DIR) $(OBJS_NEGATIVERESPONSE_TEST)
 $(UTILS_TEST)/NegativeResponse_test.o: $(UTILS_TEST)/NegativeResponseTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/NegativeResponseTest.cpp -o $(UTILS_TEST)/NegativeResponse_test.o $(CFLAGSTST2) $(LDFLAGS)
 
+
+
+# BatteryModule Unit tests
+batteryModuleTest: $(OBJ_DIR) $(BATTERY_DIR_TEST)/batteryModuleTest.out
+
+$(BATTERY_DIR_TEST)/batteryModuleTest.out: $(OBJ_DIR) $(BATTERY_DIR_TEST)/batteryModule_test.o $(OBJS_TEST)
+	$(CXX) $(CFLAGSTST) -o $(BATTERY_DIR_TEST)/batteryModuleTest.out $(BATTERY_DIR_TEST)/batteryModule_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
+
+$(BATTERY_DIR_TEST)/batteryModule_test.o: $(BATTERY_DIR_TEST)/BatteryModuleTest.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(BATTERY_DIR_TEST)/BatteryModuleTest.cpp -o $(BATTERY_DIR_TEST)/batteryModule_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 
 #----------------------------------------------------Coverage--------------------------------------------------------
@@ -1025,6 +1040,7 @@ negativeResponse_coverage: negativeResponseTest
 
 
 
+
 # EngineModule Coverage - solo job
 engineModuleCoverage: engineModule_coverage
 	lcov --capture --directory . --output-file coverage.info
@@ -1038,6 +1054,21 @@ engineModule_coverage: engineModuleTest
 	mkdir -p coverage/out_EngineModule
 	gcov -o obj/EngineModule_test.gcno obj/EngineModule_test.gcda $(ENGINE_DIR)/EngineModule.cpp
 	mv EngineModule.cpp.gcov coverage/out_EngineModule
+
+# BatteryModule Coverage - solo job
+batteryModuleCoverage: batteryModule_coverage
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
+	lcov --remove coverage.info '/test/' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_BatteryModuleTest
+	xdg-open coverage/out_BatteryModuleTest/index.html
+# This job runs for allCoverage
+batteryModule_coverage: batteryModuleTest
+	./$(BATTERY_DIR_TEST)/batteryModuleTest.out
+	mkdir -p coverage/out_BatteryModule
+	gcov -o obj/BatteryModule_test.gcno obj/BatteryModule_test.gcda $(BATTERY_DIR)/BatteryModule.cpp
+	mv BatteryModule.cpp.gcov coverage/out_BatteryModule
+
 
 
 

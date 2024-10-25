@@ -7,6 +7,10 @@ PROJECT_DEFINES = -DPROJECT_PATH=\"$(PROJECT_PATH)\" -DSOFTWARE_VERSION=${SOFTWA
 #Python flags
 PYTHON_INCL_DIR=-I/usr/include/python3.8
 PYTHON_LDFLAGS = -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -lcrypt -ldl -lutil -lm -lpthread
+
+# Uncomment this lines in production when running on Raspberry Pi
+# +PYTHON_INCL_DIR=-I/usr/local/include/python3.8
+# +PYTHON_LDFLAGS = -L/usr/local/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -lcrypt -ldl -lutil -lm -lpthread
 # Compiler flags
 CXX = g++
 CFLAGS = -std=c++17 -g -Wall -Werror -pthread -I./include -I../../utils/include ${PYTHON_INCL_DIR} ${PROJECT_DEFINES}
