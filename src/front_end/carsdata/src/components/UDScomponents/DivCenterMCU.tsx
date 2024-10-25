@@ -3,17 +3,23 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import ModalUDS from './ModalUDS';
 import './style.css';
+import { displayLoadingCircle, displayErrorPopup, removeLoadingCicle } from '../sharedComponents/LoadingCircle';
+import logger from '@/src/utils/Logger';
 
 const DivCenterMCU = (props: any) => {
+    logger.init();
+    
     const [jsonResp, setJsonResp] = useState('');
 
     const callApi = async () => {
+        displayLoadingCircle();
         const res = await fetch(
             'https://api.agify.io/?name=meelad',
             { cache: 'no-store' }
         );
         const jsonData = await res.json();
         setJsonResp(jsonData);
+        removeLoadingCicle();
     }
 
     return (
