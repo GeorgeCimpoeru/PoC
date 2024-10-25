@@ -53,11 +53,7 @@ class GenerateFrame(CanBridge):
         self.__generate_long_response(id, 0x62, identifier, response, first_frame)
 
     def request_read_dtc_information(self, id, sub_funct, dtc_status_mask):
-        data = [3, 0x19, sub_funct, dtc_status_mask]
-        self.send(id, data)
-
-    def response_read_dtc_information(self, id, sts_ava_mask, dtc_format, dtc_count):
-        data = [5, 0x59, 0x01, sts_ava_mask, dtc_format, dtc_count]
+        data = [4, 0x19, sub_funct, dtc_status_mask]
         self.send(id, data)
 
     def read_memory_by_adress(self, id, memory_address, memory_size, response=[]):

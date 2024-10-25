@@ -30,7 +30,7 @@ def setup_logger():
     log_handler = logging.FileHandler(log_file)
     log_handler.setLevel(logging.INFO)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-                                  '[Stack debug: %(filename)s:%(lineno)d (%(funcName)s)]')
+                                  '[filename: %(filename)s: line no: %(lineno)d func: (%(funcName)s)]')
     log_handler.setFormatter(formatter)
 
     def decorator(app):
@@ -72,7 +72,7 @@ class SingletonLogger:
             log_handler = logging.FileHandler(log_path)
             log_handler.setLevel(logging.DEBUG)
             formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'
-                                          '[Stack debug: %(filename)s:%(lineno)d (%(funcName)s)]')
+                                          '[filename: %(filename)s: line no: %(lineno)d func: (%(funcName)s)]')
             log_handler.setFormatter(formatter)
             self._logger.addHandler(log_handler)
 
