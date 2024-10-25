@@ -11,7 +11,7 @@ class Auth(Action):
     """ curl -X GET http://127.0.0.1:5000/api/authenticate """
     def _auth_to(self):
         try:
-            id = (0x00<< 16) + (self.my_id << 8) + self.id_ecu[MCU]
+            id = (0x00 << 16) + (self.my_id << 8) + self.id_ecu[MCU]
             self.authentication_seed(id,
                                      sid_send=AUTHENTICATION_SEND,
                                      sid_recv=AUTHENTICATION_RECV,
@@ -30,7 +30,7 @@ class Auth(Action):
 
             # Check if the initial response is successful
             # if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x01 and frame_response.data[3] == 0x00:
-            if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x01 and len(frame_response.data) == len([0x02,0x67,0x01]):
+            if frame_response.data[1] == 0x67 and frame_response.data[2] == 0x01 and len(frame_response.data) == len([0x02, 0x67, 0x01]):
                 log_info_message(logger, "Authentication successful")
                 return {
                     "message": "Authentication successful"

@@ -20,8 +20,8 @@ from actions.ecu_reset import Reset  # noqa: E402
 from actions.security_decorator import *  # noqa: E402
 from utils.input_validation import validate_update_request  # noqa: E402
 from config import *  # noqa: E402
-from werkzeug.exceptions import HTTPException
-from actions.dtc_info import DTC_STATUS_BITS
+from werkzeug.exceptions import HTTPException  # noqa: E402
+from actions.dtc_info import DTC_STATUS_BITS  # noqa: E402
 
 api_bp = Blueprint('api', __name__)
 

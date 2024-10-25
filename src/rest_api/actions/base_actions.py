@@ -115,13 +115,15 @@ class Action(GF):
             # First Frame (starts with 0x10)
             if msg.data[0] == 0x10:
                 total_data_length = msg.data[1]  # Total length from the first frame (byte 1 and 2)
-                collected_data = msg.data[3:]  # Store the data portion starting from byte 3
-                log_info_message(logger, f"[Collect Response] First frame received. Total length expected: {total_data_length}, Data: {collected_data}")
+                collected_data = msg.data[2:]  # Store the data portion starting from byte 3
+                log_info_message(logger, f"[Collect Response] First frame received. \
+                                 Total length expected: {total_data_length}, \
+                                 Data: {[hex(byte) for byte in collected_data]}")
 
-            # Consecutive Frames (start with 0x21 to 0x2F)
-            elif msg.data[0] == 0x21:
+            # Consecutive Frames
+            elif 0x20 <= msg.data[0] <= 0x30:
                 collected_data += msg.data[1:]  # Append the data from the consecutive frames
-                log_info_message(logger, f"[Collect Response] Consecutive frame received, updated data: {collected_data}")
+                log_info_message(logger, f"[Collect Response] Consecutive frame received {[hex(byte) for byte in collected_data]}")
 
                 # If we have collected the total expected length, stop
                 if len(collected_data) >= total_data_length:
@@ -139,7 +141,7 @@ class Action(GF):
         # Verify the assembled response, if multi-frame was used
         if total_data_length > 0 and len(collected_data) >= total_data_length:
             msg_ext = can.Message(arbitration_id=msg.arbitration_id, data=collected_data)
-            log_info_message(logger, f"[Collect Response] Final assembled multi-frame message: {msg_ext}")
+            log_info_message(logger, f"[Collect Response] Final assembled multi-frame message: {[hex(byte) for byte in msg_ext.data]}")
             msg = msg_ext
 
         if msg is not None and self.__verify_frame(msg, sid):
@@ -153,26 +155,34 @@ class Action(GF):
     def __verify_frame(self, msg: can.Message, sid: int):
         log_info_message(logger, f"[Verify Frame] Verifying frame with SID: {hex(sid)}, message data: {[hex(byte) for byte in msg.data]}")
 
+        # Check if the arbitration ID matches the expected device ID
         if msg.arbitration_id % 0x100 != self.my_id:
+            log_error_message(logger, f"[Verify Frame] Arbitration ID mismatch. Expected ID: {self.my_id}, got: {msg.arbitration_id % 0x100}")
             return False
 
-        if msg.data[0] == 0x21:
+        # Multi-frame handling: Check first and consecutive frames
+        if msg.data[0] == 0x10:
             return True
 
-        if msg.data[1] == 0x7F and msg.data[3] == 0x78:
+        elif msg.data[0] == 0x21:
+            # Consecutive frame, should simply continue to verify as part of the sequence
             return True
 
+        # Check for negative response (0x7F response pending or another type)
         if msg.data[1] == 0x7F:
-            return False
+            if msg.data[3] == 0x78:
+                log_info_message(logger, f"[Verify Frame] Response pending. Waiting for SID: {sid}.")
+                return True  # Valid response with pending status
+            else:
+                log_error_message(logger, f"[Verify Frame] Negative response with NRC: {msg.data[3]}")
+                return False  # Negative response received
 
-        if msg.data[0] != 0x10:
-            if msg.data[1] != sid + 0x40:
-                return False
-        else:
-            if msg.data[2] != sid + 0x40:
-                return False
+        # Final validation for single frame responses or multi-frame assembled messages
+        if len(msg.data) >= 2 and msg.data[1] == sid + 0x40:
+            return True
 
-        return True
+        log_error_message(logger, "[Verify Frame] Message does not match any valid response structure.")
+        return False
 
     def _passive_response(self, sid, error_str="Error service"):
         """

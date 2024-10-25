@@ -26,6 +26,7 @@ DTC_FORMAT_IDENTIFIER = {
     0x04: "SAE_J2012-DA_DTCFormat_04"
 }
 
+
 class DiagnosticTroubleCode(Action):
     def __init__(self):
         super().__init__()
@@ -55,7 +56,7 @@ class DiagnosticTroubleCode(Action):
         """
         try:
 
-            id = (0x00 << 16) + (0xFA << 8) + ecu_id# self.id_ecu[ECU_BATTERY]
+            id = (0x00 << 16) + (0xFA << 8) + ecu_id
 
             log_info_message(logger, "Requesting read DTC information")
             dtc_mask = self._get_dtc_mask_from_bits(dtc_mask_bits)
@@ -71,7 +72,7 @@ class DiagnosticTroubleCode(Action):
                     "message": "Negative response received while Requesting read DTC information",
                     "negative_response": negative_response
                 }
-                return jsonify(json_response), 400 # Return 400 Bad Request
+                return jsonify(json_response), 400  # Return 400 Bad Request
 
             data = [hex(byte) for byte in frame_response.data]
             log_info_message(logger, f"Frame response: {data}")
@@ -116,7 +117,6 @@ class DiagnosticTroubleCode(Action):
             return {"error": "No data provided"}
 
         # Extract values from the data
-        pci = int(data[0], 16) if len(data) > 0 else None  # PCI byte
         sid = int(data[1], 16) if len(data) > 1 else None  # Service Identifier (SID)
         sub_function = int(data[2], 16) if len(data) > 2 else None  # Sub-function
         status_availability_mask = int(data[3], 16) if len(data) > 3 else None  # Status availability mask
@@ -154,7 +154,7 @@ class DiagnosticTroubleCode(Action):
                 },
                 "DTCCount": {
                     "value": dtc_count,
-                    "description": f"The count of DTCs." if len(data) >= 7 else "Not provided"
+                    "description": f"The count of DTCs." if len(data) >= 7 else "Not provided"   # noqa: F541
                 }
             }
         }
