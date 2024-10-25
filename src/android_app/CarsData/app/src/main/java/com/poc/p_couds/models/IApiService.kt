@@ -68,6 +68,9 @@ interface IApiService {
         @Body request: Any
     ): Response<Any>
 
+    @GET("api/read_dtc_info")
+    fun getBatteryDTC(): Call<Any>
+
     //MAIN
 
     @GET("DecodeVinValues/{vin}?format=json")

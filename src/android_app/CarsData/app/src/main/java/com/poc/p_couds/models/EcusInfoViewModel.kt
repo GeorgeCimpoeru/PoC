@@ -1,6 +1,8 @@
 package com.poc.p_couds.models
 
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.compose.runtime.getValue
@@ -56,21 +58,27 @@ class EcusInfoViewModel : ViewModel() {
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> get() = _loading
 
-    fun fetchBatteryInfo() {
+    fun fetchBatteryInfo(context: Context) {
         _loading.value = true
         viewModelScope.launch {
             val call = APIClient.getClient().create(IApiService::class.java).getInfoBattery()
             call.enqueue(object : Callback<BatteryDataClass> {
-                override fun onResponse(call: Call<BatteryDataClass>, response: Response<BatteryDataClass>) {
+                override fun onResponse(
+                    call: Call<BatteryDataClass>,
+                    response: Response<BatteryDataClass>
+                ) {
                     if (response.isSuccessful) {
                         batteryInfo = response.body()
                     } else {
+                        Toast.makeText(context, "Read battery info failed", Toast.LENGTH_SHORT)
+                            .show()
                         errorMessageBattery = "Failed to retrieve data"
                     }
                     _loading.value = false
                 }
 
                 override fun onFailure(call: Call<BatteryDataClass>, t: Throwable) {
+                    Toast.makeText(context, "Read battery info failed", Toast.LENGTH_SHORT).show()
                     errorMessageBattery = t.message
                     _loading.value = false
                 }
@@ -78,11 +86,13 @@ class EcusInfoViewModel : ViewModel() {
         }
     }
 
-    fun writeBatteryInfo(inputText: String, title: String) {
+    fun writeBatteryInfo(context: Context, inputText: String, title: String) {
         var writeBatteryInfoRequest: Any = ""
         when (title) {
             "Battery level" -> writeBatteryInfoRequest = WriteBatteryLevelDataClass(inputText)
-            "State of charge" -> writeBatteryInfoRequest = WriteBatteryChargeStateDataClass(inputText)
+            "State of charge" -> writeBatteryInfoRequest =
+                WriteBatteryChargeStateDataClass(inputText)
+
             "Percentage" -> writeBatteryInfoRequest = WriteBatteryPercentageDataClass(inputText)
             "Voltage" -> writeBatteryInfoRequest = WriteBatteryVoltageDataClass(inputText)
         }
@@ -90,7 +100,8 @@ class EcusInfoViewModel : ViewModel() {
             _loading.value = true
             delay(1000L)
             try {
-                val response: Response<Any> = APIClient.getClient().create(IApiService::class.java).writeInfoBattery(writeBatteryInfoRequest)
+                val response = APIClient.getClient().create(IApiService::class.java)
+                    .writeInfoBattery(writeBatteryInfoRequest)
                 if (response.isSuccessful && response.body() != null) {
                     val gson: Gson = Gson()
                     val jsonResponse = gson.toJson(response.body())
@@ -103,10 +114,12 @@ class EcusInfoViewModel : ViewModel() {
                         "Voltage" -> batteryInfo?.voltage = inputText
                     }
                 } else {
+                    Toast.makeText(context, "Write battery info failed", Toast.LENGTH_SHORT).show()
                     errorMessageBattery = "Failed to retrieve data"
                     Log.d("API_ERROR", "Failed to create post: ${response.errorBody()}")
                 }
             } catch (e: Exception) {
+                Toast.makeText(context, "Write battery info failed", Toast.LENGTH_SHORT).show()
                 errorMessageBattery = e.message ?: "Unknown error"
                 Log.e("API_ERROR", "Exception: $e")
             } finally {
@@ -119,21 +132,28 @@ class EcusInfoViewModel : ViewModel() {
         private set
     var errorMessageEngine by mutableStateOf<String?>(null)
         private set
-    fun fetchEngineInfo() {
+
+    fun fetchEngineInfo(context: Context) {
         _loading.value = true
         viewModelScope.launch {
             val call = APIClient.getClient().create(IApiService::class.java).getInfoEngine()
             call.enqueue(object : Callback<EngineDataClass> {
-                override fun onResponse(call: Call<EngineDataClass>, response: Response<EngineDataClass>) {
+                override fun onResponse(
+                    call: Call<EngineDataClass>,
+                    response: Response<EngineDataClass>
+                ) {
                     if (response.isSuccessful) {
                         engineInfo = response.body()
                     } else {
+                        Toast.makeText(context, "Read engine info failed", Toast.LENGTH_SHORT)
+                            .show()
                         errorMessageEngine = "Failed to retrieve data"
                     }
                     _loading.value = false
                 }
 
                 override fun onFailure(call: Call<EngineDataClass>, t: Throwable) {
+                    Toast.makeText(context, "Read engine info failed", Toast.LENGTH_SHORT).show()
                     errorMessageEngine = t.message
                     _loading.value = false
                 }
@@ -141,7 +161,7 @@ class EcusInfoViewModel : ViewModel() {
         }
     }
 
-    fun writeEngineInfo(inputText: String, title: String) {
+    fun writeEngineInfo(context: Context, inputText: String, title: String) {
         var writeEngineInfoRequest: Any = ""
         when (title) {
             "Coolant temp" -> writeEngineInfoRequest = WriteEngineCoolantTempDataClass(inputText)
@@ -149,16 +169,22 @@ class EcusInfoViewModel : ViewModel() {
             "Rpm" -> writeEngineInfoRequest = WriteEngineRpmDataClass(inputText)
             "Fuel" -> writeEngineInfoRequest = WriteEngineFuelLevelDataClass(inputText)
             "Fuel pressure" -> writeEngineInfoRequest = WriteEngineFuelPressureDataClass(inputText)
-            "Intake air temp" -> writeEngineInfoRequest = WriteEngineIntakeAirTempDataClass(inputText)
+            "Intake air temp" -> writeEngineInfoRequest =
+                WriteEngineIntakeAirTempDataClass(inputText)
+
             "Oil temp" -> writeEngineInfoRequest = WriteEngineOilTempDataClass(inputText)
-            "Throttle position" -> writeEngineInfoRequest = WriteEngineThrottlePosDataClass(inputText)
+            "Throttle position" -> writeEngineInfoRequest =
+                WriteEngineThrottlePosDataClass(inputText)
+
             "Speed" -> writeEngineInfoRequest = WriteEngineSpeedDataClass(inputText)
         }
         viewModelScope.launch {
             _loading.value = true
             delay(1000L)
             try {
-                val response: Response<Any> = APIClient.getClient().create(IApiService::class.java).writeInfoEngine(writeEngineInfoRequest)
+                val response: Response<Any> =
+                    APIClient.getClient().create(IApiService::class.java)
+                        .writeInfoEngine(writeEngineInfoRequest)
                 if (response.isSuccessful && response.body() != null) {
                     val gson: Gson = Gson()
                     val jsonResponse = gson.toJson(response.body())
@@ -176,10 +202,12 @@ class EcusInfoViewModel : ViewModel() {
                         "Speed" -> engineInfo?.vehicle_speed = inputText
                     }
                 } else {
+                    Toast.makeText(context, "Write engine info failed", Toast.LENGTH_SHORT).show()
                     errorMessageBattery = "Failed to retrieve data"
                     Log.d("API_ERROR", "Failed to create post: ${response.errorBody()}")
                 }
             } catch (e: Exception) {
+                Toast.makeText(context, "Write engine info failed", Toast.LENGTH_SHORT).show()
                 errorMessageBattery = e.message ?: "Unknown error"
                 Log.e("API_ERROR", "Exception: $e")
             } finally {
@@ -192,21 +220,27 @@ class EcusInfoViewModel : ViewModel() {
         private set
     var errorMessageDoors by mutableStateOf<String?>(null)
         private set
-    fun fetchDoorsInfo() {
+
+    fun fetchDoorsInfo(context: Context) {
         _loading.value = true
         viewModelScope.launch {
             val call = APIClient.getClient().create(IApiService::class.java).getInfoDoors()
             call.enqueue(object : Callback<DoorsDataClass> {
-                override fun onResponse(call: Call<DoorsDataClass>, response: Response<DoorsDataClass>) {
+                override fun onResponse(
+                    call: Call<DoorsDataClass>,
+                    response: Response<DoorsDataClass>
+                ) {
                     if (response.isSuccessful) {
                         doorsInfo = response.body()
                     } else {
+                        Toast.makeText(context, "Read doors info failed", Toast.LENGTH_SHORT).show()
                         errorMessageDoors = "Failed to retrieve data"
                     }
                     _loading.value = false
                 }
 
                 override fun onFailure(call: Call<DoorsDataClass>, t: Throwable) {
+                    Toast.makeText(context, "Read doors info failed", Toast.LENGTH_SHORT).show()
                     errorMessageDoors = t.message
                     _loading.value = false
                 }
@@ -214,7 +248,7 @@ class EcusInfoViewModel : ViewModel() {
         }
     }
 
-    fun writeDoorsInfo(inputText: String, title: String) {
+    fun writeDoorsInfo(context: Context, inputText: String, title: String) {
         var writeDoorsInfoRequest: Any = ""
         when (title) {
             "Ajar" -> writeDoorsInfoRequest = WriteDoorsAjarDataClass(inputText)
@@ -226,7 +260,9 @@ class EcusInfoViewModel : ViewModel() {
             _loading.value = true
             delay(1000L)
             try {
-                val response: Response<Any> = APIClient.getClient().create(IApiService::class.java).writeInfoDoors(writeDoorsInfoRequest)
+                val response: Response<Any> =
+                    APIClient.getClient().create(IApiService::class.java)
+                        .writeInfoDoors(writeDoorsInfoRequest)
                 if (response.isSuccessful && response.body() != null) {
                     val gson: Gson = Gson()
                     val jsonResponse = gson.toJson(response.body())
@@ -239,10 +275,12 @@ class EcusInfoViewModel : ViewModel() {
                         "Passanger lock" -> doorsInfo?.passenger_lock = inputText
                     }
                 } else {
+                    Toast.makeText(context, "Write doors info failed", Toast.LENGTH_SHORT).show()
                     errorMessageBattery = "Failed to retrieve data"
                     Log.d("API_ERROR", "Failed to create post: ${response.errorBody()}")
                 }
             } catch (e: Exception) {
+                Toast.makeText(context, "Write doors info failed", Toast.LENGTH_SHORT).show()
                 errorMessageBattery = e.message ?: "Unknown error"
                 Log.e("API_ERROR", "Exception: $e")
             } finally {
@@ -255,21 +293,27 @@ class EcusInfoViewModel : ViewModel() {
         private set
     var errorMessageHvac by mutableStateOf<String?>(null)
         private set
-    fun fetchHvacInfo() {
+
+    fun fetchHvacInfo(context: Context) {
         _loading.value = true
         viewModelScope.launch {
             val call = APIClient.getClient().create(IApiService::class.java).getInfoHVAC()
             call.enqueue(object : Callback<HVACDataClass> {
-                override fun onResponse(call: Call<HVACDataClass>, response: Response<HVACDataClass>) {
+                override fun onResponse(
+                    call: Call<HVACDataClass>,
+                    response: Response<HVACDataClass>
+                ) {
                     if (response.isSuccessful) {
                         hvacInfo = response.body()
                     } else {
+                        Toast.makeText(context, "Read HVAC info failed", Toast.LENGTH_SHORT).show()
                         errorMessageHvac = "Failed to retrieve data"
                     }
                     _loading.value = false
                 }
 
                 override fun onFailure(call: Call<HVACDataClass>, t: Throwable) {
+                    Toast.makeText(context, "Read HVAC info failed", Toast.LENGTH_SHORT).show()
                     errorMessageHvac = t.message
                     _loading.value = false
                 }
@@ -277,15 +321,17 @@ class EcusInfoViewModel : ViewModel() {
         }
     }
 
-    fun writeHVACInfo(inputText: String, title: String) {
+    fun writeHVACInfo(context: Context, inputText: String, title: String) {
         var writeHVACInfoRequest: Any = ""
         when (title) {
             "Ambient temp" -> writeHVACInfoRequest = WriteHvacAmbientAirTempDataClass(inputText)
             "Cabin temp" -> writeHVACInfoRequest = WriteHvacCabinTempDataClass(inputText)
-            "Driver set temp" -> writeHVACInfoRequest = WriteHvacCabinTempDriverSetDataClass(inputText)
+            "Driver set temp" -> writeHVACInfoRequest =
+                WriteHvacCabinTempDriverSetDataClass(inputText)
+
             "Fan speed" -> writeHVACInfoRequest = WriteHvacFanSpeedDataClass(inputText)
             "AC status" -> writeHVACInfoRequest = WriteHvacModesDataClass(inputText)
-            "Air recirc" -> writeHVACInfoRequest =WriteHvacModesDataClass(inputText)
+            "Air recirc" -> writeHVACInfoRequest = WriteHvacModesDataClass(inputText)
             "Defrost" -> writeHVACInfoRequest = WriteHvacModesDataClass(inputText)
             "Front" -> writeHVACInfoRequest = WriteHvacModesDataClass(inputText)
             "Legs" -> writeHVACInfoRequest = WriteHvacModesDataClass(inputText)
@@ -314,15 +360,47 @@ class EcusInfoViewModel : ViewModel() {
                         "Mass air flow" -> hvacInfo?.mass_air_flow = inputText
                     }
                 } else {
+                    Toast.makeText(context, "Write HVAC info failed", Toast.LENGTH_SHORT).show()
                     errorMessageBattery = "Failed to retrieve data"
                     Log.d("API_ERROR", "Failed to create post: ${response.errorBody()}")
                 }
             } catch (e: Exception) {
+                Toast.makeText(context, "Write HVAC info failed", Toast.LENGTH_SHORT).show()
                 errorMessageBattery = e.message ?: "Unknown error"
                 Log.e("API_ERROR", "Exception: $e")
             } finally {
                 _loading.value = false
             }
+        }
+    }
+
+
+    var batteryDTC by mutableStateOf<Any?>(null)
+        private set
+
+    suspend fun readBatteryDTC(context: Context) {
+        _loading.value = true
+        delay(5000L)
+        viewModelScope.launch {
+            val call = APIClient.getClient().create(IApiService::class.java).getBatteryDTC()
+            call.enqueue(object : Callback<Any> {
+                override fun onResponse(call: Call<Any>, response: Response<Any>) {
+                    if (response.isSuccessful) {
+                        batteryDTC = response.body()
+                    } else {
+                        Toast.makeText(context, "Read battery DTC failed", Toast.LENGTH_SHORT)
+                            .show()
+                        errorMessageHvac = "Failed to retrieve data"
+                    }
+                    _loading.value = false
+                }
+
+                override fun onFailure(call: Call<Any>, t: Throwable) {
+                    Toast.makeText(context, "Read battery DTC failed", Toast.LENGTH_SHORT).show()
+                    errorMessageHvac = t.message
+                    _loading.value = false
+                }
+            })
         }
     }
 }
