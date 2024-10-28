@@ -375,46 +375,6 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
-    const writeInfoHvac = async () => {
-        displayLoadingCircle();
-        const mass_air_flow = prompt('Enter Mass Air Flow:');
-        const ambient_air_temperature = prompt('Enter Ambient Air Temperature:');
-        const cabin_temperature = prompt('Enter Cabin Temperature:');
-        const cabin_temperature_driver_set = prompt('Enter Cabin Temperature Driver Set:');
-        const fan_speed = prompt('Enter Fan Speed:');
-        const hvac_modes = checkInput('Enter Hvac Modes:');
-        const is_manual_flow = true;
-
-        const data = {
-            mass_air_flow: mass_air_flow || null,
-            ambient_air_temperature: ambient_air_temperature || null,
-            cabin_temperature: cabin_temperature || null,
-            cabin_temperature_driver_set: cabin_temperature_driver_set || null,
-            fan_speed: fan_speed || null,
-            hvac_modes: hvac_modes || null,
-            is_manual_flow: is_manual_flow || null
-        };
-        console.log("Writing info hvac...");
-        console.log(data);
-        try {
-            await fetch(`http://127.0.0.1:5000/api/write_info_hvac`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            }).then(response => response.json())
-                .then(data => {
-                    setData23(data);
-                    console.log(data);
-                    fetchLogs();
-                });
-        } catch (error) {
-            console.log(error);
-            removeLoadingCicle();
-        }
-        removeLoadingCicle();
-    }
 
     const changeSession = async () => {
         let sessiontype: any;
