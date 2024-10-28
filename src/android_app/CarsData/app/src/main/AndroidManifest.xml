@@ -37,6 +37,11 @@
             android:name=".activities.OTA"
             android:exported="false"
             android:theme="@style/Theme.CarsData2"/>
+        <activity android:name=".activities.UDSactivity"/>
+        <activity
+            android:name=".activities.RequestActivity"
+            android:exported="false"
+            android:theme="@style/Theme.CarsData"/>
         <activity
             android:name=".activities.MainActivity"
             android:exported="true"
@@ -48,7 +53,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        
+
     </application>
 
 </manifest>
