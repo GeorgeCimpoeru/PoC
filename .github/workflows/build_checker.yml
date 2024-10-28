@@ -12,48 +12,187 @@ on:
       - development
 
 jobs:
-  build:
-    runs-on: ubuntu-latest  # You can change this to another environment if needed
-
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      setup_result: ${{ steps.setup_result.outcome }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3  # Fetches the code from the repository
+        uses: actions/checkout@v3
+
+      - name: Cache APT dependencies
+        uses: actions/cache@v3
+        with:
+          path: /var/cache/apt
+          key: ${{ runner.os }}-apt-cache
 
       - name: Set up Build Environment
+        id: setup_result
         run: |
           sudo apt-get update
+          sudo apt-get install -y software-properties-common
           sudo add-apt-repository ppa:deadsnakes/ppa
-          sudo apt-get install -y build-essential cmake libspdlog-dev libfmt-dev libzip-dev python3.8 python3.8-dev python3.8-distutils pybind11-dev # Install essential build tools and libraries
+          sudo apt-get install -y build-essential cmake libspdlog-dev libfmt-dev libzip-dev python3.8 python3.8-dev python3.8-distutils pybind11-dev
+        continue-on-error: false
 
-      - name: Run Makefile in src/mcu
+  mcu_build:
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Cache Build Dependencies
+        uses: actions/cache@v3
+        with:
+          path: /var/cache/apt
+          key: ${{ runner.os }}-apt-cache
+          restore-keys: |
+            ${{ runner.os }}-apt-cache
+
+      - name: Build MCU
         run: |
           cd src/mcu
           make
 
-      - name: Run Makefile in src/ecu_simulation/BatteryModule
+      - name: Upload MCU Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: mcu_build
+          path: src/mcu/build  # Adjust this path if your output directory is different
+
+  battery_module_build:
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Cache Build Dependencies
+        uses: actions/cache@v3
+        with:
+          path: /var/cache/apt
+          key: ${{ runner.os }}-apt-cache
+          restore-keys: |
+            ${{ runner.os }}-apt-cache
+
+      - name: Build Battery Module
         run: |
           cd src/ecu_simulation/BatteryModule
           make
 
-      - name: Run Makefile in src/ecu_simulation/DoorsModule
+      - name: Upload Battery Module Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: battery_module_build
+          path: src/ecu_simulation/BatteryModule/build
+
+  doors_module_build:
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Cache Build Dependencies
+        uses: actions/cache@v3
+        with:
+          path: /var/cache/apt
+          key: ${{ runner.os }}-apt-cache
+          restore-keys: |
+            ${{ runner.os }}-apt-cache
+
+      - name: Build Doors Module
         run: |
           cd src/ecu_simulation/DoorsModule
           make
 
-      - name: Run Makefile in src/ecu_simulation/EngineModule
+      - name: Upload Doors Module Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: doors_module_build
+          path: src/ecu_simulation/DoorsModule/build
+
+  engine_module_build:
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Cache Build Dependencies
+        uses: actions/cache@v3
+        with:
+          path: /var/cache/apt
+          key: ${{ runner.os }}-apt-cache
+          restore-keys: |
+            ${{ runner.os }}-apt-cache
+
+      - name: Build Engine Module
         run: |
           cd src/ecu_simulation/EngineModule
           make
 
-      - name: Run Makefile in src/ecu_simulation/HVACModule
+      - name: Upload Engine Module Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: engine_module_build
+          path: src/ecu_simulation/EngineModule/build
+
+  hvac_module_build:
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Cache Build Dependencies
+        uses: actions/cache@v3
+        with:
+          path: /var/cache/apt
+          key: ${{ runner.os }}-apt-cache
+          restore-keys: |
+            ${{ runner.os }}-apt-cache
+
+      - name: Build HVAC Module
         run: |
           cd src/ecu_simulation/HVACModule
           make
 
+      - name: Upload HVAC Module Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: hvac_module_build
+          path: src/ecu_simulation/HVACModule/build
+
+  finalize:
+    runs-on: ubuntu-latest
+    needs: [mcu_build, battery_module_build, doors_module_build, engine_module_build, hvac_module_build]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: mcu_build
+          path: mcu_build
+      - uses: actions/download-artifact@v3
+        with:
+          name: battery_module_build
+          path: battery_module_build
+      - uses: actions/download-artifact@v3
+        with:
+          name: doors_module_build
+          path: doors_module_build
+      - uses: actions/download-artifact@v3
+        with:
+          name: engine_module_build
+          path: engine_module_build
+      - uses: actions/download-artifact@v3
+        with:
+          name: hvac_module_build
+          path: hvac_module_build
+
       - name: Check Build Results
-        run: |
-          if [ $? -ne 0 ]; then
-            echo "Build failed!"
-            exit 1  # Exit with error code to fail the job
-          fi
-          echo "Build succeeded!"
+        run: echo "All modules built successfully."
