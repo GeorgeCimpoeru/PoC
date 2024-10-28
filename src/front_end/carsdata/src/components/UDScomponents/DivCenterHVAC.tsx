@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react'
 import Image from 'next/image';
 import ModalUDS from './ModalUDS';
 import './style.css';
+import { displayLoadingCircle, displayErrorPopup, removeLoadingCicle } from '../sharedComponents/LoadingCircle';
+import logger from '@/src/utils/Logger';
 
 // interface HvacModes {
 //     AC_Status: string;
@@ -26,12 +28,16 @@ interface HVACData {
 
 
 const DivCenterHVAC = (props: any) => {
+    logger.init();
+
     const [data, setData] = useState<HVACData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
         const readInfoHVAC = async () => {
+            displayLoadingCircle();
+
             await fetch(`http://127.0.0.1:5000/api/read_info_hvac`)
                 .then(response => {
                     if (!response.ok) {
@@ -47,8 +53,11 @@ const DivCenterHVAC = (props: any) => {
                 .catch(error => {
                     setError(error);
                     setLoading(false);
+                    displayErrorPopup("Connection failed");
+                    removeLoadingCicle();
 
                 });
+            removeLoadingCicle();
         };
         readInfoHVAC();
     }, []);
@@ -90,7 +99,7 @@ const DivCenterHVAC = (props: any) => {
                         <p>Cabin temperature driver set</p>
                     </div>
 
-{/* 
+                    {/* 
                     <div className="w-[30%] m-7 text-white grid justify-items-end">
                         <label htmlFor="my_modal_3"
                             className="inline-flex items-center justify-center p-2 bg-green-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-green-700">

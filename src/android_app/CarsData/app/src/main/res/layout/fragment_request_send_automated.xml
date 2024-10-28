@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".fragments.Fragment_Update">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fillViewport="true"
+            android:orientation="vertical"
+            android:padding="15dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="15dp"
+                android:text="@string/can_interface_control"
+                android:textColor="@color/black"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingHorizontal="15dp">
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@id/change_session"
+                    android:layout_width="105dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/session"
+                    android:textStyle="bold"
+                    app:thumbTint="@color/blue"
+                    app:thumbTintMode="multiply" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingHorizontal="15dp">
+
+                <Button
+                    android:id="@+id/q3"
+                    android:layout_width="115dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="15dp"
+                    android:background="@drawable/custom_yellow_button"
+                    android:text="@string/authentication"
+                    android:textStyle="bold"
+                    android:textAllCaps="false" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingHorizontal="15dp">
+
+                <Button
+                    android:id="@+id/docs"
+                    android:layout_width="115dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:background="@drawable/custom_button"
+                    android:text="@string/go_to_docs"
+                    android:textAllCaps="false" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_marginTop="30dp"
+                    android:text="@string/uds_services"
+                    android:textColor="@color/black"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginHorizontal="15dp"
+                    android:background="#56000000" />
+
+                <GridLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginTop="25dp"
+                    android:columnCount="1"
+                    android:paddingHorizontal="15dp"
+                    android:rowCount="1">
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@id/tester"
+                        android:layout_width="140dp"
+                        android:layout_height="wrap_content"
+                        android:text="@string/tester_present"
+                        android:textStyle="bold"
+                        app:thumbTint="@color/blue" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@id/read_access"
+                        android:layout_width="225dp"
+                        android:layout_height="wrap_content"
+                        android:text="@string/read_current_access_timing"
+                        android:textStyle="bold"
+                        app:thumbTint="@color/blue" />
+                </GridLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:layout_marginStart="20dp"
+                    android:paddingStart="30dp"
+                    android:paddingEnd="30dp"
+                    android:layout_marginTop="20dp">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="50dp"
+                        android:layout_marginBottom="20dp"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        android:paddingBottom="20dp">
+                        <TextView
+                            android:id="@+id/type_reset_text_view"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/type_of_reset"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="5dp"
+                            android:paddingHorizontal="10dp"/>
+
+                        <Spinner
+                            android:id="@+id/type_reset_spinner"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:autofillHints="item"
+                            android:background="@drawable/outlined_spinner"
+                            android:entries="@array/type_reset"
+                            android:spinnerMode="dropdown" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="20dp"
+                        android:layout_marginEnd="20dp"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="10dp"
+                        android:paddingBottom="20dp">
+
+                        <TextView
+                            android:id="@+id/ecu_reset_text_view"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/ecu_to_reset"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="5dp"/>
+                        <Spinner
+                            android:id="@+id/ecu_reset_spinner"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:autofillHints="item"
+                            android:background="@drawable/outlined_spinner"
+                            android:entries="@array/ecu_reset"
+                            android:spinnerMode="dropdown" />
+
+                    </LinearLayout>
+                </LinearLayout>
+
+                <GridLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_marginEnd="20dp"
+                    android:columnCount="2"
+                    android:gravity="center_horizontal"
+                    android:paddingHorizontal="0dp"
+                    android:paddingStart="25dp"
+                    android:paddingEnd="0dp"
+                    android:rowCount="1">
+
+                    <Button
+                        android:id="@+id/q1"
+                        android:layout_width="130dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="15dp"
+                        android:background="@drawable/custom_button"
+                        android:text="@string/read_dtc"
+                        android:textAllCaps="false" />
+
+                    <Button
+                        android:id="@+id/q4"
+                        android:layout_width="130dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="15dp"
+                        android:background="@drawable/custom_button"
+                        android:text="@string/read_identifiers"
+                        android:textAllCaps="false" />
+
+                    <Button
+                        android:id="@+id/q5"
+                        android:layout_width="130dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="15dp"
+                        android:background="@drawable/custom_button"
+                        android:text="@string/request_ids"
+                        android:textAllCaps="false" />
+
+                    <Button
+                        android:id="@+id/q6"
+                        android:layout_width="130dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="15dp"
+                        android:background="@drawable/custom_button"
+                        android:text="@string/write_timing"
+                        android:textAllCaps="false" />
+
+                    <Button
+                        android:id="@+id/q7"
+                        android:layout_width="130dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="15dp"
+                        android:background="@drawable/custom_button"
+                        android:text="@string/read_battery_param"
+                        android:textAllCaps="false" />
+
+                    <Button
+                        android:id="@+id/q8"
+                        android:layout_width="130dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="15dp"
+                        android:background="@drawable/custom_button"
+                        android:text="@string/write_battery_param"
+                        android:textAllCaps="false" />
+
+                    <Button
+                        android:id="@+id/q9"
+                        android:layout_width="130dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="15dp"
+                        android:background="@drawable/custom_button"
+                        android:text="@string/read_info_engine"
+                        android:textAllCaps="false" />
+
+                    <Button
+                        android:id="@+id/q10"
+                        android:layout_width="130dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="15dp"
+                        android:background="@drawable/custom_button"
+                        android:text="@string/write_info_engine"
+                        android:textAllCaps="false" />
+
+                    <Button
+                        android:id="@+id/q11"
+                        android:layout_width="130dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="15dp"
+                        android:background="@drawable/custom_button"
+                        android:text="@string/read_info_doors"
+                        android:textAllCaps="false" />
+
+                    <Button
+                        android:id="@+id/q12"
+                        android:layout_width="130dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="15dp"
+                        android:background="@drawable/custom_button"
+                        android:text="@string/write_doors_info"
+                        android:textAllCaps="false" />
+
+                    <Button
+                        android:id="@+id/q13"
+                        android:layout_width="130dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="15dp"
+
+                        android:background="@drawable/custom_button"
+                        android:text="@string/read_info_hvac"
+                        android:textAllCaps="false" />
+
+                    <Button
+                        android:id="@+id/q14"
+                        android:layout_width="130dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="15dp"
+
+                        android:background="@drawable/custom_button"
+                        android:text="@string/write_info_hvac"
+                        android:textAllCaps="false" />
+
+                </GridLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_marginTop="30dp"
+                    android:text="@string/ota_services"
+                    android:textColor="@color/black"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginHorizontal="15dp"
+                    android:background="#56000000" />
+
+                <Button
+                    android:id="@+id/q2"
+                    android:layout_width="170dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/custom_yellow_button"
+                    android:text="@string/check_new_soft_version"
+                    android:textAllCaps="false" />
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginHorizontal="15dp"
+                android:layout_marginTop="10dp"
+                android:background="#56000000" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="20dp"
+                android:text="@string/response"
+                android:textColor="@color/black"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@id/response"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="20dp"
+                android:background="@drawable/response_border"
+                android:textColor="@color/black"
+                android:textSize="15sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginTop="50dp"
+                android:text="@string/PoC_2024" />
+        </LinearLayout>
+
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
