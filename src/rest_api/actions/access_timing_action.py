@@ -3,6 +3,12 @@ from configs.data_identifiers import *
 
 
 class ReadAccessTiming(Action):
+    """ curl -X POST http://127.0.0.1:5000/api/read_access_timing \
+    -H "Content-Type: application/json" \
+    -d '{
+        "sub_funct": "timing"
+    }'
+    """
     def _read_timing_info(self, id, sub_funct=1):
         """
         Reads timing parameters of the ECU.
@@ -59,31 +65,34 @@ class ReadAccessTiming(Action):
                         }
                     else:
                         return {
-                            "status": "error",
-                            "message": "Unexpected sub_function value"
+                            "message": "Sub-function value not recognized"
                         }
 
                     return {
-                        "status": "success",
                         "message": "Timing parameters accessed successfully",
                         "timing_values": timing_values_dict
                     }
                 else:
                     return {
-                        "status": "error",
                         "message": "Insufficient data length to read timing parameters"
                     }
             else:
                 return {
-                    "status": "error",
                     "message": "Unexpected response while reading timing parameters"
                 }
         except Exception as e:
-            logger.error(f"Error accessing timing parameters: {e}")
-            return {"status": "error", "message": str(e)}
+            logger.error(f"Exception accessing timing parameters: {e}")
+            return {"message": str(e)}
 
 
 class WriteAccessTiming(Action):
+    """ curl -X POST http://127.0.0.1:5000/api/write_timing \
+    -H "Content-Type: application/json" \
+    -d '{
+        "p2_max": "50",
+        "p2_star_max": "100"
+    }'
+    """
     def _write_timing_info(self, id, timing_values):
         """
         Writes timing parameters to the ECU.
@@ -113,7 +122,6 @@ class WriteAccessTiming(Action):
                 log_info_message(logger, "Timing parameters written successfully")
 
                 return {
-                    "status": "success",
                     "message": "Timing parameters written successfully",
                     "written_values": {
                         "New P2 Max Time": p2_max,
@@ -122,9 +130,8 @@ class WriteAccessTiming(Action):
                 }
             else:
                 return {
-                    "status": "error",
                     "message": "Unexpected response while writing timing parameters"
                 }
         except Exception as e:
-            logger.error(f"Error writing timing parameters: {e}")
-            return {"status": "error", "message": str(e)}
+            logger.error(f"Exception writing timing parameters: {e}")
+            return {"message": str(e)}

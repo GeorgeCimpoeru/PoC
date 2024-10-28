@@ -67,7 +67,14 @@ namespace MCU
     {
         create_interface->stopInterface();
         delete receive_frames;
-        system("pkill main_mcu");
+        if(system("pkill main_mcu") != 0)
+        {
+            LOG_ERROR(MCULogger->GET_LOGGER(), "Error when trying to kill main_mcu process");
+        }
+        else
+        {
+            /* do nothing */
+        }
     }
 
     /* Start the module */
