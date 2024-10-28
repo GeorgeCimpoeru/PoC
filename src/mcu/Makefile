@@ -217,8 +217,7 @@ MCU_OBJS_TEST = $(OBJ_DIR)/MCUModule_test.o \
 ECU_OBJS_TEST = $(OBJ_DIR)/BatteryModule_test.o \
                 $(OBJ_DIR)/EngineModule_test.o \
                 $(OBJ_DIR)/DoorsModule_test.o \
-                $(OBJ_DIR)/HVACModule_test.o \
-                $(OBJ_DIR)/ECU_test.o
+                $(OBJ_DIR)/HVACModule_test.o
 
 UTILS_OBJS_TEST = $(OBJ_DIR)/MemoryManager_test.o \
                   $(OBJ_DIR)/Logger_test.o \
@@ -227,6 +226,7 @@ UTILS_OBJS_TEST = $(OBJ_DIR)/MemoryManager_test.o \
                   $(OBJ_DIR)/NegativeResponse_test.o \
                   $(OBJ_DIR)/HandleFrames_test.o \
 				  $(OBJ_DIR)/ReceiveFrames_test_utils.o \
+				  $(OBJ_DIR)/ECU_test.o \
                   $(OBJ_DIR)/FileManager_test.o
 
 OBJS_GENERATE_TEST = $(OBJ_DIR)/Logger_test.o \
@@ -421,7 +421,7 @@ $(OBJ_DIR)/NegativeResponse_test.o: $(UTILS_DIR)/NegativeResponse.cpp
 	
 # Compile all unit tests
 
-allTests: mcuModuleTest handleFramesTest receiveFramesTest generateFramesTest loggerTest memoryManagerTest createInterfaceTest diagnosticSessionControlTest writeDataByIdentifierTest readDataByIdentifierTest requestTransferExitTest readDtcTest clearDtcTest requestUpdateStatusTest securityAccessTest testerPresentTest routineControlTest transferDataTest requestDownloadTest ecuResetTest negativeResponseTest accessTimingParameterTest receiveFramesTestUtils
+allTests: mcuModuleTest handleFramesTest receiveFramesTest generateFramesTest loggerTest memoryManagerTest createInterfaceTest diagnosticSessionControlTest writeDataByIdentifierTest readDataByIdentifierTest requestTransferExitTest readDtcTest clearDtcTest requestUpdateStatusTest securityAccessTest testerPresentTest routineControlTest transferDataTest requestDownloadTest ecuResetTest negativeResponseTest accessTimingParameterTest receiveFramesTestUtils ecuTest
 
 
 # HandleFrames Unit tests
@@ -432,6 +432,24 @@ $(UTILS_TEST)/handleFramesTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UTILS_TEST)/Handle
 
 $(UTILS_TEST)/HandleFrames_test.o: $(UTILS_TEST)/HandleFramesTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/HandleFramesTest.cpp -o $(UTILS_TEST)/HandleFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
+
+# ECU Unit tests
+ecuTest: $(OBJ_DIR) $(UTILS_TEST)/ecuTest.out
+
+$(UTILS_TEST)/ecuTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UTILS_TEST)/ECU_test.o
+	$(CXX) $(CFLAGSTST) -o $(UTILS_TEST)/ecuTest.out $(UTILS_TEST)/ECU_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
+
+$(UTILS_TEST)/ECU_test.o: $(UTILS_TEST)/ECUTest.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/ECUTest.cpp -o $(UTILS_TEST)/ECU_test.o $(CFLAGSTST2) $(LDFLAGS)
+
+# ECU Unit tests
+ecuTest: $(OBJ_DIR) $(UTILS_TEST)/ecuTest.out
+
+$(UTILS_TEST)/ecuTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UTILS_TEST)/ECU_test.o
+	$(CXX) $(CFLAGSTST) -o $(UTILS_TEST)/ecuTest.out $(UTILS_TEST)/ECU_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
+
+$(UTILS_TEST)/ECU_test.o: $(UTILS_TEST)/ECU.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/ECU.cpp -o $(UTILS_TEST)/ECU_test.o $(CFLAGSTST2) $(LDFLAGS)
 
 # ReceiveFramesUtils Unit tests
 receiveFramesTestUtils: $(OBJ_DIR) $(UTILS_TEST)/receiveFramesTestUtils.out
@@ -911,6 +929,20 @@ handleFrames_coverage: handleFramesTest
 	gcov -o obj/HandleFrames_test.gcno obj/HandleFrames_test.gcda $(UTILS_TEST)/HandleFrames.cpp
 	mv HandleFrames.cpp.gcov coverage/out_HandleFrames
 
+# ECU Coverage - solo job
+ecuCoverage: ecu_coverage
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
+	lcov --remove coverage.info '/test/' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_ECUTest
+	xdg-open coverage/out_ECUTest/index.html
+# This job runs for allCoverage
+ecu_coverage: ecuTest
+	./$(UTILS_TEST)/ecuTest.out
+	mkdir -p coverage/out_ECU
+	gcov -o obj/ECU_test.gcno obj/ECU_test.gcda $(UTILS_TEST)/ECU.cpp
+	mv ECU.cpp.gcov coverage/out_ECU
+
 # ReceiveFramesUtils Coverage - solo job
 receiveFramesCoverageUtils: receiveFrames_coverage_utils
 	lcov --capture --directory . --output-file coverage.info
@@ -1149,7 +1181,7 @@ batteryModule_coverage: batteryModuleTest
 
 
 
-allCoverage: securityAccess_coverage routineControl_coverage transferData_coverage requestDownload_coverage ecuReset_coverage memoryManager_coverage logger_coverage generateFrames_coverage mcuModule_coverage receiveFrames_coverage handleFrames_coverage createInterface_coverage diagnosticSessionControl_coverage writeDataByIdentifier_coverage readDataByIdentifier_coverage testerPresent_coverage requestTransferExit_coverage clearDtc_coverage readDtc_coverage requestUpdateStatus_coverage negativeResponse_coverage accessTimingParameter_coverage receiveFrames_coverage_utils
+allCoverage: securityAccess_coverage routineControl_coverage transferData_coverage requestDownload_coverage ecuReset_coverage memoryManager_coverage logger_coverage generateFrames_coverage mcuModule_coverage receiveFrames_coverage handleFrames_coverage createInterface_coverage diagnosticSessionControl_coverage writeDataByIdentifier_coverage readDataByIdentifier_coverage testerPresent_coverage requestTransferExit_coverage clearDtc_coverage readDtc_coverage requestUpdateStatus_coverage negativeResponse_coverage accessTimingParameter_coverage receiveFrames_coverage_utils ecu_coverage
 
 
 allCoveragePostProcess:
