@@ -12,43 +12,25 @@ on:
       - development
 
 jobs:
-  setup:
-    runs-on: ubuntu-latest
-    outputs:
-      setup_result: ${{ steps.setup_result.outcome }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Cache APT dependencies
-        uses: actions/cache@v3
-        with:
-          path: /var/cache/apt
-          key: ${{ runner.os }}-apt-cache
-
-      - name: Set up Build Environment
-        id: setup_result
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y software-properties-common
-          sudo add-apt-repository ppa:deadsnakes/ppa
-          sudo apt-get install -y build-essential cmake libspdlog-dev libfmt-dev libzip-dev python3.8 python3.8-dev python3.8-distutils pybind11-dev
-        continue-on-error: false
-
   mcu_build:
     runs-on: ubuntu-latest
-    needs: setup
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Cache Build Dependencies
+      - name: Cache APT Dependencies
         uses: actions/cache@v3
         with:
           path: /var/cache/apt
           key: ${{ runner.os }}-apt-cache
           restore-keys: |
             ${{ runner.os }}-apt-cache
+
+      - name: Set up Build Environment
+        run: |
+          sudo apt-get update
+          sudo add-apt-repository -y ppa:deadsnakes/ppa
+          sudo apt-get install -y build-essential cmake libspdlog-dev libfmt-dev libzip-dev python3.8 python3.8-dev python3.8-distutils pybind11-dev
 
       - name: Build MCU
         run: |
@@ -59,22 +41,27 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: mcu_build
-          path: src/mcu/build  # Adjust this path if your output directory is different
+          path: src/mcu/build  # Adjust path if needed
 
   battery_module_build:
     runs-on: ubuntu-latest
-    needs: setup
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Cache Build Dependencies
+      - name: Cache APT Dependencies
         uses: actions/cache@v3
         with:
           path: /var/cache/apt
           key: ${{ runner.os }}-apt-cache
           restore-keys: |
             ${{ runner.os }}-apt-cache
+
+      - name: Set up Build Environment
+        run: |
+          sudo apt-get update
+          sudo add-apt-repository -y ppa:deadsnakes/ppa
+          sudo apt-get install -y build-essential cmake libspdlog-dev libfmt-dev libzip-dev python3.8 python3.8-dev python3.8-distutils pybind11-dev
 
       - name: Build Battery Module
         run: |
@@ -89,18 +76,23 @@ jobs:
 
   doors_module_build:
     runs-on: ubuntu-latest
-    needs: setup
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Cache Build Dependencies
+      - name: Cache APT Dependencies
         uses: actions/cache@v3
         with:
           path: /var/cache/apt
           key: ${{ runner.os }}-apt-cache
           restore-keys: |
             ${{ runner.os }}-apt-cache
+
+      - name: Set up Build Environment
+        run: |
+          sudo apt-get update
+          sudo add-apt-repository -y ppa:deadsnakes/ppa
+          sudo apt-get install -y build-essential cmake libspdlog-dev libfmt-dev libzip-dev python3.8 python3.8-dev python3.8-distutils pybind11-dev
 
       - name: Build Doors Module
         run: |
@@ -115,18 +107,23 @@ jobs:
 
   engine_module_build:
     runs-on: ubuntu-latest
-    needs: setup
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Cache Build Dependencies
+      - name: Cache APT Dependencies
         uses: actions/cache@v3
         with:
           path: /var/cache/apt
           key: ${{ runner.os }}-apt-cache
           restore-keys: |
             ${{ runner.os }}-apt-cache
+
+      - name: Set up Build Environment
+        run: |
+          sudo apt-get update
+          sudo add-apt-repository -y ppa:deadsnakes/ppa
+          sudo apt-get install -y build-essential cmake libspdlog-dev libfmt-dev libzip-dev python3.8 python3.8-dev python3.8-distutils pybind11-dev
 
       - name: Build Engine Module
         run: |
@@ -141,18 +138,23 @@ jobs:
 
   hvac_module_build:
     runs-on: ubuntu-latest
-    needs: setup
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Cache Build Dependencies
+      - name: Cache APT Dependencies
         uses: actions/cache@v3
         with:
           path: /var/cache/apt
           key: ${{ runner.os }}-apt-cache
           restore-keys: |
             ${{ runner.os }}-apt-cache
+
+      - name: Set up Build Environment
+        run: |
+          sudo apt-get update
+          sudo add-apt-repository -y ppa:deadsnakes/ppa
+          sudo apt-get install -y build-essential cmake libspdlog-dev libfmt-dev libzip-dev python3.8 python3.8-dev python3.8-distutils pybind11-dev
 
       - name: Build HVAC Module
         run: |
