@@ -3,6 +3,11 @@
     <item name="fragment_container_view" type="id"/>
     <item name="fragment_container_view2" type="id"/>
     <item name="fragment_container" type="id"/>
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
     <item name="fragment_container_request" type="id"/>
     <item name="read" type="id"/>
     <item name="write" type="id"/>
@@ -11,4 +16,8 @@
     <item name="read_access" type="id"/>
     <item name="change_session" type="id"/>
     <item name="spinner_ecu" type="id"/>
+<<<<<<< HEAD
+>>>>>>> development
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 </resources>

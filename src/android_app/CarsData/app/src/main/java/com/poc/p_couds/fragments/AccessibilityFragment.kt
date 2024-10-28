@@ -26,6 +26,12 @@ class AccessibilityFragment : Fragment() {
     private lateinit var yearTextView: TextView
     private lateinit var serialNoTextView: TextView
     private lateinit var bodyClassEngineHPModelTextView: TextView
+<<<<<<< HEAD
+<<<<<<< HEAD
+    private lateinit var vinTextView: TextView
+=======
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 
     private lateinit var vin1TextView: TextView
     private lateinit var vin2TextView: TextView
@@ -36,6 +42,10 @@ class AccessibilityFragment : Fragment() {
     private lateinit var vin7TextView: TextView
     private lateinit var vin8TextView: TextView
 
+<<<<<<< HEAD
+>>>>>>> development
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -51,6 +61,12 @@ class AccessibilityFragment : Fragment() {
         bodyClassEngineHPModelTextView = view.findViewById(R.id.bodyClass_engineHP_engineModel_model_Label)
         yearTextView = view.findViewById(R.id.modelYearLabel)
         serialNoTextView = view.findViewById(R.id.serialNoLabel)
+<<<<<<< HEAD
+<<<<<<< HEAD
+        vinTextView = view.findViewById(R.id.vin)
+=======
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 
         vin1TextView = view.findViewById(R.id.vin1)
         vin2TextView = view.findViewById(R.id.vin2)
@@ -60,6 +76,10 @@ class AccessibilityFragment : Fragment() {
         vin6TextView = view.findViewById(R.id.vin6)
         vin7TextView = view.findViewById(R.id.vin7)
         vin8TextView = view.findViewById(R.id.vin8)
+<<<<<<< HEAD
+>>>>>>> development
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 
         val vin = arguments?.getString("VIN")
         if (vin != null) {
@@ -68,6 +88,11 @@ class AccessibilityFragment : Fragment() {
         return view
     }
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
     private fun updateVinTextViews(vin: String) {
         val vinDefaults = MutableList(17) { "null" }
 
@@ -103,6 +128,10 @@ class AccessibilityFragment : Fragment() {
         }
     }
 
+<<<<<<< HEAD
+>>>>>>> development
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
     private fun fetchVinDetails(vin:String) {
         val call = HandleNetworkReq.api.getVinDetails(vin)
         call.enqueue(object : retrofit2.Callback<VINResponse> {
@@ -113,6 +142,40 @@ class AccessibilityFragment : Fragment() {
                         if (it.results.isNotEmpty()) {
                             val result = it.results[0]
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+                            val country = result.plantCountry.split(" ")
+                            val formattedCountry = if (country.size > 1) {"${country[0]}\n${country[1]}\n${country[2]}"} else {result.plantCountry}
+=======
+                            // Utility function to split and join words with new lines
+                            fun splitAndFormat(text: String): String {
+                                return text.split(" ").joinToString(separator = "\n") { it.trim() }
+                            }
+
+                            val formattedCountry = if (result.plantCountry.isNotEmpty()) {
+                                splitAndFormat(result.plantCountry)
+                            }  else { ""
+                            }
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
+                            plantCountryTextView.text = formattedCountry
+
+                            val formattedVehicle = if(result.vehicleType.isNotEmpty()) {
+                                splitAndFormat(result.vehicleType)
+                            }else {  ""
+                            }
+                            vehicleTypeTextView.text = formattedVehicle
+
+                            errorCodeSecDigitTextView.text = result.errorCodeSecDigit
+
+                            plantCityTextView.text = result.plantCity
+
+                            val formattedManufacturer = if(result.manufacturer.isNotEmpty()) {
+                                splitAndFormat(result.manufacturer)
+                            }else { ""
+                            }
+                            manufacturerTextView.text = formattedManufacturer
+<<<<<<< HEAD
+=======
                             // Utility function to split and join words with new lines
                             fun splitAndFormat(text: String): String {
                                 return text.split(" ").joinToString(separator = "\n") { it.trim() }
@@ -140,6 +203,10 @@ class AccessibilityFragment : Fragment() {
                             }
                             manufacturerTextView.text = formattedManufacturer
 
+>>>>>>> development
+=======
+
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
                             yearTextView.text = result.year
                             updateTextView(it,vin)
                             moreInfo(it)
@@ -161,6 +228,14 @@ class AccessibilityFragment : Fragment() {
                 "(${result.bodyClass}\n${result.engineHP}\n${result.engineModel}\n${result.model}\n${result.fuel}\n${result.transmission})"
             bodyClassEngineHPModelTextView.text = combinedInfo
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+            val serialNo = vin.takeLast(6)
+            serialNoTextView.text = serialNo
+            vinTextView.text = vin
+=======
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
             if (vin.length == 17) {
                 val serialNo = vin.takeLast(6)
                 serialNoTextView.text = serialNo
@@ -168,6 +243,10 @@ class AccessibilityFragment : Fragment() {
                 serialNoTextView.text = "Not provided"
             }
             updateVinTextViews(vin)
+<<<<<<< HEAD
+>>>>>>> development
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
         }
     }
 

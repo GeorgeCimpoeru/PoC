@@ -5,9 +5,19 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+import androidx.annotation.NonNull;
+=======
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+>>>>>>> development
+=======
+import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 import androidx.fragment.app.Fragment;
 
 import android.os.CountDownTimer;
@@ -30,6 +40,25 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+<<<<<<< HEAD
+<<<<<<< HEAD
+
+import com.poc.p_couds.APIClient;
+import com.poc.p_couds.IApiService;
+=======
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+
+import com.poc.p_couds.APIClient;
+<<<<<<< HEAD
+import com.poc.p_couds.UpdateViewModel;
+import com.poc.p_couds.UpdateViewModelFactory;
+=======
+>>>>>>> Database of history updates (#486)
+import com.poc.p_couds.models.DbHelper;
+import com.poc.p_couds.models.IApiService;
+>>>>>>> development
+=======
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -38,6 +67,7 @@ import com.poc.p_couds.UpdateViewModel;
 import com.poc.p_couds.UpdateViewModelFactory;
 import com.poc.p_couds.models.DbHelper;
 import com.poc.p_couds.models.IApiService;
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 import com.poc.p_couds.R;
 import com.poc.p_couds.pojo.FileNode;
 import com.poc.p_couds.pojo.UpdateHistory;
@@ -46,7 +76,18 @@ import com.poc.p_couds.pojo.UpdateVResponse;
 
 import java.io.IOException;
 import java.util.ArrayList;
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
 import java.util.Calendar;
+>>>>>>> development
+=======
+import java.util.Calendar;
+>>>>>>> Database of history updates (#486)
+=======
+import java.util.Calendar;
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 import java.util.List;
 import java.util.Objects;
 
@@ -54,6 +95,17 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+/**
+ * A simple {@link Fragment} subclass.
+ * Use the {@link Fragment_Update#newInstance} factory method to
+ * create an instance of this fragment.
+ */
+=======
+>>>>>>> development
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 public class Fragment_Update extends Fragment implements View.OnClickListener {
 
     // Constants
@@ -62,7 +114,19 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
     // Elements in view
     private EditText searchnTxt;
     private TextView progressTxt, ecuTxt, versionTxt;
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+    private Button startDwBtn;
+=======
     private Button startDwBtn, nextBtn, firstButton;
+>>>>>>> development
+=======
+    private Button startDwBtn, nextBtn, firstButton;
+>>>>>>> Database of history updates (#486)
+=======
+    private Button startDwBtn, nextBtn, firstButton;
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
     private ImageButton searchBtn, continueBtn, pauseBtn, stopBtn;
     private Switch upgradeSw;
     private ProgressBar progressDw;
@@ -76,19 +140,47 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
     private ArrayAdapter<String> adapterVersion;
 
     // Variables
+<<<<<<< HEAD
+<<<<<<< HEAD
+    private CountDownTimer timer;
+    private long timeRemaining;     // Track remaining time when paused
+    private int totalTimeInMillis;  // Total time for the progress bar
+=======
+>>>>>>> development
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
     private boolean isPaused = false;
     private boolean downloading = false;
     private IApiService apiInterface;
     private List<UpdateHistory> listHistoryUpdates = new ArrayList<>();
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
     private DbHelper db;
     private int page = 0;   //page in the table
     private UpdateViewModel updateViewModel;
+>>>>>>> development
+=======
+    private DbHelper db;
+    private int page = 0;   //page in the table
+>>>>>>> Database of history updates (#486)
+=======
+    private DbHelper db;
+    private int page = 0;   //page in the table
+    private UpdateViewModel updateViewModel;
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 
     // String variables
     private String folderNameVersions = "";
     private String idEcu;
     private String currentVersion = "1.5";
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
     public boolean isDownloading()
     {
         return downloading;
@@ -120,6 +212,10 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
             }
         });
     }
+<<<<<<< HEAD
+>>>>>>> development
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -134,6 +230,12 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
             String title = args.getString("FRAGMENT_TITLE","Error");
             idEcu = args.getString("id","Error");
             folderNameVersions = args.getString("folderName", "Error");
+<<<<<<< HEAD
+<<<<<<< HEAD
+            ecuTxt.setText(title);
+            Toast.makeText(getActivity(), "ID: "+idEcu, Toast.LENGTH_SHORT).show();
+        }
+=======
             versions = (ArrayList<Pair<String, String>>) args.getSerializable("versions");
             versionFilter.clear();
             for (Pair<String, String> pair : versions) {
@@ -143,15 +245,55 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
             ecuTxt.setText(title);
             Toast.makeText(getActivity(), "ID: "+idEcu, Toast.LENGTH_SHORT).show();
         }
+=======
+            versions = (ArrayList<Pair<String, String>>) args.getSerializable("versions");
+            versionFilter.clear();
+            for (Pair<String, String> pair : versions) {
+                versionFilter.add(pair.first); // Add only the 'key' (first element) to the filter
+            }
+            adapterVersion.notifyDataSetChanged(); // Notify adapter about data changes
+            ecuTxt.setText(title);
+            Toast.makeText(getActivity(), "ID: "+idEcu, Toast.LENGTH_SHORT).show();
+        }
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
         Log.i(TAG,"IMP: "+ idEcu);
         UpdateViewModelFactory factory = new UpdateViewModelFactory(getActivity().getApplication(), idEcu);
         updateViewModel = new ViewModelProvider(getActivity(),factory).get(UpdateViewModel.class);
         observeViewModel();
+<<<<<<< HEAD
+>>>>>>> development
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 
         // Get current version from API
         // getCurrentVersionFor(idEcu);
         displayCurrentVersions();
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+        // Get list of the versions from the API
+        getListOfVersionsAPI();
+
+        // Get history of updates from endpoint and update table base on teh info received
+        getListOfUpdatesHistory(idEcu);
+=======
+        // Get history of updates from endpoint and update table base on teh info received
+        updateViewModel.getListOfUpdatesHistory(idEcu);
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
+        
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        db.close();
+    }
+
+    private void initializeElements(View view)
+    {
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
         // Get history of updates from endpoint and update table base on teh info received
         updateViewModel.getListOfUpdatesHistory(idEcu);
         
@@ -167,15 +309,39 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
     {
         versions = new ArrayList<>();
         db = new DbHelper(getActivity());
+>>>>>>> development
+=======
+        versions = new ArrayList<>();
+        db = new DbHelper(getActivity());
+>>>>>>> Database of history updates (#486)
+=======
+        versions = new ArrayList<>();
+        db = new DbHelper(getActivity());
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
         searchnTxt = view.findViewById(R.id.search_txt);
         progressTxt = view.findViewById(R.id.progess_txt);
         ecuTxt = view.findViewById(R.id.ecu_txt);
         versionTxt = view.findViewById(R.id.versio_txt);
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> Database of history updates (#486)
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
         nextBtn = view.findViewById(R.id.nextPageButton);
         nextBtn.setOnClickListener(this);
         firstButton = view.findViewById(R.id.previousPageButton);
         firstButton.setOnClickListener(this);
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> development
+=======
+>>>>>>> Database of history updates (#486)
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
         searchBtn = view.findViewById(R.id.search_btn);
         searchBtn.setOnClickListener(this);
         startDwBtn = view.findViewById(R.id.start_download);
@@ -188,7 +354,14 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
         continueBtn.setOnClickListener(this);
 
         progressDw = view.findViewById(R.id.progressBar2);
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
         progressDw.setMax(100);
+>>>>>>> development
+=======
+        progressDw.setMax(100);
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 
         versionFilter = new ArrayList<>();
         spinnerVersions = view.findViewById(R.id.spinner_versions);
@@ -199,12 +372,30 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
         upgradeSw.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+                versionFilter.clear();
+                versionFilter.addAll(getVersionFiltered(b));
+                adapterVersion.notifyDataSetChanged();
+=======
+=======
+>>>>>>> Database of history updates (#486)
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
                 if (!versions.isEmpty())
                 {
                     versionFilter.clear();
                     versionFilter.addAll(getVersionFiltered(b));
                     adapterVersion.notifyDataSetChanged();
                 }
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> development
+=======
+>>>>>>> Database of history updates (#486)
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
             }
         });
         mDialog = new Dialog(view.getContext());
@@ -220,6 +411,12 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
 
     private void updateTable(List<UpdateHistory> listUpdates)
     {
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+        for(UpdateHistory update: listUpdates)
+        {
+=======
         final int elemPerPage = 3;
 
         if (listUpdates.size()/elemPerPage + (listUpdates.size()%elemPerPage > 0 ? 1:0)  < page +1)
@@ -239,10 +436,59 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
 
         for (int i = 0; i < elemPerPage; i++)
         {
+=======
+        final int elemPerPage = 3;
+
+        if (listUpdates.size()/elemPerPage + (listUpdates.size()%elemPerPage > 0 ? 1:0)  < page +1)
+        {
+            Toast.makeText(getContext(), "This are the last elements", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        int count = tableLayout.getChildCount();
+        for (int i = 2; i < count; i++) {
+            View child = tableLayout.getChildAt(i);
+            if (child instanceof TableRow)
+            {
+                tableLayout.removeViewAt(i);
+                i --;
+            }
+        }
+
+        for (int i = 0; i < elemPerPage; i++)
+        {
+>>>>>>> Database of history updates (#486)
+=======
+        final int elemPerPage = 3;
+
+        if (listUpdates.size()/elemPerPage + (listUpdates.size()%elemPerPage > 0 ? 1:0)  < page +1)
+        {
+            Toast.makeText(getContext(), "This are the last elements", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        int count = tableLayout.getChildCount();
+        for (int i = 2; i < count; i++) {
+            View child = tableLayout.getChildAt(i);
+            if (child instanceof TableRow)
+            {
+                tableLayout.removeViewAt(i);
+                i --;
+            }
+        }
+
+        for (int i = 0; i < elemPerPage; i++)
+        {
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
             if (i + (elemPerPage * page) >= listUpdates.size())
                 break;
 
             UpdateHistory update = listUpdates.get(i + (elemPerPage * page));
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> development
+=======
+>>>>>>> Database of history updates (#486)
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 
             TableRow tableRow = new TableRow(getContext());
 
@@ -286,11 +532,29 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
 
                     mDialog.setContentView(R.layout.pop_up_logs);
                     TextView textViewPopup = mDialog.findViewById(R.id.title);
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+
+                    // Set the text dynamically (e.g., based on the update artifact)
+                    textViewPopup.setText(update.getArtifact());
+=======
+=======
+>>>>>>> Database of history updates (#486)
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
                     TextView textViewStatusPopup = mDialog.findViewById(R.id.statusDwTxt);
 
                     // Set the text dynamically (e.g., based on the update artifact)
                     textViewPopup.setText(update.getArtifact());
                     textViewStatusPopup.setText(update.getStatus());
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> development
+=======
+>>>>>>> Database of history updates (#486)
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
                     mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
                     mDialog.show();
                 }
@@ -310,6 +574,11 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
         return inflater.inflate(R.layout.fragment_updates_ota, container, false);
     }
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
     private void observeViewModel()
     {
         updateViewModel.getUpdateResponse().observe(getViewLifecycleOwner(), this::handleUpdateResponse);
@@ -403,16 +672,45 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
         }
     }
 
+<<<<<<< HEAD
+>>>>>>> development
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
     @Override
     public void onClick(View view) {
         if (view.getId() == R.id.start_download)
         {
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+            if (!downloading){
+=======
             if (!downloading && isSelectedVersion()){
+>>>>>>> development
+=======
+            if (!downloading && isSelectedVersion()){
+>>>>>>> Database of history updates (#486)
+=======
+            if (!downloading && isSelectedVersion()){
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
                 // endpoint start download
                 int size = getSize();
                 updateVersion();
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+                totalTimeInMillis = calculateMiliSecDw(size);
+<<<<<<< HEAD
+                startProgressBar(totalTimeInMillis);
+=======
                 updateViewModel.startProgressBar(calculateMiliSecDw(size));
+>>>>>>> development
+=======
+                //startProgressBar(totalTimeInMillis);
+>>>>>>> Database of history updates (#486)
+=======
+                updateViewModel.startProgressBar(calculateMiliSecDw(size));
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
                 isPaused = false;
                 downloading = true;
             }
@@ -420,20 +718,48 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
             //endpoint continue download
             if(isPaused && downloading)
             {
+<<<<<<< HEAD
+<<<<<<< HEAD
+                startProgressBar((int)timeRemaining);
+=======
                 updateViewModel.resumeProgressBar();
+>>>>>>> development
+=======
+                updateViewModel.resumeProgressBar();
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
                 isPaused = false;
             }
         } else if (view.getId() == R.id.pause_b) {
             //endpoint pause download
             if(!isPaused && downloading)
             {
+<<<<<<< HEAD
+<<<<<<< HEAD
+                timer.cancel();
+=======
                 updateViewModel.pauseProgressBar();
+>>>>>>> development
+=======
+                updateViewModel.pauseProgressBar();
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
                 isPaused = true;
             }
         } else if (view.getId() == R.id.stop_b) {
             if(downloading){
                 //endpoint stop download
+<<<<<<< HEAD
+<<<<<<< HEAD
+                timer.cancel();
+                downloading = false;
+                progressDw.setProgress(0);
+                progressTxt.setText("");
+                timeRemaining = totalTimeInMillis;
+=======
                 stopDownload();
+>>>>>>> development
+=======
+                stopDownload();
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
             }
 
         } else if (view.getId() == R.id.search_btn) {
@@ -441,6 +767,15 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
             versionFilter.clear();
             versionFilter.addAll(findVersionEqualTo(version_txt));
             adapterVersion.notifyDataSetChanged();
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+        }
+    }
+
+=======
+=======
+>>>>>>> Database of history updates (#486)
         } else if (view.getId() == R.id.nextPageButton) {
             listHistoryUpdates = db.getAllUpgrades();
             page++;
@@ -452,12 +787,29 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
         }
     }
 
+=======
+        } else if (view.getId() == R.id.nextPageButton) {
+            listHistoryUpdates = db.getAllUpgrades();
+            page++;
+            updateTable(listHistoryUpdates);
+        } else if (view.getId() == R.id.previousPageButton) {
+            listHistoryUpdates = db.getAllUpgrades();
+            page = 0;
+            updateTable(listHistoryUpdates);
+        }
+    }
+
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
     public void stopDownload()
     {
         updateViewModel.stopProgressBar();
         downloading = false;
     }
 
+<<<<<<< HEAD
+>>>>>>> development
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
     private int getSize()
     {
         String currentVersionSelected = spinnerVersions.getSelectedItem().toString();
@@ -465,10 +817,62 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
                 .filter(pair -> pair.first.equals(currentVersionSelected))
                 .map(pair -> pair.second)
                 .findFirst()
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+                .orElse("0"));
+=======
+                .orElse("-1"));
+>>>>>>> Database of history updates (#486)
+        return size;
+    }
+
+    private int calculateMiliSecDw(double size)
+    {
+        if (size >= 0)
+        {
+            double speed_download = 1000;  // 1b/ms
+            return (int) (size / speed_download);
+        } else{
+            return 10000;
+        }
+    }
+
+    private void startProgressBar(int durationInMillis) {
+        timeRemaining = durationInMillis;  // Set the time remaining
+        progressDw.setMax(100);
+        timer = new CountDownTimer(timeRemaining, 100) {  // Update every 100ms
+            public void onTick(long millisUntilFinished) {
+                if (downloading)
+                {
+                    timeRemaining = millisUntilFinished;  // Update remaining time
+                    int progress = (int) ((totalTimeInMillis - millisUntilFinished) / (float) totalTimeInMillis * 100);
+                    progressTxt.setText(progress+"%");
+                    progressDw.setProgress(progress);
+
+                }
+                else {
+                    onFinish();
+                }
+            }
+
+            public void onFinish() {
+            }
+        }.start();
+    }
+
+=======
                 .orElse("-1"));
         return size;
     }
 
+>>>>>>> development
+=======
+                .orElse("-1"));
+        return size;
+    }
+
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
     private List<String> getVersionFiltered(boolean upgrade)
     {
         List<String> verFilt = new ArrayList<>();
@@ -538,6 +942,164 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
         }return list;
     }
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    private boolean isSelectedVersion()
+    {
+        return spinnerVersions.getCount() > 0;
+    }
+
+    private String getSelectedVersion()
+    {
+        if (isSelectedVersion())
+        {
+            String version = spinnerVersions.getSelectedItem().toString();
+            String size = getSize() != -1? String.valueOf(getSize()) : "Unknown size";
+            return version;
+        }
+        return "";
+    }
+
+>>>>>>> Database of history updates (#486)
+    private void updateVersion()
+    {
+        String version = spinnerVersions.getSelectedItem().toString();
+        String size = getSize() != -1? String.valueOf(getSize()) : "Unknown size";
+        UpdateV updateV = new UpdateV(version, "zip",idEcu);
+        apiInterface = APIClient.getClient().create(IApiService.class);
+        Call<UpdateVResponse> call = apiInterface.updateVersion(updateV);
+        call.enqueue(new Callback<UpdateVResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<UpdateVResponse> call, @NonNull Response<UpdateVResponse> response) {
+                UpdateVResponse updateVResponse = response.body();
+                if (response.isSuccessful() && updateVResponse !=null)
+                {
+                    Calendar calendar = Calendar.getInstance();
+                    String data = String.valueOf(calendar.get(Calendar.DAY_OF_MONTH)) + "/"
+                            + String.valueOf(calendar.get(Calendar.MONTH)) + "/"
+                            + String.valueOf(calendar.get(Calendar.YEAR));
+                    String artifact = "Software update "+ version + "(" + db.getAllUpgrades().size() + ")";
+                    if (updateVResponse.getErrors() != null && updateVResponse.getErrors().equals("No errors."))
+                    {
+                        Log.i(TAG, "Download completed");
+
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                progressTxt.setText(100+"%");
+                                downloading = false;
+                                progressDw.setProgress(100);  // Set to 100% when done
+                                versionTxt.setText(spinnerVersions.getSelectedItem().toString());
+                                currentVersion = spinnerVersions.getSelectedItem().toString();
+                                Toast.makeText(Fragment_Update.this.getContext(), "Download completed", Toast.LENGTH_SHORT).show();
+                                db.addNewUpdate(new UpdateHistory(artifact,"Succeeded",data,size));
+                            }
+                        });
+                    } else {
+                        if (updateVResponse.getErrors() != null)
+                        {
+                            Log.e(TAG, updateVResponse.getErrors());
+                            Toast.makeText(Fragment_Update.this.getContext(), updateVResponse.getErrors(), Toast.LENGTH_SHORT).show();
+                        }
+                        db.addNewUpdate(new UpdateHistory(artifact,"Failed",data,size));
+                        errorDownload();
+                    }
+                    listHistoryUpdates = db.getAllUpgrades();
+                    page = 0;
+                    updateTable(listHistoryUpdates);
+                } else {
+                    // Response was not successful or body is null
+                    Log.e(TAG, "Error: Unsuccessful response or empty body. Code: " + response.code());
+                    if (response.errorBody() != null) {
+                        try {
+                            // Optionally log the error body
+                            Log.e("TAG", "Error body: " + response.errorBody().string());
+                        } catch (IOException e) {
+                            Log.e("TAG", "Error body: " + e.toString());
+                        }
+                    }
+                    errorDownload();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<UpdateVResponse> call, @NonNull Throwable t) {
+                Toast.makeText(Fragment_Update.this.getContext(), "!!! Unable to connect to the server. Please check URL or the API is started.", Toast.LENGTH_LONG).show();
+                Toast.makeText(Fragment_Update.this.getContext(), call.request().url().toString(), Toast.LENGTH_LONG).show();
+                errorDownload();
+                call.cancel();
+            }
+        });
+
+    }
+
+    private void errorDownload()
+    {
+        downloading = false;
+        progressDw.setProgress(0);
+        progressTxt.setText("0%");
+        versionTxt.setText("Error to download");
+        Toast.makeText(Fragment_Update.this.getContext(), "Status download error", Toast.LENGTH_SHORT).show();
+=======
+    private boolean isSelectedVersion()
+    {
+        return spinnerVersions.getCount() > 0;
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
+    }
+
+    private String getSelectedVersion()
+    {
+        if (isSelectedVersion())
+        {
+            String version = spinnerVersions.getSelectedItem().toString();
+            String size = getSize() != -1? String.valueOf(getSize()) : "Unknown size";
+            return version;
+        }
+        return "";
+    }
+
+    private void errorDownload()
+    {
+<<<<<<< HEAD
+        apiInterface = APIClient.getClient().create(IApiService.class);
+        Call<List<UpdateHistory>> call = apiInterface.requestListOfUpdatesHistory();
+        call.enqueue(new Callback<List<UpdateHistory>>() {
+            @Override
+            public void onResponse(@NonNull Call<List<UpdateHistory>> call, @NonNull Response<List<UpdateHistory>> response) {
+                if (response.isSuccessful() && response.body() != null)
+                {
+                    List<UpdateHistory> listOfUp = response.body();
+                    //save in the DB the updates that are not registered
+                    for (UpdateHistory update : listOfUp)
+                    {
+                        db.addNewUpdate(update);
+                    }
+                    Log.i(TAG, "All good");
+                }
+                listHistoryUpdates = db.getAllUpgrades();
+                page = 0;
+                updateTable(listHistoryUpdates);
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<List<UpdateHistory>> call, @NonNull Throwable t) {
+                Toast.makeText(Fragment_Update.this.getContext(), "!!! Unable to connect to the server. Please check URL or the API is started.", Toast.LENGTH_LONG).show();
+                Toast.makeText(Fragment_Update.this.getContext(), call.request().url().toString(), Toast.LENGTH_LONG).show();
+                Log.e(TAG, "ERROR");
+                listHistoryUpdates = db.getAllUpgrades();
+                page = 0;
+                updateTable(listHistoryUpdates);
+                call.cancel();
+            }
+        });
+<<<<<<< HEAD
+
+        // TODO !!!IMPORTANT!!! Delete when call to endpoint is implemented
+//        listHistoryUpdates = Arrays.asList(new UpdateHistory[]{new UpdateHistory("Software update 1", "Succeeded", "1 Sept 2024", "23"),
+//                new UpdateHistory("Software update 2", "Failed", "1 Ian 20243", "12")});
+=======
     private boolean isSelectedVersion()
     {
         return spinnerVersions.getCount() > 0;
@@ -556,10 +1118,18 @@ public class Fragment_Update extends Fragment implements View.OnClickListener {
 
     private void errorDownload()
     {
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
         downloading = false;
         progressDw.setProgress(0);
         progressTxt.setText("0%");
         versionTxt.setText("Error to download");
         Toast.makeText(Fragment_Update.this.getContext(), "Status download error", Toast.LENGTH_SHORT).show();
+<<<<<<< HEAD
+>>>>>>> development
+=======
+>>>>>>> Database of history updates (#486)
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
     }
 }
