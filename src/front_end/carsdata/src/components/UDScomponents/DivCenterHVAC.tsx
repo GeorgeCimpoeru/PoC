@@ -4,6 +4,7 @@ import Image from 'next/image';
 import ModalUDS from './ModalUDS';
 import './style.css';
 import { displayLoadingCircle, displayErrorPopup, removeLoadingCicle } from '../sharedComponents/LoadingCircle';
+import logger from '@/src/utils/Logger';
 
 // interface HvacModes {
 //     AC_Status: string;
@@ -27,6 +28,8 @@ interface HVACData {
 
 
 const DivCenterHVAC = (props: any) => {
+    logger.init();
+
     const [data, setData] = useState<HVACData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -34,6 +37,7 @@ const DivCenterHVAC = (props: any) => {
     useEffect(() => {
         const readInfoHVAC = async () => {
             displayLoadingCircle();
+
             await fetch(`http://127.0.0.1:5000/api/read_info_hvac`)
                 .then(response => {
                     if (!response.ok) {

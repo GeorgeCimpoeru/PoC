@@ -4,6 +4,7 @@ import Image from 'next/image';
 import ModalUDS from './ModalUDS';
 import './style.css';
 import { displayLoadingCircle, displayErrorPopup, removeLoadingCicle } from '../sharedComponents/LoadingCircle';
+import logger from '@/src/utils/Logger';
 
 interface engineData {
     coolant_temperature: any,
@@ -18,6 +19,8 @@ interface engineData {
 }
 
 const DivCenterEngine = (props: any) => {
+    logger.init();
+
     const [data, setData] = useState<engineData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -125,7 +128,6 @@ const DivCenterEngine = (props: any) => {
         console.log("TEST READ")
         readInfoEngine();
     };
-
 
     console.log(data)
     return (
