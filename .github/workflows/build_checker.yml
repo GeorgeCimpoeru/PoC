@@ -174,27 +174,5 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Download All Artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: mcu_build
-          path: mcu_build
-      - uses: actions/download-artifact@v3
-        with:
-          name: battery_module_build
-          path: battery_module_build
-      - uses: actions/download-artifact@v3
-        with:
-          name: doors_module_build
-          path: doors_module_build
-      - uses: actions/download-artifact@v3
-        with:
-          name: engine_module_build
-          path: engine_module_build
-      - uses: actions/download-artifact@v3
-        with:
-          name: hvac_module_build
-          path: hvac_module_build
-
       - name: Check Build Results
         run: echo "All modules built successfully."
