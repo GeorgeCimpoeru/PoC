@@ -3,28 +3,23 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import ModalUDS from './ModalUDS';
 import './style.css';
-import { displayLoadingCircle, displayErrorPopup, removeLoadingCicle } from '../sharedComponents/LoadingCircle';
-import logger from '@/src/utils/Logger';
 
 interface doorsData {
-    ajar: any,
+    ajar: any, // verifica daca e usa deschisa/ inchisa cum trebuie 
     door: any,
     passenger: any,
     passenger_lock: any,
 }
 
+
 const DivCenterDoors = (props: any) => {
-    logger.init();
-    
     const [data, setData] = useState<doorsData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const readInfoDoors = async () => {
-            displayLoadingCircle();
-            console.log("Reading doors info...");
-            await fetch(`http://127.0.0.1:5000/api/read_info_doors?is_manual_flow=false`)
+        const readInfoEngine = async () => {
+            await fetch(`http://127.0.0.1:5000/api/read_info_doors`)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -37,13 +32,10 @@ const DivCenterDoors = (props: any) => {
                 })
                 .catch(error => {
                     setError(error);
-                    displayErrorPopup("Connection failed");
-                    removeLoadingCicle();
 
                 });
-            removeLoadingCicle();
         };
-        readInfoDoors();
+        readInfoEngine();
     }, []);
 
 

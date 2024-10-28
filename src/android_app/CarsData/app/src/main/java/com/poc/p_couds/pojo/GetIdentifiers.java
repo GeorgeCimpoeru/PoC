@@ -6,15 +6,9 @@ public class GetIdentifiers {
     @SerializedName("Battery_Identifiers")
     private BatteryIdentifiers batteryIdentifiers;
     @SerializedName("Doors_Identifiers")
-<<<<<<< HEAD
     private String doorsIdentifiers;
     @SerializedName("Engine_Identifiers")
     private String engineIdentifiers;
-=======
-    private DoorsIdentifiers doorsIdentifiers;
-    @SerializedName("Engine_Identifiers")
-    private EngineIdentifiers engineIdentifiers;
->>>>>>> development
     @SerializedName("MCU_Identifiers")
     private McuIdentifiers mcuIdentifiers;
 
@@ -44,100 +38,6 @@ public class GetIdentifiers {
             return voltage;
         }
     }
-<<<<<<< HEAD
-=======
-
-    public static class DoorsIdentifiers{
-        @SerializedName("ajar")
-        private String ajar;
-        @SerializedName("door")
-        private String door;
-        @SerializedName("driver")
-        private String driver;
-        @SerializedName("passenger")
-        private String passenger;
-        @SerializedName("passenger_lock")
-        private String passengerLock;
-
-        public String getAjarStatus() {
-            return ajar;
-        }
-
-        public String getDoorStatus() {
-            return door;
-        }
-
-        public String getDriverStatus() {
-            return driver;
-        }
-
-        public String getPassengerStatus() {
-            return passenger;
-        }
-
-        public String getPassengerLockStatus() {
-            return passengerLock;
-        }
-    }
-
-    public static class EngineIdentifiers{
-        @SerializedName("coolant_temperature")
-        private String coolantTemperature;
-        @SerializedName("engine_load")
-        private String engineLoad;
-        @SerializedName("engine_rpm")
-        private String engineRpm;
-        @SerializedName("fuel_level")
-        private String fuelLevel;
-        @SerializedName("fuel_pressure")
-        private String fuelPressure;
-        @SerializedName("intake_air_temperature")
-        private String intakeAirTemperature;
-        @SerializedName("oil_temperature")
-        private String oilTemperature;
-        @SerializedName("throttle_position")
-        private String throttlePosition;
-        @SerializedName("vehicle_speed")
-        private String vehicleSpeed;
-
-        public String getCoolantTemperatureStatus() {
-            return coolantTemperature;
-        }
-
-        public String getEngineLoadStatus() {
-            return engineLoad;
-        }
-
-        public String getEngineRpmStatus() {
-            return engineRpm;
-        }
-
-        public String getFuelLevelStatus() {
-            return fuelLevel;
-        }
-
-        public String getFuelPressureStatus() {
-            return fuelPressure;
-        }
-
-        public String getIntakeAirTemperatureStatus() {
-            return intakeAirTemperature;
-        }
-
-        public String getOilTemperatureStatus() {
-            return oilTemperature;
-        }
-
-        public String getThrottlePositionStatus() {
-            return throttlePosition;
-        }
-
-        public String getVehicleSpeedStatus() {
-            return vehicleSpeed;
-        }
-    }
-
->>>>>>> development
     public static class McuIdentifiers{
         @SerializedName("ecu_hardware_number")
         private String ecuHardwareNumber;
@@ -205,19 +105,11 @@ public class GetIdentifiers {
         return batteryIdentifiers;
     }
 
-<<<<<<< HEAD
     public String getDoorsIdentifiers() {
         return doorsIdentifiers;
     }
 
     public String getEngineIdentifiers() {
-=======
-    public DoorsIdentifiers getDoorsIdentifiers() {
-        return doorsIdentifiers;
-    }
-
-    public EngineIdentifiers getEngineIdentifiers() {
->>>>>>> development
         return engineIdentifiers;
     }
 
