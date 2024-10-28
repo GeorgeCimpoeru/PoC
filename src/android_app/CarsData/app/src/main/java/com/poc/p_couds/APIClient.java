@@ -5,10 +5,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import java.io.IOException;
-<<<<<<< HEAD
-=======
-import java.util.concurrent.TimeUnit;
->>>>>>> development
 
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -24,7 +20,6 @@ public class APIClient {
 
     public static Retrofit getClient() {
         String Base_url = "http://10.0.2.2:5000/";
-<<<<<<< HEAD
         // String Base_url = "http://10.0.2.2:2202"; // From real api
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
         interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
@@ -35,19 +30,6 @@ public class APIClient {
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(client)
                 .build();
-=======
-        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-        OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).readTimeout(60, TimeUnit.SECONDS).build();
-
-        if (retrofit == null) {
-            retrofit = new Retrofit.Builder()
-                    .baseUrl(Base_url)
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .client(client)
-                    .build();
-        }
->>>>>>> development
         return retrofit;
     }
 }
