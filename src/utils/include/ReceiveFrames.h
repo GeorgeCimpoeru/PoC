@@ -46,7 +46,7 @@ const std::vector<uint8_t> service_sids = {
     /* Read Data By Identifier */
     0x22,
     /* Authentication */
-    0x29,
+    0x27,
     /* Routine Control (Testing) -> will be decided */
     0x31,
     /* Tester Present */
@@ -105,7 +105,7 @@ static const std::set<uint8_t> sids_using_p2_star_max_time = {
     /* Request Transfer Exit */
     0x37,
     /* Authentication */
-    0x29
+    0x27
 };
 
 class ReceiveFrames 
@@ -141,11 +141,6 @@ private:
      * @param handle_frame HandleFrame object used for getting new frames.
      */
     void bufferFrameOut(HandleFrames &handle_frame);
-
-    /* Method that start time processing frame. */
-    void startTimer(uint8_t frame_dest_id, uint8_t sid);
-    /* Method that stop time processing frame. */
-    void stopTimer(uint8_t frame_dest_id, uint8_t sid);
     
 protected:
     HandleFrames handle_frame;
@@ -191,6 +186,11 @@ public:
      * @param handle_frame HandleFrame object used for getting new frames.
      */
     void receive(HandleFrames &handle_frame);
+
+    /* Method that start time processing frame. */
+    void startTimer(uint8_t frame_dest_id, uint8_t sid);
+    /* Method that stop time processing frame. */
+    void stopTimer(uint8_t frame_dest_id, uint8_t sid);
 
     /**
      * @brief Stops the receive process gracefully.

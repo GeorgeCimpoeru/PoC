@@ -78,11 +78,6 @@ int GenerateFrames::sendFrame(int can_id, std::vector<uint8_t> data, int s, Fram
     }
     return 0;
 }
-void GenerateFrames::apiResponse(uint32_t api_id, uint8_t sid, uint8_t battery_id, uint8_t doors_id, uint8_t engine_id)
-{
-    uint32_t can_id = (0x10 << 8) | api_id;
-    this->sendFrame(can_id, {0x06, sid, 0x10, battery_id, doors_id, engine_id});
-}
 void GenerateFrames::addSocket(int socket)
 {
     if (socket >= 0)

@@ -121,7 +121,7 @@ export const writeInfoEngine = async (variable: string, newValue: string, setDat
 
 const DivCenterEngine = (props: any) => {
     logger.init();
-    
+
     const [data, setData] = useState<engineData | null>(null);
 
     useEffect(() => {
