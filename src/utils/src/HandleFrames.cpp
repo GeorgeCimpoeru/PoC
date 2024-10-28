@@ -78,6 +78,7 @@ void HandleFrames::handleFrame(int can_socket, const struct can_frame &frame)
     } 
     else if (frame.data[0] >= 0x21 && frame.data[0] < 0x30) 
     {
+        LOG_INFO(_logger.GET_LOGGER(), "Consecutive frames received.");
         if (!first_frame_received) 
         {
             /* Ignore consecutive frames until the first frame is received */
@@ -89,6 +90,7 @@ void HandleFrames::handleFrame(int can_socket, const struct can_frame &frame)
             LOG_ERROR(_logger.GET_LOGGER(), "Invalid consecutive frame sequence: expected {} {} {}", int(expected_sequence_number), "but received", int(frame.data[0]));
             return;
         }
+
         /* Concatenate the data from consecutive frames into multi_frame_data */
         for (uint8_t data_pos = 1; data_pos < frame.can_dlc; ++data_pos) 
         {
@@ -170,6 +172,7 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
             }
             else
             {
+                LOG_INFO(_logger.GET_LOGGER(), "Subfunction not supported in active session.");
                 int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
                 NegativeResponse negative_response(can_socket, _logger);
                 negative_response.sendNRC(new_id, sid, 0x7E);
@@ -265,6 +268,7 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
         {
             /* RoutineControl(sid, frame_data[2], frame_data[3] << 8) | frame_data[4]); */
             /* This service can be called in any session. */
+            LOG_INFO(_logger.GET_LOGGER(), "RoutineControl called.");
             RoutineControl routine_control(can_socket, _logger);
             routine_control.routineControl(frame_id, frame_data);
             break;
@@ -365,12 +369,14 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
             if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION" ||
                 DiagnosticSessionControl::getCurrentSessionToString() == "EXTENDED_DIAGNOSTIC_SESSION")
             {
+                LOG_INFO(_logger.GET_LOGGER(), "RequestDownload called.");
                 RequestDownloadService requestDownload(can_socket, _logger);
                 ReadDataByIdentifier software_version(can_socket, _logger);
                 requestDownload.requestDownloadRequest(frame_id, frame_data);
             }
             else
             {
+                LOG_INFO(_logger.GET_LOGGER(), "Subfunction not supported in active session.");
                 int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
                 NegativeResponse negative_response(can_socket, _logger);
                 negative_response.sendNRC(new_id, 0x34, 0x7F);
@@ -396,6 +402,7 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
                 }
                 else
                 {
+                    LOG_INFO(_logger.GET_LOGGER(), "Subfunction not supported in active session.");
                     int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
                     NegativeResponse negative_response(can_socket, _logger);
                     negative_response.sendNRC(new_id, 0x36, 0x7F);
@@ -416,6 +423,7 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
             }
             else
             {
+                LOG_INFO(_logger.GET_LOGGER(), "Subfunction not supported in active session.");
                 int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
                 NegativeResponse negative_response(can_socket, _logger);
                 negative_response.sendNRC(new_id, 0x37, 0x7F);
@@ -435,6 +443,7 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
             }
             else
             {
+                LOG_INFO(_logger.GET_LOGGER(), "Subfunction not supported in active session.");
                 int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
                 NegativeResponse negative_response(can_socket, _logger);
                 negative_response.sendNRC(new_id, 0x32, 0x7F);

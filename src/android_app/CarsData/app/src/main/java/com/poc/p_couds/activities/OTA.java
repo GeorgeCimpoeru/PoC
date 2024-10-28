@@ -2,32 +2,52 @@ package com.poc.p_couds.activities;
 
 import android.os.Bundle;
 import android.util.Log;
+<<<<<<< HEAD
+=======
 import android.util.Pair;
+>>>>>>> development
 import android.view.Menu;
 import android.view.MenuItem;
 
 import androidx.annotation.NonNull;
+<<<<<<< HEAD
+=======
 import androidx.appcompat.app.AlertDialog;
+>>>>>>> development
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import androidx.fragment.app.Fragment;
+<<<<<<< HEAD
+import android.view.View;
+=======
 import androidx.lifecycle.ViewModelProvider;
 
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+>>>>>>> development
 import android.widget.Toast;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 import com.poc.p_couds.APIClient;
+<<<<<<< HEAD
+import com.poc.p_couds.IApiService;
+=======
 import com.poc.p_couds.models.IApiService;
 import com.poc.p_couds.OTAViewModel;
+>>>>>>> development
 import com.poc.p_couds.R;
 import com.poc.p_couds.fragments.Fragment_Update;
 import com.poc.p_couds.fragments.ManualFragment;
 import com.poc.p_couds.pojo.ECU;
+<<<<<<< HEAD
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+=======
 import com.poc.p_couds.pojo.FileNode;
 
 import java.io.IOException;
@@ -35,6 +55,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+>>>>>>> development
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -42,6 +63,10 @@ import retrofit2.Response;
 
 public class OTA extends AppCompatActivity {
 
+<<<<<<< HEAD
+    private ECU ecu;
+    private final String TAG = "PoC";
+=======
     private FileNode fileNodes;
     private OTAViewModel otaViewModel;
     private ECU ecu;
@@ -49,6 +74,7 @@ public class OTA extends AppCompatActivity {
     private ProgressBar progressBar;
     private TextView retrieveDataTxt;
     private boolean allReady = false;
+>>>>>>> development
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -60,6 +86,76 @@ public class OTA extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ota);
+<<<<<<< HEAD
+
+        getListOfECUs();
+    }
+
+    private void initElements()
+    {
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
+        bottomNavigationView
+                .setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                        String title = "";
+                        String idEcu = "";
+                        String fileName = "";
+
+                        if(item.getItemId() == R.id.mcu)
+                        {
+                            title = "MCU";
+                            idEcu = ecu.getMcuId();
+                            fileName = "MCU_SW_VERSIONS";
+                        } else if(item.getItemId() == R.id.battery)
+                        {
+                            title = "Battery";
+                            idEcu = ecu.getEcus().get(0);
+                            fileName = "ECU_BATTERY_SW_VERSIONS";
+                        } else if(item.getItemId() == R.id.engine)
+                        {
+                            title = "Engine";
+                            idEcu = ecu.getEcus().get(1);
+                            fileName = "";
+                        }else if(item.getItemId() == R.id.door)
+                        {
+                            title = "Door";
+                            idEcu = ecu.getEcus().get(2);
+                            fileName = "";
+                        }else if(item.getItemId() == R.id.hvac)
+                        {
+                            title = "HVAC";
+                            idEcu = ecu.getEcus().get(3);
+                            fileName = "";
+                        }
+                        openFragment(new Fragment_Update(),title, idEcu, fileName);
+                        return true;
+                    }
+                });
+        bottomNavigationView.setSelectedItemId(R.id.mcu);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("OTA");
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Fragment fr = new Fragment_Update();
+
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.content_frame,fr)
+                        .commit();
+            }
+        });
+        toolbar.setNavigationOnClickListener(v -> {
+            if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+                getSupportFragmentManager().popBackStack();
+            } else {
+                finish();
+            }
+        });
+    }
+=======
         otaViewModel = new ViewModelProvider(this).get(OTAViewModel.class);
         observeViewModel();
 
@@ -228,22 +324,32 @@ public class OTA extends AppCompatActivity {
         }
     }
 
+>>>>>>> development
     private void openFragment(Fragment fr, String title, String idEcu, String fileName)
     {
         if (!title.isEmpty())
         {
+<<<<<<< HEAD
+=======
             ArrayList<Pair<String, String>> listOfVersions = extractVersion(fileNodes, fileName);
 
+>>>>>>> development
             HashMap<String, String> hashMap = new HashMap<>();
             Bundle bundle = new Bundle();
             bundle.putString("FRAGMENT_TITLE", title);
             bundle.putString("id",idEcu);
+<<<<<<< HEAD
+            bundle.putString("folderName",fileName);
+            fr.setArguments(bundle);
+        }
+=======
             ArrayList<Pair<String, String>> x = new ArrayList<>();
             bundle.putSerializable("versions",listOfVersions );
             bundle.putString("folderName",fileName);
             fr.setArguments(bundle);
         }
         allReady = false;
+>>>>>>> development
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.content_frame,fr)
                 .commit();
@@ -257,7 +363,11 @@ public class OTA extends AppCompatActivity {
         } else if(item.getItemId() == R.id.updates_btn)
         {
             Fragment fr = new Fragment_Update();
+<<<<<<< HEAD
+            openFragment(fr,"MCU",ecu.getEcus().get(0), "MCU_SW_VERSIONS");
+=======
             openFragment(fr,"MCU",ecu.getMcuId(), "MCU_SW_VERSIONS");
+>>>>>>> development
         }
         return super.onOptionsItemSelected(item);
     }
@@ -266,7 +376,10 @@ public class OTA extends AppCompatActivity {
     {
         IApiService apiInterface = APIClient.getClient().create(IApiService.class);
         Call<ECU> call = apiInterface.requestListOfEcus();
+<<<<<<< HEAD
+=======
         retrieveDataTxt.setText("Get ECUs IDs");
+>>>>>>> development
         call.enqueue(new Callback<ECU>() {
             @Override
             public void onResponse(Call<ECU> call, Response<ECU> response) {
@@ -274,22 +387,33 @@ public class OTA extends AppCompatActivity {
                 {
                     Log.d(TAG,response.code()+"");
                     ecu = response.body();
+<<<<<<< HEAD
+                    List<String> listOfEcus = response.body().getEcus();
+=======
                     List<ECU.ECUDetail> listOfEcus = response.body().getEcus();
+>>>>>>> development
                     String mcu_id = response.body().getMcuId();
                     String status = response.body().getStatus();
                     String time_stamp = response.body().getTimeStamp();
                     if (listOfEcus != null && mcu_id != null && status !=null)
                     {
+<<<<<<< HEAD
+                        initElements();
+=======
                         if (allReady)
                         {
                             initElements();
                         }
                         allReady = true;
+>>>>>>> development
                     }
                     else{
                         Log.e(TAG, "The JSON have a different format what is expected");
                         Toast.makeText(OTA.this, "Response is not the one expected", Toast.LENGTH_LONG).show();
+<<<<<<< HEAD
+=======
                         finish();
+>>>>>>> development
                     }
                 } else {
                     // Response was not successful or body is null
@@ -299,10 +423,16 @@ public class OTA extends AppCompatActivity {
                             // Optionally log the error body
                             Log.e("TAG", "Error body: " + response.errorBody().string());
                         } catch (IOException e) {
+<<<<<<< HEAD
+                            e.printStackTrace();
+                        }
+                    }
+=======
                             finish();
                         }
                     }
                     finish();
+>>>>>>> development
                 }
             }
 
@@ -312,8 +442,12 @@ public class OTA extends AppCompatActivity {
 
                 Toast.makeText(OTA.this, "!!! Unable to connect to the server. Please check URL or the API is started.", Toast.LENGTH_LONG).show();
                 Toast.makeText(OTA.this, call.request().url().toString(), Toast.LENGTH_LONG).show();
+<<<<<<< HEAD
+                Log.e(TAG, "ERROR");
+=======
                 Log.e(TAG, "ERROR while retrieving the ecus ids");
                 finish();
+>>>>>>> development
                 call.cancel();
             }
         });
