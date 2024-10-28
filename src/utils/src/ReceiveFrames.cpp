@@ -151,7 +151,7 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
         /* Starting frame processing timing if is it a frame request for MCU */
         auto it = std::find(service_sids.begin(), service_sids.end(), frame.data[1]);
 
-        if (it != service_sids.end())
+        if (it != service_sids.end() && frame.data[1] != TRANSFER_DATA_SID)
         {
             startTimer(frame_dest_id, frame.data[1]);
         }
@@ -193,7 +193,8 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             goto label1;
         }
-        /* Process the received frame */ 
+        /* Process the received frame */
+        LOG_INFO(receive_logger.GET_LOGGER(), "Calling HandleFrames module to parse the frame.");
         handle_frame.handleFrame(socket, frame);
     }
 }

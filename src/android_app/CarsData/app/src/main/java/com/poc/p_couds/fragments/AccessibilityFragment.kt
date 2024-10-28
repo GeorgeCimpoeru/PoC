@@ -26,6 +26,9 @@ class AccessibilityFragment : Fragment() {
     private lateinit var yearTextView: TextView
     private lateinit var serialNoTextView: TextView
     private lateinit var bodyClassEngineHPModelTextView: TextView
+<<<<<<< HEAD
+    private lateinit var vinTextView: TextView
+=======
 
     private lateinit var vin1TextView: TextView
     private lateinit var vin2TextView: TextView
@@ -36,6 +39,7 @@ class AccessibilityFragment : Fragment() {
     private lateinit var vin7TextView: TextView
     private lateinit var vin8TextView: TextView
 
+>>>>>>> development
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -51,6 +55,9 @@ class AccessibilityFragment : Fragment() {
         bodyClassEngineHPModelTextView = view.findViewById(R.id.bodyClass_engineHP_engineModel_model_Label)
         yearTextView = view.findViewById(R.id.modelYearLabel)
         serialNoTextView = view.findViewById(R.id.serialNoLabel)
+<<<<<<< HEAD
+        vinTextView = view.findViewById(R.id.vin)
+=======
 
         vin1TextView = view.findViewById(R.id.vin1)
         vin2TextView = view.findViewById(R.id.vin2)
@@ -60,6 +67,7 @@ class AccessibilityFragment : Fragment() {
         vin6TextView = view.findViewById(R.id.vin6)
         vin7TextView = view.findViewById(R.id.vin7)
         vin8TextView = view.findViewById(R.id.vin8)
+>>>>>>> development
 
         val vin = arguments?.getString("VIN")
         if (vin != null) {
@@ -68,6 +76,8 @@ class AccessibilityFragment : Fragment() {
         return view
     }
 
+<<<<<<< HEAD
+=======
     private fun updateVinTextViews(vin: String) {
         val vinDefaults = MutableList(17) { "null" }
 
@@ -103,6 +113,7 @@ class AccessibilityFragment : Fragment() {
         }
     }
 
+>>>>>>> development
     private fun fetchVinDetails(vin:String) {
         val call = HandleNetworkReq.api.getVinDetails(vin)
         call.enqueue(object : retrofit2.Callback<VINResponse> {
@@ -113,6 +124,19 @@ class AccessibilityFragment : Fragment() {
                         if (it.results.isNotEmpty()) {
                             val result = it.results[0]
 
+<<<<<<< HEAD
+                            val country = result.plantCountry.split(" ")
+                            val formattedCountry = if (country.size > 1) {"${country[0]}\n${country[1]}\n${country[2]}"} else {result.plantCountry}
+                            plantCountryTextView.text = formattedCountry
+                            val vehicle = result.vehicleType.split(" ")
+                            val formattedVehicle = if (vehicle.size > 1) {"${vehicle[0]}\n${vehicle[1]}"} else {result.vehicleType}
+                            vehicleTypeTextView.text = formattedVehicle
+                            errorCodeSecDigitTextView.text = result.errorCodeSecDigit
+                            plantCityTextView.text = result.plantCity
+                            val manufacturer = result.manufacturer.split(" ")
+                            val formattedManufacturer = if (manufacturer.size > 1) {"${manufacturer[0]}\n${manufacturer[1]}\n${manufacturer[2]}\n${manufacturer[3]}"} else {result.manufacturer}
+                            manufacturerTextView.text = formattedManufacturer
+=======
                             // Utility function to split and join words with new lines
                             fun splitAndFormat(text: String): String {
                                 return text.split(" ").joinToString(separator = "\n") { it.trim() }
@@ -140,6 +164,7 @@ class AccessibilityFragment : Fragment() {
                             }
                             manufacturerTextView.text = formattedManufacturer
 
+>>>>>>> development
                             yearTextView.text = result.year
                             updateTextView(it,vin)
                             moreInfo(it)
@@ -161,6 +186,11 @@ class AccessibilityFragment : Fragment() {
                 "(${result.bodyClass}\n${result.engineHP}\n${result.engineModel}\n${result.model}\n${result.fuel}\n${result.transmission})"
             bodyClassEngineHPModelTextView.text = combinedInfo
 
+<<<<<<< HEAD
+            val serialNo = vin.takeLast(6)
+            serialNoTextView.text = serialNo
+            vinTextView.text = vin
+=======
             if (vin.length == 17) {
                 val serialNo = vin.takeLast(6)
                 serialNoTextView.text = serialNo
@@ -168,6 +198,7 @@ class AccessibilityFragment : Fragment() {
                 serialNoTextView.text = "Not provided"
             }
             updateVinTextViews(vin)
+>>>>>>> development
         }
     }
 

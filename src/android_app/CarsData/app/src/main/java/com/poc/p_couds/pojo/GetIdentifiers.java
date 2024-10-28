@@ -6,9 +6,15 @@ public class GetIdentifiers {
     @SerializedName("Battery_Identifiers")
     private BatteryIdentifiers batteryIdentifiers;
     @SerializedName("Doors_Identifiers")
+<<<<<<< HEAD
+    private String doorsIdentifiers;
+    @SerializedName("Engine_Identifiers")
+    private String engineIdentifiers;
+=======
     private DoorsIdentifiers doorsIdentifiers;
     @SerializedName("Engine_Identifiers")
     private EngineIdentifiers engineIdentifiers;
+>>>>>>> development
     @SerializedName("MCU_Identifiers")
     private McuIdentifiers mcuIdentifiers;
 
@@ -38,6 +44,8 @@ public class GetIdentifiers {
             return voltage;
         }
     }
+<<<<<<< HEAD
+=======
 
     public static class DoorsIdentifiers{
         @SerializedName("ajar")
@@ -129,6 +137,7 @@ public class GetIdentifiers {
         }
     }
 
+>>>>>>> development
     public static class McuIdentifiers{
         @SerializedName("ecu_hardware_number")
         private String ecuHardwareNumber;
@@ -196,11 +205,19 @@ public class GetIdentifiers {
         return batteryIdentifiers;
     }
 
+<<<<<<< HEAD
+    public String getDoorsIdentifiers() {
+        return doorsIdentifiers;
+    }
+
+    public String getEngineIdentifiers() {
+=======
     public DoorsIdentifiers getDoorsIdentifiers() {
         return doorsIdentifiers;
     }
 
     public EngineIdentifiers getEngineIdentifiers() {
+>>>>>>> development
         return engineIdentifiers;
     }
 

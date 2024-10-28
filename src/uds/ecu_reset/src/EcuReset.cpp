@@ -10,6 +10,11 @@ EcuReset::EcuReset(uint32_t can_id, uint8_t sub_function, int socket, Logger &lo
 {
 }
 
+EcuReset::~EcuReset()
+{
+    LOG_INFO(ECUResetLog.GET_LOGGER(), "Ecu Reset object out of scope");
+}
+
 void EcuReset::ecuResetRequest(const std::vector<uint8_t>& request)
 {
     uint8_t lowerbits = can_id & 0xFF;

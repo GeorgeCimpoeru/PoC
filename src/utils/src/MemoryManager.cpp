@@ -106,7 +106,6 @@ bool MemoryManager::availableAddress(off_t address)
     /* off_t start_position = to_int(result.substr(0,pos)); */
     off_t end_position = to_int(result.substr(pos+ 1));
 
-    constexpr size_t SECTOR_SIZE = 512;
     /* off_t boot_start_byte = start_position * SECTOR_SIZE; */
     off_t boot_end_byte = (end_position + 1) * SECTOR_SIZE - 1;
     if ( address <= boot_end_byte)
@@ -119,7 +118,6 @@ bool MemoryManager::availableAddress(off_t address)
 
 bool MemoryManager::availableMemory(off_t size_of_data)
 {
-    constexpr size_t SECTOR_SIZE = 512;
     char verify_memory_command[256];
     sprintf(verify_memory_command, "sudo fdisk -l %s | grep '^/dev/' | grep -v '*' | awk '{print $3}'", DEV_LOOP);
     std::string result = runCommand(verify_memory_command);
@@ -160,7 +158,7 @@ bool MemoryManager::writeToAddress(std::vector<uint8_t>& data)
     }
 
     ssize_t bytes_written = write(sd_fd, data.data(), data.size());
-    std::cout << "bytes written" << bytes_written << std::endl;
+    std::cout << "\nbytes written in memory: " << bytes_written << std::endl;
     if (bytes_written != static_cast<ssize_t>(data.size()))
     {
         LOG_ERROR(logger.GET_LOGGER(), "Error writing data to address: " + std::to_string(address));
@@ -253,6 +251,7 @@ std::vector<uint8_t> MemoryManager::readFromAddress(std::string path, off_t addr
     if (bytes_readed != size)
     {
          LOG_ERROR(logger.GET_LOGGER(), "Failed to read the file " + path);
+        close(sd_fd);
         return {};
     }
 
