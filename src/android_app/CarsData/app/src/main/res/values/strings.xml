@@ -21,8 +21,11 @@
     <string name="model_n_year">Model \n year</string>
     <string name="vehicle_nproduction_no">Vehicle \nproduction no.</string>
 <<<<<<< HEAD
+<<<<<<< HEAD
     <string name="vin">1FTFW1R6XBFB08616</string>
 =======
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
     <string name="vin1">1</string>
     <string name="vin2">F</string>
     <string name="vin3">T</string>
@@ -31,14 +34,20 @@
     <string name="vin6">B</string>
     <string name="vin7">F</string>
     <string name="vin8">B08616</string>
+<<<<<<< HEAD
 >>>>>>> development
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
     <string name="smooth_edges">smooth edges</string>
     <string name="your_car_details">Your car details:</string>
     <string name="info">info</string>
     <string name="more_info">More info</string>
     <string name="less_info">Less info</string>
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
     <string name="vinIm">vinIm</string>
     <string name="manual">Manual</string>
     <string name="automated">Semi-Automated</string>
@@ -67,5 +76,8 @@
     <string name="read_info_hvac">Read Info HVAC</string>
     <string name="write_info_hvac">Write Info HVAC</string>
 
+<<<<<<< HEAD
 >>>>>>> development
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 </resources>

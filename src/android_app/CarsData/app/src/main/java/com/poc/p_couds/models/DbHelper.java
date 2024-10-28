@@ -39,9 +39,12 @@ public class DbHelper extends SQLiteOpenHelper {
                 + STATUS_COL + " TEXT, "
                 + START_TIME_COL + " TEXT, "
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
                 + START_TIME_COL + " TEXT, "
 >>>>>>> Database of history updates (#486)
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
                 + SIZE_COL + " TEXT)";
         sqLiteDatabase.execSQL(query);
     }

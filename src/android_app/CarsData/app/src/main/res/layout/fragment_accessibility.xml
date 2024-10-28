@@ -32,6 +32,7 @@
                         tools:ignore="UselessParent">
 
 <<<<<<< HEAD
+<<<<<<< HEAD
                     <ImageView
                         android:id="@+id/vin_image"
                         android:layout_width="match_parent"
@@ -43,6 +44,8 @@
                         android:alpha="0.5"
                         android:src="@drawable/vin" />
 =======
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
                         <ImageView
                             android:id="@+id/vin_image"
                             android:layout_width="match_parent"
@@ -53,7 +56,10 @@
                             android:scaleType="fitXY"
                             android:alpha="0.5"
                             android:src="@drawable/vin" />
+<<<<<<< HEAD
 >>>>>>> development
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
                     </FrameLayout>
 
                     <TextView
@@ -98,6 +104,7 @@
                     android:layout_height="match_parent"
                     android:orientation="vertical">
 <<<<<<< HEAD
+<<<<<<< HEAD
                         <ImageView
                             android:layout_width="match_parent"
                             android:layout_height="250dp"
@@ -105,13 +112,18 @@
                             android:src="@drawable/smooth_edge"
                             android:scaleType="fitXY" />
 =======
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
                     <ImageView
                         android:layout_width="match_parent"
                         android:layout_height="250dp"
                         android:contentDescription="@string/smooth_edges"
                         android:src="@drawable/smooth_edge"
                         android:scaleType="fitXY" />
+<<<<<<< HEAD
 >>>>>>> development
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
                 </LinearLayout>
 
                 <LinearLayout
@@ -226,20 +238,29 @@
                             android:id="@+id/line1"
                             android:layout_width="2dp"
 <<<<<<< HEAD
+<<<<<<< HEAD
                             android:layout_height="35dp"
 =======
                             android:layout_height="0dp"
 >>>>>>> development
+=======
+                            android:layout_height="0dp"
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
                             android:background="@drawable/line"
                             android:backgroundTint="@color/green"
                             android:layout_marginStart="58dp"
                             app:layout_constraintStart_toStartOf="parent"
+<<<<<<< HEAD
 <<<<<<< HEAD
                             app:layout_constraintTop_toBottomOf="@id/plantCountryLabel" />
 =======
                             app:layout_constraintTop_toBottomOf="@id/plantCountryLabel"
                             app:layout_constraintBottom_toTopOf="@+id/line9"/>
 >>>>>>> development
+=======
+                            app:layout_constraintTop_toBottomOf="@id/plantCountryLabel"
+                            app:layout_constraintBottom_toTopOf="@+id/line9"/>
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 
                         <View
                             android:id="@+id/line9"
@@ -250,11 +271,16 @@
                             android:layout_marginStart="54dp"
                             app:layout_constraintStart_toStartOf="parent"
 <<<<<<< HEAD
+<<<<<<< HEAD
                             app:layout_constraintTop_toBottomOf="@+id/line1" />
 =======
                             app:layout_constraintTop_toBottomOf="@+id/line1"
                             app:layout_constraintBottom_toTopOf="@id/vin1"/>
 >>>>>>> development
+=======
+                            app:layout_constraintTop_toBottomOf="@+id/line1"
+                            app:layout_constraintBottom_toTopOf="@id/vin1"/>
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 
                         <TextView
                             android:id="@+id/vehicleTypeLabel"
@@ -293,10 +319,14 @@
                             android:id="@+id/line11"
                             android:layout_width="2dp"
 <<<<<<< HEAD
+<<<<<<< HEAD
                             android:layout_height="8dp"
 =======
                             android:layout_height="0dp"
 >>>>>>> development
+=======
+                            android:layout_height="0dp"
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
                             android:background="@drawable/line"
                             android:backgroundTint="#FF4349"
                             android:layout_marginStart="95dp"
@@ -312,11 +342,16 @@
                             android:backgroundTint="#FF4349"
                             app:layout_constraintStart_toStartOf="parent"
 <<<<<<< HEAD
+<<<<<<< HEAD
                             app:layout_constraintTop_toBottomOf="@+id/line11" />
 =======
                             app:layout_constraintTop_toBottomOf="@+id/line11"
                             app:layout_constraintBottom_toTopOf="@+id/vin3"/>
 >>>>>>> development
+=======
+                            app:layout_constraintTop_toBottomOf="@+id/line11"
+                            app:layout_constraintBottom_toTopOf="@+id/vin3"/>
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 
                         <TextView
                             android:id="@+id/ErrorTextLabel"
@@ -356,20 +391,29 @@
                             android:id="@+id/line16"
                             android:layout_width="2dp"
 <<<<<<< HEAD
+<<<<<<< HEAD
                             android:layout_height="11dp"
 =======
                             android:layout_height="0dp"
 >>>>>>> development
+=======
+                            android:layout_height="0dp"
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
                             android:layout_marginStart="205dp"
                             android:background="@drawable/line"
                             android:backgroundTint="#FFDE21"
                             app:layout_constraintStart_toStartOf="parent"
+<<<<<<< HEAD
 <<<<<<< HEAD
                             app:layout_constraintTop_toBottomOf="@+id/line15" />
 =======
                             app:layout_constraintTop_toBottomOf="@+id/line15"
                             app:layout_constraintBottom_toTopOf="@+id/line17"/>
 >>>>>>> development
+=======
+                            app:layout_constraintTop_toBottomOf="@+id/line15"
+                            app:layout_constraintBottom_toTopOf="@+id/line17"/>
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 
                         <View
                             android:id="@+id/line17"
@@ -380,11 +424,16 @@
                             android:backgroundTint="#FFDE21"
                             app:layout_constraintStart_toStartOf="parent"
 <<<<<<< HEAD
+<<<<<<< HEAD
                             app:layout_constraintTop_toBottomOf="@+id/line16" />
 =======
                             app:layout_constraintTop_toBottomOf="@+id/line16"
                             app:layout_constraintBottom_toTopOf="@+id/vin5"/>
 >>>>>>> development
+=======
+                            app:layout_constraintTop_toBottomOf="@+id/line16"
+                            app:layout_constraintBottom_toTopOf="@+id/vin5"/>
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 
                         <TextView
                             android:id="@+id/plantCityLabel"
@@ -413,20 +462,29 @@
                             android:id="@+id/line22"
                             android:layout_width="2dp"
 <<<<<<< HEAD
+<<<<<<< HEAD
                             android:layout_height="3dp"
 =======
                             android:layout_height="0dp"
 >>>>>>> development
+=======
+                            android:layout_height="0dp"
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
                             android:background="@drawable/line"
                             android:backgroundTint="#FE036A"
                             android:layout_marginStart="243dp"
                             app:layout_constraintStart_toStartOf="parent"
+<<<<<<< HEAD
 <<<<<<< HEAD
                             app:layout_constraintTop_toBottomOf="@+id/line21" />
 =======
                             app:layout_constraintTop_toBottomOf="@+id/line21"
                             app:layout_constraintBottom_toTopOf="@+id/line23"/>
 >>>>>>> development
+=======
+                            app:layout_constraintTop_toBottomOf="@+id/line21"
+                            app:layout_constraintBottom_toTopOf="@+id/line23"/>
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 
                         <View
                             android:id="@+id/line23"
@@ -437,11 +495,16 @@
                             android:backgroundTint="#FE036A"
                             app:layout_constraintStart_toStartOf="parent"
 <<<<<<< HEAD
+<<<<<<< HEAD
                             app:layout_constraintTop_toBottomOf="@+id/line22" />
 =======
                             app:layout_constraintTop_toBottomOf="@+id/line22"
                             app:layout_constraintBottom_toTopOf="@+id/vin7"/>
 >>>>>>> development
+=======
+                            app:layout_constraintTop_toBottomOf="@+id/line22"
+                            app:layout_constraintBottom_toTopOf="@+id/vin7"/>
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 
                         <View
                             android:id="@+id/line4"
@@ -465,9 +528,12 @@
 
                         <TextView
 <<<<<<< HEAD
+<<<<<<< HEAD
                             android:id="@+id/vin"
                             android:layout_width="match_parent"
 =======
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
                             android:id="@+id/vin1"
                             android:layout_width="18dp"
                             android:layout_height="match_parent"
@@ -533,16 +599,23 @@
                         <TextView
                             android:id="@+id/vin8"
                             android:layout_width="110dp"
+<<<<<<< HEAD
 >>>>>>> development
+=======
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
                             android:layout_height="match_parent"
                             android:textSize="30sp"
                             android:textStyle="bold"
                             android:fontFamily="serif-monospace"
 <<<<<<< HEAD
+<<<<<<< HEAD
                             android:text="@string/vin" />
 =======
                             android:text="@string/vin8" />
 >>>>>>> development
+=======
+                            android:text="@string/vin8" />
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 
                         <!-- Add more TextViews for each VIN character -->
                     </LinearLayout>
@@ -571,10 +644,14 @@
                             android:layout_marginStart="72dp"
                             app:layout_constraintStart_toStartOf="parent"
 <<<<<<< HEAD
+<<<<<<< HEAD
                             app:layout_constraintTop_toBottomOf="@+id/line1" />
 =======
                             app:layout_constraintTop_toBottomOf="@+id/vin2" />
 >>>>>>> development
+=======
+                            app:layout_constraintTop_toBottomOf="@+id/vin2" />
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 
                         <TextView
                             android:id="@+id/manufacturerText"
@@ -609,10 +686,14 @@
                             android:layout_marginStart="106dp"
                             app:layout_constraintStart_toStartOf="parent"
 <<<<<<< HEAD
+<<<<<<< HEAD
                             app:layout_constraintBottom_toTopOf="@+id/line2" />
 =======
                             app:layout_constraintBottom_toTopOf="@+id/vin4" />
 >>>>>>> development
+=======
+                            app:layout_constraintBottom_toTopOf="@+id/vin4" />
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 
                         <TextView
                             android:id="@+id/bodyClass_engineHP_engineModel_model_Text"
@@ -668,10 +749,14 @@
                             android:layout_marginStart="219dp"
                             app:layout_constraintStart_toStartOf="parent"
 <<<<<<< HEAD
+<<<<<<< HEAD
                             app:layout_constraintTop_toBottomOf="@+id/line1" />
 =======
                             app:layout_constraintTop_toBottomOf="@+id/vin6" />
 >>>>>>> development
+=======
+                            app:layout_constraintTop_toBottomOf="@+id/vin6" />
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 
                         <TextView
                             android:id="@+id/modelYearText"
@@ -706,10 +791,14 @@
                             android:layout_marginStart="254dp"
                             app:layout_constraintStart_toStartOf="parent"
 <<<<<<< HEAD
+<<<<<<< HEAD
                             app:layout_constraintBottom_toTopOf="@+id/line2" />
 =======
                             app:layout_constraintBottom_toTopOf="@+id/vin8" />
 >>>>>>> development
+=======
+                            app:layout_constraintBottom_toTopOf="@+id/vin8" />
+>>>>>>> 79b55ebf360c9bc84dd23fbef5e73e46935844ae
 
                         <TextView
                             android:id="@+id/serialNoText"
