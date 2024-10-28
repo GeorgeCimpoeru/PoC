@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
-import { batteryData, readInfoBattery } from './DivCenterBattery';
-import { writeInfoBattery } from './DivCenterBattery';
 import ModalUDS from './ModalUDS';
 import { displayLoadingCircle, displayErrorPopup, removeLoadingCicle } from '../sharedComponents/LoadingCircle';
+import { batteryData, readInfoBattery, writeInfoBattery } from './DivCenterBattery';
+import { engineData, readInfoEngine, writeInfoEngine } from './DivCenterEngine';
 import logger from '@/src/utils/Logger';
 
 
@@ -33,9 +33,17 @@ const SendRequests = () => {
     const [selectedECUid, setSelectedECUid] = useState<string>("");
     const [selectedECU, setSelectedECU] = useState<string>("Select ECU");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    let popupElement: HTMLDivElement | null = null;
-    let popupStyleElement: HTMLStyleElement | null = null;
-    let overlayElement: HTMLDivElement | null = null;
+    const [isDropDownOpenBattery, setIsDropdownOpenBattery] = useState(false);
+    const [isDropDownOpenEngine, setIsDropdownOpenEngine] = useState(false);
+    const [engineCardTitle, setEngineCardTitle] = useState("");
+    const [paramEngine, setParamEngine] = useState("");
+
+
+    const dropdownEngineItemClick = (cardTitle: string, param: string) => {
+        setIsDropdownOpenEngine(false);
+        setEngineCardTitle(cardTitle);
+        setParamEngine(param);
+    }
 
     const fetchLogs = async () => {
         displayLoadingCircle();
@@ -175,56 +183,6 @@ const SendRequests = () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ ecu_id: ecuId, version: version }),
-            }).then(response => response.json())
-                .then(data => {
-                    setData23(data);
-                    console.log(data);
-                    fetchLogs();
-                });
-        } catch (error) {
-            console.log(error);
-            displayErrorPopup("Connection failed");
-            removeLoadingCicle();
-        }
-        removeLoadingCicle();
-    }
-
-    const writeInfoEngine = async () => {
-        displayLoadingCircle();
-        const engine_rpm = prompt('Enter Engine rpm:');
-        const coolant_temperature = prompt('Enter coolant temperature:');
-        const throttle_position = prompt('Enter throttle position:');
-        const vehicle_speed = prompt('Enter vehicle speed:');
-        const engine_load = prompt('Enter engine load:');
-        const fuel_level = prompt('Enter fuel level:');
-        const oil_temperature = prompt('Enter oil temperature:');
-        const fuel_pressure = prompt('Enter fuel pressure:');
-        const intake_air_temperature = prompt('Enter intake air temperature:');
-        const is_manual_flow = true;
-
-        const data = {
-            engine_rpm: engine_rpm || null,
-            coolant_temperature: coolant_temperature || null,
-            throttle_position: throttle_position || null,
-            vehicle_speed: vehicle_speed || null,
-            engine_load: engine_load || null,
-            fuel_level: fuel_level || null,
-            oil_temperature: oil_temperature || null,
-            fuel_pressure: fuel_pressure || null,
-            intake_air_temperature: intake_air_temperature || null,
-            is_manual_flow: is_manual_flow || null
-
-
-        };
-        console.log("Writing info engine...");
-        console.log(data);
-        try {
-            await fetch(`http://127.0.0.1:5000/api/write_info_engine?is_manual_flow=true`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
             }).then(response => response.json())
                 .then(data => {
                     setData23(data);
@@ -569,7 +527,7 @@ const SendRequests = () => {
                     `New P2 Max Time: ${writtenValues["New P2 Max Time"]}\n` +
                     `New P2 Star Max: ${writtenValues["New P2 Star Max"]}`;
 
-                    displayErrorPopup(message);
+                displayErrorPopup(message);
             } else {
                 displayErrorPopup(`Error: ${data.message}`);
             }
@@ -801,7 +759,7 @@ const SendRequests = () => {
                         {/* )} */}
                     </div>
                     <div className="dropdown">
-                        <button tabIndex={3} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpen(!isDropdownOpen)} disabled={disableInfoBatteryBtns}>
+                        <button tabIndex={3} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpenBattery(!isDropDownOpenBattery)} disabled={disableInfoBatteryBtns}>
                             Write battery param
                             <Image
                                 src="/dropdownarrow.png"
@@ -812,37 +770,103 @@ const SendRequests = () => {
                                 priority
                             />
                         </button>
-                        {isDropdownOpen && (
+                        {isDropDownOpenBattery && (
                             <div>
                                 <ul tabIndex={3} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
                                     <li>
-                                        <label htmlFor="my_modal_1">
-                                            <a onClick={() => { setIsDropdownOpen(false) }} >Battery level</a>
+                                        <label htmlFor="my_modal_7">
+                                            <a onClick={() => { setIsDropdownOpenBattery(false) }} >Battery level</a>
                                         </label>
                                     </li>
                                     <li>
-                                        <label htmlFor="my_modal_1">
-                                            <a onClick={() => { setIsDropdownOpen(false) }} >State of charge</a>
+                                        <label htmlFor="my_modal_7">
+                                            <a onClick={() => { setIsDropdownOpenBattery(false) }} >State of charge</a>
                                         </label>
                                     </li>
                                     <li>
-                                        <label htmlFor="my_modal_1">
-                                            <a onClick={() => { setIsDropdownOpen(false) }} >Percentage</a>
+                                        <label htmlFor="my_modal_7">
+                                            <a onClick={() => { setIsDropdownOpenBattery(false) }} >Percentage</a>
                                         </label>
                                     </li>
                                     <li>
-                                        <label htmlFor="my_modal_1">
-                                            <a onClick={() => { setIsDropdownOpen(false) }} >Voltage</a>
+                                        <label htmlFor="my_modal_7">
+                                            <a onClick={() => { setIsDropdownOpenBattery(false) }} >Voltage</a>
                                         </label>
                                     </li>
                                 </ul>
-                                <ModalUDS id="my_modal_1" cardTitle={'Battery level'} writeInfo={writeInfoBattery} param="battery_level" setter={setData23} />
+                                <ModalUDS id="my_modal_7" cardTitle={'Battery level'} writeInfo={writeInfoBattery} param="battery_level" setter={setData23} />
                             </div>
                         )}
 
                     </div>
-                    {/* <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoEngine} disabled={disableInfoEngineBtns}>Read Info Engine</button> */}
-                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoEngine} disabled={disableInfoEngineBtns}>Write Info Engine</button>
+                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => { setIsDropdownOpen(false); readInfoEngine(true, setData23) }}>Read Info Engine</button>
+
+                    <div className="dropdown">
+                        <button tabIndex={4} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpenEngine(!isDropDownOpenEngine)} disabled={disableInfoEngineBtns}>
+                            Write engine param
+                            <Image
+                                src="/dropdownarrow.png"
+                                alt="Dropdown arrow icon"
+                                className="dark:invert m-1 hover:object-scale-down"
+                                width={10}
+                                height={10}
+                                priority
+                            />
+                        </button>
+                        {isDropDownOpenEngine && (
+                            <div>
+                                <ul tabIndex={4} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+                                    <li>
+                                        <label htmlFor="my_modal_8">
+                                            <a onClick={() => { dropdownEngineItemClick("Coolant temperature", "coolant_temperature") }} >Coolant temperature</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_8">
+                                            <a onClick={() => { dropdownEngineItemClick("Load", "engine_load") }} >Engine load</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_8">
+                                            <a onClick={() => { dropdownEngineItemClick("RPM", "engine_rpm") }} >RPM</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_8">
+                                            <a onClick={() => { dropdownEngineItemClick("Fuel", "fuel_level") }} >Fuel</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_8">
+                                            <a onClick={() => { dropdownEngineItemClick("Fuel pressure", "Fuel pressure") }} >Fuel pressure</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_8">
+                                            <a onClick={() => { dropdownEngineItemClick("Intake air temperature", "intake_air_temperature") }} >Intake air temperature</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_8">
+                                            <a onClick={() => { dropdownEngineItemClick("Oil temperature", "oil_temperature") }} >Oil temperature</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_8">
+                                            <a onClick={() => { dropdownEngineItemClick("Throttle position", "throttle_position") }} >Throttle position</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_8">
+                                            <a onClick={() => { dropdownEngineItemClick("Speed", "vehicle_speed") }} >Speed</a>
+                                        </label>
+                                    </li>
+                                </ul>
+                                <ModalUDS id="my_modal_8" cardTitle={engineCardTitle} writeInfo={writeInfoBattery} param={paramEngine} setter={setData23} />
+                            </div>
+                        )}
+
+                    </div>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoDoors} disabled={disableInfoDoorsBtns}>Read Info Doors</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoDoors} disabled={disableInfoDoorsBtns}>Write Doors Info</button>
                     {/* <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoHvac} disabled={disableInfoHvacBtns}>Read Info Hvac</button> */}

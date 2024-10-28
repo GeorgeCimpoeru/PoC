@@ -6,7 +6,7 @@ import './style.css';
 import { displayLoadingCircle, displayErrorPopup, removeLoadingCicle } from '../sharedComponents/LoadingCircle';
 import logger from '@/src/utils/Logger';
 
-interface engineData {
+export interface engineData {
     coolant_temperature: any,
     engine_load: any,
     engine_rpm: any,
@@ -18,116 +18,115 @@ interface engineData {
     vehicle_speed: any,
 }
 
+export const readInfoEngine = async (isManualFlow: boolean, setData: any) => {
+    displayLoadingCircle();
+    console.log("Reading engine info...");
+    await fetch(`http://127.0.0.1:5000/api/read_info_engine?is_manual_flow=${isManualFlow}`,
+        { method: "GET" }
+    )
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            setData(data);
+            // setLoading(false);
+        })
+
+        .catch(error => {
+            // setError(error);
+            // setLoading(false);
+            displayErrorPopup("Connection failed");
+            removeLoadingCicle();
+        });
+    removeLoadingCicle();
+};
+
+export const writeInfoEngine = async (variable: string, newValue: string, setData: any) => {
+    console.log("Writing engine info...");
+    let item: string = "";
+    let data2;
+    if (variable === "coolant_temperature") {
+        data2 = {
+            coolant_temperature: parseInt(newValue)
+        };
+        item = "coolant_temperature";
+    } else if (variable === "engine_load") {
+        data2 = {
+            engine_load: parseInt(newValue)
+        };
+        item = "engine_load";
+    } else if (variable === "engine_rpm") {
+        data2 = {
+            engine_rpm: parseInt(newValue)
+        };
+        item = "engine_rpm";
+    } else if (variable === "fuel_level") {
+        data2 = {
+            fuel_level: parseInt(newValue)
+        };
+        item = "fuel_level";
+    } else if (variable === "intake_air_temperature") {
+        data2 = {
+            intake_air_temperature: parseInt(newValue)
+        };
+        item = "intake_air_temperature";
+    } else if (variable === "fuel_pressure") {
+        data2 = {
+            fuel_pressure: parseInt(newValue)
+        };
+        item = "fuel_pressure";
+    } else if (variable === "oil_temperature") {
+        data2 = {
+            oil_temperature: parseInt(newValue)
+        };
+        item = "oil_temperature";
+    } else if (variable === "throttle_position") {
+        data2 = {
+            throttle_position: parseInt(newValue)
+        };
+        item = "throttle_position";
+    } else if (variable === "vehicle_speed") {
+        data2 = {
+            vehicle_speed: parseInt(newValue)
+        };
+        item = "vehicle_speed";
+    }
+
+    console.log(data2);
+    displayLoadingCircle();
+    await fetch(`http://127.0.0.1:5000/api/write_info_engine`, {
+        method: 'POST',
+        // mode: 'no-cors',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data2),
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            removeLoadingCicle();
+        })
+        .catch(error => {
+            console.error(error);
+            removeLoadingCicle();
+
+        });
+    readInfoEngine(true, setData);
+};
+
+
 const DivCenterEngine = (props: any) => {
     logger.init();
 
     const [data, setData] = useState<engineData | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
 
     useEffect(() => {
-        readInfoEngine();
+        readInfoEngine(false, setData);
     }, []);
-
-    const readInfoEngine = async () => {
-        displayLoadingCircle();
-        console.log("Reading engine info...");
-        await fetch(`http://127.0.0.1:5000/api/read_info_engine?is_manual_flow=false`,
-            { method: "GET" }
-        )
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                setData(data);
-                setLoading(false);
-            })
-
-            .catch(error => {
-                setError(error);
-                setLoading(false);
-                displayErrorPopup("Connection failed");
-                removeLoadingCicle();
-            });
-        removeLoadingCicle();
-    };
-
-    const writeInfoEngine = async (variable: string, newValue: string) => {
-        console.log("Writing engine info...");
-        let item: string = "";
-        let data2;
-        if (variable === "coolant_temperature") {
-            data2 = {
-                coolant_temperature: parseInt(newValue)
-            };
-            item = "coolant_temperature";
-        } else if (variable === "engine_load") {
-            data2 = {
-                engine_load: parseInt(newValue)
-            };
-            item = "engine_load";
-        } else if (variable === "engine_rpm") {
-            data2 = {
-                engine_rpm: parseInt(newValue)
-            };
-            item = "engine_rpm";
-        } else if (variable === "fuel_level") {
-            data2 = {
-                fuel_level: parseInt(newValue)
-            };
-            item = "fuel_level";
-        } else if (variable === "intake_air_temperature") {
-            data2 = {
-                intake_air_temperature: parseInt(newValue)
-            };
-            item = "intake_air_temperature";
-        } else if (variable === "fuel_pressure") {
-            data2 = {
-                fuel_pressure: parseInt(newValue)
-            };
-            item = "fuel_pressure";
-        } else if (variable === "oil_temperature") {
-            data2 = {
-                oil_temperature: parseInt(newValue)
-            };
-            item = "oil_temperature";
-        } else if (variable === "throttle_position") {
-            data2 = {
-                throttle_position: parseInt(newValue)
-            };
-            item = "throttle_position";
-        } else if (variable === "vehicle_speed") {
-            data2 = {
-                vehicle_speed: parseInt(newValue)
-            };
-            item = "vehicle_speed";
-        }
-
-        console.log(data2);
-
-        await fetch(`http://127.0.0.1:5000/api/write_info_engine?item=${item}`, {
-            method: 'POST',
-            // mode: 'no-cors',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data2),
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-
-            })
-            .catch(error => {
-                console.error(error);
-
-            });
-        console.log("TEST READ")
-        readInfoEngine();
-    };
 
     console.log(data)
     return (
@@ -138,11 +137,11 @@ const DivCenterEngine = (props: any) => {
 
 
                     <div className="w-[30%] m-7 text-white grid justify-items-end">
-                        <label htmlFor="my_modal_1"
+                        <label htmlFor="my_modal_4"
                             className="inline-flex items-center justify-center p-2 bg-blue-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-blue-700">
                             {data?.coolant_temperature}°C
                         </label>
-                        <ModalUDS id="my_modal_1" cardTitle={'Coolant temperature'} writeInfo={writeInfoEngine} param="coolant_temperature" />
+                        <ModalUDS id="my_modal_4" cardTitle={'Coolant temperature'} writeInfo={writeInfoEngine} param="coolant_temperature"/>
                         <p>Coolant temperature</p>
                     </div>
 

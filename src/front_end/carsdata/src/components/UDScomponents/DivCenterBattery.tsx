@@ -114,11 +114,11 @@ const DivCenterBattery = (props: any) => {
                 <div className="w-full h-full flex flex-col item-center justify-center">
 
                     <div className="w-[30%] m-7 text-white grid justify-item-end">
-                        <label htmlFor="my_modal_1"
+                        <label htmlFor="my_modal_2"
                             className="inline-flex item-center justify-center p-2 bg-blue-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-blue-700">
                             {data?.battery_level}%
                         </label>
-                        <ModalUDS id="my_modal_1" cardTitle={'Battery level'} writeInfo={writeInfoBattery} param="battery_level" setter={setData}/>
+                        <ModalUDS id="my_modal_2" cardTitle={'Battery level'} writeInfo={writeInfoBattery} param="battery_level" setter={setData}/>
                         <p>Battery level</p>
                     </div>
 

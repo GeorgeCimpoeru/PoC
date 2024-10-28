@@ -71,11 +71,11 @@ const DivCenterHVAC = (props: any) => {
 
 
                     <div className="w-[30%] m-7 text-white grid justify-items-end">
-                        <label htmlFor="my_modal_1"
+                        <label htmlFor="my_modal_5"
                             className="inline-flex items-center justify-center p-2 bg-blue-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-blue-700">
                             {data?.ambient_air_temperature}°C
                         </label>
-                        <ModalUDS id="my_modal_1" cardTitle={'Ambient air temperature'} />
+                        <ModalUDS id="my_modal_5" cardTitle={'Ambient air temperature'} />
                         <p>Ambient air temperature</p>
                     </div>
 
