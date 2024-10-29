@@ -45,7 +45,16 @@ class Logger {
     /* Captures a log message with the specified level (log, warn, error) and arguments */
     private captureLog(level: string, args: any[]) : void {
         const formattedDate = this.formatDate(new Date());
-        const log_msg = `${formattedDate} [${level}]: ${args.join(' ')}`;
+
+        /* Pretty print JSON arguments with 2 spaces for indentation */
+        const logMsgParts = args.map(arg => {
+            if (typeof arg === 'object') {
+                    return JSON.stringify(arg, null, 2);
+            }
+            return String(arg);
+        });
+
+        const log_msg = `${formattedDate} [${level}]: ${logMsgParts.join(' ')}`;
         this.logs.push(log_msg);
 
         /* Store the updated logs array into the local storage */
