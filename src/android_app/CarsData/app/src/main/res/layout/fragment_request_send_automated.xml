@@ -159,7 +159,7 @@
                         <Spinner
                             android:id="@+id/type_reset_spinner"
                             android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
+                            android:layout_height="wrap_content"
                             android:autofillHints="item"
                             android:background="@drawable/outlined_spinner"
                             android:entries="@array/type_reset"
@@ -183,11 +183,12 @@
                             android:layout_height="wrap_content"
                             android:text="@string/ecu_to_reset"
                             android:textStyle="bold"
-                            android:layout_marginBottom="5dp"/>
+                            android:layout_marginBottom="5dp"
+                            android:paddingHorizontal="10dp"/>
                         <Spinner
                             android:id="@+id/ecu_reset_spinner"
                             android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
+                            android:layout_height="wrap_content"
                             android:autofillHints="item"
                             android:background="@drawable/outlined_spinner"
                             android:entries="@array/ecu_reset"

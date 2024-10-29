@@ -2,14 +2,19 @@ package com.poc.p_couds.fragments;
 
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,14 +29,24 @@ import com.poc.p_couds.models.IApiService;
 import com.poc.p_couds.pojo.Authenticate;
 import com.poc.p_couds.pojo.ChangeStatus;
 import com.poc.p_couds.pojo.ChangeStatusSession;
+import com.poc.p_couds.pojo.ECU;
+import com.poc.p_couds.pojo.FileNode;
 import com.poc.p_couds.pojo.GetIdentifiers;
 import com.poc.p_couds.pojo.ReadAccesTiming;
 import com.poc.p_couds.pojo.ReadAccessTimingPost;
+import com.poc.p_couds.pojo.ResetEcu;
+import com.poc.p_couds.pojo.ResetEcuPost;
 import com.poc.p_couds.pojo.TesterPresent;
 import com.poc.p_couds.pojo.WriteTiming;
 import com.poc.p_couds.pojo.WriteTimingPost;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+
 import retrofit2.Call;
+import retrofit2.Callback;
 import retrofit2.Response;
 
 
@@ -43,6 +58,12 @@ import retrofit2.Response;
 public class Fragment_RequestSendAutomated extends Fragment {
     private TextView testerTextView;
     private IApiService apiInterface;
+
+    List<String> allEcus = Arrays.asList(new String[]{"MCU", "Battery", "Engine", "Doors", "HVAC"});
+    List<String> displayedEcus =Arrays.asList(new String[]{"None"});
+    List<ECU.ECUDetail> listOfEcus = new ArrayList<>();
+    String mcuId = "";
+    ArrayAdapter<String>  adapterEcuReset;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -66,11 +87,59 @@ public class Fragment_RequestSendAutomated extends Fragment {
 
         });
 
+        Button docsButton = view.findViewById(R.id.docs);
+        docsButton.setOnClickListener(v -> redirectToDocs());
+
+        Button checkVersions = view.findViewById(R.id.q2);
+        checkVersions.setOnClickListener(v -> callCheckVersions());
+
         Button authentication = view.findViewById(R.id.q3);
         authentication.setOnClickListener(v -> callApiAuthentication());
 
         Button readIdentifiers = view.findViewById(R.id.q4);
         readIdentifiers.setOnClickListener(v -> callApiIdentifiers());
+
+        Button requestId = view.findViewById(R.id.q5);
+        requestId.setOnClickListener(v -> callRequestId());
+
+        getEcuAndIds();
+
+        Spinner ecuReset = view.findViewById(R.id.ecu_reset_spinner);
+        adapterEcuReset = new ArrayAdapter<>(view.getContext(), android.R.layout.simple_list_item_1, displayedEcus);
+        ecuReset.setAdapter(adapterEcuReset);
+
+        List<String> typeResetList = Arrays.asList(new String[]{"Type","soft", "hard"});
+        Spinner typeReset = view.findViewById(R.id.type_reset_spinner);
+        ArrayAdapter<String>  adapterTypeReset = new ArrayAdapter<>(view.getContext(), android.R.layout.simple_list_item_1, typeResetList);
+        typeReset.setAdapter(adapterTypeReset);
+        typeReset.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                Toast.makeText(view.getContext(), "Reset", Toast.LENGTH_SHORT).show();
+                String ecuId;
+                if (i == 0)
+                {
+                    return;
+                }
+                if (ecuReset.getSelectedItemPosition() > 0)
+                {
+                    ecuId = listOfEcus.get(ecuReset.getSelectedItemPosition()).getEcu_id();
+                }
+                else
+                {
+                    ecuId = mcuId;
+                }
+                String typeOfReset = typeResetList.get(i);
+                ResetEcuPost r = new ResetEcuPost(ecuId, typeOfReset);
+                callEcuReset(r);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
 
         SwitchCompat switchCompatTester = view.findViewById(R.id.tester);
         switchCompatTester.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -119,6 +188,116 @@ public class Fragment_RequestSendAutomated extends Fragment {
         });
     }
 
+    private void redirectToDocs()
+    {
+        Intent browserIntent = new Intent(Intent. ACTION_VIEW, Uri.parse("https://github.com/GeorgeCimpoeru/PoC/blob/master/README.md"));
+        startActivity(browserIntent);
+    }
+
+    private void getEcuAndIds()
+    {
+        apiInterface = APIClient.getClient().create(IApiService.class);
+
+        Call<ECU> call=apiInterface.requestListOfEcus();
+        call.enqueue(new Callback<ECU>() {
+            @Override
+            public void onResponse(Call<ECU> call, Response<ECU> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ECU ecusResponse = response.body();
+                    listOfEcus = ecusResponse.getEcus();
+                    mcuId = ecusResponse.getMcuId();
+                    String status = ecusResponse.getStatus();
+                    if (Objects.equals(status, "Success")) {
+                        displayedEcus.addAll(allEcus.subList(0, listOfEcus.size() + 1));
+                        adapterEcuReset.notifyDataSetChanged();
+                    } else{
+                        Log.w("PoC", "Unable to retrieve ECUs available from api...");
+                        Toast.makeText(getContext(), "Unable to retrieve ECUs available from api...", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                else {
+                    Log.e("PoC","Error while making call to retrieve ecu ids information. Code:" + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ECU> call, Throwable t) {
+                Log.e("PoC","Error while making call to retrieve ecu ids information...");
+            }
+        });
+    }
+
+    private void callEcuReset(ResetEcuPost ecu) {
+        apiInterface = APIClient.getClient().create(IApiService.class);
+
+        Call<ResetEcu> call=apiInterface.requestResetEcu(ecu);
+        call.enqueue(new Callback<ResetEcu>() {
+            @Override
+            public void onResponse(Call<ResetEcu> call, Response<ResetEcu> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Gson gson = new Gson();
+                    String jsonResponse = gson.toJson(response.body());
+                    testerTextView.setText(jsonResponse);
+                }
+                else {
+                    testerTextView.setText("Failed to retrive response");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResetEcu> call, Throwable t) {
+                testerTextView.setText("Request Failed: " + t.getMessage());
+            }
+        });
+    }
+
+    private void callCheckVersions() {
+        apiInterface = APIClient.getClient().create(IApiService.class);
+
+        Call<FileNode> call=apiInterface.requestListOfVersions();
+        call.enqueue(new Callback<FileNode>() {
+            @Override
+            public void onResponse(Call<FileNode> call, Response<FileNode> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Gson gson = new Gson();
+                    String jsonResponse = gson.toJson(response.body());
+                    testerTextView.setText(jsonResponse);
+                }
+                else {
+                    testerTextView.setText("Failed to retrive response");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<FileNode> call, Throwable t) {
+                testerTextView.setText("Request Failed: " + t.getMessage());
+            }
+        });
+    }
+
+    private void callRequestId() {
+        apiInterface = APIClient.getClient().create(IApiService.class);
+
+        Call<ECU> call=apiInterface.requestListOfEcus();
+        call.enqueue(new Callback<ECU>() {
+            @Override
+            public void onResponse(Call<ECU> call, Response<ECU> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Gson gson = new Gson();
+                    String jsonResponse = gson.toJson(response.body());
+                    testerTextView.setText(jsonResponse);
+                }
+                else {
+                    testerTextView.setText("Failed to retrive response");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ECU> call, Throwable t) {
+                testerTextView.setText("Request Failed: " + t.getMessage());
+            }
+        });
+    }
 
     private void callApiAuthentication() {
         apiInterface = APIClient.getClient().create(IApiService.class);
