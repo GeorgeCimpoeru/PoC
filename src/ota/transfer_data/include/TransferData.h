@@ -51,7 +51,8 @@ public:
      * @param current_data 
      * @param logger 
      */
-    static void processDataForTransfer(uint8_t receiver_id, std::vector<uint8_t>& current_data, Logger& logger);
+    static void processDataForTransfer(canid_t can_id, std::vector<uint8_t>& current_data, int socket, Logger& logger);
+    //static void processDataForTransfer(uint8_t receiver_id, std::vector<uint8_t>& current_data, Logger& logger);
     /**
      * @brief method used to compute a simple checksum for a block of data transferred
      * 

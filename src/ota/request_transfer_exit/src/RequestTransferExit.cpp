@@ -57,6 +57,8 @@ void RequestTransferExit::requestTRansferExitRequest(canid_t can_id, const std::
 {
     NegativeResponse nrc(socket, RTESLogger);
     std::vector<uint8_t> response;
+    /* Auxiliary variable used for can_id in setDidValue method */
+    canid_t aux_can_id = can_id;
     /* Extract and switch sender and receiver */
     uint8_t receiver_id = can_id  & 0xFF;
     uint8_t sender_id = (can_id >> 8) & 0xFF;
@@ -73,7 +75,8 @@ void RequestTransferExit::requestTRansferExitRequest(canid_t can_id, const std::
     else    
     {
         /* Retrieve transfer_status based on the OTA_UPDATE_STATUS_DID if it exists */
-        auto value = MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0];
+        //auto value = MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0];
+        auto value = FileManager::getDidValue(OTA_UPDATE_STATUS_DID)[0];
         /* Check if the transfer data has been completed */
         if (value == PROCESSING_TRANSFER_COMPLETE)        
         {
@@ -90,12 +93,16 @@ void RequestTransferExit::requestTRansferExitRequest(canid_t can_id, const std::
                 /* Send the postive response frame */ 
                 generate_frames.sendFrame(can_id, response);
                 /* Since the response is positive, update the DID to the verification status */
-                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {READY});
+                //MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {READY});
+                FileManager::setDidValue(OTA_UPDATE_STATUS_DID, {READY}, aux_can_id, socket, RTESLogger);
+
             }
             else
             {
                 /* Update the DID to the Error status if the checksums were not computed */
-                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ERROR});
+                //MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ERROR});
+                FileManager::setDidValue(OTA_UPDATE_STATUS_DID, {ERROR}, aux_can_id, socket, RTESLogger);
+
                 /* Send the negative response frame */        
                 nrc.sendNRC(can_id, RTES_SERVICE_ID, NegativeResponse::IMLOIF);
                 return;
@@ -107,7 +114,9 @@ void RequestTransferExit::requestTRansferExitRequest(canid_t can_id, const std::
             /* Send the negative response frame */ 
             nrc.sendNRC(can_id, RTES_SERVICE_ID, NegativeResponse::RSE);
             /* Since the response is negative, update the DID to the verification status */
-            MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {IDLE});
+            //MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {IDLE});
+            FileManager::setDidValue(OTA_UPDATE_STATUS_DID, {IDLE}, aux_can_id, socket, RTESLogger);
+
             return;
         }       
     }

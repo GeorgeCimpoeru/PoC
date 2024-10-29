@@ -177,13 +177,6 @@ private:
      */
     void downloadInEcu(int id, int memory_address);
 
-    /**
-     * @brief Method for downloading software version from google drive.
-     * 
-     * @param ecu_id The identifier of ECU.
-     * @param sw_version The software version.
-     */
-    void downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_version);
 };
 
 #endif /* REQUEST_DOWNLOAD_SERVICE_H */

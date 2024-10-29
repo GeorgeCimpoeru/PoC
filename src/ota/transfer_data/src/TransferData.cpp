@@ -34,17 +34,23 @@ const std::vector<uint8_t>&TransferData::getChecksums()
     return checksums;
 }
 
-void TransferData::processDataForTransfer(uint8_t receiver_id, std::vector<uint8_t>& current_data, Logger& logger)
+void TransferData::processDataForTransfer(canid_t can_id, std::vector<uint8_t>& current_data, int socket, Logger& logger)
+//void TransferData::processDataForTransfer(uint8_t receiver_id, std::vector<uint8_t>& current_data, Logger& logger)
 {
-    static std::vector<uint8_t> data = {};  
+    static std::vector<uint8_t> data = {}; 
+    /* Auxiliary variable used for can_id in setDidValue method */
+    canid_t aux_can_id = can_id;
     /* Total size of data */
     static size_t total_size = 0;
     /* Total bytes sent */
     static size_t bytes_sent = 0;
     /* Data size of 1 transfer data */
     static uint8_t chunk_size = 0;
+    /* Extract the receiver */
+    uint8_t receiver_id = can_id  & 0xFF;
 
-    OtaUpdateStatesEnum ota_state = static_cast<OtaUpdateStatesEnum>(MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0]);
+    //OtaUpdateStatesEnum ota_state = static_cast<OtaUpdateStatesEnum>(MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0]);
+    OtaUpdateStatesEnum ota_state = static_cast<OtaUpdateStatesEnum>(FileManager::getDidValue(OTA_UPDATE_STATUS_DID)[0]);
 
     if(ota_state == WAIT_DOWNLOAD_COMPLETED)
     {
@@ -56,7 +62,8 @@ void TransferData::processDataForTransfer(uint8_t receiver_id, std::vector<uint8
         std::string path_to_main;
         if(FileManager::getEcuPath(receiver_id, path_to_main, 3, logger) == 0)
         {
-            MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_FAILED});
+            //MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_FAILED});
+            FileManager::setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_FAILED}, aux_can_id, socket, logger);
             return;
         }
 
@@ -93,7 +100,8 @@ void TransferData::processDataForTransfer(uint8_t receiver_id, std::vector<uint8
     if (bytes_sent >= total_size)
     {   
         current_data.emplace_back(TransferData::computeChecksum(TransferData::checksums.data(), TransferData::checksums.size()));
-        MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_COMPLETE});
+        //MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_COMPLETE});
+        FileManager::setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_COMPLETE}, aux_can_id, socket, logger);
     }
     else
     {
@@ -114,6 +122,8 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
 {
     /* Declaration of data as static in order to retain its value between calls */
     static std::vector<uint8_t> data;
+    /* Auxiliary variable used for can_id in setDidValue method */
+    canid_t aux_can_id = can_id;
     NegativeResponse nrc(socket, transfer_data_logger);
     uint8_t block_sequence_counter = transfer_request[2];
     std::vector<uint8_t> response;
@@ -129,12 +139,14 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
     {
         /* Incorrect message length or invalid format - prepare a negative response */
         nrc.sendNRC(can_id, TD_SID, NegativeResponse::IMLOIF);
-        MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_FAILED});
+        //MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_FAILED});
+        FileManager::setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_FAILED}, aux_can_id, socket, transfer_data_logger);
         AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
         return;
     }
 
-    OtaUpdateStatesEnum ota_state = static_cast<OtaUpdateStatesEnum>(MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0]);
+    //OtaUpdateStatesEnum ota_state = static_cast<OtaUpdateStatesEnum>(MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0]);
+    OtaUpdateStatesEnum ota_state = static_cast<OtaUpdateStatesEnum>(FileManager::getDidValue(OTA_UPDATE_STATUS_DID)[0]);
     if(ota_state == WAIT_DOWNLOAD_COMPLETED)
     {
         /* Clear old data */
@@ -155,8 +167,10 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
         }
         memory_write_status = false;
 
-        MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING});
-        ota_state = static_cast<OtaUpdateStatesEnum>(MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0]);
+        //MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING});
+        FileManager::setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING}, aux_can_id, socket, transfer_data_logger);
+        //ota_state = static_cast<OtaUpdateStatesEnum>(MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0]);
+        ota_state = static_cast<OtaUpdateStatesEnum>(FileManager::getDidValue(OTA_UPDATE_STATUS_DID)[0]);
     }
 
 
@@ -189,7 +203,8 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
             if(memory_write_status == false)
             {
                 nrc.sendNRC(can_id, TD_SID, NegativeResponse::TDS);
-                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_FAILED});
+                //MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_FAILED});
+                FileManager::setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_FAILED}, aux_can_id, socket, transfer_data_logger);
                 AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
                 return;
             }

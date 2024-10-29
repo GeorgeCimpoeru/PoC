@@ -20,7 +20,7 @@
 #include <iomanip>
 #include <string>
 #include "Logger.h"
-//#include "GenerateFrames.h"
+#include "GenerateFrames.h"
 
 #define ELF_SIGNATURE 0x7F454C46
 #define ZIP_SIGNATURE 0x504B0304   
@@ -103,21 +103,21 @@ public:
      */
     static bool extractZipFile(uint8_t target_id, const std::string &zipFilePath, const std::string &outputDir, Logger& logger);
 
-    // /**
-    // * @brief Set the Did Value object
-    // * 
-    // * @param did 
-    // * @param value 
-    // */
-    // static void setDidValue(const uint16_t did, const std::vector<uint8_t>& value, canid_t can_id, int socket, Logger& logger);
+    /**
+    * @brief Set the Did Value object
+    * 
+    * @param did 
+    * @param value 
+    */
+    static void setDidValue(const uint16_t did, const std::vector<uint8_t>& value, canid_t can_id, int socket, Logger& logger);
 
-    // /**
-    // * @brief Get the Did Value object
-    // * 
-    // * @param did 
-    // * @return std::vector<uint8_t> 
-    // */
-    // static const std::vector<uint8_t> getDidValue(const uint16_t did);
+    /**
+    * @brief Get the Did Value object
+    * 
+    * @param did 
+    * @return std::vector<uint8_t> 
+    */
+    static const std::vector<uint8_t> getDidValue(const uint16_t did);
 };
 
 #endif
