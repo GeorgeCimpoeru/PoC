@@ -3,10 +3,8 @@ import React, { useState, useEffect } from 'react';
 import Carousel from '@/src/components/mainPageComponents/Carousel';
 import NavBarMain from '@/src/components/mainPageComponents/NavBarMain';
 import Map from '@/src/components/mainPageComponents/Map';
-import logger from '@/src/utils/Logger';
 
 const MainPage = () => {
-    logger.init();
     
     const [isVinSubmitted, setIsVinSubmitted] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
