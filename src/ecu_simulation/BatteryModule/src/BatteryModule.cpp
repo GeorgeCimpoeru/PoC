@@ -72,17 +72,46 @@ void BatteryModule::parseBatteryInfo(const std::string &data, float &energy, flo
         if (line.find("energy:") != std::string::npos)
         {
             energy = std::stof(line.substr(line.find(":") + 1));
-            updated_values[0x01A0] = std::to_string(static_cast<uint8_t>(energy));
+            uint8_t energy_value = static_cast<uint8_t>(energy);
+            std::string energy_str = std::to_string(energy_value);
+            /* Add a leading '0' if the string length is odd to ensure pairs of two characters */
+            if (energy_str.size() % 2 != 0) {
+                energy_str = "0" + energy_str;
+            }
+            /* Group characters in pairs of two with a space separator */
+            std::string energy_grouped;
+            for (size_t i = 0; i < energy_str.size(); i += 2) {
+                energy_grouped += energy_str.substr(i, 2) + " ";
+            }
+            updated_values[0x01A0] = energy_grouped;
         }
         else if (line.find("voltage:") != std::string::npos)
         {
             voltage = std::stof(line.substr(line.find(":") + 1));
-            updated_values[0x01B0] = std::to_string(static_cast<uint8_t>(voltage));
+            uint8_t voltage_value = static_cast<uint8_t>(voltage);
+            std::string voltage_str = std::to_string(voltage_value);
+            if (voltage_str.size() % 2 != 0) {
+                voltage_str = "0" + voltage_str;
+            }
+            std::string voltage_grouped;
+            for (size_t i = 0; i < voltage_str.size(); i += 2) {
+                voltage_grouped += voltage_str.substr(i, 2) + " ";
+            }
+            updated_values[0x01B0] = voltage_grouped;
         }
         else if (line.find("percentage:") != std::string::npos)
         {
             percentage = std::stof(line.substr(line.find(":") + 1));
-            updated_values[0x01C0] = std::to_string(static_cast<uint8_t>(percentage));
+            uint8_t percentage_value = static_cast<uint8_t>(percentage);
+            std::string percentage_str = std::to_string(percentage_value);
+            if (percentage_str.size() % 2 != 0) {
+                percentage_str = "0" + percentage_str;
+            }
+            std::string percentage_grouped;
+            for (size_t i = 0; i < percentage_str.size(); i += 2) {
+                percentage_grouped += percentage_str.substr(i, 2) + " ";
+            }
+            updated_values[0x01C0] = percentage_grouped;
         }
         else if (line.find("state:") != std::string::npos)
         {
