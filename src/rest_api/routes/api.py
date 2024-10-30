@@ -177,15 +177,19 @@ def read_dtc_info():
         try:
             ecu_id = int(ecu_id_str, 16)
         except ValueError:
-            errors.append({"error": "Invalid ecu", "details": f"Ecu {ecu_id_str} is not a valid hexadecimal value"}), 400
+            errors.append({"error": "Invalid ecu", "details": f"Ecu {ecu_id_str} is not a valid hexadecimal value"})
 
-        valid_values = [0x11, 0x12, 0x13]
+        requester = RequestIdAction()
+        response_req_json = requester.read_ids()
+        ecu_values = response_req_json.get("ecus", [])
+        valid_values = [int(ecu["ecu_id"] ,16) for ecu in ecu_values]
+
         if ecu_id not in valid_values:
-            errors.append({"error": "Invalid ecu", "details": f"Ecu {ecu_id} is not supported"}), 400
+            errors.append({"error": "Invalid ecu", "details": f"Ecu {hex(ecu_id)} is not supported"})
 
         subfunc = request.args.get('subfunc', default=1, type=int)
         if subfunc not in [1, 2]:
-            errors.append({"error": "Invalid sub-function", "details": f"Sub-function {subfunc} is not supported"}), 400
+            errors.append({"error": "Invalid sub-function", "details": f"Sub-function {subfunc} is not supported"})
         dtc_mask_bits = request.args.getlist('dtc_mask_bits')
         invalid_bits = [bit for bit in dtc_mask_bits if bit not in DTC_STATUS_BITS]
 
@@ -193,7 +197,8 @@ def read_dtc_info():
             errors.append({"error": "Invalid DTC mask bits", "details": f"The following bits are not supported: {invalid_bits}"})
 
         if errors:
-            return jsonify({"errors": errors})
+            return jsonify({"errors": errors}), 400
+
         dtc_instance = DiagnosticTroubleCode()
         return dtc_instance.read_dtc_info(subfunc, dtc_mask_bits, ecu_id)
 
