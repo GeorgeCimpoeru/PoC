@@ -182,7 +182,7 @@ def read_dtc_info():
         requester = RequestIdAction()
         response_req_json = requester.read_ids()
         ecu_values = response_req_json.get("ecus", [])
-        valid_values = [int(ecu["ecu_id"] ,16) for ecu in ecu_values]
+        valid_values = [int(ecu["ecu_id"], 16) for ecu in ecu_values]
 
         if ecu_id not in valid_values:
             errors.append({"error": "Invalid ecu", "details": f"Ecu {hex(ecu_id)} is not supported"})
