@@ -38,7 +38,7 @@ const DivCenterHVAC = (props: any) => {
         const readInfoHVAC = async () => {
             displayLoadingCircle();
 
-            await fetch(`http://127.0.0.1:5000/api/read_info_hvac`)
+            await fetch(`http://127.0.0.1:5000/api/read_info_hvac?is_manual_flow=false`)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');

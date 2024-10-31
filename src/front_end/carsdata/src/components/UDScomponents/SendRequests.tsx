@@ -64,19 +64,7 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
-    const hexToAscii = () => {
-        let asciiString = '';
-        // console.log(data23.response.can_data);
-        // const hexArray: string[] = data23?.response.can_data;
-
-        // hexArray.forEach(hexStr => {
-        //     const decimal = parseInt(hexStr.slice(2), 16);
-        //     asciiString += String.fromCharCode(decimal);
-        // });
-
-        setData23(asciiString);
-    }
-
+    // Send a CAN frame to the server
     const sendFrame = async () => {
         if (!canId || !canData) {
             alert('CAN ID and CAN Data cannot be empty.');
@@ -107,6 +95,7 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
+    // Read Diagnostic Trouble Codes (DTC)
     const readDTC = async () => {
         displayLoadingCircle();
         console.log("Reading DTC...");
@@ -139,28 +128,23 @@ const SendRequests = () => {
                         setData23(data);
                         fetchLogs();
                     } else {
+                        /* making a single block for each function */
                         if (data.mcu_id == null) {
-                            setDisableFrameAndDtcBtns(true);
-                            setDisableRequestIdsBtn(true);
-                            setDisableUpdateToVersionBtn(true);
-                            setDisableInfoBatteryBtns(true);
-                            setDisableInfoEngineBtns(true);
-                            setDisableInfoDoorsBtns(true);
+                            [setDisableFrameAndDtcBtns, setDisableRequestIdsBtn, setDisableUpdateToVersionBtn,
+                             setDisableInfoBatteryBtns, setDisableInfoEngineBtns, setDisableInfoDoorsBtns]
+                            .forEach(setFunction => setFunction(true));
                         }
-                        if (data.ecu_ids[0] == '00') {
-                            setDisableInfoBatteryBtns(true);
-                        } else {
-                            readInfoBattery(true, setData23);
-                        }
-                        if (data.ecu_ids[1] == '00') {
-                            setDisableInfoEngineBtns(true);
-                        }
-                        if (data.ecu_ids[2] == '00') {
-                            setDisableInfoDoorsBtns(true);
-                        }
-                        if (data.ecu_ids[3] == '00') {
-                            // TO DO ECU 4
-                        }
+                        /* map with all ecu to activate and deactivate functions */
+                        const ecuMappings = [
+                            { index: 0, disableFunction: setDisableInfoBatteryBtns, enableFunction: () => readInfoBattery(true, setData23) },
+                            { index: 1, disableFunction: setDisableInfoEngineBtns },
+                            { index: 2, disableFunction: setDisableInfoDoorsBtns },
+                            { index: 3, disableFunction: setDisableInfoHvacsBtns }
+                        ];
+                        /* map iterration to apply enable/disable functions */
+                        ecuMappings.forEach(({ index, disableFunction, enableFunction }) => {
+                            data.ecu_ids[index] === '00' ? disableFunction(true) : enableFunction?.();
+                        });
                     }
                 });
         } catch (error) {
@@ -203,9 +187,7 @@ const SendRequests = () => {
         displayLoadingCircle();
         const responseContainer = document.getElementById('response-data');
 
-        if (responseContainer) {
-            responseContainer.innerHTML = "<p>Getting new soft versions...</p>";
-        }
+        responseContainer && (responseContainer.innerHTML = "<p>Getting new soft versions...</p>");
 
         let versionsArray: { name: string; version: string }[] = [];
 
@@ -290,7 +272,7 @@ const SendRequests = () => {
             }
         } while (value !== '0' && value !== '1');
         return value;
-    };
+    }; // will be moved only in DivCenterHvac
 
 
     const writeInfoHvac = async () => {
@@ -337,15 +319,12 @@ const SendRequests = () => {
 
     const changeSession = async () => {
         let sessiontype: any;
-        if (session === "default") {
-            sessiontype = {
-                sub_funct: 2,
-            }
-        } else {
-            sessiontype = {
-                sub_funct: 1,
-            }
-        }
+        
+        // Define session type based on the current session state
+        sessiontype = {
+            sub_funct: session === "default" ? 2 : 1
+        };
+
         displayLoadingCircle();
         console.log("Changing session...");
         console.log(sessiontype);
@@ -363,11 +342,8 @@ const SendRequests = () => {
                     setData23(data);
                     console.log(data);
                     fetchLogs();
-                    if (data.status === "success" && session === "default") {
-                        setSession("programming");
-                    } else if (data.status === "success") {
-                        setSession("default");
-                    }
+                    data.status === "success" ? setSession(session === "default" ? "programming" : "default") : setSession;
+
                 });
         } catch (error) {
             console.log(error);
@@ -398,15 +374,11 @@ const SendRequests = () => {
     const readAccessTiming = async () => {
         console.log("Reading access timing...");
         let readAccessTimingType: any;
-        if (accessTiming === "current") {
-            readAccessTimingType = {
-                sub_funct: 3,
-            }
-        } else {
-            readAccessTimingType = {
-                sub_funct: 1,
-            }
-        }
+        
+        readAccessTimingType = {
+            sub_funct: accessTiming === "current" ? 3 : 1
+        };
+        
         console.log(readAccessTimingType);
         displayLoadingCircle();
         try {
@@ -423,13 +395,12 @@ const SendRequests = () => {
                     setData23(data);
                     console.log(data);
                     fetchLogs();
-                    if (data.status === "success" && accessTiming === "current") {
-                        setAccessTiming("default");
-                        displayErrorPopup("Current access timing")
-                    } else if (data.status === "success") {
-                        setAccessTiming("current");
-                        displayErrorPopup("Default access timing")
+
+                    if (data.status === "success") {
+                        setAccessTiming(accessTiming === "current" ? "default" : "current");
+                        displayErrorPopup(accessTiming === "current" ? "Current access timing" : "Default access timing");
                     }
+                    
                 })
         } catch (error) {
             console.log(error);
@@ -544,6 +515,7 @@ const SendRequests = () => {
         }
     };
 
+    // Reset the ECU based on the selected ECU ID and reset type
     const ecuReset = async (resetType: string) => {
         if (selectedECUid === "") {
             displayErrorPopup("Select ECU");
@@ -826,7 +798,7 @@ const SendRequests = () => {
                         Write Info Doors
                     </button>
                     {/* <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoHvac} disabled={disableInfoHvacBtns}>Read Info Hvac</button> */}
-                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoHvac} disabled={disableInfoHvacBtns}>Write Info Hvac</button>
+                    {/* <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoHvac} disabled={disableInfoHvacBtns}>Write Info Hvac</button> */}
                 </div>
 
                 <h1 className="text-2xl mt-2">Response</h1>
