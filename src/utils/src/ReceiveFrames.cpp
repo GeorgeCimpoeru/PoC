@@ -179,7 +179,7 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
         /* Check if the frame is a request of type 'Up-Notification' from MCU */
         if (frame.data[1] == 0x99)
         {
-            LOG_INFO(receive_logger.GET_LOGGER(), "Request received from MCU");
+            LOG_DEBUG(receive_logger.GET_LOGGER(), "Request received from MCU");
             /* Create and instance of GenerateFrames with the CAN socket */
             GenerateFrames frame = GenerateFrames(this->socket, receive_logger);
 
@@ -188,13 +188,13 @@ void ReceiveFrames::bufferFrameOut(HandleFrames &handle_frame)
             
             uint16_t id = (frame_dest_id << 8) | 0x10;
             frame.sendFrame(id, data);
-            LOG_INFO(receive_logger.GET_LOGGER(), "Response sent to MCU");
+            LOG_DEBUG(receive_logger.GET_LOGGER(), "Response sent to MCU");
 
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             goto label1;
         }
         /* Process the received frame */
-        LOG_INFO(receive_logger.GET_LOGGER(), "Calling HandleFrames module to parse the frame.");
+        LOG_DEBUG(receive_logger.GET_LOGGER(), "Calling HandleFrames module to parse the frame.");
         handle_frame.handleFrame(socket, frame);
     }
 }
@@ -405,15 +405,15 @@ void ReceiveFrames::stopTimer(uint8_t frame_dest_id, uint8_t sid) {
 
 void ReceiveFrames::printFrame(const struct can_frame &frame) 
 {
-    LOG_INFO(receive_logger.GET_LOGGER(), "");
-    LOG_INFO(receive_logger.GET_LOGGER(), "Received CAN frame");
-    LOG_INFO(receive_logger.GET_LOGGER(), fmt::format("CAN ID: 0x{:x}", frame.can_id));
-    LOG_INFO(receive_logger.GET_LOGGER(), "Data Length: {}", int(frame.can_dlc));
+    LOG_DEBUG(receive_logger.GET_LOGGER(), "");
+    LOG_DEBUG(receive_logger.GET_LOGGER(), "Received CAN frame");
+    LOG_DEBUG(receive_logger.GET_LOGGER(), fmt::format("CAN ID: 0x{:x}", frame.can_id));
+    LOG_DEBUG(receive_logger.GET_LOGGER(), "Data Length: {}", int(frame.can_dlc));
     std::ostringstream dataStream;
     dataStream << "Data:";
     for (int frame_byte = 0; frame_byte < frame.can_dlc; ++frame_byte) 
     {
         dataStream << " 0x" << std::hex << int(frame.data[frame_byte]);
     }
-    LOG_INFO(receive_logger.GET_LOGGER(), "{}", dataStream.str());
+    LOG_DEBUG(receive_logger.GET_LOGGER(), "{}", dataStream.str());
 }

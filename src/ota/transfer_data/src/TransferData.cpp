@@ -86,6 +86,8 @@ void TransferData::processDataForTransfer(uint8_t receiver_id, std::vector<uint8
             PCI_1 + SID_1 + BL_IDX_1 + SIZE_FORMAT_1 + SIZE_1 + SIZE_2 + SIZE_3 + how many bytes are needed for the size
          */
         current_data.insert(current_data.end(), binary_data_size_bytes.begin(), binary_data_size_bytes.end());
+
+        LOG_INFO(logger.GET_LOGGER(), "Data processing for transfer started.");
         return;
     }
     
@@ -157,6 +159,8 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
 
         MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING});
         ota_state = static_cast<OtaUpdateStatesEnum>(MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0]);
+
+        LOG_INFO(transfer_data_logger.GET_LOGGER(), "Data transfer started.");
     }
 
 
@@ -191,6 +195,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
                 nrc.sendNRC(can_id, TD_SID, NegativeResponse::TDS);
                 MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {PROCESSING_TRANSFER_FAILED});
                 AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
+                LOG_INFO(transfer_data_logger.GET_LOGGER(), "Data transfer failed at writting in memory.");
                 return;
             }
             /* Status remains PROCESSING_TRANSFER_COMPLETE */
@@ -203,6 +208,7 @@ void TransferData::transferData(canid_t can_id, std::vector<uint8_t>& transfer_r
             /* Send the postive response frame */
             generate_frames.sendFrame(can_id, response);
             AccessTimingParameter::stopTimingFlag(receiver_id, TRANSFER_DATA_SID);
+            LOG_INFO(transfer_data_logger.GET_LOGGER(), "Data transfer complete.");
         }
         return;
     }

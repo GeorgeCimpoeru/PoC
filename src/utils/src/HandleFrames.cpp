@@ -35,7 +35,7 @@ void HandleFrames::handleFrame(int can_socket, const struct can_frame &frame)
         }
 
         sid = frame.data[1];  
-        LOG_INFO(_logger.GET_LOGGER(), "Single Frame received:");
+        LOG_DEBUG(_logger.GET_LOGGER(), "Single Frame received:");
         for (uint8_t data_pos = 0; data_pos < frame.can_dlc; ++data_pos) 
         {
             frame_data.push_back(frame.data[data_pos]);
@@ -60,7 +60,7 @@ void HandleFrames::handleFrame(int can_socket, const struct can_frame &frame)
         }
         /* get SID from the first frame */
         sid = frame.data[2];
-        LOG_INFO(_logger.GET_LOGGER(), "Multi-frame Sequence with {} {}", (int)expected_frames, "frames");
+        LOG_DEBUG(_logger.GET_LOGGER(), "Multi-frame Sequence with {} {}", (int)expected_frames, "frames");
 
         /* Clear the multi_frame_data vector when receiving the first frame */
         frame_data.clear();
@@ -77,7 +77,7 @@ void HandleFrames::handleFrame(int can_socket, const struct can_frame &frame)
     } 
     else if (frame.data[0] >= 0x21 && frame.data[0] < 0x30) 
     {
-        LOG_INFO(_logger.GET_LOGGER(), "Consecutive frames received.");
+        LOG_DEBUG(_logger.GET_LOGGER(), "Consecutive frames received.");
         if (!first_frame_received) 
         {
             /* Ignore consecutive frames until the first frame is received */
@@ -100,7 +100,7 @@ void HandleFrames::handleFrame(int can_socket, const struct can_frame &frame)
         /* Check if all multi-frames have been received */
         if (frame_data.size() >= expected_payload) 
         { 
-            LOG_INFO(_logger.GET_LOGGER(), "Data is: ");
+            LOG_DEBUG(_logger.GET_LOGGER(), "Data is: ");
             for (uint8_t data_pos = 0; data_pos < (int)frame_data.size(); ++data_pos) 
             {
                 LOG_INFO(_logger.GET_LOGGER(), int(frame_data[data_pos]));
@@ -387,7 +387,7 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
             /* TransferData(sid, frame_data[2], frame_data[3], frame_data[4]); */
             if(is_multi_frame)
             {
-                LOG_INFO(_logger.GET_LOGGER(), "TransferData called with multiple frames.");
+                LOG_DEBUG(_logger.GET_LOGGER(), "TransferData called with multiple frames.");
             }
             else 
             {
@@ -397,7 +397,7 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
                 {
                     TransferData transfer_data(can_socket, _logger);
                     transfer_data.transferData(frame_id, frame_data);
-                    LOG_INFO(_logger.GET_LOGGER(), "TransferData called with one frame.");
+                    LOG_DEBUG(_logger.GET_LOGGER(), "TransferData called with one frame.");
                 }
                 else
                 {
