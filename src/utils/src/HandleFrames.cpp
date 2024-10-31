@@ -27,15 +27,14 @@ void HandleFrames::handleFrame(int can_socket, const struct can_frame &frame)
     /* id < 0x10 == single frame*/
     if (frame.data[0] < 0x10) 
     {
-        /* if frame is negative response, 0x7F takes sid's place so sid comes next to it */
+        /* if frame is negative response, return */
         if (frame.data[1] == 0x7F)
         {
-            sid = frame.data[2];
+            LOG_INFO(_logger.GET_LOGGER(), "Negative response received.");
+            return;
         }
-        else
-        {
-            sid = frame.data[1];  
-        }
+
+        sid = frame.data[1];  
         LOG_INFO(_logger.GET_LOGGER(), "Single Frame received:");
         for (uint8_t data_pos = 0; data_pos < frame.can_dlc; ++data_pos) 
         {
