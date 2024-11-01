@@ -26,11 +26,11 @@ class GenerateFrame(CanBridge):
     def control_frame_install_updates(self, id):
         data = [0x05, 0x31, 0x01, 0x06, 0x01, 0x00]
         self.send_frame(id, data)
-    
+
     def control_frame_verify_data(self, id):
         data = [0x05, 0x31, 0x01, 0x04, 0x01, 0x00]
         self.send_frame(id, data)
-    
+
     def control_frame_rollback(self, id):
         data = [0x05, 0x31, 0x01, 0x05, 0x01, 0x00]
         self.send_frame(id, data)

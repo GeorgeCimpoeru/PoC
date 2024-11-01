@@ -185,7 +185,6 @@ class Updates(Action):
                 transfer_data_counter += 0x01
 
             # self.request_transfer_exit(api_target_id)
-        
         self.control_frame_verify_data(api_target_id)
         frame_response = self._passive_response(ROUTINE_CONTROL, "Error at verify data routine.")
         if frame_response.data[1] != 0x71:
