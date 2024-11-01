@@ -61,6 +61,8 @@ void TransferData::processDataForTransfer(uint8_t receiver_id, std::vector<uint8
         }
 
         /* Read data from the extracted binary */
+        TransferData::checksums.clear();
+        data.clear();
         data = MemoryManager::readBinary(path_to_main, logger);
         total_size = data.size();
 
