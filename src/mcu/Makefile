@@ -433,6 +433,15 @@ $(UTILS_TEST)/handleFramesTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UTILS_TEST)/Handle
 $(UTILS_TEST)/HandleFrames_test.o: $(UTILS_TEST)/HandleFramesTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/HandleFramesTest.cpp -o $(UTILS_TEST)/HandleFrames_test.o $(CFLAGSTST2) $(LDFLAGS)
 
+# FileManager Unit tests
+fileManagerTest: $(OBJ_DIR) $(UTILS_TEST)/fileManagerTest.out
+
+$(UTILS_TEST)/fileManagerTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UTILS_TEST)/FileManager_test.o
+	$(CXX) $(CFLAGSTST) -o $(UTILS_TEST)/fileManagerTest.out $(UTILS_TEST)/FileManager_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
+
+$(UTILS_TEST)/FileManager_test.o: $(UTILS_TEST)/FileManagerTest.cpp
+	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/FileManagerTest.cpp -o $(UTILS_TEST)/FileManager_test.o $(CFLAGSTST2) $(LDFLAGS)
+
 # ECU Unit tests
 ecuTest: $(OBJ_DIR) $(UTILS_TEST)/ecuTest.out
 
@@ -928,6 +937,20 @@ handleFrames_coverage: handleFramesTest
 	mkdir -p coverage/out_HandleFrames
 	gcov -o obj/HandleFrames_test.gcno obj/HandleFrames_test.gcda $(UTILS_TEST)/HandleFrames.cpp
 	mv HandleFrames.cpp.gcov coverage/out_HandleFrames
+
+# FileManager Coverage - solo job
+fileManagerCoverage: fileManager_coverage
+	lcov --capture --directory . --output-file coverage.info
+	lcov --remove coverage.info '/usr/' --output-file coverage_filtered.info
+	lcov --remove coverage.info '/test/' --output-file coverage.info
+	genhtml coverage_filtered.info --output-directory coverage/out_FileManagerTest
+	xdg-open coverage/out_FileManagerTest/index.html
+# This job runs for allCoverage
+fileManager_coverage: fileManagerTest
+	./$(UTILS_TEST)/fileManagerTest.out
+	mkdir -p coverage/out_FileManager
+	gcov -o obj/FileManager_test.gcno obj/FileManager_test.gcda $(UTILS_TEST)/FileManager.cpp
+	mv FileManager.cpp.gcov coverage/out_FileManager
 
 # ECU Coverage - solo job
 ecuCoverage: ecu_coverage
