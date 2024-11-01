@@ -1,0 +1,9 @@
+[submodule "src/backend"]
+	path = src/backend
+	url = https://github.com/CatalinGP/backend_repo.git
+[submodule "src/front_end"]
+	path = src/front_end
+	url = https://github.com/CatalinGP/frontend_repo.git
+[submodule "src/android_app"]
+	path = src/android_app
+	url = https://github.com/CatalinGP/mobile_repo.git
