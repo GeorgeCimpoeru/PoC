@@ -451,15 +451,6 @@ $(UTILS_TEST)/ecuTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UTILS_TEST)/ECU_test.o
 $(UTILS_TEST)/ECU_test.o: $(UTILS_TEST)/ECUTest.cpp
 	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/ECUTest.cpp -o $(UTILS_TEST)/ECU_test.o $(CFLAGSTST2) $(LDFLAGS)
 
-# ECU Unit tests
-ecuTest: $(OBJ_DIR) $(UTILS_TEST)/ecuTest.out
-
-$(UTILS_TEST)/ecuTest.out: $(OBJ_DIR) $(OBJS_TEST) $(UTILS_TEST)/ECU_test.o
-	$(CXX) $(CFLAGSTST) -o $(UTILS_TEST)/ecuTest.out $(UTILS_TEST)/ECU_test.o $(OBJS_TEST) $(CFLAGSTST2) $(LDFLAGS)
-
-$(UTILS_TEST)/ECU_test.o: $(UTILS_TEST)/ECU.cpp
-	$(CXX) $(CFLAGS) $(CFLAGSTST) -c $(UTILS_TEST)/ECU.cpp -o $(UTILS_TEST)/ECU_test.o $(CFLAGSTST2) $(LDFLAGS)
-
 # ReceiveFramesUtils Unit tests
 receiveFramesTestUtils: $(OBJ_DIR) $(UTILS_TEST)/receiveFramesTestUtils.out
 
@@ -850,7 +841,6 @@ doorsModuleCoverage: doorsModule_coverage
 	lcov --remove coverage.info '/test/' --output-file coverage.info
 	genhtml coverage_filtered.info --output-directory coverage/out_DoorsModuleTest
 	xdg-open coverage/out_DoorsModuleTest/index.html
-
 # This job runs for allCoverage
 doorsModule_coverage: doorsModuleTest
 	./$(DOORS_DIR_TEST)/doorsModuleTest.out
