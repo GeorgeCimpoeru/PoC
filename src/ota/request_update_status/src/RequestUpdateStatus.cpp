@@ -80,7 +80,9 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
 
 bool RequestUpdateStatus::isValidStatus(uint8_t status)
 {
-    std::vector<OtaUpdateStatesEnum> valid_states{IDLE,INIT,READY,PROCESSING,PROCESSING_TRANSFER_COMPLETE,PROCESSING_TRANSFER_FAILED,WAIT,WAIT_DOWNLOAD_COMPLETED,WAIT_DOWNLOAD_FAILED,VERIFY,ACTIVATE,ACTIVATE_INSTALL_COMPLETE,ACTIVATE_INSTALL_FAILED,ERROR};
+    std::vector<OtaUpdateStatesEnum> valid_states{IDLE,INIT,READY,PROCESSING,PROCESSING_TRANSFER_COMPLETE,PROCESSING_TRANSFER_FAILED,
+                                                    WAIT,WAIT_DOWNLOAD_COMPLETED,WAIT_DOWNLOAD_FAILED,VERIFY, VERIFY_COMPLETE, VERIFY_FAILED,
+                                                    ACTIVATE,ACTIVATE_INSTALL_COMPLETE,ACTIVATE_INSTALL_FAILED,ERROR};
     /* Check if provided status from readDataByIdentifier is a valid one. */
     for(auto &state : valid_states)
     {

@@ -59,11 +59,11 @@ class ReadInfo(Action):
         """Interpret HVAC operating modes from a bitmask value."""
 
         modes = {
-            "AC Status": bool(value & (1 << 0)),
-            "Legs": bool(value & (1 << 1)),
-            "Front": bool(value & (1 << 2)),
-            "Air Recirculation": bool(value & (1 << 3)),
-            "Defrost": bool(value & (1 << 4))
+            "ac_status": bool(value & (1 << 0)),
+            "legs": bool(value & (1 << 1)),
+            "front": bool(value & (1 << 2)),
+            "air_recirculation": bool(value & (1 << 3)),
+            "defrost": bool(value & (1 << 4))
         }
 
         return modes
@@ -276,7 +276,7 @@ class ReadInfo(Action):
             sid_msg = self.last_msg.data[2] if self.last_msg and len(self.last_msg.data) > 2 else 0x00
             negative_response = self.handle_negative_response(nrc_msg, sid_msg)
             return {
-                "message": "ssue encountered during Read by ID",
+                "message": "Issue encountered during Read by ID",
                 "negative_response": negative_response
             }
 

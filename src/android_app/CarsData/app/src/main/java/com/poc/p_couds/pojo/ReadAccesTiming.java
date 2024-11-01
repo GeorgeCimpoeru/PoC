@@ -14,21 +14,6 @@ public class ReadAccesTiming {
 
     public static class TimingValue
     {
-<<<<<<< HEAD
-        @SerializedName("P2_MAX_TIME_DEFAULT")
-        private String p2Max;
-
-        @SerializedName("P2_STAR_MAX_TIME_DEFAULT")
-        private String p2Star;
-
-        public String getP2Max()
-        {
-            return p2Max;
-        }
-        public String getP2Star()
-        {
-            return p2Star;
-=======
         // For subFunct = 3 (custom values)
         @SerializedName("p2_max_time")
         private String p2Max;
@@ -49,7 +34,6 @@ public class ReadAccesTiming {
         public String getP2Star()
         {
             return p2Star != null ? p2Star: p2StarDefault;
->>>>>>> development
         }
     }
     public String getMessage()
@@ -64,8 +48,4 @@ public class ReadAccesTiming {
     {
         return timingValue;
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> development
