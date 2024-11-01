@@ -1,10 +1,12 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
-import { batteryData, readInfoBattery } from './DivCenterBattery';
-import { writeInfoBattery } from './DivCenterBattery';
 import ModalUDS from './ModalUDS';
 import { displayLoadingCircle, displayErrorPopup, removeLoadingCicle } from '../sharedComponents/LoadingCircle';
+import { batteryData, readInfoBattery, writeInfoBattery } from './DivCenterBattery';
+import { engineData, readInfoEngine, writeInfoEngine } from './DivCenterEngine';
+import { doorsData, readInfoDoors, writeInfoDoors } from './DivCenterDoors';
+import { HVACData, readInfoHVAC, writeInfoHvac } from './DivCenterHVAC';
 import logger from '@/src/utils/Logger';
 
 
@@ -12,7 +14,7 @@ let intervalID: number | NodeJS.Timeout | null = null;
 
 const SendRequests = () => {
     logger.init();
-    
+
     const [logs, setLogs] = useState<string[]>([]);
     const [data23, setData23] = useState<{ ecu_ids: [], mcu_id: any, status: string, time_stamp: string } | string[] | string | null |
         { name: string; version: string; }[]>();
@@ -33,9 +35,26 @@ const SendRequests = () => {
     const [selectedECUid, setSelectedECUid] = useState<string>("");
     const [selectedECU, setSelectedECU] = useState<string>("Select ECU");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    let popupElement: HTMLDivElement | null = null;
-    let popupStyleElement: HTMLStyleElement | null = null;
-    let overlayElement: HTMLDivElement | null = null;
+    const [isDropDownOpenBattery, setIsDropdownOpenBattery] = useState(false);
+    const [isDropDownOpenEngine, setIsDropdownOpenEngine] = useState(false);
+    const [isDropdownOpenHVAC, setIsDropdownOpenHVAC] = useState(false);
+    const [engineCardTitle, setEngineCardTitle] = useState("");
+    const [hvacCardTitle, setHvacCardTitle] = useState("");
+    const [paramEngine, setParamEngine] = useState("");
+    const [paramHvac, setParamHvac] = useState("");
+
+
+    const dropdownEngineItemClick = (cardTitle: string, param: string) => {
+        setIsDropdownOpenEngine(false);
+        setEngineCardTitle(cardTitle);
+        setParamEngine(param);
+    }
+
+    const dropdownHVACItemClick = (cardTitle: string, param: string) => {
+        setIsDropdownOpenHVAC(false);
+        setHvacCardTitle(cardTitle);
+        setParamHvac(param);
+    }
 
     const fetchLogs = async () => {
         displayLoadingCircle();
@@ -55,19 +74,7 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
-    const hexToAscii = () => {
-        let asciiString = '';
-        // console.log(data23.response.can_data);
-        // const hexArray: string[] = data23?.response.can_data;
-
-        // hexArray.forEach(hexStr => {
-        //     const decimal = parseInt(hexStr.slice(2), 16);
-        //     asciiString += String.fromCharCode(decimal);
-        // });
-
-        setData23(asciiString);
-    }
-
+    // Send a CAN frame to the server
     const sendFrame = async () => {
         if (!canId || !canData) {
             alert('CAN ID and CAN Data cannot be empty.');
@@ -98,6 +105,7 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
+    // Read Diagnostic Trouble Codes (DTC)
     const readDTC = async () => {
         displayLoadingCircle();
         console.log("Reading DTC...");
@@ -130,28 +138,23 @@ const SendRequests = () => {
                         setData23(data);
                         fetchLogs();
                     } else {
+                        /* making a single block for each function */
                         if (data.mcu_id == null) {
-                            setDisableFrameAndDtcBtns(true);
-                            setDisableRequestIdsBtn(true);
-                            setDisableUpdateToVersionBtn(true);
-                            setDisableInfoBatteryBtns(true);
-                            setDisableInfoEngineBtns(true);
-                            setDisableInfoDoorsBtns(true);
+                            [setDisableFrameAndDtcBtns, setDisableRequestIdsBtn, setDisableUpdateToVersionBtn,
+                             setDisableInfoBatteryBtns, setDisableInfoEngineBtns, setDisableInfoDoorsBtns]
+                            .forEach(setFunction => setFunction(true));
                         }
-                        if (data.ecu_ids[0] == '00') {
-                            setDisableInfoBatteryBtns(true);
-                        } else {
-                            readInfoBattery(true, setData23);
-                        }
-                        if (data.ecu_ids[1] == '00') {
-                            setDisableInfoEngineBtns(true);
-                        }
-                        if (data.ecu_ids[2] == '00') {
-                            setDisableInfoDoorsBtns(true);
-                        }
-                        if (data.ecu_ids[3] == '00') {
-                            // TO DO ECU 4
-                        }
+                        /* map with all ecu to activate and deactivate functions */
+                        const ecuMappings = [
+                            { index: 0, disableFunction: setDisableInfoBatteryBtns, enableFunction: () => readInfoBattery(true, setData23) },
+                            { index: 1, disableFunction: setDisableInfoEngineBtns },
+                            { index: 2, disableFunction: setDisableInfoDoorsBtns },
+                            { index: 3, disableFunction: setDisableInfoHvacsBtns }
+                        ];
+                        /* map iterration to apply enable/disable functions */
+                        ecuMappings.forEach(({ index, disableFunction, enableFunction }) => {
+                            data.ecu_ids[index] === '00' ? disableFunction(true) : enableFunction?.();
+                        });
                     }
                 });
         } catch (error) {
@@ -189,82 +192,12 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
-    const writeInfoEngine = async () => {
-        displayLoadingCircle();
-        const engine_rpm = prompt('Enter Engine rpm:');
-        const coolant_temperature = prompt('Enter coolant temperature:');
-        const throttle_position = prompt('Enter throttle position:');
-        const vehicle_speed = prompt('Enter vehicle speed:');
-        const engine_load = prompt('Enter engine load:');
-        const fuel_level = prompt('Enter fuel level:');
-        const oil_temperature = prompt('Enter oil temperature:');
-        const fuel_pressure = prompt('Enter fuel pressure:');
-        const intake_air_temperature = prompt('Enter intake air temperature:');
-        const is_manual_flow = true;
-
-        const data = {
-            engine_rpm: engine_rpm || null,
-            coolant_temperature: coolant_temperature || null,
-            throttle_position: throttle_position || null,
-            vehicle_speed: vehicle_speed || null,
-            engine_load: engine_load || null,
-            fuel_level: fuel_level || null,
-            oil_temperature: oil_temperature || null,
-            fuel_pressure: fuel_pressure || null,
-            intake_air_temperature: intake_air_temperature || null,
-            is_manual_flow: is_manual_flow || null
-
-
-        };
-        console.log("Writing info engine...");
-        console.log(data);
-        try {
-            await fetch(`http://127.0.0.1:5000/api/write_info_engine?is_manual_flow=true`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            }).then(response => response.json())
-                .then(data => {
-                    setData23(data);
-                    console.log(data);
-                    fetchLogs();
-                });
-        } catch (error) {
-            console.log(error);
-            displayErrorPopup("Connection failed");
-            removeLoadingCicle();
-        }
-        removeLoadingCicle();
-    }
-
-    const readInfoDoors = async () => {
-        displayLoadingCircle();
-        console.log("Reading info doors...");
-        try {
-            await fetch(`http://127.0.0.1:5000/api/read_info_doors`, {
-                method: 'GET',
-            }).then(response => response.json())
-                .then(data => {
-                    setData23(data);
-                    console.log(data);
-                    fetchLogs();
-                });
-        } catch (error) {
-            console.log(error);
-            removeLoadingCicle();
-        }
-        removeLoadingCicle();
-    };
 
     const getNewSoftVersions = async (): Promise<{ message: string; versions: { name: string; version: string }[] }> => {
         displayLoadingCircle();
         const responseContainer = document.getElementById('response-data');
 
-        if (responseContainer) {
-            responseContainer.innerHTML = "<p>Getting new soft versions...</p>";
-        }
+        responseContainer && (responseContainer.innerHTML = "<p>Getting new soft versions...</p>");
 
         let versionsArray: { name: string; version: string }[] = [];
 
@@ -349,102 +282,16 @@ const SendRequests = () => {
             }
         } while (value !== '0' && value !== '1');
         return value;
-    };
-
-
-    const writeInfoHvac = async () => {
-        displayLoadingCircle();
-        const door = checkInput('Enter Door Parameter:');
-        const passenger = checkInput('Enter Passenger:');
-        const passenger_lock = checkInput('Enter Passenger Lock:');
-        const driver = checkInput('Enter Driver:');
-        const ajar = checkInput('Enter Ajar:');
-        const is_manual_flow = true;
-        // const windows_closed = prompt('Enter Window Status:');
-
-        const data = {
-            door: door || null,
-            passenger: passenger || null,
-            passenger_lock: passenger_lock || null,
-            driver: driver || null,
-            ajar: ajar || null,
-            is_manual_flow: is_manual_flow || null,
-            // windows_closed: windows_closed || null,
-        };
-        console.log("Writing info hvac...");
-        console.log(data);
-        try {
-            await fetch(`http://127.0.0.1:5000/api/write_info_hvac`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            }).then(response => response.json())
-                .then(data => {
-                    setData23(data);
-                    console.log(data);
-                    fetchLogs();
-                });
-        } catch (error) {
-            console.log(error);
-            removeLoadingCicle();
-        }
-        removeLoadingCicle();
-    }
-
-    const writeInfoHvac = async () => {
-        displayLoadingCircle();
-        const mass_air_flow = prompt('Enter Mass Air Flow:');
-        const ambient_air_temperature = prompt('Enter Ambient Air Temperature:');
-        const cabin_temperature = prompt('Enter Cabin Temperature:');
-        const cabin_temperature_driver_set = prompt('Enter Cabin Temperature Driver Set:');
-        const fan_speed = prompt('Enter Fan Speed:');
-        const hvac_modes = checkInput('Enter Hvac Modes:');
-        const is_manual_flow = true;
-
-        const data = {
-            mass_air_flow: mass_air_flow || null,
-            ambient_air_temperature: ambient_air_temperature || null,
-            cabin_temperature: cabin_temperature || null,
-            cabin_temperature_driver_set: cabin_temperature_driver_set || null,
-            fan_speed: fan_speed || null,
-            hvac_modes: hvac_modes || null,
-            is_manual_flow: is_manual_flow || null
-        };
-        console.log("Writing info hvac...");
-        console.log(data);
-        try {
-            await fetch(`http://127.0.0.1:5000/api/write_info_hvac`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            }).then(response => response.json())
-                .then(data => {
-                    setData23(data);
-                    console.log(data);
-                    fetchLogs();
-                });
-        } catch (error) {
-            console.log(error);
-            removeLoadingCicle();
-        }
-        removeLoadingCicle();
-    }
+    }; // will be moved only in DivCenterHvac
 
     const changeSession = async () => {
         let sessiontype: any;
-        if (session === "default") {
-            sessiontype = {
-                sub_funct: 2,
-            }
-        } else {
-            sessiontype = {
-                sub_funct: 1,
-            }
-        }
+        
+        // Define session type based on the current session state
+        sessiontype = {
+            sub_funct: session === "default" ? 2 : 1
+        };
+
         displayLoadingCircle();
         console.log("Changing session...");
         console.log(sessiontype);
@@ -462,11 +309,8 @@ const SendRequests = () => {
                     setData23(data);
                     console.log(data);
                     fetchLogs();
-                    if (data.status === "success" && session === "default") {
-                        setSession("programming");
-                    } else if (data.status === "success") {
-                        setSession("default");
-                    }
+                    data.status === "success" ? setSession(session === "default" ? "programming" : "default") : setSession;
+
                 });
         } catch (error) {
             console.log(error);
@@ -497,15 +341,11 @@ const SendRequests = () => {
     const readAccessTiming = async () => {
         console.log("Reading access timing...");
         let readAccessTimingType: any;
-        if (accessTiming === "current") {
-            readAccessTimingType = {
-                sub_funct: 3,
-            }
-        } else {
-            readAccessTimingType = {
-                sub_funct: 1,
-            }
-        }
+        
+        readAccessTimingType = {
+            sub_funct: accessTiming === "current" ? 3 : 1
+        };
+        
         console.log(readAccessTimingType);
         displayLoadingCircle();
         try {
@@ -522,13 +362,12 @@ const SendRequests = () => {
                     setData23(data);
                     console.log(data);
                     fetchLogs();
-                    if (data.status === "success" && accessTiming === "current") {
-                        setAccessTiming("default");
-                        displayErrorPopup("Current access timing")
-                    } else if (data.status === "success") {
-                        setAccessTiming("current");
-                        displayErrorPopup("Default access timing")
+
+                    if (data.status === "success") {
+                        setAccessTiming(accessTiming === "current" ? "default" : "current");
+                        displayErrorPopup(accessTiming === "current" ? "Current access timing" : "Default access timing");
                     }
+                    
                 })
         } catch (error) {
             console.log(error);
@@ -569,7 +408,7 @@ const SendRequests = () => {
                     `New P2 Max Time: ${writtenValues["New P2 Max Time"]}\n` +
                     `New P2 Star Max: ${writtenValues["New P2 Star Max"]}`;
 
-                    displayErrorPopup(message);
+                displayErrorPopup(message);
             } else {
                 displayErrorPopup(`Error: ${data.message}`);
             }
@@ -643,6 +482,7 @@ const SendRequests = () => {
         }
     };
 
+    // Reset the ECU based on the selected ECU ID and reset type
     const ecuReset = async (resetType: string) => {
         if (selectedECUid === "") {
             displayErrorPopup("Select ECU");
@@ -801,7 +641,7 @@ const SendRequests = () => {
                         {/* )} */}
                     </div>
                     <div className="dropdown">
-                        <button tabIndex={3} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpen(!isDropdownOpen)} disabled={disableInfoBatteryBtns}>
+                        <button tabIndex={3} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpenBattery(!isDropDownOpenBattery)} disabled={disableInfoBatteryBtns}>
                             Write battery param
                             <Image
                                 src="/dropdownarrow.png"
@@ -812,76 +652,199 @@ const SendRequests = () => {
                                 priority
                             />
                         </button>
-                        {isDropdownOpen && (
+                        {isDropDownOpenBattery && (
                             <div>
                                 <ul tabIndex={3} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
                                     <li>
-                                        <label htmlFor="my_modal_1">
-                                            <a onClick={() => { setIsDropdownOpen(false) }} >Battery level</a>
+                                        <label htmlFor="my_modal_7">
+                                            <a onClick={() => { setIsDropdownOpenBattery(false) }} >Battery level</a>
                                         </label>
                                     </li>
                                     <li>
-                                        <label htmlFor="my_modal_1">
-                                            <a onClick={() => { setIsDropdownOpen(false) }} >State of charge</a>
+                                        <label htmlFor="my_modal_7">
+                                            <a onClick={() => { setIsDropdownOpenBattery(false) }} >State of charge</a>
                                         </label>
                                     </li>
                                     <li>
-                                        <label htmlFor="my_modal_1">
-                                            <a onClick={() => { setIsDropdownOpen(false) }} >Percentage</a>
+                                        <label htmlFor="my_modal_7">
+                                            <a onClick={() => { setIsDropdownOpenBattery(false) }} >Percentage</a>
                                         </label>
                                     </li>
                                     <li>
-                                        <label htmlFor="my_modal_1">
-                                            <a onClick={() => { setIsDropdownOpen(false) }} >Voltage</a>
+                                        <label htmlFor="my_modal_7">
+                                            <a onClick={() => { setIsDropdownOpenBattery(false) }} >Voltage</a>
                                         </label>
                                     </li>
                                 </ul>
-                                <ModalUDS id="my_modal_1" cardTitle={'Battery level'} writeInfo={writeInfoBattery} param="battery_level" setter={setData23} />
+                                <ModalUDS id="my_modal_7" cardTitle={'Battery level'} writeInfo={writeInfoBattery} param="battery_level" setter={setData23} />
                             </div>
                         )}
 
                     </div>
-                    {/* <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoEngine} disabled={disableInfoEngineBtns}>Read Info Engine</button> */}
-                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoEngine} disabled={disableInfoEngineBtns}>Write Info Engine</button>
-                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoDoors} disabled={disableInfoDoorsBtns}>Read Info Doors</button>
-                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoDoors} disabled={disableInfoDoorsBtns}>Write Doors Info</button>
-                    {/* <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoHvac} disabled={disableInfoHvacBtns}>Read Info Hvac</button> */}
-                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoHvac} disabled={disableInfoHvacBtns}>Write Info Hvac</button>
-                </div>
+                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => { setIsDropdownOpen(false); readInfoEngine(true, setData23) }}>Read Info Engine</button>
 
-                <h1 className="text-2xl mt-2">Response</h1>
-                {data23 && (
-                    <ul className="m-2 p-2 list-disc">
-                        {Object.entries(data23).map(([key, value]) => (
-                            <li key={key}>
-                                <strong>{key}:</strong> {JSON.stringify(value)}
-                            </li>
-                        ))}
-                    </ul>
-                )}
+                    <div className="dropdown">
+                        <button tabIndex={4} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpenEngine(!isDropDownOpenEngine)} disabled={disableInfoEngineBtns}>
+                            Write engine param
+                            <Image
+                                src="/dropdownarrow.png"
+                                alt="Dropdown arrow icon"
+                                className="dark:invert m-1 hover:object-scale-down"
+                                width={10}
+                                height={10}
+                                priority
+                            />
+                        </button>
+                        {isDropDownOpenEngine && (
+                            <div>
+                                <ul tabIndex={4} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+                                    <li>
+                                        <label htmlFor="my_modal_8">
+                                            <a onClick={() => { dropdownEngineItemClick("Coolant temperature", "coolant_temperature") }} >Coolant temperature</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_8">
+                                            <a onClick={() => { dropdownEngineItemClick("Load", "engine_load") }} >Engine load</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_8">
+                                            <a onClick={() => { dropdownEngineItemClick("RPM", "engine_rpm") }} >RPM</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_8">
+                                            <a onClick={() => { dropdownEngineItemClick("Fuel", "fuel_level") }} >Fuel</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_8">
+                                            <a onClick={() => { dropdownEngineItemClick("Fuel pressure", "Fuel pressure") }} >Fuel pressure</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_8">
+                                            <a onClick={() => { dropdownEngineItemClick("Intake air temperature", "intake_air_temperature") }} >Intake air temperature</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_8">
+                                            <a onClick={() => { dropdownEngineItemClick("Oil temperature", "oil_temperature") }} >Oil temperature</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_8">
+                                            <a onClick={() => { dropdownEngineItemClick("Throttle position", "throttle_position") }} >Throttle position</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_8">
+                                            <a onClick={() => { dropdownEngineItemClick("Speed", "vehicle_speed") }} >Speed</a>
+                                        </label>
+                                    </li>
+                                </ul>
+                                <ModalUDS id="my_modal_8" cardTitle={engineCardTitle} writeInfo={writeInfoBattery} param={paramEngine} setter={setData23} />
+                            </div>
+                        )}
 
-                <div className="m-2 border-2 border-black overflow-x-auto max-h-52">
-                    <h1 className="text-2xl mt-2">Logs:</h1>
-                    <table className="table table-zebra">
-                        <thead>
-                            <tr>
-                                <th>Index</th>
-                                <th>Log Message</th>
-                            </tr>
-                        </thead>
-                        <tbody id="log-body">
-                            {logs.map((log: any, index: any) => (
-                                <tr key={index}>
-                                    <td align="center">{index}</td>
-                                    <td align="center">{log}</td>
+                    </div>
+                    <button
+                        className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white"
+                        onClick={() => readInfoDoors(true, setData23)}
+                        disabled={disableInfoDoorsBtns}
+                    >
+                        Read Info Doors
+                    </button>
+
+                    <button
+                        className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white"
+                        onClick={() => writeInfoDoors(setData23)}
+                        disabled={disableInfoDoorsBtns}
+                    >
+                        Write Info Doors
+                    </button>
+
+
+                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => { setIsDropdownOpen(false); readInfoHVAC(true, setData23) }}>Read Info Hvac</button>
+
+                    <div className="dropdown">
+                        <button tabIndex={5} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpenHVAC(!isDropdownOpenHVAC)} disabled={disableInfoHvacBtns}>
+                            Write HVAC param
+                            <Image
+                                src="/dropdownarrow.png"
+                                alt="Dropdown arrow icon"
+                                className="dark:invert m-1 hover:object-scale-down"
+                                width={10}
+                                height={10}
+                                priority
+                            />
+                        </button>
+                        {isDropdownOpenHVAC && (
+                            <div>
+                                <ul tabIndex={5} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+                                    <li>
+                                        <label htmlFor="my_modal_9">
+                                            <a onClick={() => { dropdownHVACItemClick("Ambient air temperature", "ambient_air_temperature"); }}>Ambient air temperature</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_9">
+                                            <a onClick={() => { dropdownHVACItemClick("Cabin temperature driver set", "cabin_temperature_driver_set"); }}>Cabin temperature driver set</a>
+                                        </label>
+                                        <li>
+                                            <label htmlFor="my_modal_9">
+                                                <a onClick={() => { dropdownHVACItemClick("Fan speed", "fan_speed"); }}>Fan speed</a>
+                                            </label>
+                                            <label htmlFor="my_modal_9">
+                                                <a onClick={() => { dropdownHVACItemClick("Mass air flow", "mass_air_flow"); }}>Mass air flow</a>
+                                            </label>
+                                        </li>
+                                    </li>
+                                </ul>
+                                <ModalUDS id="my_modal_8" cardTitle={hvacCardTitle} writeInfo={writeInfoHvac} param={paramHvac} setter={setData23} />
+
+
+                            </div>
+                        )}
+                        {data23 && (
+                            <div>
+                                <h1 className="text-2xl mt-2">Response</h1>
+                                <ul className="m-2 p-2 list-disc">
+                                    {Object.entries(data23).map(([key, value]) => (
+                                        <li key={key}>
+                                            <strong>{key}:</strong> {JSON.stringify(value)}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+
+                    </div>
+
+                    <div className="m-2 border-2 border-black overflow-x-auto max-h-52">
+                        <h1 className="text-2xl mt-2">Logs:</h1>
+                        <table className="table table-zebra">
+                            <thead>
+                                <tr>
+                                    <th>Index</th>
+                                    <th>Log Message</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody id="log-body">
+                                {logs.map((log: any, index: any) => (
+                                    <tr key={index}>
+                                        <td align="center">{index}</td>
+                                        <td align="center">{log}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div >
             </div>
         </div >
+
     )
 }
-
 export default SendRequests

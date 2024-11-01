@@ -6,44 +6,97 @@ import './style.css';
 import { displayLoadingCircle, displayErrorPopup, removeLoadingCicle } from '../sharedComponents/LoadingCircle';
 import logger from '@/src/utils/Logger';
 
-interface doorsData {
+export interface doorsData {
     ajar: any,
     door: any,
     passenger: any,
     passenger_lock: any,
 }
 
+const checkInput = (message: any) => {
+    let value;
+    do {
+        value = prompt(message);
+        if (value !== '0' && value !== '1') {
+            alert('Accepted value: 0/1');
+        }
+    } while (value !== '0' && value !== '1');
+    return value;
+};
+
+export const writeInfoDoors = async (setData: any) => {
+    displayLoadingCircle();
+    const door = checkInput('Enter Door Parameter:');
+    const passenger = checkInput('Enter Passenger:');
+    const passenger_lock = checkInput('Enter Passenger Lock:');
+    const driver = checkInput('Enter Driver:');
+    const ajar = checkInput('Enter Ajar:');
+    const is_manual_flow = true;
+
+    const data = {
+        door: door || null,
+        passenger: passenger || null,
+        passenger_lock: passenger_lock || null,
+        driver: driver || null,
+        ajar: ajar || null,
+        is_manual_flow: is_manual_flow || null,
+
+    };
+    console.log("Writing info doors...");
+    console.log(data);
+    try {
+        await fetch(`http://127.0.0.1:5000/api/write_info_doors`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        }).then(response => response.json())
+            .then(data => {
+                setData(data);
+                console.log(data);
+                // fetchLogs();
+            });
+    } catch (error) {
+        console.log(error);
+        removeLoadingCicle();
+    }
+    removeLoadingCicle();
+
+    readInfoDoors(false, setData)
+}
+
+export const readInfoDoors = async (isManualFlow:boolean, setData:any) => {
+    displayLoadingCircle();
+    console.log("Reading doors info...");
+    try {
+        await fetch(`http://127.0.0.1:5000/api/read_info_doors?is_manual_flow=${isManualFlow}`, {
+            method: 'GET',
+        }).then(response => response.json())
+            .then(data => {
+                console.log(data);
+                setData(data);
+                if (data?.ERROR === "interrupted") {
+                    displayErrorPopup("Connection failed");
+                }
+            });
+    } catch (error) {
+        console.log(error);
+        removeLoadingCicle();
+        displayErrorPopup("Connection failed");
+    }
+    removeLoadingCicle();
+};
+
+
 const DivCenterDoors = (props: any) => {
     logger.init();
-    
     const [data, setData] = useState<doorsData | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    
 
     useEffect(() => {
-        const readInfoDoors = async () => {
-            displayLoadingCircle();
-            console.log("Reading doors info...");
-            await fetch(`http://127.0.0.1:5000/api/read_info_doors?is_manual_flow=false`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    setData(data);
-
-                })
-                .catch(error => {
-                    setError(error);
-                    displayErrorPopup("Connection failed");
-                    removeLoadingCicle();
-
-                });
-            removeLoadingCicle();
-        };
-        readInfoDoors();
+        
+        readInfoDoors(false, setData);
     }, []);
 
 
@@ -55,11 +108,11 @@ const DivCenterDoors = (props: any) => {
                 <div className="w-full h-full flex flex-col items-center justify-center">
 
                     <div className="w-[30%] m-7 text-white grid justify-items-end">
-                        <label htmlFor="my_modal_1"
+                        <label htmlFor="my_modal_3"
                             className="inline-flex items-center justify-center p-2 bg-blue-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-blue-700">
                             {data?.ajar}
                         </label>
-                        <ModalUDS id="my_modal_1" cardTitle={'Door status - Ajar'} />
+                        <ModalUDS id="my_modal_3" cardTitle={'Door status - Ajar'} />
                         <p>Ajar</p>
                     </div>
 
