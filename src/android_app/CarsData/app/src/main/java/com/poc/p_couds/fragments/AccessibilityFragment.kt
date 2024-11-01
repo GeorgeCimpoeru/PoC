@@ -1,7 +1,10 @@
 package com.poc.p_couds.fragments
 
+import android.content.Context.MODE_PRIVATE
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,11 +14,12 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.poc.p_couds.HandleNetworkReq
 import com.poc.p_couds.R
-import com.poc.p_couds.pojo.VINResponse
 import com.poc.p_couds.activities.OTA
 import com.poc.p_couds.activities.UDSactivity
+import com.poc.p_couds.pojo.VINResponse
 import retrofit2.Call
 import retrofit2.Response
+
 
 class AccessibilityFragment : Fragment() {
     private lateinit var plantCountryTextView: TextView
@@ -61,9 +65,34 @@ class AccessibilityFragment : Fragment() {
         vin7TextView = view.findViewById(R.id.vin7)
         vin8TextView = view.findViewById(R.id.vin8)
 
-        val vin = arguments?.getString("VIN")
+        var vin = arguments?.getString("VIN")
         if (vin != null) {
             fetchVinDetails(vin)
+            // Save VIN in the local storage
+            val sharedPreferences = activity?.getSharedPreferences("MySharedPref", MODE_PRIVATE)
+            if (sharedPreferences != null)
+            {
+                with (sharedPreferences.edit()){
+                    putString("VIN", vin)
+                    apply()
+                }
+            }
+        }
+        else
+        {
+            // Search for VIN in local storage
+            val sharedPreferences = activity?.getSharedPreferences("MySharedPref", MODE_PRIVATE)
+            if (sharedPreferences != null)
+            {
+                vin = sharedPreferences.getString("VIN","")
+                if (vin != null) {
+                    fetchVinDetails(vin)
+                }
+                else
+                {
+                    Log.w("PoC","Unavailable to find VIN from input or in local storage")
+                }
+            }
         }
         return view
     }
