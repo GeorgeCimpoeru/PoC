@@ -44,6 +44,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +52,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentContainerView
 import androidx.fragment.app.commit
 import com.poc.p_couds.fragments.AccessibilityFragment
@@ -81,8 +83,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     @Composable
-    fun ShowFragmentSignup() {
-        FragmentContainer(Modifier.fillMaxSize(), SignUpFragment())
+    fun ShowFragmentSignup(navController: NavHostController) {
+        FragmentContainer(Modifier.fillMaxSize(), SignUpFragment(navController))
     }
 
     @Composable
@@ -92,6 +94,7 @@ class MainActivity : AppCompatActivity() {
 
     @Composable
     fun FragmentContainer(modifier: Modifier, fragment: Fragment) {
+        val activity = LocalContext.current as? FragmentActivity
         AndroidView(
             modifier = modifier,
             factory = { context ->
@@ -100,7 +103,7 @@ class MainActivity : AppCompatActivity() {
                 }
             },
             update = { fragmentContainerView ->
-                supportFragmentManager.commit {
+                activity?.supportFragmentManager?.commit {
                     setReorderingAllowed(true)
                     setCustomAnimations(R.anim.fade_in_custom, R.anim.fade_out_custom)
                     replace(fragmentContainerView.id, fragment)
@@ -118,7 +121,7 @@ class MainActivity : AppCompatActivity() {
         ) {
             composable("home") { ShowFragmentHome() }
             composable("login") { ShowFragmentLogin() }
-            composable("signup") { ShowFragmentSignup() }
+            composable("signup") { ShowFragmentSignup(navController) }
             composable("services") { ShowFragmentServices() }
         }
     }
@@ -130,13 +133,10 @@ class MainActivity : AppCompatActivity() {
         var isLoggedIn by remember {
             mutableStateOf(sharedPreferences.getBoolean("isLoggedIn", false))
         }
-        val email = sharedPreferences.getString("loggedInUser", "")
+//        var email = sharedPreferences.getString("loggedInUser", "")
 
         // Extract the first name
-        val firstName = email?.substringBefore(".")
-            ?.substringBefore("_")
-            ?.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-            ?: "User"
+        var firstName by remember { mutableStateOf(sharedPreferences.getString("loggedInUserFirstName", "User") ?: "User") }
 
         var expanded by remember { mutableStateOf(false) }
 
@@ -145,6 +145,7 @@ class MainActivity : AppCompatActivity() {
             val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
                 if (key == "isLoggedIn") {
                     isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false)
+                    firstName = sharedPreferences.getString("loggedInUserFirstName", "").toString()
                 }
             }
             sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
@@ -182,7 +183,7 @@ class MainActivity : AppCompatActivity() {
                             Icon(Icons.Filled.AccountCircle, contentDescription = "User Profile", tint = Color.White)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(text = firstName,
-                                color = Color.White)
+                                    color = Color.White)
                         }
 
                         // Dropdown menu
@@ -193,12 +194,12 @@ class MainActivity : AppCompatActivity() {
                             DropdownMenuItem(
                                 text = {Text("Sign out")},
                                 onClick = {
-                                expanded = false
-                                // Handle logout
-                                sharedPreferences.edit().clear().apply()  // Clear login info
-                                isLoggedIn = false
-                                navController.navigate("login")  // Navigate to login
-                            })
+                                    expanded = false
+                                    // Handle logout
+                                    sharedPreferences.edit().clear().apply()  // Clear login info
+                                    isLoggedIn = false
+                                    navController.navigate("login")  // Navigate to login
+                                })
                         }
                     }
                 } else {
@@ -241,6 +242,3 @@ class MainActivity : AppCompatActivity() {
 
     }
 }
-
-
-
