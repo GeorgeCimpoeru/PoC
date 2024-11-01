@@ -1,10 +1,6 @@
 from actions.base_actions import *
+from configs.data_identifiers import *
 import time
-
-MCU = 0
-ECU_BATTERY = 1
-ECU_ENGINE = 2
-ECU_DOORS = 3
 
 OTA_UPDATE_STATES = {
     0x00: "IDLE",
@@ -17,6 +13,8 @@ OTA_UPDATE_STATES = {
     0x41: "WAIT_DOWNLOAD_COMPLETED",
     0x42: "WAIT_DOWNLOAD_FAILED",
     0x50: "VERIFY",
+    0x51: "VERIFY_COMPLETE",
+    0x52: "VERIFY_FAILED",
     0x60: "ACTIVATE",
     0x61: "ACTIVATE_INSTALL_COMPLETE",
     0x62: "ACTIVATE_INSTALL_FAILED",
@@ -60,16 +58,21 @@ class Updates(Action):
           indicating that the latest version is already installed.
 
         curl -X POST http://127.0.0.1:5000/api/update_to_version -H "Content-Type: application/json" -d '{
-            "update_file_type": "mcu",
-            "update_file_version": "1.4",
-            "ecu_id": "0x10"
+            "update_file_type": "zip",
+            "update_file_version": "2.3",
+            "ecu_id": "0x11"
         }'
         """
         try:
+            # CAN ID used for OTA Initialisation Routine
             self.id = (int(id, 16) << 16) + (self.my_id << 8) + self.id_ecu[0]
+            log_info_message(logger, "Changing MCU to session to extended diagonstic mode")
+            self.session_control(self.id, sub_funct=0x03)
+            self._passive_response(SESSION_CONTROL, "Error changing session control")
 
-            log_info_message(logger, "Changing session to extended diagonstic mode")
-            self.generate.session_control(self.id, sub_funct=0x03)
+            log_info_message(logger, f"Changing ECU {int} to session to extended diagonstic mode")
+            ses_id = (0x00 << 16) + (self.my_id << 8) + int(id, 16)
+            self.session_control(ses_id, sub_funct=0x03)
             self._passive_response(SESSION_CONTROL, "Error changing session control")
 
             log_info_message(logger, "Authenticating...")
@@ -79,8 +82,9 @@ class Updates(Action):
             current_version = self._verify_version()
             if current_version == version:
                 response_json = ToJSON()._to_json(f"Version {version} already installed", 0)
-                self.bus.shutdown()
                 return response_json
+
+            # Check if another OTA update is in progress ( OTA_STATE is not IDLE)
 
             log_info_message(logger, "Downloading... Please wait")
             self._download_data(type, version, id)
@@ -103,15 +107,10 @@ class Updates(Action):
             # Generate a JSON response indicating the success of the update
             response_json = ToJSON()._to_json("downloaded", no_errors)
 
-            # Shutdown the CAN bus interface
-            self.bus.shutdown()
-
             log_info_message(logger, "Sending JSON")
             return response_json
 
         except CustomError as e:
-            # Handle custom errors, shutdown the CAN bus, and return the error message
-            self.bus.shutdown()
             return e.message
 
     def _download_data(self, type, version, id):
@@ -153,43 +152,53 @@ class Updates(Action):
         create locally a virtual partition used for download.
         -> search/change "/dev/loopXX" in RequestDownload.cpp, MemoryManager.cpp; (Depends which partition is attributed)
         """
+        # self.id is: target(1b)-api(1b)-mcu(1b)
         self.init_ota_routine(self.id, version=version)
         frame_response = self._passive_response(ROUTINE_CONTROL, "Error initialzing OTA")
 
         mem_size = frame_response.data[5]
 
-        self.request_download(self.id,
+        api_target_id = (0x00 << 16) + (0xFA << 8) + int(id, 16)
+        self.request_download(api_target_id,
                               data_format_identifier=type,
-                              memory_address=0x0801,
+                              memory_address=0x0800,
                               memory_size=mem_size,
                               version=version)
         frame_response = self._passive_response(REQUEST_DOWNLOAD, "Error requesting download")
-
-        transfer_data_counter = 0x01
-        while True:
-            self.transfer_data(self.id, transfer_data_counter)
-            self._passive_response(TRANSFER_DATA, "Error transfering data")
-            time.sleep(2)
-            self.request_update_status(REQUEST_UPDATE_STATUS)
-            frame_response = self._passive_response(REQUEST_UPDATE_STATUS, "Error requesting update status")
-
-            if frame_response.data[1] == 0x72:
-                state = self.get_ota_update_state(frame_response.data[2])
-
-                if state == "READY":
-                    log_info_message(logger, "Software update complete")
-                    break
-                elif state == "PROCESSING":
-                    transfer_data_counter += 0x01
-                    log_info_message(logger, f"Update in progress, retrying with transfer_data value: {transfer_data_counter}")
-                    time.sleep(2)
-                else:
-                    log_info_message(logger, f"Unexpected state encountered: {state}")
-                    break
-        ecu_id = (0x00 << 16) + (0xFA << 8) + int(id, 16)
-        self.control_frame_write_file(ecu_id)
         time.sleep(1)
-        self.control_frame_install_updates(ecu_id)
+        if (api_target_id & 0xFF) != 0x10:
+
+            transfer_data_counter = 0x01
+            while True:
+                self.transfer_data(api_target_id, transfer_data_counter)
+                frame_response = self._passive_response(TRANSFER_DATA, "Error transfering data")
+                if frame_response.data[1] != 0x76:
+                    log_info_message(logger, "Transfer data failed")
+                    break
+                else:
+                    ota_state = frame_response.data[3]
+                    if ota_state == 0x31:
+                        log_info_message(logger, "Data has been transferred succesfully")
+                        break
+                if transfer_data_counter == 255:
+                    transfer_data_counter = 0
+                transfer_data_counter += 0x01
+
+            # self.request_transfer_exit(api_target_id)
+        self.control_frame_verify_data(api_target_id)
+        frame_response = self._passive_response(ROUTINE_CONTROL, "Error at verify data routine.")
+        if frame_response.data[1] != 0x71:
+            log_info_message(logger, "Update failed at verification step.")
+            return
+        self.control_frame_write_file(api_target_id)
+        frame_response = self._passive_response(ROUTINE_CONTROL, "Error at writting file routine.")
+        if frame_response.data[1] != 0x71:
+            log_info_message(logger, "Update failed at writting file step.")
+            return
+        self.control_frame_install_updates(api_target_id)
+        frame_response = self._passive_response(ROUTINE_CONTROL, "Error at install routine.")
+        if frame_response.data[1] != 0x71:
+            log_info_message(logger, "Update failed at install step.")
 
     def _verify_version(self):
         """

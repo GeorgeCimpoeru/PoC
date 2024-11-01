@@ -22,47 +22,30 @@
             android:minHeight="?attr/actionBarSize"
             app:navigationIcon="@drawable/baseline_arrow_back_24"
             app:menu="@menu/toolbar_menu"
-            android:backgroundTint="#4CAF50">
-
-<!--            <LinearLayout-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="match_parent"-->
-<!--                android:orientation="horizontal"-->
-<!--                android:gravity="center_vertical|center_horizontal">-->
-
-<!--                &lt;!&ndash; Title TextView (Centered) &ndash;&gt;-->
-<!--                <TextView-->
-<!--                    android:layout_width="wrap_content"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:text="OTA"-->
-<!--                    android:gravity="center"-->
-<!--                    android:textSize="20sp"-->
-<!--                    android:textColor="@android:color/white"-->
-<!--                    android:layout_gravity="center"/>-->
-
-<!--                &lt;!&ndash; Search EditText &ndash;&gt;-->
-<!--                <EditText-->
-<!--                    android:id="@+id/search_txt"-->
-<!--                    android:layout_width="180dp"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:layout_marginStart="30dp"-->
-<!--                    android:hint="Search version"-->
-<!--                    android:layout_gravity="center"/>-->
-
-<!--                &lt;!&ndash; Search Button &ndash;&gt;-->
-<!--                <ImageButton-->
-<!--                    android:id="@+id/search_btn"-->
-<!--                    android:layout_width="70dp"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:background="#00FFFFFF"-->
-<!--                    android:contentDescription="button to search"-->
-<!--                    android:src="@drawable/baseline_search_24"-->
-<!--                    android:layout_gravity="center"/>-->
-
-<!--            </LinearLayout>-->
-
-        </androidx.appcompat.widget.Toolbar>
+            android:backgroundTint="#4CAF50"/>
     </com.google.android.material.appbar.AppBarLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="center"
+        >
+        <ProgressBar
+            android:id="@+id/progress_circular"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center_horizontal"
+            />
+        <TextView
+            android:id="@+id/dataRetrievingTxt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:layout_marginTop="10dp"
+            android:textColor="@color/black"
+            android:text="Retrieving data..."
+            android:layout_gravity="center_horizontal"/>
+    </LinearLayout>
 
     <!-- Main content area -->
     <FrameLayout
@@ -71,7 +54,7 @@
         android:layout_height="match_parent"
         android:layout_marginBottom="75dp"
         android:layout_marginTop="?attr/actionBarSize"
-    />
+        />
 
     <!-- BottomNavigationView properly constrained to bottom -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
@@ -79,7 +62,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
+        android:visibility="invisible"
         app:menu="@menu/bottom_nav_menu"
-        app:layout_anchorGravity="bottom"/>
+        app:layout_anchorGravity="bottom"
+        />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

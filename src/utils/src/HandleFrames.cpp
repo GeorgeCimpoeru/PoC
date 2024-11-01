@@ -27,16 +27,15 @@ void HandleFrames::handleFrame(int can_socket, const struct can_frame &frame)
     /* id < 0x10 == single frame*/
     if (frame.data[0] < 0x10) 
     {
-        /* if frame is negative response, 0x7F takes sid's place so sid comes next to it */
+        /* if frame is negative response, return */
         if (frame.data[1] == 0x7F)
         {
-            sid = frame.data[2];
+            LOG_INFO(_logger.GET_LOGGER(), "Negative response received.");
+            return;
         }
-        else
-        {
-            sid = frame.data[1];  
-        }
-        LOG_INFO(_logger.GET_LOGGER(), "Single Frame received:");
+
+        sid = frame.data[1];  
+        LOG_DEBUG(_logger.GET_LOGGER(), "Single Frame received:");
         for (uint8_t data_pos = 0; data_pos < frame.can_dlc; ++data_pos) 
         {
             frame_data.push_back(frame.data[data_pos]);
@@ -61,7 +60,7 @@ void HandleFrames::handleFrame(int can_socket, const struct can_frame &frame)
         }
         /* get SID from the first frame */
         sid = frame.data[2];
-        LOG_INFO(_logger.GET_LOGGER(), "Multi-frame Sequence with {} {}", (int)expected_frames, "frames");
+        LOG_DEBUG(_logger.GET_LOGGER(), "Multi-frame Sequence with {} {}", (int)expected_frames, "frames");
 
         /* Clear the multi_frame_data vector when receiving the first frame */
         frame_data.clear();
@@ -78,6 +77,7 @@ void HandleFrames::handleFrame(int can_socket, const struct can_frame &frame)
     } 
     else if (frame.data[0] >= 0x21 && frame.data[0] < 0x30) 
     {
+        LOG_DEBUG(_logger.GET_LOGGER(), "Consecutive frames received.");
         if (!first_frame_received) 
         {
             /* Ignore consecutive frames until the first frame is received */
@@ -89,6 +89,7 @@ void HandleFrames::handleFrame(int can_socket, const struct can_frame &frame)
             LOG_ERROR(_logger.GET_LOGGER(), "Invalid consecutive frame sequence: expected {} {} {}", int(expected_sequence_number), "but received", int(frame.data[0]));
             return;
         }
+
         /* Concatenate the data from consecutive frames into multi_frame_data */
         for (uint8_t data_pos = 1; data_pos < frame.can_dlc; ++data_pos) 
         {
@@ -99,7 +100,7 @@ void HandleFrames::handleFrame(int can_socket, const struct can_frame &frame)
         /* Check if all multi-frames have been received */
         if (frame_data.size() >= expected_payload) 
         { 
-            LOG_INFO(_logger.GET_LOGGER(), "Data is: ");
+            LOG_DEBUG(_logger.GET_LOGGER(), "Data is: ");
             for (uint8_t data_pos = 0; data_pos < (int)frame_data.size(); ++data_pos) 
             {
                 LOG_INFO(_logger.GET_LOGGER(), int(frame_data[data_pos]));
@@ -170,6 +171,7 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
             }
             else
             {
+                LOG_INFO(_logger.GET_LOGGER(), "Subfunction not supported in active session.");
                 int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
                 NegativeResponse negative_response(can_socket, _logger);
                 negative_response.sendNRC(new_id, sid, 0x7E);
@@ -265,6 +267,7 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
         {
             /* RoutineControl(sid, frame_data[2], frame_data[3] << 8) | frame_data[4]); */
             /* This service can be called in any session. */
+            LOG_INFO(_logger.GET_LOGGER(), "RoutineControl called.");
             RoutineControl routine_control(can_socket, _logger);
             routine_control.routineControl(frame_id, frame_data);
             break;
@@ -365,12 +368,14 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
             if(DiagnosticSessionControl::getCurrentSessionToString() == "PROGRAMMING_SESSION" ||
                 DiagnosticSessionControl::getCurrentSessionToString() == "EXTENDED_DIAGNOSTIC_SESSION")
             {
+                LOG_INFO(_logger.GET_LOGGER(), "RequestDownload called.");
                 RequestDownloadService requestDownload(can_socket, _logger);
                 ReadDataByIdentifier software_version(can_socket, _logger);
                 requestDownload.requestDownloadRequest(frame_id, frame_data);
             }
             else
             {
+                LOG_INFO(_logger.GET_LOGGER(), "Subfunction not supported in active session.");
                 int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
                 NegativeResponse negative_response(can_socket, _logger);
                 negative_response.sendNRC(new_id, 0x34, 0x7F);
@@ -382,7 +387,7 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
             /* TransferData(sid, frame_data[2], frame_data[3], frame_data[4]); */
             if(is_multi_frame)
             {
-                LOG_INFO(_logger.GET_LOGGER(), "TransferData called with multiple frames.");
+                LOG_DEBUG(_logger.GET_LOGGER(), "TransferData called with multiple frames.");
             }
             else 
             {
@@ -392,10 +397,11 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
                 {
                     TransferData transfer_data(can_socket, _logger);
                     transfer_data.transferData(frame_id, frame_data);
-                    LOG_INFO(_logger.GET_LOGGER(), "TransferData called with one frame.");
+                    LOG_DEBUG(_logger.GET_LOGGER(), "TransferData called with one frame.");
                 }
                 else
                 {
+                    LOG_INFO(_logger.GET_LOGGER(), "Subfunction not supported in active session.");
                     int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
                     NegativeResponse negative_response(can_socket, _logger);
                     negative_response.sendNRC(new_id, 0x36, 0x7F);
@@ -416,6 +422,7 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
             }
             else
             {
+                LOG_INFO(_logger.GET_LOGGER(), "Subfunction not supported in active session.");
                 int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
                 NegativeResponse negative_response(can_socket, _logger);
                 negative_response.sendNRC(new_id, 0x37, 0x7F);
@@ -435,6 +442,7 @@ void HandleFrames::processFrameData(int can_socket, canid_t frame_id, uint8_t si
             }
             else
             {
+                LOG_INFO(_logger.GET_LOGGER(), "Subfunction not supported in active session.");
                 int new_id = ((frame_id & 0xFF) << 8) | ((frame_id >> 8) & 0xFF);
                 NegativeResponse negative_response(can_socket, _logger);
                 negative_response.sendNRC(new_id, 0x32, 0x7F);

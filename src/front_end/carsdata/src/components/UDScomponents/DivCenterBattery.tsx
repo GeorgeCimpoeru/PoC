@@ -3,8 +3,10 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import ModalUDS from './ModalUDS';
 import './style.css';
+import { displayLoadingCircle , displayErrorPopup , removeLoadingCicle } from '../sharedComponents/LoadingCircle';
+import logger from '@/src/utils/Logger';
 
-interface batteryData {
+export interface batteryData {
     battery_level: any,
     voltage: any,
     battery_state_of_charge: any,
@@ -18,170 +20,92 @@ interface batteryData {
     time_stamp: any,
 }
 
+export const readInfoBattery = async (isManualFlow:boolean, setData:any) => {
+    displayLoadingCircle();
+    console.log("Reading battery info...");
+    try {
+        await fetch(`http://127.0.0.1:5000/api/read_info_battery?is_manual_flow=${isManualFlow}`, {
+            method: 'GET',
+        }).then(response => response.json())
+            .then(data => {
+                console.log(data);
+                setData(data);
+                if (data?.ERROR === "interrupted") {
+                    displayErrorPopup("Connection failed");
+                }
+            });
+    } catch (error) {
+        console.log(error);
+        removeLoadingCicle();
+        displayErrorPopup("Connection failed");
+    }
+    removeLoadingCicle();
+};
+
+export const writeInfoBattery = async (variable: string, newValue: string, setData:any) => {
+    console.log("Writing battery info...");
+    let item: string = "";
+    let data2;
+    if (variable === "battery_level") {
+        data2 = {
+            battery_level: parseInt(newValue),
+            is_manual_flow: true
+        };
+        item = "battery_level";
+    } else if (variable === "battery_state_of_charge") {
+        data2 = {
+            state_of_charge: parseInt(newValue),
+            is_manual_flow: true
+        };
+        item = "state_of_charge";
+    } else if (variable === "percentage") {
+        data2 = {
+            percentage: parseInt(newValue),
+            is_manual_flow: true
+        };
+        item = "percentage";
+    } else if (variable === "voltage") {
+        data2 = {
+            voltage: parseInt(newValue),
+            is_manual_flow: true
+        };
+        item = "voltage";
+    }
+
+    console.log(data2);
+    displayLoadingCircle();
+    await fetch(`http://127.0.0.1:5000/api/write_info_battery`, {
+        method: 'POST',
+        // mode: 'no-cors',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data2),
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            removeLoadingCicle();
+        })
+        .catch(error => {
+            console.error(error);
+            displayErrorPopup("Connection failed");
+            removeLoadingCicle();
+        });
+    readInfoBattery(true, setData);
+}
+
 const DivCenterBattery = (props: any) => {
+    logger.init();
+    
     const [data, setData] = useState<batteryData | null>(null);
     let popupElement: HTMLDivElement | null = null;
     let popupStyleElement: HTMLStyleElement | null = null;
     let overlayElement: HTMLDivElement | null = null;
 
-    const displayLoadingCircle = () => {
-        if (popupElement || popupStyleElement || overlayElement) {
-            return;
-        }
-
-        overlayElement = document.createElement('div');
-        overlayElement.style.position = 'fixed';
-        overlayElement.style.top = '0';
-        overlayElement.style.left = '0';
-        overlayElement.style.width = '100vw';
-        overlayElement.style.height = '100vh';
-        overlayElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-        overlayElement.style.zIndex = '999';
-        overlayElement.style.pointerEvents = 'all';
-        overlayElement.style.cursor = 'not-allowed';
-
-        document.body.appendChild(overlayElement);
-
-        popupElement = document.createElement('div');
-        popupElement.style.position = 'fixed';
-        popupElement.style.top = '50%';
-        popupElement.style.left = '50%';
-        popupElement.style.transform = 'translate(-50%, -50%)';
-        popupElement.style.padding = '20px';
-        popupElement.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-        popupElement.style.borderRadius = '10px';
-        popupElement.style.zIndex = '1000';
-        popupElement.style.textAlign = 'center';
-
-        const loadingCircle = document.createElement('div');
-        loadingCircle.style.width = '40px';
-        loadingCircle.style.height = '40px';
-        loadingCircle.style.border = '5px solid white';
-        loadingCircle.style.borderTop = '5px solid transparent';
-        loadingCircle.style.borderRadius = '50%';
-        loadingCircle.style.animation = 'spin 1s linear infinite';
-
-        popupElement.appendChild(loadingCircle);
-
-        document.body.appendChild(popupElement);
-
-        popupStyleElement = document.createElement('style');
-        popupStyleElement.type = 'text/css';
-        popupStyleElement.innerText = `
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }`;
-        document.head.appendChild(popupStyleElement);
-    };
-
-    const displayErrorPopup = (text: string) => {
-        const popup = document.createElement('div');
-        popup.innerText = text;
-        popup.style.position = 'fixed';
-        popup.style.top = '50%';
-        popup.style.left = '50%';
-        popup.style.transform = 'translate(-50%, -50%)';
-        popup.style.padding = '20px';
-        popup.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-        popup.style.color = 'white';
-        popup.style.borderRadius = '10px';
-        popup.style.zIndex = '1000';
-        popup.style.textAlign = 'center';
-
-        document.body.appendChild(popup);
-
-        setTimeout(() => {
-            document.body.removeChild(popup);
-        }, 2000);
-    };
-
-    const removeLoadingCicle = () => {
-        if (popupElement && popupStyleElement && overlayElement) {
-            document.body.removeChild(popupElement);
-            document.head.removeChild(popupStyleElement);
-            document.body.removeChild(overlayElement);
-
-            popupElement = null;
-            popupStyleElement = null;
-            overlayElement = null;
-        }
-    };
-
-    const readInfoBattery = async () => {
-        displayLoadingCircle();
-        console.log("Reading battery info...");
-        try {
-            await fetch(`http://127.0.0.1:5000/api/read_info_battery`, {
-                method: 'GET',
-            }).then(response => response.json())
-                .then(data => {
-                    console.log(data);
-                    setData(data);
-                    if (data?.ERROR === "interrupted") {
-                        displayErrorPopup("Connection failed");
-                    }
-                });
-        } catch (error) {
-            console.log(error);
-            removeLoadingCicle();
-            displayErrorPopup("Connection failed");
-        }
-        removeLoadingCicle();
-    };
-
     useEffect(() => {
-        readInfoBattery();
+        readInfoBattery(false, setData);
     }, []);
-
-
-    const writeInfoBattery = async (variable: string, newValue: string) => {
-        console.log("Writing battery info...");
-        let item: string = "";
-        let data2;
-        if (variable === "battery_level") {
-            data2 = {
-                energy_level: parseInt(newValue)
-            };
-            item = "battery_level";
-        } else if (variable === "battery_state_of_charge") {
-            data2 = {
-                state_of_charge: parseInt(newValue)
-            };
-            item = "state_of_charge";
-        } else if (variable === "percentage") {
-            data2 = {
-                percentage: parseInt(newValue)
-            };
-            item = "percentage";
-        } else if (variable === "voltage") {
-            data2 = {
-                voltage: parseInt(newValue)
-            };
-            item = "voltage";
-        }
-
-        console.log(data2);
-        displayLoadingCircle();
-        await fetch(`http://127.0.0.1:5000/api/write_info_battery?item=${item}`, {
-            method: 'POST',
-            // mode: 'no-cors',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data2),
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-                removeLoadingCicle();
-            })
-            .catch(error => {
-                console.error(error);
-                removeLoadingCicle();
-            });
-        readInfoBattery();
-    }
 
     return (
         <div className="w-[65%] flex h-screen bg-indigo-950 math-paper" >
@@ -194,10 +118,9 @@ const DivCenterBattery = (props: any) => {
                             className="inline-flex item-center justify-center p-2 bg-blue-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-blue-700">
                             {data?.battery_level}%
                         </label>
-                        <ModalUDS id="my_modal_1" cardTitle={'Battery level'} writeInfo={writeInfoBattery} param="battery_level" />
+                        <ModalUDS id="my_modal_1" cardTitle={'Battery level'} writeInfo={writeInfoBattery} param="battery_level" setter={setData}/>
                         <p>Battery level</p>
                     </div>
-
 
                     <div className="w-[30%] m-7 grid justify-item-center">
                         <div className="dropdown dropdown-end">
@@ -205,17 +128,16 @@ const DivCenterBattery = (props: any) => {
                                 {data?.battery_state_of_charge}
                             </div>
                             <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "1")}>Charging</a></li>
-                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "2")}>Discharging</a></li>
-                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "3")}>Empty</a></li>
-                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "4")}>Fully charged</a></li>
-                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "5")}>Pending charge</a></li>
-                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "6")}>Pending discharge</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "1", setData)}>Charging</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "2", setData)}>Discharging</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "3", setData)}>Empty</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "4", setData)}>Fully charged</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "5", setData)}>Pending charge</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "6", setData)}>Pending discharge</a></li>
                             </ul>
                         </div>
                         <p className="text-white">State of charge</p>
                     </div>
-
 
                     <div className="w-[30%] m-7 text-white grid justify-item-start">
                         <label htmlFor="my_modal_3"
@@ -235,7 +157,6 @@ const DivCenterBattery = (props: any) => {
                         <p>Device consumption</p>
                     </div>
 
-
                     <div className="w-[30%] m-7 text-white grid justify-item-end">
                         <label htmlFor="my_modal_5"
                             className="inline-flex item-center justify-center p-2 bg-purple-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-purple-700">
@@ -245,7 +166,6 @@ const DivCenterBattery = (props: any) => {
                         <p>Full charged</p>
                     </div>
 
-
                 </div>
             </div>
             <div className="w-[30%] h-screen flex">
@@ -253,8 +173,6 @@ const DivCenterBattery = (props: any) => {
             </div>
 
             <div className="w-[35%] flex flex-col item-center justify-center">
-
-
                 <div className="w-[30%] m-7 text-white">
                     <label htmlFor="my_modal_6"
                         className="inline-flex item-center justify-center p-2 bg-blue-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-blue-700">
@@ -263,7 +181,6 @@ const DivCenterBattery = (props: any) => {
                     {/* <ModalUDS id="my_modal_6" cardTitle={'Life cycle'} /> */}
                     <p>Life cycle</p>
                 </div>
-
 
                 <div className="w-[30%] m-7 text-white grid justify-item-center">
                     <label htmlFor="my_modal_7"
@@ -274,16 +191,14 @@ const DivCenterBattery = (props: any) => {
                     <p>Life cycle</p>
                 </div>
 
-
                 <div className="w-[30%] m-7 text-white grid justify-item-end">
                     <label htmlFor="my_modal_8"
                         className="inline-flex item-center justify-center p-2 bg-green-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-green-700">
                         {data?.percentage}%
                     </label>
-                    <ModalUDS id="my_modal_8" cardTitle={'Battery percentage'} writeInfoBattery={writeInfoBattery} param="percentage" />
+                    <ModalUDS id="my_modal_8" cardTitle={'Battery percentage'} writeInfo={writeInfoBattery} param="percentage" />
                     <p>Battery percentage</p>
                 </div>
-
 
                 <div className="w-[30%] m-7 text-white grid justify-item-center">
                     <label htmlFor="my_modal_9"
@@ -299,7 +214,7 @@ const DivCenterBattery = (props: any) => {
                         className="inline-flex item-center justify-center p-2 bg-purple-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-purple-700">
                         {data?.voltage}V
                     </label>
-                    <ModalUDS id="my_modal_10" cardTitle={'Voltage'} writeInfoBattery={writeInfoBattery} param="voltage" />
+                    <ModalUDS id="my_modal_10" cardTitle={'Voltage'} writeInfo={writeInfoBattery} param="voltage" />
                     <p>Voltage</p>
                 </div>
 

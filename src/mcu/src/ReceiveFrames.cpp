@@ -58,7 +58,7 @@ namespace MCU
         } 
         else 
         {
-            LOG_INFO(MCULogger->GET_LOGGER(), "Captured a frame on the CANBus socket");
+            LOG_DEBUG(MCULogger->GET_LOGGER(), "Captured a frame on the CANBus socket");
             /* Lock the queue before adding the frame to ensure thread safety */
             {
                 std::lock_guard<std::mutex> lock(queue_mutex);
@@ -68,7 +68,7 @@ namespace MCU
                 if (receiver_id == hex_value_id || receiver_id == 0xFF || receiver_id == 0xFA) 
                 {
                     frame_queue.push(frame);
-                    LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Passed a valid Module ID: 0x{:x} and frame added to the processing queue.", frame.can_id));
+                    LOG_DEBUG(MCULogger->GET_LOGGER(), fmt::format("Passed a valid Module ID: 0x{:x} and frame added to the processing queue.", frame.can_id));
                 }
             }
             /* Notify one waiting thread that a new frame has been added to the queue */
@@ -107,7 +107,7 @@ bool ReceiveFrames::receiveFramesFromAPI()
         } 
         else 
         {
-            LOG_INFO(MCULogger->GET_LOGGER(), "Captured a frame on the API socket");
+            LOG_DEBUG(MCULogger->GET_LOGGER(), "Captured a frame on the API socket");
             /* Lock the queue before adding the frame to ensure thread safety */
             {
                 {
@@ -121,7 +121,7 @@ bool ReceiveFrames::receiveFramesFromAPI()
                     if( receiver_id != 0xFA)
                     {
                         frame_queue.push(frame);
-                        LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Pass a valid Module ID: 0x{:x} and frame added to the processing queue.", frame.can_id));
+                        LOG_DEBUG(MCULogger->GET_LOGGER(), fmt::format("Pass a valid Module ID: 0x{:x} and frame added to the processing queue.", frame.can_id));
                     }
                 }
                 /* Notify one waiting thread that a new frame has been added to the queue */
@@ -140,7 +140,7 @@ bool ReceiveFrames::receiveFramesFromAPI()
     */
     void ReceiveFrames::processQueue() 
     {
-        LOG_INFO(MCULogger->GET_LOGGER(),"Frame processing method invoked!");
+        LOG_DEBUG(MCULogger->GET_LOGGER(),"Frame processing method invoked!");
         while (true)
         {
             /* Wait until the queue is not empty, then lock the queue */
@@ -153,7 +153,7 @@ bool ReceiveFrames::receiveFramesFromAPI()
             /* Extract the first element from the queue */
             struct can_frame frame = frame_queue.front();
             frame_queue.pop();
-            LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Frame with ID: 0x{:x} is taken from processing queue", frame.can_id));
+            LOG_DEBUG(MCULogger->GET_LOGGER(), fmt::format("Frame with ID: 0x{:x} is taken from processing queue", frame.can_id));
             /* Unlock the queue to allow other threads to add frames */
             lock.unlock();
 
@@ -221,10 +221,10 @@ bool ReceiveFrames::receiveFramesFromAPI()
             }
             else if (receiver_id == 0xFA) 
             {
-                LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Frame received from device with sender ID: 0x{:x} sent for API processing", sender_id));
+                LOG_DEBUG(MCULogger->GET_LOGGER(), fmt::format("Frame received from device with sender ID: 0x{:x} sent for API processing", sender_id));
                 std::vector<uint8_t> data(frame.data, frame.data + frame.can_dlc);
                 generate_frames.sendFrame(frame.can_id, data, socket_api, DATA_FRAME);
-                LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Frame with ID: 0x{:x} sent on API socket", frame.can_id));
+                LOG_DEBUG(MCULogger->GET_LOGGER(), fmt::format("Frame with ID: 0x{:x} sent on API socket", frame.can_id));
             } 
 
             if (sender_id == 0xFA && receiver_id != hex_value_id) 
@@ -243,9 +243,17 @@ bool ReceiveFrames::receiveFramesFromAPI()
                 else
                 {
                     std::vector<uint8_t> data(frame.data, frame.data + frame.can_dlc);
-                    LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Received frame for ECU to execute service with SID: 0x{:x}", frame.data[1]));
+                    LOG_DEBUG(MCULogger->GET_LOGGER(), fmt::format("Received frame for ECU to execute service with SID: 0x{:x}", frame.data[1]));
+                    /* Transfer data service need to have the data in the request body.
+                        Here, if we have a transfer data request, we add the data to the request.
+                        This is needed only if the transfer data request does not already contain the data to be sent => it's size == 3 (pci, sid, bl_indx)
+                    */
+                    if(frame.data[1] == TRANSFER_DATA_SID && data.size() == 3)
+                    {
+                        TransferData::processDataForTransfer(receiver_id, data, *MCULogger);
+                    }
                     generate_frames.sendFrame(frame.can_id, data);
-                    LOG_INFO(MCULogger->GET_LOGGER(), fmt::format("Frame with ID: 0x{:x} sent on CANBus socket", frame.can_id));
+                    LOG_DEBUG(MCULogger->GET_LOGGER(), fmt::format("Frame with ID: 0x{:x} sent on CANBus socket", frame.can_id));
                 }
             }
 
@@ -324,18 +332,18 @@ bool ReceiveFrames::receiveFramesFromAPI()
      */
     void ReceiveFrames::printFrames(const struct can_frame &frame)
     {
-        LOG_INFO(MCULogger->GET_LOGGER(), "");
-        LOG_INFO(MCULogger->GET_LOGGER(), "Received CAN frame");
-        LOG_INFO(MCULogger->GET_LOGGER(), "Module ID: 0x{:x}", frame.can_id);
-        LOG_INFO(MCULogger->GET_LOGGER(), "Data Length: {}", int(frame.can_dlc));
+        LOG_DEBUG(MCULogger->GET_LOGGER(), "");
+        LOG_DEBUG(MCULogger->GET_LOGGER(), "Received CAN frame");
+        LOG_DEBUG(MCULogger->GET_LOGGER(), "Module ID: 0x{:x}", frame.can_id);
+        LOG_DEBUG(MCULogger->GET_LOGGER(), "Data Length: {}", int(frame.can_dlc));
         std::ostringstream dataStream;
         dataStream << "Data:";
         for (int frame_byte = 0; frame_byte < frame.can_dlc; ++frame_byte) 
         {
             dataStream << " 0x" << std::hex << int(frame.data[frame_byte]);
         }
-        LOG_INFO(MCULogger->GET_LOGGER(), "{}", dataStream.str());
-        LOG_INFO(MCULogger->GET_LOGGER(), "");
+        LOG_DEBUG(MCULogger->GET_LOGGER(), "{}", dataStream.str());
+        LOG_DEBUG(MCULogger->GET_LOGGER(), "");
     }
 
     void ReceiveFrames::stopListenAPI()
