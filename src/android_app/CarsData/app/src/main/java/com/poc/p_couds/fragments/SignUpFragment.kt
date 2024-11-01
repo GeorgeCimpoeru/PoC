@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -18,9 +19,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Face
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -39,12 +45,19 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.findNavController
 import com.poc.p_couds.R
+import com.poc.p_couds.models.DbSignInUp
 import com.poc.p_couds.ui.theme.CarsDataTheme
 
-class SignUpFragment : Fragment() {
+class SignUpFragment(private val navController: NavHostController) : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -55,33 +68,27 @@ class SignUpFragment : Fragment() {
             setContent {
                 //FragmentContent()
                 CarsDataTheme {
-                SignUpScreen {email, password, cpassword ->
-                    println("Email: $email, Password: $password, Confirm password: $cpassword")
-                    //call login api in future implementation
-                    //for testing purposes
-                    performSignUp(email, password, cpassword)
-                }
+                    val dbSignInUp = DbSignInUp(requireContext()) // Replace with your database helper instance
+                    SignUpScreen (
+                        navController = navController,
+                        dbSignInUp = dbSignInUp,
+                        onSignup = { email, password, _ ->
+                            println("Email: $email, Password: $password")
+                        }
+                    )
                 }
             }
         }
     }
 
-
-    // Function to simulate an API call
-    internal fun performSignUp(email: String, password: String, cpassword: String) {
-        if (email == "user@example.com" && password == "password" && cpassword == "password") {
-            println("Login successful")
-        } else {
-            println("Invalid credentials")
-        }
-    }
-
     @Composable
-    fun SignUpScreen(onLogin: (String, String, String) -> Unit) {
+    fun SignUpScreen(navController: NavController, dbSignInUp: DbSignInUp, onSignup: (String, String, String) -> Unit) {
         var email by remember { mutableStateOf("")}
         var password by remember { mutableStateOf("")}
         var cpassword by remember { mutableStateOf("")}
         var isLoading by remember { mutableStateOf(false)}
+        var passwordsMatch by remember { mutableStateOf(true) }
+        var isPasswordVisible by remember { mutableStateOf(false) }
 
         val configuration = LocalConfiguration.current
         val width = configuration.screenWidthDp
@@ -161,7 +168,17 @@ class SignUpFragment : Fragment() {
                                 unfocusedContainerColor = Color.Transparent,
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent
-                            )
+                            ),
+                            visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            trailingIcon =  {
+                                IconButton(onClick = { isPasswordVisible = !isPasswordVisible}) {
+                                    Icon(
+                                        imageVector = if (isPasswordVisible) Icons.Filled.Close else Icons.Filled.Face,
+                                        contentDescription = if (isPasswordVisible) "Hide password" else "Show password"
+                                    )
+
+                                }
+                            }
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                     }
@@ -171,6 +188,7 @@ class SignUpFragment : Fragment() {
                             value = cpassword,
                             onValueChange = { cpassword = it },
                             label = { Text("Confirm password") },
+                            isError = !passwordsMatch,
                             modifier = Modifier
                                 .then(if (isWideScreen) Modifier.width(LocalConfiguration.current.screenWidthDp.dp / 3) else Modifier.fillMaxWidth())
                                 .align(Alignment.CenterHorizontally)
@@ -182,17 +200,39 @@ class SignUpFragment : Fragment() {
                                 focusedContainerColor = Color.Transparent, // Transparent background when focused
                                 unfocusedContainerColor = Color.Transparent,
                                 focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color.Transparent)
+                                unfocusedIndicatorColor = Color.Transparent
+                            ),
+                            visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            trailingIcon =  {
+                                IconButton(onClick = { isPasswordVisible = !isPasswordVisible}) {
+                                    Icon(
+                                        imageVector = if (isPasswordVisible) Icons.Filled.Close else Icons.Filled.Face,
+                                        contentDescription = if (isPasswordVisible) "Hide password" else "Show password"
+                                    )
+
+                                }
+                            }
                         )
+
                         Spacer(modifier = Modifier.height(16.dp))
+
+                        // Show error message if passwords do not match
+                        if (!passwordsMatch) {
+                            Text("Passwords do not match", color = MaterialTheme.colorScheme.error)
+                        }
                     }
 
                     item {
                         Button(
                             onClick = {
                                 isLoading = true
-                                onLogin(email, password, cpassword)
-                                isLoading = false
+                                passwordsMatch = (password == cpassword)
+                                if (passwordsMatch) {
+                                    onSignup(email, password, cpassword)
+                                    performSignup(email, password, dbSignInUp, navController)
+                                } else {
+                                    isLoading = false
+                                }
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.DarkGray,
@@ -221,5 +261,17 @@ class SignUpFragment : Fragment() {
             }
         }
     }
+
+    // Function to simulate an API call
+    private fun performSignup(email: String, password: String, dbSignInUp: DbSignInUp, navController: NavController) {
+        if (dbSignInUp.addNewUser(email, password)) {
+            Toast.makeText(context, "Email already exists.", Toast.LENGTH_SHORT).show()
+            navController.navigate("signup")
+        } else {
+            Toast.makeText(context, "Sign-up successful!", Toast.LENGTH_SHORT).show()
+            navController.navigate("login")
+        }
+    }
+
 }
 

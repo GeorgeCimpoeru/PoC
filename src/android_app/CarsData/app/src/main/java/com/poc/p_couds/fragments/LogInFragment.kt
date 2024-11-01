@@ -54,6 +54,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.poc.p_couds.R
+import com.poc.p_couds.models.DbSignInUp
 import com.poc.p_couds.ui.theme.CarsDataTheme
 
 class LogInFragment : Fragment() {
@@ -69,33 +70,43 @@ class LogInFragment : Fragment() {
             setContent {
                 //FragmentContent()
                 CarsDataTheme {
-                LoginScreen {email, password ->
-                    println("Email: $email, Password: $password")
-                    //call login api in future implementation
-                    //for testing purposes
-                }
-                }
+                    val dbSignInUp = DbSignInUp(requireContext())
+                    LoginScreen (
+                        dbSignInUp = dbSignInUp,
+                        onLogin = {email, password ->
+                            println("Email: $email, Password: $password")
+                            //call login api in future implementation
+                            //for testing purposes
+                        }
+                    )}
             }
         }
     }
 
     // Function to simulate an API call
-    private fun performLogin(email: String, password: String) {
-        if (email == "miruna.stoisor@randstaddigital.com" && password == "password") {
+    private fun performLogin(dbSignInUp: DbSignInUp, email: String, password: String) {
+        if (dbSignInUp.checkLoginUser(email, password)) {
             println("Login successful")
             val sharedPreferences = requireActivity().getSharedPreferences("Preferences", Context.MODE_PRIVATE)
             with(sharedPreferences.edit()) {
                 putBoolean("isLoggedIn", true)
                 putString("loggedInUser", email)
+                val firstName = email.substringBefore(".")
+                    .substringBefore("_")
+                    .substringBefore("@")
+                    .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+
+                putString("loggedInUserFirstName", firstName)
                 apply()
             }
-            Toast.makeText(requireContext(), "Login successful", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Login successful!", Toast.LENGTH_SHORT).show()
             navigateToHomeFragment()
         } else {
             println("Invalid credentials")
             Toast.makeText(requireContext(), "Invalid credentials", Toast.LENGTH_SHORT).show()
         }
     }
+
 
     private fun navigateToHomeFragment() {
         val fragment = HomeFragment()
@@ -106,7 +117,7 @@ class LogInFragment : Fragment() {
     }
 
     @Composable
-    fun LoginScreen(onLogin: (String, String) -> Unit) {
+    fun LoginScreen(dbSignInUp: DbSignInUp, onLogin: (String, String) -> Unit) {
         var email by remember { mutableStateOf("")}
         var password by remember { mutableStateOf("")}
         var isPasswordVisible by remember { mutableStateOf(false) }
@@ -213,7 +224,7 @@ class LogInFragment : Fragment() {
                                 isLoading = true
                                 onLogin(email, password)
                                 isLoading = false
-                                performLogin(email, password)
+                                performLogin(dbSignInUp, email, password)
                                 Log.d("check", "click")
                             },
                             colors = ButtonDefaults.buttonColors(
