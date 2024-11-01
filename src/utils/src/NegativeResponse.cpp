@@ -22,7 +22,8 @@ const std::map<uint8_t, std::string> NegativeResponse::nrcMap =
     {VTL, "Voltage Too Low"},
     {RCR_RP, "Request Correctly Received-Response Pending"},
     {SFNSIAS, "SubFunction Not Supported In Active Session"},
-    {FNSIAS, "Function Not Supported In Active Session"}
+    {FNSIAS, "Function Not Supported In Active Session"},
+    {URDTC, "Unable to read DTCs"}
 };
 
 NegativeResponse::NegativeResponse(int socket, Logger& nrc_logger)

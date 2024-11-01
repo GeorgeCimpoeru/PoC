@@ -67,15 +67,18 @@ namespace MCU
     {
         create_interface->stopInterface();
         delete receive_frames;
-        system("pkill main_mcu");
+        if(system("pkill main_mcu") != 0)
+        {
+            LOG_ERROR(MCULogger->GET_LOGGER(), "Error when trying to kill main_mcu process");
+        }
     }
 
     /* Start the module */
     void MCUModule::StartModule() 
     { 
-    is_running = true;
-    create_interface->setSocketBlocking(mcu_api_socket);
-    create_interface->setSocketBlocking(mcu_ecu_socket);
+        is_running = true;
+        create_interface->setSocketBlocking(mcu_api_socket);
+        create_interface->setSocketBlocking(mcu_ecu_socket);
     }
 
     int MCUModule::getMcuApiSocket() const 
@@ -100,10 +103,10 @@ namespace MCU
     /* Stop the module */
     void MCUModule::StopModule() 
     { 
-    is_running = false;
-    receive_frames->stopProcessingQueue();            
-    receive_frames->stopListenAPI();
-    receive_frames->stopListenCANBus(); 
+        is_running = false;
+        receive_frames->stopProcessingQueue();            
+        receive_frames->stopListenAPI();
+        receive_frames->stopListenCANBus(); 
     }
 
     /* Receive frames */

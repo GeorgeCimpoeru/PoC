@@ -10,6 +10,7 @@
  */
 
 #include "../include/RequestUpdateStatus.h"
+#include "../../../uds/access_timing_parameters/include/AccessTimingParameter.h"
 
 RequestUpdateStatus::RequestUpdateStatus(int socket, Logger& logger) : socket(socket), _logger(logger)
 {}
@@ -48,6 +49,8 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
     if(RIDB_response[1] == NEGATIVE_RESPONSE)
     {
         nrc.sendNRC(response_id, REQUEST_UPDATE_STATUS_SID, RIDB_response[3]);
+        AccessTimingParameter::stopTimingFlag(receiver_byte, REQUEST_UPDATE_STATUS_SID);
+        return response;
     }
     else
     {   /* Check if the received status value is a valid one */
@@ -56,6 +59,8 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
         {
             LOG_WARN(rus_logger.GET_LOGGER(), "Status value {} read from readDataByIdentifier is invalid.", status);
             nrc.sendNRC(response_id, REQUEST_UPDATE_STATUS_SID, NegativeResponse::ROOR);
+            AccessTimingParameter::stopTimingFlag(receiver_byte, REQUEST_UPDATE_STATUS_SID);
+            return response;
         }
         else
         {
@@ -68,13 +73,16 @@ std::vector<uint8_t> RequestUpdateStatus::requestUpdateStatus(canid_t request_id
 
     GenerateFrames generate_frames(socket, _logger);
     generate_frames.requestUpdateStatusResponse(response_id, response);
+    AccessTimingParameter::stopTimingFlag(receiver_byte, REQUEST_UPDATE_STATUS_SID);
     
     return response;
 }
 
 bool RequestUpdateStatus::isValidStatus(uint8_t status)
 {
-    std::vector<OtaUpdateStatesEnum> valid_states{IDLE,INIT,READY,PROCESSING,PROCESSING_TRANSFER_COMPLETE,PROCESSING_TRANSFER_FAILED,WAIT,WAIT_DOWNLOAD_COMPLETED,WAIT_DOWNLOAD_FAILED,VERIFY,ACTIVATE,ACTIVATE_INSTALL_COMPLETE,ACTIVATE_INSTALL_FAILED,ERROR};
+    std::vector<OtaUpdateStatesEnum> valid_states{IDLE,INIT,READY,PROCESSING,PROCESSING_TRANSFER_COMPLETE,PROCESSING_TRANSFER_FAILED,
+                                                    WAIT,WAIT_DOWNLOAD_COMPLETED,WAIT_DOWNLOAD_FAILED,VERIFY, VERIFY_COMPLETE, VERIFY_FAILED,
+                                                    ACTIVATE,ACTIVATE_INSTALL_COMPLETE,ACTIVATE_INSTALL_FAILED,ERROR};
     /* Check if provided status from readDataByIdentifier is a valid one. */
     for(auto &state : valid_states)
     {

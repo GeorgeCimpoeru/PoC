@@ -75,15 +75,15 @@ class Action(GF):
     - g: Instance of GenerateFrame for generating CAN bus frames.
     """
 
-    def __init__(self, my_id, id_ecu: list = []):
-        self.my_id = my_id
-        self.id_ecu = id_ecu
+    def __init__(self):
+        self.my_id = API_ID
+        self.id_ecu = [0x10, 0x11, 0x12, 0x13, 0x14]
         self.last_msg = None
         super().__init__()
 
     def __collect_response(self, sid: int):
         """
-        Collects the response message from the CAN bus.
+        Collects the response message from the CAN bus, handling multi-frame responses if necessary.
 
         Args:
         - sid: Service identifier to verify the response.
@@ -91,32 +91,46 @@ class Action(GF):
         Returns:
         - The collected CAN message if valid, otherwise None.
         """
-        flag = False
-        msg_ext = None
         msg = self.bus.recv(Config.BUS_RECEIVE_TIMEOUT)
         self.last_msg = msg
 
+        if msg is None:
+            log_error_message(logger, "[Collect Response] No initial message received.")
+            return None
+
         log_info_message(logger, f"[Collect Response] Initial message received: {msg}")
 
+        total_data_length = 0
+        collected_data = []
+
+        # Handle multi-frame responses
         while msg is not None:
+            # Check for response pending (negative response, 0x7F with 0x78 sub-function)
             if msg.data[1] == 0x7F and msg.data[3] == 0x78:
                 log_info_message(logger, f"[Collect Response] Response pending for SID {msg.data[2]:02X}. Waiting for actual response...")
                 msg = self.bus.recv(Config.BUS_RECEIVE_TIMEOUT)
                 self.last_msg = msg
                 continue
 
-            # First Frame
+            # First Frame (starts with 0x10)
             if msg.data[0] == 0x10:
-                flag = True
-                msg_ext = msg[1:]
-                log_info_message(logger, f"[Collect Response] First frame received: {msg_ext}")
+                total_data_length = msg.data[1]  # Total length from the first frame (byte 1 and 2)
+                collected_data = msg.data[2:]  # Store the data portion starting from byte 3
+                log_info_message(logger, f"[Collect Response] First frame received. \
+                                 Total length expected: {total_data_length}, \
+                                 Data: {[hex(byte) for byte in collected_data]}")
 
-            # Consecutive frame
-            elif flag and 0x20 < msg.data[0] < 0x30:
-                msg_ext.data += msg.data[1:]
-                log_info_message(logger, f"[Collect Response] Consecutive frame received. Updated data: {msg_ext}")
+            # Consecutive Frames
+            elif 0x20 <= msg.data[0] <= 0x30:
+                collected_data += msg.data[1:]  # Append the data from the consecutive frames
+                log_info_message(logger, f"[Collect Response] Consecutive frame received {[hex(byte) for byte in collected_data]}")
 
-            # Simple frame or other types
+                # If we have collected the total expected length, stop
+                if len(collected_data) >= total_data_length:
+                    log_info_message(logger, "[Collect Response] All frames received.")
+                    break
+
+            # Single-frame response or other types
             else:
                 log_info_message(logger, f"[Collect Response] Simple frame or other frame received: {msg}")
                 break
@@ -124,9 +138,10 @@ class Action(GF):
             msg = self.bus.recv(Config.BUS_RECEIVE_TIMEOUT)
             self.last_msg = msg
 
-        log_info_message(logger, f"[Collect Response] Final message after processing: {msg}")
-
-        if flag:
+        # Verify the assembled response, if multi-frame was used
+        if total_data_length > 0 and len(collected_data) >= total_data_length:
+            msg_ext = can.Message(arbitration_id=msg.arbitration_id, data=collected_data)
+            log_info_message(logger, f"[Collect Response] Final assembled multi-frame message: {[hex(byte) for byte in msg_ext.data]}")
             msg = msg_ext
 
         if msg is not None and self.__verify_frame(msg, sid):
@@ -134,29 +149,40 @@ class Action(GF):
             self.response_collected = True
             return msg
 
-        log_error_message(logger, f"[Collect Response] Invalid or no message collected for SID {sid:02X}")
+        log_error_message(logger, f"[Collect Response] Invalid or no message collected for SID {hex(sid)}")
         return None
 
     def __verify_frame(self, msg: can.Message, sid: int):
-        log_info_message(logger, f"[Verify Frame] Verifying frame with SID: {sid:02X}, message data: {[hex(byte) for byte in msg.data]}")
+        log_info_message(logger, f"[Verify Frame] Verifying frame with SID: {hex(sid)}, message data: {[hex(byte) for byte in msg.data]}")
 
+        # Check if the arbitration ID matches the expected device ID
         if msg.arbitration_id % 0x100 != self.my_id:
+            log_error_message(logger, f"[Verify Frame] Arbitration ID mismatch. Expected ID: {self.my_id}, got: {msg.arbitration_id % 0x100}")
             return False
 
-        if msg.data[1] == 0x7F and msg.data[3] == 0x78:
+        # Multi-frame handling: Check first and consecutive frames
+        if msg.data[0] == 0x10:
             return True
 
+        elif msg.data[0] == 0x21:
+            # Consecutive frame, should simply continue to verify as part of the sequence
+            return True
+
+        # Check for negative response (0x7F response pending or another type)
         if msg.data[1] == 0x7F:
-            return False
+            if msg.data[3] == 0x78:
+                log_info_message(logger, f"[Verify Frame] Response pending. Waiting for SID: {sid}.")
+                return True  # Valid response with pending status
+            else:
+                log_error_message(logger, f"[Verify Frame] Negative response with NRC: {msg.data[3]}")
+                return False  # Negative response received
 
-        if msg.data[0] != 0x10:
-            if msg.data[1] != sid + 0x40:
-                return False
-        else:
-            if msg.data[2] != sid + 0x40:
-                return False
+        # Final validation for single frame responses or multi-frame assembled messages
+        if len(msg.data) >= 2 and msg.data[1] == sid + 0x40:
+            return True
 
-        return True
+        log_error_message(logger, "[Verify Frame] Message does not match any valid response structure.")
+        return False
 
     def _passive_response(self, sid, error_str="Error service"):
         """
@@ -179,7 +205,7 @@ class Action(GF):
 
         if response is None:
             log_error_message(logger, error_str)
-            response_json = self._to_json_error("interrupted", 1)
+            response_json = self._to_json_error("Response was interrupted", 1)
             raise CustomError(response_json)
         return response
 
@@ -272,7 +298,6 @@ class Action(GF):
             sid_msg = frame_response.data[2]
             negative_response = self.handle_negative_response(nrc_msg, sid_msg)
             return {
-                "status": "error",
                 "message": "Negative response received while requesting seed",
                 "negative_response": negative_response
             }
@@ -303,7 +328,6 @@ class Action(GF):
                 sid_msg = frame_response.data[2]
                 negative_response = self.handle_negative_response(nrc_msg, sid_msg)
                 return {
-                    "status": "error",
                     "message": "Negative response received while sending key",
                     "negative_response": negative_response
                 }
@@ -314,7 +338,7 @@ class Action(GF):
                     "message": "Authentication successful",
                 }
             else:
-                log_info_message(logger, "Authentication failed")
+                log_error_message(logger, "Authentication failed")
                 return {
                     "message": "Authentication failed",
                 }
@@ -359,6 +383,7 @@ class Action(GF):
             0x73: "Wrong Block Sequence Counter",
             0x92: "Voltage Too High",
             0x93: "Voltage Too Low",
+            0x94: "Unable to read DTCs",
             0x78: "Request Correctly Received-Response Pending",
             0x7E: "SubFunction Not Supported In Active Session",
             0x7F: "Function Not Supported In Active Session"
@@ -378,18 +403,18 @@ class Action(GF):
 
         return response
 
-    def _to_json(self, status, no_errors):
+    def _to_json(self, ecu_type, written_values):
         response_to_frontend = {
-            "status": status,
-            "No of errors": no_errors,
+            "message": f"Successfully written values to {ecu_type} ECU.",
+            "written_values": written_values,
             "time_stamp": datetime.datetime.now().isoformat()
         }
         return response_to_frontend
 
-    def _to_json_error(self, error, no_errors):
+    def _to_json_error(self, message, issue_count):
         response_to_frontend = {
-            "ERROR": error,
-            "No of errors": no_errors,
+            "Error": message,
+            "No of errors": issue_count,
             "time_stamp": datetime.datetime.now().isoformat()
         }
         return response_to_frontend
