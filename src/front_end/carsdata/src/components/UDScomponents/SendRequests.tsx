@@ -6,6 +6,7 @@ import { displayLoadingCircle, displayErrorPopup, removeLoadingCicle } from '../
 import { batteryData, readInfoBattery, writeInfoBattery } from './DivCenterBattery';
 import { engineData, readInfoEngine, writeInfoEngine } from './DivCenterEngine';
 import { doorsData, readInfoDoors, writeInfoDoors } from './DivCenterDoors';
+import { HVACData, readInfoHVAC, writeInfoHvac } from './DivCenterHVAC';
 import logger from '@/src/utils/Logger';
 
 
@@ -36,14 +37,23 @@ const SendRequests = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isDropDownOpenBattery, setIsDropdownOpenBattery] = useState(false);
     const [isDropDownOpenEngine, setIsDropdownOpenEngine] = useState(false);
+    const [isDropdownOpenHVAC, setIsDropdownOpenHVAC] = useState(false);
     const [engineCardTitle, setEngineCardTitle] = useState("");
+    const [hvacCardTitle, setHvacCardTitle] = useState("");
     const [paramEngine, setParamEngine] = useState("");
+    const [paramHvac, setParamHvac] = useState("");
 
 
     const dropdownEngineItemClick = (cardTitle: string, param: string) => {
         setIsDropdownOpenEngine(false);
         setEngineCardTitle(cardTitle);
         setParamEngine(param);
+    }
+
+    const dropdownHVACItemClick = (cardTitle: string, param: string) => {
+        setIsDropdownOpenHVAC(false);
+        setHvacCardTitle(cardTitle);
+        setParamHvac(param);
     }
 
     const fetchLogs = async () => {
@@ -291,49 +301,6 @@ const SendRequests = () => {
         } while (value !== '0' && value !== '1');
         return value;
     };
-
-
-    const writeInfoHvac = async () => {
-        displayLoadingCircle();
-        const door = checkInput('Enter Door Parameter:');
-        const passenger = checkInput('Enter Passenger:');
-        const passenger_lock = checkInput('Enter Passenger Lock:');
-        const driver = checkInput('Enter Driver:');
-        const ajar = checkInput('Enter Ajar:');
-        const is_manual_flow = true;
-        // const windows_closed = prompt('Enter Window Status:');
-
-        const data = {
-            door: door || null,
-            passenger: passenger || null,
-            passenger_lock: passenger_lock || null,
-            driver: driver || null,
-            ajar: ajar || null,
-            is_manual_flow: is_manual_flow || null,
-            // windows_closed: windows_closed || null,
-        };
-        console.log("Writing info hvac...");
-        console.log(data);
-        try {
-            await fetch(`http://127.0.0.1:5000/api/write_info_hvac`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            }).then(response => response.json())
-                .then(data => {
-                    setData23(data);
-                    console.log(data);
-                    fetchLogs();
-                });
-        } catch (error) {
-            console.log(error);
-            removeLoadingCicle();
-        }
-        removeLoadingCicle();
-    }
-
 
     const changeSession = async () => {
         let sessiontype: any;
@@ -825,43 +792,85 @@ const SendRequests = () => {
                     >
                         Write Info Doors
                     </button>
-                    {/* <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={readInfoHvac} disabled={disableInfoHvacBtns}>Read Info Hvac</button> */}
-                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeInfoHvac} disabled={disableInfoHvacBtns}>Write Info Hvac</button>
-                </div>
 
-                <h1 className="text-2xl mt-2">Response</h1>
-                {data23 && (
-                    <ul className="m-2 p-2 list-disc">
-                        {Object.entries(data23).map(([key, value]) => (
-                            <li key={key}>
-                                <strong>{key}:</strong> {JSON.stringify(value)}
-                            </li>
-                        ))}
-                    </ul>
-                )}
+                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => { setIsDropdownOpen(false); readInfoHVAC(true, setData23) }}>Read Info Hvac</button>
 
-                <div className="m-2 border-2 border-black overflow-x-auto max-h-52">
-                    <h1 className="text-2xl mt-2">Logs:</h1>
-                    <table className="table table-zebra">
-                        <thead>
-                            <tr>
-                                <th>Index</th>
-                                <th>Log Message</th>
-                            </tr>
-                        </thead>
-                        <tbody id="log-body">
-                            {logs.map((log: any, index: any) => (
-                                <tr key={index}>
-                                    <td align="center">{index}</td>
-                                    <td align="center">{log}</td>
+                    <div className="dropdown">
+                        <button tabIndex={5} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpenHVAC(!isDropdownOpenHVAC)} disabled={disableInfoHvacBtns}>
+                            Write HVAC param
+                            <Image
+                                src="/dropdownarrow.png"
+                                alt="Dropdown arrow icon"
+                                className="dark:invert m-1 hover:object-scale-down"
+                                width={10}
+                                height={10}
+                                priority
+                            />
+                        </button>
+                        {isDropdownOpenHVAC && (
+                            <div>
+                                <ul tabIndex={5} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+                                    <li>
+                                        <label htmlFor="my_modal_9">
+                                            <a onClick={() => { dropdownHVACItemClick("Ambient air temperature", "ambient_air_temperature"); }}>Ambient air temperature</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_9">
+                                            <a onClick={() => { dropdownHVACItemClick("Cabin temperature driver set", "cabin_temperature_driver_set"); }}>Cabin temperature driver set</a>
+                                        </label>
+                                        <li>
+                                            <label htmlFor="my_modal_9">
+                                                <a onClick={() => { dropdownHVACItemClick("Fan speed", "fan_speed"); }}>Fan speed</a>
+                                            </label>
+                                            <label htmlFor="my_modal_9">
+                                                <a onClick={() => { dropdownHVACItemClick("Mass air flow", "mass_air_flow"); }}>Mass air flow</a>
+                                            </label>
+                                        </li>
+                                    </li>
+                                </ul>
+                                <ModalUDS id="my_modal_8" cardTitle={hvacCardTitle} writeInfo={writeInfoHvac} param={paramHvac} setter={setData23} />
+
+                            </div>
+                        )}
+                        {data23 && (
+                            <div>
+                                <h1 className="text-2xl mt-2">Response</h1>
+                                <ul className="m-2 p-2 list-disc">
+                                    {Object.entries(data23).map(([key, value]) => (
+                                        <li key={key}>
+                                            <strong>{key}:</strong> {JSON.stringify(value)}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+
+                    </div>
+
+                    <div className="m-2 border-2 border-black overflow-x-auto max-h-52">
+                        <h1 className="text-2xl mt-2">Logs:</h1>
+                        <table className="table table-zebra">
+                            <thead>
+                                <tr>
+                                    <th>Index</th>
+                                    <th>Log Message</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody id="log-body">
+                                {logs.map((log: any, index: any) => (
+                                    <tr key={index}>
+                                        <td align="center">{index}</td>
+                                        <td align="center">{log}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div >
             </div>
         </div >
+
     )
 }
-
 export default SendRequests
