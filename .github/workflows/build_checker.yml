@@ -3,6 +3,12 @@ name: build_checker
 on:
   pull_request:
     branches:
+      - feature/Backend
+      - feature/Frontend
+      - feature/Android
+      - DEV_Backend
+      - DEV_Frontend
+      - DEV_Mobile
       - development
 
 jobs:
@@ -11,13 +17,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          submodules: recursive  # Ensure submodules are fetched
-          fetch-depth: 0         # Full history for accurate submodule updates
-
-      - name: Update Submodules to Latest Commit
-        run: |
-          git submodule update --init --recursive
 
       - name: Cache APT Dependencies
         uses: actions/cache@v3
@@ -35,27 +34,20 @@ jobs:
 
       - name: Build MCU
         run: |
-          cd src/backend/mcu
+          cd src/mcu
           make
 
       - name: Upload MCU Artifact
         uses: actions/upload-artifact@v3
         with:
           name: mcu_build
-          path: src/backend/mcu/build  # Adjust path if needed
+          path: src/mcu/build  # Adjust path if needed
 
   battery_module_build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          submodules: recursive
-          fetch-depth: 0
-
-      - name: Update Submodules to Latest Commit
-        run: |
-          git submodule update --init --recursive
 
       - name: Cache APT Dependencies
         uses: actions/cache@v3
@@ -82,7 +74,98 @@ jobs:
           name: battery_module_build
           path: src/ecu_simulation/BatteryModule/build
 
-  # Repeat the above steps for each module, as done with `battery_module_build`
+  doors_module_build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Cache APT Dependencies
+        uses: actions/cache@v3
+        with:
+          path: /var/cache/apt
+          key: ${{ runner.os }}-apt-cache
+          restore-keys: |
+            ${{ runner.os }}-apt-cache
+
+      - name: Set up Build Environment
+        run: |
+          sudo apt-get update
+          sudo add-apt-repository -y ppa:deadsnakes/ppa
+          sudo apt-get install -y build-essential cmake libspdlog-dev libfmt-dev libzip-dev python3.8 python3.8-dev python3.8-distutils pybind11-dev
+
+      - name: Build Doors Module
+        run: |
+          cd src/ecu_simulation/DoorsModule
+          make
+
+      - name: Upload Doors Module Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: doors_module_build
+          path: src/ecu_simulation/DoorsModule/build
+
+  engine_module_build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Cache APT Dependencies
+        uses: actions/cache@v3
+        with:
+          path: /var/cache/apt
+          key: ${{ runner.os }}-apt-cache
+          restore-keys: |
+            ${{ runner.os }}-apt-cache
+
+      - name: Set up Build Environment
+        run: |
+          sudo apt-get update
+          sudo add-apt-repository -y ppa:deadsnakes/ppa
+          sudo apt-get install -y build-essential cmake libspdlog-dev libfmt-dev libzip-dev python3.8 python3.8-dev python3.8-distutils pybind11-dev
+
+      - name: Build Engine Module
+        run: |
+          cd src/ecu_simulation/EngineModule
+          make
+
+      - name: Upload Engine Module Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: engine_module_build
+          path: src/ecu_simulation/EngineModule/build
+
+  hvac_module_build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Cache APT Dependencies
+        uses: actions/cache@v3
+        with:
+          path: /var/cache/apt
+          key: ${{ runner.os }}-apt-cache
+          restore-keys: |
+            ${{ runner.os }}-apt-cache
+
+      - name: Set up Build Environment
+        run: |
+          sudo apt-get update
+          sudo add-apt-repository -y ppa:deadsnakes/ppa
+          sudo apt-get install -y build-essential cmake libspdlog-dev libfmt-dev libzip-dev python3.8 python3.8-dev python3.8-distutils pybind11-dev
+
+      - name: Build HVAC Module
+        run: |
+          cd src/ecu_simulation/HVACModule
+          make
+
+      - name: Upload HVAC Module Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: hvac_module_build
+          path: src/ecu_simulation/HVACModule/build
 
   finalize:
     runs-on: ubuntu-latest
@@ -93,4 +176,3 @@ jobs:
 
       - name: Check Build Results
         run: echo "All modules built successfully."
-
