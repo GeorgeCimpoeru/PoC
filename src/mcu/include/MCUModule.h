@@ -33,7 +33,7 @@ namespace MCU
         /* Variable to store mcu data */
         std::unordered_map<uint16_t, std::vector<uint8_t>> default_DID_MCU = 
         {
-            {0x01E0, {IDLE}},
+            {0xE001, {IDLE}},
 #ifdef SOFTWARE_VERSION
             {0xF1A2, {static_cast<uint8_t>(SOFTWARE_VERSION)}}
 #else
@@ -111,23 +111,7 @@ namespace MCU
          */
         void writeDataToFile();
 
-        /**
-         * @brief Set the Did Value object
-         * 
-         * @param did 
-         * @param value 
-         */
-        void setDidValue(const uint16_t did, const std::vector<uint8_t>& value);
-
-        /**
-         * @brief Get the Did Value object
-         * 
-         * @param did 
-         * @return std::vector<uint8_t> 
-         */
-        std::vector<uint8_t> getDidValue(const uint16_t did) const;
-
-    private:
+private:
         bool is_running;
         CreateInterface* create_interface;
         ReceiveFrames* receive_frames;

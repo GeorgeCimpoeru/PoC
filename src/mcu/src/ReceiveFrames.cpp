@@ -250,7 +250,7 @@ bool ReceiveFrames::receiveFramesFromAPI()
                     */
                     if(frame.data[1] == TRANSFER_DATA_SID && data.size() == 3)
                     {
-                        TransferData::processDataForTransfer(receiver_id, data, *MCULogger);
+                        TransferData::processDataForTransfer(frame.can_id, data, socket_canbus, *MCULogger);
                     }
                     generate_frames.sendFrame(frame.can_id, data);
                     LOG_DEBUG(MCULogger->GET_LOGGER(), fmt::format("Frame with ID: 0x{:x} sent on CANBus socket", frame.can_id));

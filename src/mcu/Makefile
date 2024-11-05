@@ -17,7 +17,7 @@ PYTHON_LDFLAGS = -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -l
 
 # Compiler flags
 CXX = g++
-CFLAGS = -std=c++17 -g -Wall -Werror -pthread -I./include -I../utils/include ${PYTHON_INCL_DIR} ${PROJECT_DEFINES}
+CFLAGS = -std=c++17 -g -Wall -pthread -I./include -I../utils/include ${PYTHON_INCL_DIR} ${PROJECT_DEFINES}
 LDFLAGS = -lspdlog -lfmt -lzip ${PYTHON_LDFLAGS}
 
 # Test flags

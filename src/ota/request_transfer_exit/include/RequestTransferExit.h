@@ -63,13 +63,6 @@ private:
     Logger& RTESLogger;
     GenerateFrames generate_frames;
     int socket = -1;
-
-     /**
-    * @brief Method to check if all the checksums have been computed for each chunk transfer
-    * @param tored_checksums A reference to the vector containing the checksums for the chunks transferred
-    * @return True if all checksums are valid and greater than 0, false otherwise
-    */
-    bool checkValidChecksums(const std::vector<uint8_t>&stored_checksums);
 };
 
 #endif /* REQUEST_TRANSFER_EXIT_H_ */

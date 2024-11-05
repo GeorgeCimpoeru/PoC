@@ -82,7 +82,7 @@
 
 #include "Logger.h"
 
-#define DEV_LOOP "/dev/loop20"
+#define DEV_LOOP "/dev/loop21"
 
 #define SECTOR_SIZE 512 
 

@@ -6,7 +6,7 @@ file_path="/home/projectx/accademyprojects/PoC/src/mcu/mcu_data.txt"
 idx="01"
 
 while true; do
-    # Read the value from the file (second field after '01E0')
+    # Read the value from the file (second field after 'E001')
     file_value=$(awk '{print $2}' "$file_path")
 
     if [ "$file_value" == "31" ]; then

@@ -22,6 +22,8 @@ std::unordered_map<uint16_t, std::vector<uint8_t>> EngineModule::default_DID_eng
         {0x012C, {0}},
         /* Intake Air Temperature */
         {0x0130, {0}},
+        /* OTA Status */
+        {0xE001, {0}},
 #ifdef SOFTWARE_VERSION
         {0xF1A2, {static_cast<uint8_t>(SOFTWARE_VERSION)}}
 #else

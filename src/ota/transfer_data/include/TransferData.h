@@ -47,11 +47,11 @@ public:
      * @brief Method used for processing data before it is added to the transfer data service request.
      *      This will be used only in the MCU process, right before sending the request to the ECU
      * 
-     * @param receiver_id 
+     * @param can_id 
      * @param current_data 
      * @param logger 
      */
-    static void processDataForTransfer(uint8_t receiver_id, std::vector<uint8_t>& current_data, Logger& logger);
+    static void processDataForTransfer(canid_t can_id, std::vector<uint8_t>& current_data, int socket, Logger& logger);
     /**
      * @brief method used to compute a simple checksum for a block of data transferred
      * 

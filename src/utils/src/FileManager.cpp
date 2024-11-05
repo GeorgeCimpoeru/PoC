@@ -304,3 +304,114 @@ bool FileManager::extractZipFile(uint8_t target_id, const std::string &zipFilePa
     zip_close(archive);
     return true;
 }
+
+void FileManager::setDidValue(const uint16_t did, const std::vector<uint8_t>& value, canid_t can_id, Logger& logger, int socket)
+    {
+        /* Create an instance of GenerateFrames with the CAN socket */
+        GenerateFrames generate_frames = GenerateFrames(socket, logger);
+        std::string file_path = std::string(PROJECT_PATH);
+        /* Extract and switch sender and receiver */
+        uint8_t receiver_id = can_id  & 0xFF;
+
+        switch (receiver_id)
+        {
+            case 0x10:
+            file_path += "/src/mcu/mcu_data.txt";           
+            break;
+        
+            case 0x11:
+            file_path += "/src/ecu_simulation/BatteryModule/battery_data.txt";
+            break;
+
+            case 0x12:
+            file_path += "/src/ecu_simulation/EngineModule/engine_data.txt";
+            break;
+        
+            case 0x13:
+            file_path += "/src/ecu_simulation/DoorsModule/doors_data.txt";
+            break;
+
+            case 0x14:
+            file_path += "/src/ecu_simulation/HVACModule/hvac_data.txt";
+            break;
+       
+            default:
+                LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
+                break;
+        }
+
+        auto data_map = FileManager::readMapFromFile(file_path);
+        auto did_it = data_map.find(did);
+
+        if(did_it == data_map.end())
+        {
+            LOG_WARN(logger.GET_LOGGER(), "DID {} not found when trying to set value", did);
+            return;
+        }
+        did_it->second = value;
+
+        FileManager::writeMapToFile(file_path, data_map);
+
+        uint8_t target_id = (can_id & 0x00FF0000) >> 16;
+        
+        /* The write data by identifier will not be sent in this case */
+        if ((((target_id == 0x10) || (target_id == 0)) && (receiver_id == 0x10)) || (socket == -1))
+        {
+            return;
+        }
+        
+        if (target_id == 0)
+        {
+            target_id = 0x10;
+        }
+        
+        canid_t sender_id = (receiver_id << 8) | target_id; 
+        /* Create the can frame : PCI, SID, DIS MSB, DID LSB, Data */
+        std::vector<uint8_t> wdbi_frame;
+        wdbi_frame.push_back(0x03); /* PCI */
+        wdbi_frame.push_back(0x2e); /* Service ID */
+        wdbi_frame.push_back((did >> 8) & 0xFF); /* did 0XE0*/
+        wdbi_frame.push_back(did & 0xFF); /* did 0X01*/
+        wdbi_frame.insert(wdbi_frame.end(),value.begin(), value.end()); /* data to be written */
+        
+        /* Send the postive response frame */ 
+        generate_frames.sendFrame(sender_id, wdbi_frame, socket, DATA_FRAME);
+    }
+
+    const std::vector<uint8_t> FileManager::getDidValue(const uint16_t did, canid_t can_id, Logger& logger)
+    {
+        /* Should also contain validation */
+        //std::string file_path = std::string(PROJECT_PATH) + "/src/mcu/mcu_data.txt";
+        std::string file_path = std::string(PROJECT_PATH);
+        /* Extract and switch sender and receiver */
+        uint8_t receiver_id = can_id  & 0xFF;       
+               
+        switch (receiver_id)
+        {
+            case 0x10:
+            file_path += "/src/mcu/mcu_data.txt";           
+            break;
+        
+            case 0x11:
+            file_path += "/src/ecu_simulation/BatteryModule/battery_data.txt";
+            break;
+
+            case 0x12:
+            file_path += "/src/ecu_simulation/EngineModule/engine_data.txt";
+            break;
+        
+            case 0x13:
+            file_path += "/src/ecu_simulation/DoorsModule/doors_data.txt";
+            break;
+
+            case 0x14:
+            file_path += "/src/ecu_simulation/HVACModule/hvac_data.txt";
+            break;
+       
+            default:
+            LOG_ERROR(logger.GET_LOGGER(), "Module with id {:x} not supported.", receiver_id);
+            break;
+        }
+        auto data_map = FileManager::readMapFromFile(file_path);
+        return data_map.at(did);
+    }

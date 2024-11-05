@@ -18,6 +18,8 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     uint16_t routine_identifier = request[3] << 8 | request[4];
     std::vector<uint8_t> response;
     NegativeResponse nrc(socket, rc_logger);
+    /* Auxiliary variable used for can_id in setDidValue method */
+    canid_t aux_can_id = can_id;
     uint8_t receiver_id = can_id & 0xFF;
     uint8_t sender_id = can_id >> 8 & 0xFF;
     uint8_t target_id = can_id >> 16 & 0xFF; 
@@ -25,7 +27,7 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
     std::vector<uint8_t> routine_result = {0x00};
     /* reverse ids */
     can_id = receiver_id << 8 | sender_id;
-    OtaUpdateStatesEnum ota_state = static_cast<OtaUpdateStatesEnum>(MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0]);
+    OtaUpdateStatesEnum ota_state = static_cast<OtaUpdateStatesEnum>(FileManager::getDidValue(OTA_UPDATE_STATUS_DID, aux_can_id, rc_logger)[0]);
 
     if (request.size() < 6 || (request.size() - 1 != request[0]))
     {
@@ -144,12 +146,12 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
             LOG_INFO(rc_logger.GET_LOGGER(), "Initialise OTA update routine called.");
             if(initialiseOta(target_id, request, routine_result) == false)
             {
-                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ERROR});
+                FileManager::setDidValue(OTA_UPDATE_STATUS_DID, {ERROR}, aux_can_id, rc_logger, MCU::mcu->getMcuEcuSocket());
                 nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::IMLOIF);
             }
             else
             {
-                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {INIT});
+                FileManager::setDidValue(OTA_UPDATE_STATUS_DID, {INIT}, aux_can_id, rc_logger, MCU::mcu->getMcuEcuSocket());
                 routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
             }
 
@@ -226,12 +228,12 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
             LOG_INFO(rc_logger.GET_LOGGER(), "Verify installation routine called.");
             if(verifySoftware(receiver_id) == false)
             {
-                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {VERIFY_FAILED});
+                FileManager::setDidValue(OTA_UPDATE_STATUS_DID, {VERIFY_FAILED}, aux_can_id, rc_logger, socket);
                 nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::IMLOIF);
             }
             else
             {
-                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {VERIFY_COMPLETE});
+                FileManager::setDidValue(OTA_UPDATE_STATUS_DID, {VERIFY_COMPLETE}, aux_can_id, rc_logger, socket);
                 routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
             }
             AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
@@ -267,7 +269,6 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
             if(saveCurrentSoftware() == false)
             {
                 LOG_ERROR(rc_logger.GET_LOGGER(), "Current software saving failed.");
-                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_FAILED});
                 nrc.sendNRC(can_id, ROUTINE_CONTROL_SID, NegativeResponse::IMLOIF);
                 AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
                 return;
@@ -276,13 +277,11 @@ void RoutineControl::routineControl(canid_t can_id, const std::vector<uint8_t>& 
             
             if(activateSoftware() == false)
             {
-                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_FAILED});
                 LOG_ERROR(rc_logger.GET_LOGGER(), "Software activation failed, restoring previous software version..");
                 rollbackSoftware();
             }
             else
             {
-                MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE_INSTALL_COMPLETE});
                 routineControlResponse(can_id, sub_function, routine_identifier, routine_result);
             }
             AccessTimingParameter::stopTimingFlag(receiver_id, 0x31);
@@ -333,7 +332,6 @@ bool RoutineControl::initialiseOta(uint8_t target_ecu, const std::vector<uint8_t
     catch(const py::error_already_set& e)
     {
         LOG_ERROR(rc_logger.GET_LOGGER(), "Python error: {}", e.what());
-        MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ERROR});
         return false;
     }
     if(version_size == -1)
@@ -366,8 +364,7 @@ bool RoutineControl::initialiseOta(uint8_t target_ecu, const std::vector<uint8_t
 }
 
 bool RoutineControl::activateSoftware()
-{
-    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ACTIVATE});
+{    
     /* Checks for the system exit value to update the status in COMPLETED or FAILED */
     pid_t pid;
     std::string pname, ppath;
@@ -649,7 +646,6 @@ bool RoutineControl::handleDataCompressionEncryption(uint8_t receiver_id)
         else
         {
             LOG_ERROR(rc_logger.GET_LOGGER(), "Failed to extract files from ZIP archive.");
-            MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
             return 0;
         }
     }

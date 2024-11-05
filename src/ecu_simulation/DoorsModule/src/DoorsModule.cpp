@@ -9,6 +9,7 @@ std::unordered_map<uint16_t, std::vector<uint8_t>> DoorsModule::default_DID_door
         {0x03C0, {0}},  /* Door Driver Locked Status*/
         {0x03D0, {0}},  /* Door Passenger Locked Status*/
         {0x03E0, {0}},   /* Ajar Warning Status */
+        {0xE001, {0}},   /* OTA Status */
 #ifdef SOFTWARE_VERSION
         {0xF1A2, {static_cast<uint8_t>(SOFTWARE_VERSION)}}
 #else

@@ -3,7 +3,7 @@
 #include "../../ecu_simulation/EngineModule/include/EngineModule.h"
 #include "../../ecu_simulation/DoorsModule/include/DoorsModule.h"
 #include "../../ecu_simulation/HVACModule/include/HVACModule.h"
-bool ReceiveFrames::ecu_state = false;
+bool ReceiveFrames::ecu_state = true;
 ReceiveFrames::ReceiveFrames(int socket, int current_module_id, Logger& receive_logger) : socket(socket),
                                                                                             current_module_id(current_module_id),
                                                                                             running(true), 

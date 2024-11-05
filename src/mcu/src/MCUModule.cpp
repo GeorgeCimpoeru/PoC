@@ -40,7 +40,7 @@ namespace MCU
         /* System ECU Flash Software Version Number */
         0xF1AD,
         /* OTA Update Status */
-        0x01E0
+        0xE001
     };
     /* Constructor */
     MCUModule::MCUModule(uint8_t interfaces_number) : 
@@ -178,28 +178,5 @@ namespace MCU
             }
         }
         outfile.close();
-    }
-
-    void MCUModule::setDidValue(const uint16_t did, const std::vector<uint8_t>& value)
-    {
-        std::string file_path = std::string(PROJECT_PATH) + "/src/mcu/mcu_data.txt";
-        auto data_map = FileManager::readMapFromFile(file_path);
-        auto did_it = data_map.find(did);
-
-        if(did_it == default_DID_MCU.end())
-        {
-            LOG_WARN(MCULogger->GET_LOGGER(), "DID {} not found when trying to set value", did);
-            return;
-        }
-        did_it->second = value;
-        FileManager::writeMapToFile(file_path, data_map);
-    }
-
-    std::vector<uint8_t> MCUModule::getDidValue(const uint16_t did) const
-    {
-        /* Should also contain validation */
-        std::string file_path = std::string(PROJECT_PATH) + "/src/mcu/mcu_data.txt";
-        auto data_map = FileManager::readMapFromFile(file_path);
-        return data_map.at(did);
     }
 }

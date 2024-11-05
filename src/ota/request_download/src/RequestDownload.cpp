@@ -27,7 +27,9 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
 {
     NegativeResponse nrc(socket, RDSlogger);
     LOG_INFO(RDSlogger.GET_LOGGER(), "Service 0x34 RequestDownload");
-    auto ota_status = MCU::mcu->getDidValue(OTA_UPDATE_STATUS_DID)[0];
+    /* Auxiliary variable used for can_id in setDidValue method */
+    canid_t aux_can_id = id;
+    auto ota_status = FileManager::getDidValue(OTA_UPDATE_STATUS_DID, aux_can_id, RDSlogger)[0];
     /* This will be replaced by OTA Session */
     /* Extract and switch sender and receiver */
     uint8_t receiver_id = id  & 0xFF;
@@ -71,7 +73,7 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
         AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
         return;
     }
-    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT});
+    FileManager::setDidValue(OTA_UPDATE_STATUS_DID, {WAIT}, aux_can_id, RDSlogger, socket);
 
     /** data format identifier is 0x00 when no compression or encryption method is used 
      * 0x11 when both compression and encryption are used
@@ -105,7 +107,7 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
         LOG_ERROR(RDSlogger.GET_LOGGER(), "Error: Invalid memory range");
         /* Request out of range */
         nrc.sendNRC(id, RDS_SID, NegativeResponse::ROOR);
-        MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
+        FileManager::setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED}, aux_can_id, RDSlogger, socket);
         AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
         return;
     }
@@ -122,13 +124,14 @@ void RequestDownloadService::requestDownloadRequest(canid_t id, std::vector<uint
     if (!isLatestSoftwareVersion())
     {
         LOG_INFO(RDSlogger.GET_LOGGER(), "Software is not at the latest version");
-        MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED});
+        FileManager::setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_FAILED}, aux_can_id, RDSlogger, socket);
         AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
         return;
     }
 
     RequestDownloadService::rds_data.max_number_block = calculate_max_number_block(memory_size);
     requestDownloadResponse(id, memory_address, RequestDownloadService::rds_data.max_number_block);
+    FileManager::setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_COMPLETED}, aux_can_id, RDSlogger, socket);
     AccessTimingParameter::stopTimingFlag(receiver_id, 0x34);
     return;
 }
@@ -283,7 +286,6 @@ void RequestDownloadService::requestDownloadResponse(canid_t id, int memory_addr
     }
     /* Call response method from generate_frames */
     generate_frames.requestDownloadResponse(id, max_number_block);
-    MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {WAIT_DOWNLOAD_COMPLETED});
     return;
 }
 
@@ -396,34 +398,6 @@ bool RequestDownloadService::isLatestSoftwareVersion()
        return true; 
     }
     return false;
-}
-
-void RequestDownloadService::downloadSoftwareVersion(uint8_t ecu_id, uint8_t sw_version)
-{
-    namespace py = pybind11;
-    py::scoped_interpreter guard{}; // start the interpreter and keep it alive
-    /* PROJECT_PATH defined in makefile to be the root folder path (POC)*/
-    std::string project_path = PROJECT_PATH;
-    std::string path_to_drive_api = project_path + "/src/ota/google_drive_api";
-    try
-    {
-
-        auto sys = py::module::import("sys");
-        sys.attr("path").attr("append")(path_to_drive_api);
-
-        /* Get the created Python module */
-        py::module python_module = py::module::import("GoogleDriveApi");
-        /* From the module, get the needed functionality (gDrive object) */
-        py::object gGdrive_object = python_module.attr("gDrive");
-
-        /* Call the downloadFile method from GoogleDriveApi.py */
-        gGdrive_object.attr("downloadFile")(ecu_id, sw_version);
-    }
-    catch(const py::error_already_set& e)
-    {
-        LOG_ERROR(RDSlogger.GET_LOGGER(), "Python error: {}", e.what());
-        MCU::mcu->setDidValue(OTA_UPDATE_STATUS_DID, {ERROR});
-    }
 }
 
 RDSData RequestDownloadService::getRdsData()

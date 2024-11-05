@@ -34,7 +34,7 @@
 #define LOGGER_H
 
 #define SPDLOG_COMPILED_LIB
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_WARN
 
 #define CONSOLE_LOGGER getConsoleLogger()
 #define FILE_LOGGER getFileLogger()
