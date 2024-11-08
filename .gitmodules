@@ -1,0 +1,12 @@
+[submodule "src/backend"]
+	path = src/backend
+	url = https://github.com/GeorgeCimpoeru/backend_repo.git
+	branch = main
+[submodule "src/front_end"]
+	path = src/front_end
+	url = https://github.com/GeorgeCimpoeru/frontend_repo.git
+	branch = main
+[submodule "src/android_app"]
+	path = src/android_app
+	url = https://github.com/GeorgeCimpoeru/mobile_repo.git
+	branch = main
