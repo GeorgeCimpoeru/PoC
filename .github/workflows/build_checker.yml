@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          submodules: true
 
       - name: Cache APT Dependencies
         uses: actions/cache@v3
@@ -48,6 +50,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          submodules: true
 
       - name: Cache APT Dependencies
         uses: actions/cache@v3
@@ -79,6 +83,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          submodules: true
 
       - name: Cache APT Dependencies
         uses: actions/cache@v3
@@ -110,6 +116,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          submodules: true
 
       - name: Cache APT Dependencies
         uses: actions/cache@v3
@@ -141,7 +149,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
+        with:
+          submodules: true
+          
       - name: Cache APT Dependencies
         uses: actions/cache@v3
         with:
