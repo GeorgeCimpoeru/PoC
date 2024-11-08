@@ -19,7 +19,11 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: true
-
+        run: |
+          cd src/backend/mcu
+          git checkout development
+          git pull origin development
+        
       - name: Cache APT Dependencies
         uses: actions/cache@v3
         with:
@@ -36,7 +40,6 @@ jobs:
 
       - name: Build MCU
         run: |
-          cd src/backend/mcu
           make
 
       - name: Upload MCU Artifact
@@ -151,7 +154,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: true
-          
+
       - name: Cache APT Dependencies
         uses: actions/cache@v3
         with:
