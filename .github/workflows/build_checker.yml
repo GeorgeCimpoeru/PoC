@@ -34,14 +34,14 @@ jobs:
 
       - name: Build MCU
         run: |
-          cd src/mcu
+          cd src/backend/mcu
           make
 
       - name: Upload MCU Artifact
         uses: actions/upload-artifact@v3
         with:
           name: mcu_build
-          path: src/mcu/build  # Adjust path if needed
+          path: src/backend/mcu/build  # Adjust path if needed
 
   battery_module_build:
     runs-on: ubuntu-latest
@@ -65,14 +65,14 @@ jobs:
 
       - name: Build Battery Module
         run: |
-          cd src/ecu_simulation/BatteryModule
+          cd src/backend/ecu_simulation/BatteryModule
           make
 
       - name: Upload Battery Module Artifact
         uses: actions/upload-artifact@v3
         with:
           name: battery_module_build
-          path: src/ecu_simulation/BatteryModule/build
+          path: src/backend/ecu_simulation/BatteryModule/build
 
   doors_module_build:
     runs-on: ubuntu-latest
@@ -96,14 +96,14 @@ jobs:
 
       - name: Build Doors Module
         run: |
-          cd src/ecu_simulation/DoorsModule
+          cd src/backend/ecu_simulation/DoorsModule
           make
 
       - name: Upload Doors Module Artifact
         uses: actions/upload-artifact@v3
         with:
           name: doors_module_build
-          path: src/ecu_simulation/DoorsModule/build
+          path: src/backend/ecu_simulation/DoorsModule/build
 
   engine_module_build:
     runs-on: ubuntu-latest
@@ -127,14 +127,14 @@ jobs:
 
       - name: Build Engine Module
         run: |
-          cd src/ecu_simulation/EngineModule
+          cd src/backend/ecu_simulation/EngineModule
           make
 
       - name: Upload Engine Module Artifact
         uses: actions/upload-artifact@v3
         with:
           name: engine_module_build
-          path: src/ecu_simulation/EngineModule/build
+          path: src/backend/ecu_simulation/EngineModule/build
 
   hvac_module_build:
     runs-on: ubuntu-latest
@@ -158,14 +158,14 @@ jobs:
 
       - name: Build HVAC Module
         run: |
-          cd src/ecu_simulation/HVACModule
+          cd src/backend/ecu_simulation/HVACModule
           make
 
       - name: Upload HVAC Module Artifact
         uses: actions/upload-artifact@v3
         with:
           name: hvac_module_build
-          path: src/ecu_simulation/HVACModule/build
+          path: src/backend/ecu_simulation/HVACModule/build
 
   finalize:
     runs-on: ubuntu-latest
