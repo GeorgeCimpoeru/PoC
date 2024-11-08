@@ -43,6 +43,7 @@ jobs:
 
       - name: Build MCU
         run: |
+          cd src/backend/mcu
           make
 
       - name: Upload MCU Artifact
