@@ -17,6 +17,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Checkout MCU submodule to specific branch
+        run: |
+          cd src/backend/mcu
+          git checkout development
+          git pull origin development
 
       - name: Cache APT Dependencies
         uses: actions/cache@v3
@@ -34,20 +43,29 @@ jobs:
 
       - name: Build MCU
         run: |
-          cd src/mcu
+          cd src/backend/mcu
           make
 
       - name: Upload MCU Artifact
         uses: actions/upload-artifact@v3
         with:
           name: mcu_build
-          path: src/mcu/build  # Adjust path if needed
+          path: src/backend/mcu/build  # Adjust path if needed
 
   battery_module_build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Checkout BATTERY submodule to specific branch
+        run: |
+          cd src/backend/ecu_simulation/BatteryModule
+          git checkout development
+          git pull origin development
 
       - name: Cache APT Dependencies
         uses: actions/cache@v3
@@ -65,20 +83,29 @@ jobs:
 
       - name: Build Battery Module
         run: |
-          cd src/ecu_simulation/BatteryModule
+          cd src/backend/ecu_simulation/BatteryModule
           make
 
       - name: Upload Battery Module Artifact
         uses: actions/upload-artifact@v3
         with:
           name: battery_module_build
-          path: src/ecu_simulation/BatteryModule/build
+          path: src/backend/ecu_simulation/BatteryModule/build
 
   doors_module_build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Checkout DOORS submodule to specific branch
+        run: |
+          cd src/backend/ecu_simulation/DoorsModule
+          git checkout development
+          git pull origin development
 
       - name: Cache APT Dependencies
         uses: actions/cache@v3
@@ -96,20 +123,29 @@ jobs:
 
       - name: Build Doors Module
         run: |
-          cd src/ecu_simulation/DoorsModule
+          cd src/backend/ecu_simulation/DoorsModule
           make
 
       - name: Upload Doors Module Artifact
         uses: actions/upload-artifact@v3
         with:
           name: doors_module_build
-          path: src/ecu_simulation/DoorsModule/build
+          path: src/backend/ecu_simulation/DoorsModule/build
 
   engine_module_build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Checkout ENGINE submodule to specific branch
+        run: |
+          cd src/backend/ecu_simulation/EngineModule
+          git checkout development
+          git pull origin development
 
       - name: Cache APT Dependencies
         uses: actions/cache@v3
@@ -127,20 +163,29 @@ jobs:
 
       - name: Build Engine Module
         run: |
-          cd src/ecu_simulation/EngineModule
+          cd src/backend/ecu_simulation/EngineModule
           make
 
       - name: Upload Engine Module Artifact
         uses: actions/upload-artifact@v3
         with:
           name: engine_module_build
-          path: src/ecu_simulation/EngineModule/build
+          path: src/backend/ecu_simulation/EngineModule/build
 
   hvac_module_build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Checkout HVAC submodule to specific branch
+        run: |
+          cd src/backend/ecu_simulation/HVACModule
+          git checkout development
+          git pull origin development
 
       - name: Cache APT Dependencies
         uses: actions/cache@v3
@@ -158,14 +203,14 @@ jobs:
 
       - name: Build HVAC Module
         run: |
-          cd src/ecu_simulation/HVACModule
+          cd src/backend/ecu_simulation/HVACModule
           make
 
       - name: Upload HVAC Module Artifact
         uses: actions/upload-artifact@v3
         with:
           name: hvac_module_build
-          path: src/ecu_simulation/HVACModule/build
+          path: src/backend/ecu_simulation/HVACModule/build
 
   finalize:
     runs-on: ubuntu-latest
