@@ -59,6 +59,13 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: true
+          fetch-depth: 0
+
+      - name: Checkout BATTERY submodule to specific branch
+        run: |
+          cd src/backend/ecu_simulation/BatteryModule
+          git checkout development
+          git pull origin development
 
       - name: Cache APT Dependencies
         uses: actions/cache@v3
@@ -92,6 +99,13 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: true
+          fetch-depth: 0
+
+      - name: Checkout DOORS submodule to specific branch
+        run: |
+          cd src/backend/ecu_simulation/DoorsModule
+          git checkout development
+          git pull origin development
 
       - name: Cache APT Dependencies
         uses: actions/cache@v3
@@ -125,6 +139,13 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: true
+          fetch-depth: 0
+
+      - name: Checkout ENGINE submodule to specific branch
+        run: |
+          cd src/backend/ecu_simulation/EngineModule
+          git checkout development
+          git pull origin development
 
       - name: Cache APT Dependencies
         uses: actions/cache@v3
@@ -158,6 +179,13 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: true
+          fetch-depth: 0
+
+      - name: Checkout HVAC submodule to specific branch
+        run: |
+          cd src/backend/ecu_simulation/HVACModule
+          git checkout development
+          git pull origin development
 
       - name: Cache APT Dependencies
         uses: actions/cache@v3
